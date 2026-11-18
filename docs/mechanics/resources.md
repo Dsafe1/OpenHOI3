@@ -227,10 +227,10 @@ production, manpower, leadership and victory points; every country's capital.
   abilities are the history's, where a level researched would have raised one. And it is
   done for the country the player has as for the rest. That much looks like the hand
   that changes the laws before the first screen (section 5); how it is done wants a
-  reading, and whether the player's country should get it wants the maintainer's word,
+  reading, and whether the player's country should get it wants a decision,
   as the laws did (`docs/compatibility.md`, entry 6). **Both came on 2026-11-02**: the
   reading found the engine's own new-game pass, which gives every country its levels and
-  moves its laws, and the maintainer's word was "Yes everyone" - entry 6 reversed with it.
+  moves its laws, and the decision was "Yes everyone" - entry 6 reversed with it.
 - ~~*Home production* for three countries: Canada's and Australia's metal, where the save
   has less than ours, and Honduras's energy.~~ All three agree: the first two since the
   capital's area was read (section 3), Honduras's since 2026-11-14 (`politics.md`, section 7).

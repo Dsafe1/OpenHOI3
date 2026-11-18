@@ -1472,7 +1472,7 @@ public partial class CMapView : Node2D
 				break;
 			case InputEventMouseButton { ButtonIndex: MouseButton.Right } button:
 				// The right button orders the selected unit when it is let go where it went down. It does not move the
-				// map - the maintainer's word, 2026-11-12; the middle button, the keys and the minimap do.
+				// map - decided on 2026-11-12; the middle button, the keys and the minimap do.
 				if (button.Pressed)
 				{
 					_rightPress = button.Position;

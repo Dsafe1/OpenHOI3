@@ -7,7 +7,7 @@ and rain out of its humidity, its frost and mud out of rain and cold, and pulls 
 `climate.bmp`, its terrain, the **season** and the night. What weather does to a march, a battle, supply and the air was
 built before it (section 5); this is the weather itself. Read out of the original - `reversing/findings/FINDINGS-weathersim.md`,
 which consolidates and corrects `FINDINGS-weather.md`, `FINDINGS-weatherfront.md` and `FINDINGS-temperature.md` - and
-checked against two of the maintainer's saves an hour apart (section 7). `confirmed` unless marked.
+checked against two reference saves an hour apart (section 7). `confirmed` unless marked.
 
 Every figure is in thousandths and every division C's, cut toward nought; a figure marked *fixed* is compiled into the
 original, and a define is Their Finest Hour's value in `common/defines.lua`'s `weather` block.
@@ -177,21 +177,21 @@ The file is the one the first type naming that `effect` gives, as the original k
 (`reversing/findings/FINDINGS-weathersim.md`, C.3.1). *Ours:* the pictures of one kind are drawn together, where the
 original draws them in the order its scene reaches them; and they are drawn over the counters, which the reading leaves
 open. They
-follow the hour, and draw at every zoom - dots from far off. **Measured** on the maintainer's screenshots of 2026-10-15:
+follow the hour, and draw at every zoom - dots from far off. **Measured** on screenshots of the original of 2026-10-15:
 at 33 screen pixels to a map pixel, the square cloud over the Breton Coast is 162 pixels wide - 4.9 map pixels against
 the 5 a map unit to a pixel gives - and its middle 133 pixels, 4.0 map pixels, north of where the sea zone's name is
 written.
 
 **Only the plain icons**: the original draws them where its `alwaysCounters` setting is on, and with it off draws the
 same names without `_simple` - a cloud with rain or snow falling under it, and lightning in a storm. **`alwaysCounters`
-off is not supported** (`docs/compatibility.md`, entry 12; `settings.md`), by the maintainer's word on 2026-10-15, so
+off is not supported** (`docs/compatibility.md`, entry 12; `settings.md`), by the decision of 2026-10-15, so
 those are never drawn. They were built that day and taken out the same day; the original's `weather_billboard.fx` moves
 the rain at uv + (0.000025t, -0.00005t) for its colour alone and the snow at uv + (sin(-0.00001t x 3 x 3.14) / 100,
 -0.00001t), and the lower picture hangs `2 x scale - 0.3` under the cloud (`reversing/findings/FINDINGS-weathersim.md`,
 section C.3). **t is not milliseconds**, as this said until 2026-11-07: each frame adds the seconds since the game was
 launched, modulo 1000, so the rain and the lightning run with the frame rate and speed up for 16.7 minutes before
-falling back to nothing (C.3.1). **Should the full art ever come back, that clock is built as read** - the
-maintainer's word, 2026-11-07: "Keep it as read for now."
+falling back to nothing (C.3.1). **Should the full art ever come back, that clock is built as read** -
+decided on 2026-11-07: "Keep it as read for now."
 
 **Its tooltip** takes the place of the province's name and owner:
 
@@ -267,8 +267,8 @@ spread over the provinces beside the start save's - 20 fronts to its 21, and eve
 - **A province's terrain**, for about one land province in two hundred: the weather check names the terrain the
   original holds for each (section 7).
 - ~~Whether the pictures draw at every zoom, and how big they are; the tooltip without the province's name.~~ Settled by
-  the maintainer's screenshots of 2026-10-15 (section 6): every zoom, the size read, and no name.
-- **Half brightness where the player knows little**: read and not seen - the maintainer's game ran with `debug fow`,
+  screenshots of the original of 2026-10-15 (section 6): every zoom, the size read, and no name.
+- **Half brightness where the player knows little**: read and not seen - the reference game ran with `debug fow`,
   which gives every province 9.
 - **The texture's green** the original's map gives a province, nought here.
 - **The seed of the generator during the 96 hours**: a new game's weather cannot be the original's roll for roll.

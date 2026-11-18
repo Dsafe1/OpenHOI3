@@ -50,7 +50,7 @@ counted as coming in.
 | neither | `§Y0` | `0 (§Y0§W)` |
 
 So a falling stock is a red number and a rising one a green number with a plus; the sign
-is carried by the colour. **The maintainer confirmed that of the running game on
+is carried by the colour. **That was confirmed of the running game on
 2026-10-08.** A change of less than one unit a day is written as a nought in
 the colour of the way it goes.
 
@@ -179,7 +179,7 @@ no trade and no convoy.
 ## 8. Tooltips
 
 Source: `reversing/findings/FINDINGS-productiontooltip.md`, read 2026-10-11. Tried with `--click`;
-the maintainer looked at them on 2026-10-11: "Looks good". How a tooltip is shown is `tooltips.md`; the sliders' own
+reviewed in play on 2026-10-11: "Looks good". How a tooltip is shown is `tooltips.md`; the sliders' own
 are `sliders.md`, section 6. `confirmed` unless said. By the element's name, all in the first half:
 
 | element | what it says |
@@ -236,7 +236,7 @@ says `BRIGADE_UPGRADE_MIL_CON_INFO` instead; nothing upgrades through the queue 
 
 ## What is not established, in one place
 
-1. **Little was seen running.** The maintainer confirmed one thing on 2026-10-08: a
+1. **Little was seen running.** One thing was confirmed on 2026-10-08: a
    falling resource is a red number with no minus sign. The rest is from the bytes.
 2. **What the buttons do**: the theatre buttons and the checkbox - and the five on a line
    of the build queue. The building, convoy and escort buttons are read (`buildinglines.md`,

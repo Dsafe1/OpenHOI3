@@ -63,8 +63,8 @@ always holds.
    country then knows every province at 9, the AI's included, nothing below lowers it, the player's country is given 9 on
    every province once more at the end, and a sea battle starts without the roll to find the enemy (`navalcombat.md`).
    **Here the fog of war off is the countries played's alone** - they know every province at 9, given at the rebuild's end,
-   and their fleets find an enemy's without the roll - and the AI's countries know what they would with it on: the
-   maintainer's word, 2026-11-08, "make it not affect the AI" (`docs/compatibility.md`, entry 21). Built since 2026-11-08
+   and their fleets find an enemy's without the roll - and the AI's countries know what they would with it on:
+   decided on 2026-11-08, "make it not affect the AI" (`docs/compatibility.md`, entry 21). Built since 2026-11-08
    (`CGameState.FogOfWar`, `CFogOfWarCommand`), a switch of the debug menu (Shift and 4) that posts the command. *Ours*
    besides: what everyone knows is made again the moment it is turned, where the original's flag waits for the day's
    rebuild; and it is not saved, as the original's is not.
@@ -161,7 +161,7 @@ province or without FROM. Their Finest Hour's one user is the covert operation `
 
 ## What looks wrong and is built so
 
-The original's, kept, none put to the maintainer:
+The original's, kept, none raised for a decision:
 
 - F has no floor, and nothing but spies feeds it;
 - the far radar ring is never reached;

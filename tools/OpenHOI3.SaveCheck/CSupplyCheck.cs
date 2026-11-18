@@ -318,7 +318,7 @@ public static class CSupplyCheck
 
 	/// <summary>
 	/// A trial and not a check: with countries released, the save has nothing to say, so
-	/// this only tells who draws on what. The maintainer watched the original do the same
+	/// this only tells who draws on what. The original was watched doing the same
 	/// on 2026-10-09 - <c>docs/mechanics/supply.md</c>, section 9.
 	/// </summary>
 	private static int Trial(CGameState state, List<string> involved)

@@ -175,14 +175,13 @@ one, and the corps stands in the unit's province or one it has an edge to, its c
 skill x 10, times how much of the corps' command reaches the unit (`leaders.md`, section 8).
 So a skill of 3 makes an infantry division's chance four in a hundred. `confirmed`
 
-**The maintainer's account of it agrees**, 2026-10-09, from playing the original: "As far as
-I know all units which attack at the same time get into the combat, unless the width is
-exhausted, then they go into reserve. If a unit joins later then it is put into reserve, and
-it has a chance to join each tick (or day). I think that chance is called the 'combat
-reinforcement chance'. The order in which they join from the reserve is therefore based on
-that chance." Each of those is a rule above: the front is filled once, in the first hour; a
+**An account of it agrees**, 2026-10-09, from playing the original: all units
+that attack at the same time get into the combat until the width is exhausted, and the rest go
+into reserve; a unit that joins later is put into reserve and has a chance to join each tick
+(or day), probably the "combat reinforcement chance"; so the order in which units join from the
+reserve follows that chance. Each of those is a rule above: the front is filled once, in the first hour; a
 unit that joins a battle already begun waits in reserve; and it comes up by a roll against
-its chance - every hour, as read, not every day. What he does not speak to is the order the
+its chance - every hour, as read, not every day. What the account does not speak to is the order the
 first hour puts units on the front in, and the score that picks between two reserves whose
 rolls both let them; those rest on the reading alone.
 
@@ -533,8 +532,8 @@ reading that had every hour start afresh.
 How the original turns a figure into its generator's first state is read since 2026-11-07 -
 the usual recurrence, its shift keeping the sign (`reversing/findings/FINDINGS-espionage.md`,
 the record's `MT19937Seed`), which `CRandom` follows. **An hour of the original can be rolled again here given the generator's whole
-state at its start**, dumped from the running game, a save holding only its seed and count; that is the next step of *Next up* in the
-readme.
+state at its start**, dumped from the running game, a save holding only its seed and count; that is the next step of *Next up* in
+`docs/worklist.md`.
 
 **Set beside the running game, 2026-11-10** (`reversing/findings/FINDINGS-liveread.md`, section 7): the first hour of `Ireland1938_08_03_14.hoi3`, the
 original's generator put in before each battle (`OpenHOI3.SaveCheck load ... generator=FOLDER battles=FILE`). Every battle both had going gives the same
@@ -572,7 +571,7 @@ After that it runs down an hour an hour.
 taken a step does not start a battle and does not set off at all; a unit that arrives with one
 running starts its next leg from nothing; a unit already walking keeps walking.
 
-**The maintainer, 2026-10-09**, asked whether a delay really stops all movement: "Yes,
+**Settled on 2026-10-09**, asked whether a delay really stops all movement: "Yes,
 however it does not stop the movement into the province which was attacked. So the unit may
 arrive with the cooldown still active." That is what the rule above comes to: the attacker
 has walked while it fought, so it is under way when the battle ends, arrives, and stands
@@ -581,7 +580,7 @@ there until the delay has run out.
 **And a delay holds a unit falling back too.** A beaten defender sets off at `RETREAT_PROGRESS` times the
 share of its way the furthest of its side had walked - nothing, where none of them was walking - and
 nothing about falling back clears the delay, so one still running keeps it standing in the province it lost
-until the delay is out. Read in the bytes on 2026-11-02, and **tried in the original by the maintainer the
+until the delay is out. Read in the bytes on 2026-11-02, and **tried in the original the
 same day**: "A unit with cooldown doesnt get movement progress during retreat, retreating does not clear it
 in any way. Only after it ran out does it begin gaining progress." The same holds for a defender the AI
 orders out of a battle, which falls back from where it stands (`movement.md`, section 4).
@@ -628,7 +627,7 @@ plain defence, with an assault or a shock for a day now and then. A sixth argume
 of the attacking unit's name, for a trial with a division other than the first found.
 
 Two infantry divisions alike in everything, with nothing for or against either, fight for
-about a week and lose a twentieth of their strength each. The maintainer, 2026-10-09: "yep,
+about a week and lose a twentieth of their strength each. Judged on 2026-10-09: "yep,
 that seems right".
 
 **On the map.** Ground one country owns and another holds is **striped**, as the original's
@@ -655,7 +654,7 @@ whom, for how long, and how many stand on each front; it is scaffolding.
 ### Not established
 
 - **Nothing here was watched.** The order of a front and who comes up from reserve decide who
-  is shot at, and so the course of a battle. The maintainer's account of how the original
+  is shot at, and so the course of a battle. The account of how the original
   plays (section 3) agrees with how the front is filled and that reserves come up by chance;
   the order of the first hour's front and the score between two reserves are still the
   reading's alone.

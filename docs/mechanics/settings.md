@@ -2,14 +2,14 @@
 
 The player's settings are the original's own: `settings.txt` in `Documents\Paradox Interactive\Hearts of Iron III`, the
 file the original writes as it is played - **not** the one shipped beside its executable. Read as a session starts
-(`Content/Settings`, `CUserSettingsReader`) by the maintainer's word of 2026-10-15, and **written as the original writes
-it** by his word of 2026-11-04 (`docs/compatibility.md`, entry 13): by the game options window's Apply (`gameoptions.md`)
+(`Content/Settings`, `CUserSettingsReader`) by the decision of 2026-10-15, and **written as the original writes
+it** by the decision of 2026-11-04 (`docs/compatibility.md`, entry 13): by the game options window's Apply (`gameoptions.md`)
 and as a session ends, the original writing it every time a game is left (`CUserSettingsWriter`). With no file, the
 original's defaults stand. The same folder holds the player's message settings, `messagetypes_custom.txt`, which the
 in-game menu writes too (`ingamemenu.md`, section 5). **With a mod both are the mod's player folder's**,
 `...\Hearts of Iron III\<user_dir>`, the original's write folder then (`mods.md`, section 2; compatibility entry 13 says
 where the original's reading falls through and this does not). Read out of the original
-(`reversing/findings/FINDINGS-settingswindow.md`, sections B and C) and set against the maintainer's file.
+(`reversing/findings/FINDINGS-settingswindow.md`, sections B and C) and set against a reference file.
 
 ## 1. What is read
 
@@ -66,7 +66,7 @@ each followed by a space, and the brace after them. Every line ends CR LF, and a
 both seen in every file the original writes, not read.
 
 **Checked**: `OpenHOI3.SaveCheck settings [file]` reads a file and writes it again in memory: on 2026-11-04 the
-maintainer's base game file and BlackICE's came out **byte for byte**, 825 and 823 bytes. Nothing is written to the
+reference base game file and BlackICE's came out **byte for byte**, 825 and 823 bytes. Nothing is written to the
 disk by the check.
 
 ## Not established

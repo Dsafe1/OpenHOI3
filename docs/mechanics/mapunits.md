@@ -8,8 +8,8 @@ meaning counted here against the files of a Their Finest Hour install on 2026-10
 Sources: `reversing/findings/FINDINGS-counters.md`,
 `reversing/findings/FINDINGS-deploymenu.md`, for the command a finished unit is placed
 by `reversing/findings/FINDINGS-buildqueue.md`, and for the buildings on the map
-`reversing/findings/FINDINGS-seaair.md`. The maintainer looked at it on 2026-10-09
-and gave a screenshot of one of the original's counters, which section 2 is measured
+`reversing/findings/FINDINGS-seaair.md`. It was reviewed in play on 2026-10-09,
+with a screenshot of one of the original's counters, which section 2 is measured
 against; the last section says what a further look would settle.
 
 Where this project deliberately does something else, or had nothing to go by, the
@@ -22,7 +22,7 @@ bounding box unless `positions.txt` gives it a `unit` point, or for a sea zone a
 `text_position`. That file is read now (2026-10-09), by a reader of its own, since it is
 six megabytes of which those two keys are a small part.
 
-**A unit stands at its province's `unit` point.** The maintainer, 2026-10-09: "The unit
+**A unit stands at its province's `unit` point.** Settled on 2026-10-09: "The unit
 position is part of the positions.txt." The file has that one point for a province and no
 other for units (measured: 2754 `unit` blocks, and beside them only the text's and one
 `city`).
@@ -31,8 +31,8 @@ The original keeps **five points to a province**, one for each stack of section 
 stands a counter at its stack's: the first for a land unit or a fleet with no path, the
 second for one with a path, the last for an air unit, and the two between for the sides of
 a battle. `confirmed` (`reversing/findings/FINDINGS-movement.md`, section 9). With one
-point in the file the other four are worked out from it - read on 2026-10-10, after the
-maintainer showed the original's bombers lying over the stack they bomb: `confirmed`
+point in the file the other four are worked out from it - read on 2026-10-10, after a
+screenshot showed the original's bombers lying over the stack they bomb: `confirmed`
 
 | stack | where it stands, from the province's point |
 | --- | --- |
@@ -45,20 +45,20 @@ On the original's screenshot the bombers' counter lies a quarter of a counter so
 of the defenders' top counter: that top counter is the stack's point moved 0.3 west and north
 for each of the four counters under it, and the bombers' is on the point itself.
 **Here until 2026-10-10 the stack of aircraft stood a counter's width east and north of the
-standing one** - a guess, and the maintainer saw it was wrong. **The battle stacks are built
+standing one** - a guess, and review in play showed it was wrong. **The battle stacks are built
 since 2026-11-14** (section 3): until then a unit in a battle stood in the standing or the
 moving stack, an attacker with a path among the moving, and a sea battle's two fleets in one
 stack. The stacks are drawn in the original's order of the five - standing, moving, attacking,
 defending, air - so on land a battle's sides lie over the standing stack on the same point.
 **The stack of units on the move is drawn 2.5 map units east and 1.0 north of the standing
-one**, the reading's figure, and over it - by the maintainer's word of 2026-11-14: "Use the
+one**, the reading's figure, and over it - by the decision of 2026-11-14: "Use the
 originals, that is the correct one." Until then it was drawn 2.6 east and 1.5 north, as
-measured below, the measure kept until he had chosen between the two. On a
-screenshot of the original the maintainer gave on 2026-10-09, a division setting off lies
+measured below, the measure kept until the two had been chosen between. On a
+screenshot of the original given on 2026-10-09, a division setting off lies
 3.7 map units east and 0.5 north of the top counter of the stack it leaves; that counter
 is itself 0.3 west and north for each of the four under it. The count of the stack is
 read off its edges, so the figure is good to a few tenths. Before the screenshot it was a
-guess, first of a whole counter's width - the maintainer: "Its way too big now" - and then
+guess, first of a whole counter's width - "Its way too big now" - and then
 of three tenths of one.
 
 **The default point was a pixel out until 2026-10-09** for a province whose bounding box
@@ -162,7 +162,7 @@ has it.
   at 0, every far counter a division's size. The near counter gives no `level_scale`, so every
   near counter is the same size. `confirmed` (`reversing/findings/FINDINGS-counters.md`,
   section 10.3). `counter_scale` is the player's settings.txt [mod: settings], 0 to 2 by the
-  game options' slider - "Counter hierarchy scale" - and the maintainer's account, 2026-11-07,
+  game options' slider - "Counter hierarchy scale" - and an account of the original's, 2026-11-07,
   is the same: each level up the chain is bigger. It is applied as it is read and from Apply
   on, the original's every counter being drawn and hit-tested through it.
 - **A counter is `2 * scale * its own scale` high** and as wide as its plate's picture
@@ -191,7 +191,7 @@ has it.
   or `=yes` gives the counters the other setting for a run, the file left alone.
 - **Only the top counter of a stack carries a flag, figures and a name.** `confirmed`
 
-**Measured on a screenshot of the original's near counter**, which the maintainer gave on
+**Measured on a screenshot of the original's near counter**, given on
 2026-10-09 - an armoured division, `2 - 2`, named `1. Panze`. Its unit picture gives the
 scale, 31 pixels to a map unit, and against that:
 
@@ -217,11 +217,11 @@ So north is the way it was taken to be, and three things the reading did not giv
 - **The flag has a dark frame**, about a fortieth of `scale` wide.
 
 ~~*Ours:* **the name is the unit's own**, as with
-`show_unit_names` on - which is how the maintainer's game is set, and there are no
-leaders to name and no settings to choose by. The maintainer, 2026-10-09: "It can stay
-that way until we implement the settings" (`docs/compatibility.md`, entry 7).~~ The setting
+`show_unit_names` on - which is how the reference game is set, and there are no
+leaders to name and no settings to choose by. Decided on 2026-10-09: it can stay
+that way until the settings are implemented (`docs/compatibility.md`, entry 7).~~ The setting
 is followed since 2026-11-14, as above. **Checked with `--click` that day**, near Berlin: with
-the maintainer's `show_unit_names=yes` the counters say `12. Infa`, `23. Infa` and `Ob.kdo.`;
+the reference settings' `show_unit_names=yes` the counters say `12. Infa`, `23. Infa` and `Ob.kdo.`;
 with `--unitnames=no` `Böhme`, `Busch`, `Guderian` and `von Böhm` - the selected division's
 `Busch` the unit panel's leader, the positive control. A unit type
 with no counter sprite of its
@@ -229,7 +229,7 @@ own is shown by the `unknown` one of the same family.
 
 ### The pointer of a unit on the move
 
-The maintainer, 2026-10-09, with a screenshot: "In the original a moving unit also has a
+Noted on 2026-10-09, with a screenshot: "In the original a moving unit also has a
 small green pointer at all times." It is the `counter_arrow` `billboardType` of
 `interface/mapitems.gfx`, which every counter has one of:
 `reversing/findings/FINDINGS-counters.md`, section 9.
@@ -278,7 +278,7 @@ battle - whether the unit's owner is among its attackers still in the fight. Yes
 stack; no, the defenders'. So an attacker on land, standing in its own province where there is
 usually no battle, goes by the battle it is in; and **an attacker standing in a province that is
 itself attacked stands with the defenders**. Built 2026-11-14 (`CMapCounters.StackOf`,
-`IsAttackerHere`), and seen on the maintainer's save of 2 November 1937: a Japanese fleet south-west
+`IsAttackerHere`), and seen on a reference save of 2 November 1937: a Japanese fleet south-west
 of the Western Ryukyu Sea's point and the Chinese fleet it attacks north-east, where both had stood
 in one stack.
 
@@ -296,7 +296,7 @@ level as the unit enters a province, where here it is worked out as the counters
 when units move, and each day after the day's intelligence. Built since 2026-11-07: until then there
 was no fog of war, and every stack showed up to six.
 
-**Within a stack the higher rank is on top.** The maintainer, 2026-10-09: "Correct." - and
+**Within a stack the higher rank is on top.** Confirmed on 2026-10-09: "Correct." - and
 read since, 2026-11-14 (`reversing/findings/FINDINGS-mapstacks.md`, sections 2 and 3,
 `confirmed`). A province keeps its units with a counter in one list, sorted as each comes in:
 **the player's own first**; then an air unit before a land unit it carries; then in a land
@@ -317,8 +317,8 @@ Until 2026-11-14 the player's own units were not put first, of two of a rank the
 was on top, and a selected unit was brought to the top with the others left as they were.
 
 **Only the counter on top of a stack takes a click.** `confirmed`: the original asks a
-near counter whether the mouse is on it only where it is the top one of a stack. The
-maintainer, 2026-10-09, of what follows from it: "You click the top unit only, if you hit
+near counter whether the mouse is on it only where it is the top one of a stack. An
+account of the original, 2026-10-09, of what follows from it: "You click the top unit only, if you hit
 the lower ones the click goes through to the province. Then if you keep clicking the unit
 it cycles through the units in the province." So a click on the top counter selects its
 unit, and each further click the next unit of the stack: the next in the province's list
@@ -371,7 +371,7 @@ The window `sidebar_deploy` of `interface/sidebar.gui`: a title, the list
 
 **The menu, the order of battle browser and the unit panel stand side by side**: the menu at the screen's left, 256 wide by
 its file, the browser at its right edge and the panel at the browser's - each pushed aside by those before it, and back to
-the edge when the menu closes. The original's screenshots show the three up at once (the maintainer's, 2026-11-13); until
+the edge when the menu closes. The original's screenshots show the three up at once (given 2026-11-13); until
 then the panel gave way to the menu here, which left the browser shut and the drag below impossible. *Ours:* the
 arithmetic, from the screenshots and not read.
 
@@ -411,7 +411,7 @@ click on a province the unit may be placed in** puts it there by itself. Either 
 list goes back to the units waiting.
 
 *Ours:* the provinces the unit may be placed in are tinted green on the map while one is
-being placed - the maintainer, 2026-10-09: "Looks good". That the original marks them is
+being placed - reviewed in play on 2026-10-09: "Looks good". That the original marks them is
 how the game is remembered; how was not
 read, nor was the click on the map that places a unit - only the menu's side of it. While
 a unit is being placed a click on the map is for the province and not for a counter on it.
@@ -443,7 +443,7 @@ asked.
 - **`src/Map/CUnitCounters`** draws them, over the map and in its coordinates; a click on
   the top counter of a stack selects a unit (section 3), which then wears the ring.
 - **What is on the map goes by how high the original's camera would be.** Read on
-  2026-10-09 (`reversing/findings/FINDINGS-camera.md`), after the maintainer's word that
+  2026-10-09 (`reversing/findings/FINDINGS-camera.md`), after an account of play that
   the original has "2 modes, the close and far", and that "in the far only the map shows,
   no counters or buildings":
 
@@ -459,19 +459,19 @@ asked.
   `screen height / (0.828 h)` pixels**: on a screen 1080 high, 2.6 at a height of 500, 13 at
   100, and 32.6 at 40. `confirmed` for the camera and for 500 and `counter_distance` as
   what stops a click on a counter or a building and what draws the hierarchy; that the
-  far view *draws* none of them is the maintainer's word, the compare that hides them not
-  having been found. His screenshot of a near counter (section 2) is 14.6 pixels to a map
+  far view *draws* none of them is that account's, the compare that hides them not
+  having been found. The screenshot of a near counter (section 2) is 14.6 pixels to a map
   unit, a height of 89.
 
   *Ours:* the map here is drawn at a zoom, so each rule is asked of the height that zoom
   would be. The zoom goes as close as the original's lowest height; the other way it goes
   on past the original's highest, until the whole map is on screen. **A game opens over the
   player's capital at the starting height, 330**, a new game and a loaded one alike - by the
-  maintainer's word of 2026-11-12, where it had opened on the whole map; where the original
+  decision of 2026-11-12, where it had opened on the whole map; where the original
   puts its camera on a load was not read. The console's `tag` and the screens made again keep
   the camera where it was.
 - **The zoom eases, as the original's does** (`reversing/findings/FINDINGS-camerazoom.md`; `CMapZoom`), built
-  2026-11-12 on the maintainer's report that ours was not smooth - it had been ×1.25 a notch at once. A wheel notch
+  2026-11-12 on a report from testing that ours was not smooth - it had been ×1.25 a notch at once. A wheel notch
   sets a **target height** of the current height less `0.2 × zoom_speed / 100` of it towards the map, or more
   `0.4 × zoom_speed / 100` away [exe the figures; mod: settings.txt `zoom_speed`, 50 by default - a tenth in, a fifth
   out], held to the limits, at most one notch a frame; and, unless the target landed on a limit or the pointer is within
@@ -489,12 +489,12 @@ asked.
   placed or ordered, and each hour that a unit is on the march or has just come off it -
   the hour it arrives is the one its counter has to change province in - not every frame.
   **And in the frame after any command has run, paused or not** (`CSimulation.Executed`): a unit renamed,
-  reorganised, merged or split shows on its counter at once, as in the original - the maintainer's word, 2026-11-18,
+  reorganised, merged or split shows on its counter at once, as in the original - decided on 2026-11-18,
   when ours waited for the next hour.
 
 ## 8. The hierarchy of a selected unit
 
-Read out of the original on 2026-10-09, after the maintainer's word that it "has hierarchy
+Read out of the original on 2026-10-09, after an account of play that it "has hierarchy
 lines and highlight" and that "they can be toggled with h":
 `reversing/findings/FINDINGS-hierarchy.md`. `confirmed` unless marked.
 
@@ -550,7 +550,7 @@ lines and highlight" and that "they can be toggled with h":
 - Every counter of a stack that is one of those wears it, not only the top one, and each
   pulses as the selected one's does (section 2).
 - A unit under the selected one that is selected itself keeps its own ring.
-- The first reading missed the ring of the units under it; the maintainer's word and a
+- The first reading missed the ring of the units under it; an account of the original and a
   screenshot of 2026-10-09 put it right. On that screenshot the selected headquarters wears
   green - an AI commands it there - and the three counters under it the blue-green.
 - The original gives the rings out when a unit is selected and takes them back when it no
@@ -590,7 +590,7 @@ by `vXOffset`, which stays nought, so one material serves a layer; and a battle 
 number is written over its badge in an item of its own, the effect not being for text. The
 pictures the original moves after hanging them - the large air and naval base and
 anti-aircraft pictures, the battle and convoy icons, and a building's `building_nudge` - do
-reach the place they are moved to, which the reading had left open: the maintainer's two
+reach the place they are moved to, which the reading had left open: two
 screenshots of the original's air map mode, 2026-11-07, have the air battle icon east of a
 province and the bombing icon south-west of it in one and north-west in the other - 3 east,
 3 south and 3 north, as read. Here they stand there too.
@@ -628,8 +628,8 @@ province and the bombing icon south-west of it in one and north-west in the othe
   wins (`reversing/findings/FINDINGS-seaair.md`, section 6, read off the bytes on 2026-11-13). Here counters are asked
   before buildings, which comes to the same.
 - **While a docked fleet or a based air unit is the one unit selected, a click still goes where it is aimed** - *ours*, by
-  the maintainer's word on 2026-11-13: the original then offers no building's picture and no unit elsewhere, so that every
-  second click on a port is lost, which he saw in the running game (`docs/compatibility.md`, entry 26).
+  the decision of 2026-11-13: the original then offers no building's picture and no unit elsewhere, so that every
+  second click on a port is lost, as seen in the running game (`docs/compatibility.md`, entry 26).
 - The original has a second picture for three of them - `large_air_base`,
   `large_naval_base`, `large_anti_air` - which a province keeps beside the first and asks
   about a click at any height.
@@ -658,13 +658,13 @@ point lies over it.
 
 **A building `positions.txt` gives no place stands in the middle of its province** - its label point, the centre of its
 box, which nothing in the file moves (`CMap.LabelPositions`) - and so do the fleets in its port and the air units at its
-base where a drag box asks for them. The maintainer's word, 2026-11-07, of the resource icons that share a building's
+base where a drag box asks for them. Observed in the original on 2026-11-07, of the resource icons that share a building's
 point (`mapmodes.md`, section 5); until then it stood at the province's unit point, ours, the original's not read.
 
 *Ours:*
 
 - the units of a port or an airfield are gone through in the order of their numbers, where
-  the original goes by the order they came in. The maintainer, 2026-10-09: "Its fine the
+  the original goes by the order they came in. Decided on 2026-10-09: "Its fine the
   way it is";
 - every building's picture is drawn all through the close view and none in the far view
   (section 7). Of the three larger pictures, `large_air_base` and `large_anti_air` are the
@@ -696,7 +696,7 @@ Nothing else in the menu says anything; its own close button would say `CLOSE`, 
 
 ## 11. The front line of a headquarters under an AI
 
-Read 2026-11-09, `reversing/findings/FINDINGS-frontline.md`; built in `CFrontLines` and drawn through the install's `front.fx` with its `front_arrow` picture. Hardcoded but that effect and that picture [mod]; the maintainer has not looked at it.
+Read 2026-11-09, `reversing/findings/FINDINGS-frontline.md`; built in `CFrontLines` and drawn through the install's `front.fx` with its `front_arrow` picture. Hardcoded but that effect and that picture [mod]; it has not been reviewed in play.
 
 A selected headquarters of the player's under an AI, its own or one above, has a line for **its own plan's area**. It comes when it is the single unit selected or its area changes, and goes when it is no longer selected or no AI is over it; an area gone empty leaves the line as it was. It is not drawn again on the hour, and it has no map mode, height or setting that hides it.
 
@@ -704,13 +704,13 @@ Each province of the area in the plan's order is walked for its neighbours on **
 
 ## 12. A plan's objectives and arrows
 
-Read 2026-11-09, `reversing/findings/FINDINGS-frontline.md`, section 7; `CPlanMarkers`, `CPlanMarkerLayer`. Hardcoded but the pictures and types in `items.gfx`, `core.gfx` and `arrows.gfx` [mod]; the maintainer has not looked at them.
+Read 2026-11-09, `reversing/findings/FINDINGS-frontline.md`, section 7; `CPlanMarkers`, `CPlanMarkerLayer`. Hardcoded but the pictures and types in `items.gfx`, `core.gfx` and `arrows.gfx` [mod]; they have not been reviewed in play.
 
 While a headquarters of the player's under an AI is the single unit selected, **every** plan of the player's under an AI shows: a marker on each objective - `icon_objective_strip` and the province's name in white, the frame and the grey of `MapObjectiveOther` for a plan not the selected one's - and, for a land unit with an axis, an arrow along it, `AutomationArrow` or `OtherAutomationArrow`, from province centre to centre and a quarter of the last leg further, drawn fully walked and twice, as the original makes two.
 
 **A right click on a province**, with a land headquarters selected that holds an agent itself, is the plan's: plain, it makes the province an objective or takes it off (priority 400, to be held, and the agent's area worked out again); with Shift it draws the axis there from where the unit stands. A unit under an agent above it takes no order at all.
 
-**A headquarters handed over runs as a country the AI runs does**: its divisions are committed, marched and sent to attack, its fleets and air units managed, with what its own plan says. Its objectives narrow its area: an objective on land the country does not own makes the fronts beside that objective's area the only ones taken, hot fronts and war candidates apart, and the area is worked out again at once (`reversing/findings/FINDINGS-setarea.md`, passes A to D). An objective in an area none of the theatre's fronts face changes nothing, the fronts being the theatre's own, as the maintainer confirmed of the original on 2026-11-09; `OpenHOI3.SaveCheck automate` is the trial. The plan starts at Prepare with its air and naval stances lowest, as a theatre's adoption gives it.
+**A headquarters handed over runs as a country the AI runs does**: its divisions are committed, marched and sent to attack, its fleets and air units managed, with what its own plan says. Its objectives narrow its area: an objective on land the country does not own makes the fronts beside that objective's area the only ones taken, hot fronts and war candidates apart, and the area is worked out again at once (`reversing/findings/FINDINGS-setarea.md`, passes A to D). An objective in an area none of the theatre's fronts face changes nothing, the fronts being the theatre's own, as confirmed of the original on 2026-11-09; `OpenHOI3.SaveCheck automate` is the trial. The plan starts at Prepare with its air and naval stances lowest, as a theatre's adoption gives it.
 
 **What the axis does**: it is no order to march. At Attack or Blitz a province of the enemy's scores more as a place to attack where it is on the axis, and a little more beside it, in `CLandAttack`; at other stances it does nothing. The AI's own axis is only ever drawn for countries it runs.
 

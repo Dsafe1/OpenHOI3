@@ -1,6 +1,6 @@
 # The log
 
-What the game writes about itself as it runs, and where. Built 2026-11-18, at the maintainer's request: "a logger to file
+What the game writes about itself as it runs, and where. Built 2026-11-18, as requested: "a logger to file
 ... in the place where the original puts them (so the documents folder)".
 
 ## 1. Where
@@ -13,8 +13,8 @@ the write directory and make their folders, and with a mod that is the mod's use
 **Here** the same folder (`CLogFiles.Folder`: the directory settings' `UserFolder` and `logs`), so a run with BlackICE logs
 into `...\Hearts of Iron III\BlackICE GitHub\logs`. *Ours*: **the files are our own** - `openhoi3.log`, and a crash's
 `crash-<time>.log` beside it - and none of the original's is ever written, so the two programs' logs stand side by side
-and a check that reads the original's (`OpenHOI3.SaveCheck checksum` reads its `setup.log`) is not disturbed. The
-maintainer's choice, 2026-11-18.
+and a check that reads the original's (`OpenHOI3.SaveCheck checksum` reads its `setup.log`) is not disturbed. Decided on
+2026-11-18.
 
 ## 2. What
 
@@ -27,7 +27,7 @@ Each line is flushed as it is written, so a crash loses nothing of it.
 
 *Ours*: `openhoi3.log` is this run's; the four before it are kept as `openhoi3_1.log` to `openhoi3_4.log`, newest first,
 each start moving them one place back and dropping the oldest (`CLogFiles.Start`) - so a run that went wrong is not lost
-by starting again. The maintainer's choice, 2026-11-18; the original keeps only the run it is.
+by starting again. Decided on 2026-11-18; the original keeps only the run it is.
 
 A crash's file is named by its time and never overwritten. Godot's own copy of its console, in its user folder
 (`user://logs`), is written as before.

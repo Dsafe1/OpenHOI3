@@ -21,7 +21,7 @@ public class EditLinePlacementTests
 	public void WithAPictureTheLineIsCentredInTheBoxsHeight()
 	{
 		// game_name: 260 by 32, a border of 6 down, Arial12_bold's line 14 - 6 + (32 - 14) / 2 = 15, so its capitals,
-		// 3 down the line and drawn a unit up, stand 17 below the box's top, as on the maintainer's screenshot.
+		// 3 down the line and drawn a unit up, stand 17 below the box's top, as on a screenshot of the original.
 		Assert.Equal(15f, CEditLinePlacement.Top(260, 32, 6, 14f, true));
 	}
 
@@ -36,7 +36,7 @@ public class EditLinePlacementTests
 	public void WithNoPictureTheLineIsTheBorderInTwiceAndAUnitLower()
 	{
 		// unitname: 235 by 24, a border of 4 down and no picture - 4 + 4, and one more against the drawing's unit up, so
-		// its figures stand 11 below the box's top, as on the maintainer's screenshot of the unit panel.
+		// its figures stand 11 below the box's top, as on a screenshot of the original's unit panel.
 		Assert.Equal(9f, CEditLinePlacement.Top(235, 24, 4, 14f, false));
 	}
 

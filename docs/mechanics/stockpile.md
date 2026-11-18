@@ -136,8 +136,8 @@ crude oil for 70.
 
 The money rule has a consequence for mods. BlackICE gives nearly every country
 `money = N` in its history file, so under it none of them gets any other money, and each
-starts with exactly what the file says. The mod's maintainer, asked on 2026-10-07, thinks
-that is what happens in play; it has not been measured.
+starts with exactly what the file says. An account from the mod's side, asked for on 2026-10-07, is
+that that is what happens in play; it has not been measured.
 
 ## 3. Two days have already passed on the first screen
 

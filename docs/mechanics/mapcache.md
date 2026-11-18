@@ -129,13 +129,13 @@ where they still read 0xFF**, so a texel off the land keeps the first value offe
 
 ## 11. Which cache is used
 
-`CMapCache.OpenOrBuild`: **the player's folder under Documents and nothing else** - `Documents\Paradox Interactive\Hearts of Iron III\map\cache` - by the maintainer's word of 2026-11-08, "Only use the one from documents" (`docs/compatibility.md`, entry 22). The install's shipped cache is never read by the game. **With a mod the folder is the mod's player folder's**, `...\Hearts of Iron III\<user_dir>\map\cache` (`mods.md`, section 2), which is where the original writes it then. Where the folder's cache is not the map's, one is built into it, over whatever stale files are there; a build takes the main thread about 2.3 seconds.
+`CMapCache.OpenOrBuild`: **the player's folder under Documents and nothing else** - `Documents\Paradox Interactive\Hearts of Iron III\map\cache` - by the decision of 2026-11-08, "Only use the one from documents" (`docs/compatibility.md`, entry 22). The install's shipped cache is never read by the game. **With a mod the folder is the mod's player folder's**, `...\Hearts of Iron III\<user_dir>\map\cache` (`mods.md`, section 2), which is where the original writes it then. Where the folder's cache is not the map's, one is built into it, over whatever stale files are there; a build takes the main thread about 2.3 seconds.
 
 A cache there is current if its `time` holds the map's stamp, whoever wrote it. The original takes a current `time` as saying every file of the folder is there, and reads `navaldist.bin` and the rest with nothing to fall back on, which is why a build makes the whole folder. The stamp is written last, so that a build cut short is never read.
 
 ## 12. The rest of the folder
 
-**These five files are built for compatibility with the original, and nothing here reads them** (the maintainer's word, 2026-11-08). The game works adjacencies, sea distances, climate and the province raster out for itself as it starts; they are written so that the folder is whole and the original can take it for its own. Whether reading them would save time at the start has not been measured.
+**These five files are built for compatibility with the original, and nothing here reads them** (decided on 2026-11-08). The game works adjacencies, sea distances, climate and the province raster out for itself as it starts; they are written so that the folder is whole and the original can take it for its own. Whether reading them would save time at the start has not been measured.
 
 - **`adjacencies.bin`**: for each province from id 0, a count and that many records of five 32-bit numbers: the kind of way, the neighbour, the province crossed, the distance in thousandths and the bearing (`movement.md`, `weather.md`).
 - **`navaldist.bin`**: the upper triangle of the table of distances by sea, its diagonal in it, row by row in sixteen bits (`fleetsandair.md`, section 3). The rows are measured side by side.

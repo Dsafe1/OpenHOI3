@@ -14,7 +14,7 @@ Sources: `reversing/findings/FINDINGS-airbattle.md`, with `reversing/findings/FI
 orders window makes them).
 
 **Nothing here was watched in the original, and nothing can be checked against a save**: none
-of the maintainer's has an air battle, and the rolls cannot be made again. It is the second of
+of the reference saves has an air battle, and the rolls cannot be made again. It is the second of
 the pieces air and naval combat was cut into (`navalcombat.md`); bombing, anti-aircraft fire,
 a carrier's aircraft and the air side on screen are not in it.
 
@@ -386,18 +386,18 @@ stays where it is.
 
 ## 9. Worth a look in the original
 
-Nothing here was watched. Each of these is built as read. **The maintainer, shown four of them
-on 2026-10-10** - items 1, 2, 3 and 8: of item 3, "Yes thats a bug in the original."; of the
-rest, "The other stuff i dont know of the top of my head. Just note them." So item 3 is the
-original's by his word as well as by the reading, and is kept as it is there - he called it
-a bug and did not ask for it to be mended; the others are noted and wait for somebody who
+Nothing here was watched. Each of these is built as read. **Four of them were raised for a decision
+on 2026-10-10** - items 1, 2, 3 and 8: item 3 is a bug in the original; the rest, not known
+offhand, are to be noted. So item 3 is the
+original's by that decision as well as by the reading, and is kept as it is there - it was called
+a bug and no mending was asked for; the others are noted and wait for somebody who
 can watch the original.
 
 1. **A beaten air unit beside the sea flies out to sea**, to the water with the most ports
    around it, and not to its base (section 8).
 2. **A unit too worn to fly, sitting at its base, cannot be attacked in the air** (section 7).
 3. **A wing's defence does nothing in an air battle**, and nor does `air_defence` (section 8).
-   A bug in the original, by the maintainer's word.
+   A bug in the original, by the decision of 2026-10-10.
 4. **Air superiority chases a target only where its country already knows the province** -
    over enemy ground, in practice where it has been (sections 5 and 6).
 5. **The intercept never asks whether its target's country is at war with its own** before

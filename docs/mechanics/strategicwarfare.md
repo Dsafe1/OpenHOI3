@@ -1,6 +1,6 @@
 # The Strategic Warfare Manager
 
-*Spec for `swm_window`, behind the top bar's `swm_open` (F8): `reversing/findings/FINDINGS-topscreens.md`, sections C and E. Read out of the original; the rings and the save are set against the maintainer's saves; the window tried with `--click` on those saves; the live tallies tried in tests and short battles. The maintainer has not looked at it. Files: `tfh/interface/stratwarfaremanager.gui`, `.gfx`. Figures are exe-hardcoded unless a define or a unit key is named.*
+*Spec for `swm_window`, behind the top bar's `swm_open` (F8): `reversing/findings/FINDINGS-topscreens.md`, sections C and E. Read out of the original; the rings and the save are set against the reference saves; the window tried with `--click` on those saves; the live tallies tried in tests and short battles. It has not been reviewed in play. Files: `tfh/interface/stratwarfaremanager.gui`, `.gfx`. Figures are exe-hardcoded unless a define or a unit key is named.*
 
 `Sim/StrategicWarfare` (`CWarfareLedger`, `CWarfareRecord`, `CWarfareCategory`, `CWarfareRing`, `CWarfareCosts`, `CWarfareTally`), `Interface/Screens` (`CWarfareText`, `CWarfareSeries`), `src/Screens` (`CWarfareView`, `CWarfareEntry`), `src/Gui/CLineChart`, `Content/Saves/CSaveWarfare`.
 

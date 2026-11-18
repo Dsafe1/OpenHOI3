@@ -1,7 +1,7 @@
 # The headless run: 1936 to 1948, nobody playing
 
 Stage 2 of the plan is done when "a 1936-1948 run completes headless with totals that are plausible against a real
-savegame" (`readme.md`, *The plan*). This is that run, taken up on 2026-10-16 as item (5) of the maintainer's order of
+savegame" (`docs/worklist.md`, *The plan*). This is that run, taken up on 2026-10-16 as item (5) of the order set on
 2026-10-15. It is a tool and not a mechanic: nothing here is read out of the original, and no rule of the simulation
 is changed by it.
 
@@ -14,7 +14,7 @@ order, no mission.
 
 **`from=1941.6.22` begins it at a later bookmark** (2026-11-15): the new game is made at that date as the lobby's
 bookmark of it makes it (`bookmarks.md`, section 3), and the end - a year or a date, `1941.10.22` - must lie after it.
-**Run it a few months at a time** (the maintainer's word on headless runs). `monthly` writes the great powers'
+**Run it a few months at a time** (the decision on headless runs). `monthly` writes the great powers'
 figures on every month's first day instead of twice a year, which a run of a few months wants; `watch=TAG,TAG` writes
 those countries' hold on their land each midnight, with their supplies, fuel, IC and shares of IC; and `tell=TAG,TAG`
 prints every message whose actor or recipient is one of them and every event fired for one of them as it happens, and
@@ -82,7 +82,7 @@ Over 78 countries, ours over the save's, the median: fuel 1.000, crude oil 1.08,
 1.31, energy 1.35, rare materials 1.37, money 0.87, officers 0.86, technology levels 0.80, diplomatic influence 14.9. So
 in four months fuel, oil and manpower are the save's; the resources run a third high, money and officers low, and
 research a fifth behind - each what an AI's spending, building and research would move. The save's own player,
-Germany, is the farthest in manpower (908 there, 405 here) and technology (227, 197): the maintainer was playing it.
+Germany, is the farthest in manpower (908 there, 405 here) and technology (227, 197): a person was playing it.
 
 ## 4. What it found
 
@@ -108,7 +108,7 @@ In order of what they cost the run:
 
 ### After the four were mended (2026-10-16)
 
-A shorter run, `headless <install> 1940`, at the maintainer's word ("you can do shorter runs for now"): 1936 to 1940 in
+A shorter run, `headless <install> 1940`, as decided ("you can do shorter runs for now"): 1936 to 1940 in
 770 seconds, nothing thrown, nothing below nought. **The Lua: no error** (28 by the end of 1939 before). **The script's
 gaps met: none** - every key the twelve years had met is answered or done. Events: 546 in four years, more than before
 in each year but 1938, the follow-ups `country_event` fires counted among them.
@@ -117,7 +117,7 @@ in each year but 1938, the follow-ups `country_event` fires counted among them.
 units by `split_troops`, the Republic's divisions standing in six of those provinces - Burgos, the new capital, and
 Valladolid and La Coruña among them, all their victory points - take them at the declaration that comes first in the
 event, and the next midnight the Nationalists capitulate and are annexed. **It waits for the AI**: in the original,
-by the maintainer's account, the AI has moved the Republic's units to the Portuguese border by then and the Nationalists
+by an account of it from play, the AI has moved the Republic's units to the Portuguese border by then and the Nationalists
 get units in their capital (`effects.md`, section 9).
 
 ### With the tech and production ministers (2026-10-16)
@@ -190,8 +190,8 @@ AI's odds, the fleets' hour, the sealift and invasions, and the air. `headless <
   error; 2171 units. The draws having moved, the Spanish Civil War did not fire this time.
 
 In both, **Italy's war on Ethiopia is still on at the year's end**: its attack takes provinces - eight by July in a run of
-2026-10-19 - but not the country. ~~The original's Italy is slower still: in the maintainer's save of 20 April 1936,
-Ethiopia owns and holds all 21 of its provinces~~ - that save is the outlier, by the maintainer's word: in the Ireland
+2026-10-19 - but not the country. ~~The original's Italy is slower still: in the reference save of 20 April 1936,
+Ethiopia owns and holds all 21 of its provinces~~ - that save is the outlier, by an account from play: in the Ireland
 game's save of 2 February 1936 the original's Italy holds 8 of them. Ours, after the corrections of the same evening, holds 9
 by that day (`moving.md`, section 21). A run of 1936 now takes about six minutes in Release, half as long again as with
 the unit agents alone.
@@ -218,7 +218,7 @@ Three things to look into, none of them yet looked into:
 
 1. **China falls in five months.** Its IC goes from 56 to 8 and its fuel and supplies to nought within half a year of
    the war. ~~the original's China holds out for years whatever the AI does~~ - that was said with nothing behind it.
-   **The original's war, measured** (2026-11-02, the maintainer's Ireland game, Japan and China both its AI, a save a
+   **The original's war, measured** (2026-11-02, the reference Ireland game, Japan and China both its AI, a save a
    month): China controls 339 provinces on 1 July 1937, 274 on 3 October, 224 on 5 January 1938, 188 on 3 April and 176
    on 3 August - half its land in thirteen months, the front slowing from the spring - and **capitulates about 23 August
    1938**: the capitulation enforces Japan's `china_war_goal`, whose `on_completion` is event 520 (`tfh/events/
@@ -246,7 +246,7 @@ misspelt faction, and for an empty tag's country, is not read. And one event's `
 | date | ours | the original's, the Ireland game |
 | --- | --- | --- |
 | 21 March 1936 | Ethiopia surrenders to Italy | 21 or 22 March 1936 |
-| 30 January 1937 | the Spanish Civil War, the Republicans annexing the Nationalists on 26 October | the Nationalists win "in less than a year", the maintainer's word |
+| 30 January 1937 | the Spanish Civil War, the Republicans annexing the Nationalists on 26 October | the Nationalists win "in less than a year", an account from play |
 | 1 July 1937, 19:00 | **the Marco Polo Bridge** | between 1 July 01:00 and 2 July 16:00 |
 | 17 September 1937 | Japan annexes Shanxi | about 9 October 1937 |
 | 27 December 1937 | **China capitulates**, Mengkukuo made the next day | about 23 August 1938 |
@@ -317,11 +317,11 @@ What the runs did, as a look and not a check - nothing is tuned to it, and the s
 
 ## 6. Not established
 
-- ~~What keeps the original's Spanish Civil War going past its first day~~ - the AI, by the maintainer's account: it
+- ~~What keeps the original's Spanish Civil War going past its first day~~ - the AI, by an account from play: it
   has moved the Republic's units away from the Nationalists' victory points by the time the event fires. Since the
   military AI's third piece it goes on here too (section 4, *With moving and attacking*).
 
-- Whether the totals are "plausible against a real savegame" past April 1936: no save of the maintainer's lies later.
-  A save of a later year, with nobody playing or with as little played as he can, would be the measure. The Ireland
+- Whether the totals are "plausible against a real savegame" past April 1936: no reference save lies later.
+  A save of a later year, with nobody playing or with as little played as can be, would be the measure. The Ireland
   game's saves of February and March 1936 (2026-10-16) are the closest to that so far.
 

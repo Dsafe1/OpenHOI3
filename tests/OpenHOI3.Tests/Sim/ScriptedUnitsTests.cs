@@ -69,7 +69,7 @@ public class ScriptedUnitsTests
 		Assert.Equal(4, full.SubUnits.Count);
 		CSubUnit given = one.SubUnits[1];
 		Assert.Equal(CFixedPoint.FromInt(5), given.Strength);
-		// Every technology at nought, the maintainer's word on the original.
+		// Every technology at nought, by an account of the original.
 		Assert.Empty(given.TechnologyLevels);
 		Assert.Equal(given.Organisation * 2, COrganisation.Ceiling(state, germany, given));
 	}

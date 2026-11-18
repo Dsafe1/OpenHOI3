@@ -251,7 +251,7 @@ public static class CSaveTop
 
 	/// <summary>
 	/// The events that fire once and have fired, each an id pair: by number, where the original walks its table's buckets
-	/// (*inferred*: no save of the maintainer's holds more than two).
+	/// (*inferred*: no reference save holds more than two).
 	/// </summary>
 	public static void WriteFiredEvents(CSaveTextWriter writer, CGameState state)
 	{

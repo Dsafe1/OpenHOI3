@@ -2,14 +2,14 @@
 
 Relation, threat and neutrality - the figures every agreement, every war and the AI's opinion of an
 offer are made of - how a new game sets them and how each moves. The first of diplomacy's pieces,
-cut by the maintainer on 2026-10-12: this; the diplomacy screen; Lua; the agreements; war and peace;
+cut so on 2026-10-12: this; the diplomacy screen; Lua; the agreements; war and peace;
 factions. The alignment triangle threat is weighed on is `alignment.md`, brought into this piece for
 it; the Lua a new game asks is `lua.md`.
 
 Sources: `reversing/findings/FINDINGS-diplostate.md` (A the start, B threat, C relation and
 neutrality, read 2026-10-12), `reversing/findings/FINDINGS-politics.md` (the daily pass, section 4),
 `reversing/findings/FINDINGS-effectrun.md` (the effects), `reversing/findings/FINDINGS-triggerleaves.md`
-and `FINDINGS-numtriggers.md` (the conditions). The start is checked against the maintainer's start
+and `FINDINGS-numtriggers.md` (the conditions). The start is checked against the reference start
 save pair for pair; the rest was read and set against nothing but saves of one game.
 
 ## 1. A pair

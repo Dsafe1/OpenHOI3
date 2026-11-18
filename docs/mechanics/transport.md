@@ -3,8 +3,8 @@
 Land units carried by a fleet: what boards what and how much a fleet carries, getting off, a passenger's hours at sea,
 what a sea battle and too little room do to it, the transport mission; a landing on a coast from the sea with its march,
 its battle and the invasion mission; the warning a landing raises; and what the screen shows of all of it. Read out of
-the original on 2026-10-15 (`reversing/findings/FINDINGS-transport.md`, sections A, B and C), and set against the
-maintainer's three screenshots of a landing at Danzig (section B.9 there) and against his saves, which hold carrying
+the original on 2026-10-15 (`reversing/findings/FINDINGS-transport.md`, sections A, B and C), and set against
+three screenshots of the original's of a landing at Danzig (section B.9 there) and against the reference saves, which hold carrying
 fleets. `confirmed` unless marked.
 
 **The carrier as an air base, carrying by air, the paradrop and the air supply** were read in the same wave (section D
@@ -13,8 +13,8 @@ shot-down transport's paratroopers were read through on 2026-10-16.
 
 **Built 2026-10-15**, sections 1 to 12 (`Sim/Transport`, `CTransportMission` and `CInvasionMission` in `Sim/Missions`,
 `CLoadUnitCommand` and `CUnloadUnitCommand`; `CTransportText` and `CCarryButtons` in `Interface/Screens`; the panel's
-`CLoadedUnitsEntry` and `CLoadedUnitRow`), tried with `--click` and set against the saves (section 14). The maintainer has
-not looked at it.
+`CLoadedUnitsEntry` and `CLoadedUnitRow`), tried with `--click` and set against the saves (section 14). It has
+not been reviewed in play.
 
 **Built 2026-10-16**, section 13 (`CCarriers` and `CAirTransport` in `Sim/Transport`, `CParadrop` and `CAirSupply` in
 `Sim/Missions`, `CLoadOnPlaneCommand` and `CUnloadFromPlaneCommand`; the strip's plane buttons, the air window's four
@@ -158,7 +158,7 @@ fleet may lie there (an open port, `fleetsandair.md`). **It does not ask what th
 
 So it waits at its base for passengers, sails, puts them off, and goes home. Arriving at the end of its path in the
 port already puts them off (section 4, way 2), so its next hour is the way home. **The French fleet** of the
-maintainer's saves - three transports, the Division de Tonkin aboard, from Saigon to Luganville - is in "has a path"
+reference saves - three transports, the Division de Tonkin aboard, from Saigon to Luganville - is in "has a path"
 every hour of the five saves, sailing 7.5 an hour (`transport_ship`'s 15 times `NAVAL_SPEED_MODIFIER` 0.5, *units file*
 and *define*).
 
@@ -225,7 +225,7 @@ technology: attack 20% to 100% and defence 150% to 100% over the 48 hours. The s
 on (`landcombat.md`, section 5): **its shots are its attack figure times the attack scale**, and **its defence is its
 defence figure times the defence scale**, each product cut.
 
-**Measured** on the maintainer's screenshots: progress 4.10% (1.0 of 24), attack 23.20%, defence 148.00%; progress
+**Measured** on the screenshots of the original: progress 4.10% (1.0 of 24), attack 23.20%, defence 148.00%; progress
 39.50% (9.5 of 24), attack 51.60%, defence 130.30%; at 100.00% both back at 1000. Every figure is the arithmetic above.
 
 **The amphibious penalty** (`BM_AMPH_PENALTY`), an attacker's alone. A unit counts as landing when it stands in the sea -
@@ -331,7 +331,7 @@ hours before anyone is ashore. A change of player empties the list.
 
 - the header `LOAD_CAPACITY_LABEL` "Can carry $NUM$ weight." - with nothing aboard `NUM` is the capacity, otherwise what
   is left and then the capacity in brackets: the French fleet reads **"Can carry 90 (120) weight."**, and a warship's
-  "Can carry 0 weight." (the maintainer, 2026-10-15);
+  "Can carry 0 weight." (seen in the original, 2026-10-15);
 - a row (`loadedunit_entry`) for each passenger, then for a fleet a row for every air unit aboard its carriers: the
   first brigade's counter where the player's intelligence of it is 3 or more, the size by the unit's level, its name,
   its order, its objective, and its organisation and strength bars - no strength figure. Pressing a row selects that
@@ -349,7 +349,7 @@ hours before anyone is ashore. A change of player empties the list.
   **Nothing else happens**: the map is not moved, no province is chosen, nothing is posted; each unit selected sounds as
   any selection does (`sound.md`, section 7). Built so, and tried with `--click` (section 14).
 - **The list is made when the fleet is selected and not again while it stays selected**: a unit that gets off stays in
-  it until the fleet is selected anew (the maintainer, 2026-10-15). An air unit's list is made again when its count
+  it until the fleet is selected anew (seen in the original, 2026-10-15). An air unit's list is made again when its count
   changes.
 
 **Several units selected** (`multi_unitpanel`), where the first selected is a land unit: `load_multiunit`,
@@ -465,7 +465,7 @@ fleet as it is met, and the rebase above does the same. What follows is the orig
 - **A fleet merged into another**: its ships go over with their groups aboard, and the fleet's removal leaves each of its
   units with nobody above it - a group still aboard then belongs to no unit. **A removed fleet's units are left with
   nobody above them** whatever they are; what the removal of a headquarters does with the land units under it here is
-  the readme's *Loose ends*.
+  the worklist's *Loose ends*.
 
 ### 13.2 Carrier protection
 
@@ -733,7 +733,7 @@ each row's strength 1.
 ## Not established
 
 - ~~A transport plane shot down with paratroopers aboard~~: **read on 2026-10-16** - they are removed with it, as a
-  fleet's are (section 13.3). The maintainer did not know.
+  fleet's are (section 13.3). It was not known from play.
 - Whether anything draws on a sea province's pool of supplies.
 - **A carrier removed lets its passengers go where they stand, or takes them with it**, by a flag its caller passes (read
   on 2026-10-16): the hourly removal, a capitulation and an annexation take them; a government going into exile, for a unit

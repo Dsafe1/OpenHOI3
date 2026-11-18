@@ -272,7 +272,7 @@ are left out and counted.
   gave the same 70 of 85 - 160 technologies left out for leadership the AI moved.
 - **The rough square root is needed**: with a true one in its place, ten of the 375 stop
   agreeing.
-- **Those saves, and every save of the maintainer's before 2026-11-07, were made by an
+- **Those saves, and every reference save before 2026-11-07, were made by an
   executable carrying BiceLib's minister decay patch on disk** (and its war exhaustion
   patch), which the fact base found that day by setting the installed executable beside an
   untouched copy (`reversing/findings/FINDINGS-bicelibsites.md`, section 1). So the

@@ -201,7 +201,7 @@ reads.
 every one the AI's** - the United States' `new_deal` on 1 January 1936, Italy's `trains_run_on_time` on 1 April,
 France's `popular_front` on 3 June, Germany's, the Soviet Union's and Italy's interventions in Spain on 20 June, the day
 the war began, and the Soviet `great_officer_purge` on 1 January 1937 - against none before. Japan's minister prepared
-its war on Shanxi and China on 1 July 1937, which is not ready (section 7). No Lua error. **No save of the maintainer's
+its war on Shanxi and China on 1 July 1937, which is not ready (section 7). No Lua error. **No reference save
 lies late enough to set the dates beside.**
 
 **The whole minister**, the same day: the same run has no Lua error and the same seven decisions, and its ministers

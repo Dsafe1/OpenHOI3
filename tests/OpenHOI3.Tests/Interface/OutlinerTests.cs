@@ -12,7 +12,7 @@ using OpenHOI3.Sim.Wars;
 namespace OpenHOI3.Tests.Interface;
 
 /// <summary>
-/// What the outliner lists and what its rows say, against <c>docs/mechanics/outliner.md</c> and the maintainer's three
+/// What the outliner lists and what its rows say, against <c>docs/mechanics/outliner.md</c> and three
 /// screenshots of the original's, with Their Finest Hour's strings where the test needs their shape.
 /// </summary>
 public class OutlinerTests
@@ -160,7 +160,7 @@ public class OutlinerTests
 			COutlinerText.UnitFigure(state, Unit(italy, EUnitKind.Division, "b", 2, strength: "9.999"), landRow: true, made: false));
 		CUnit fleet = Unit(italy, EUnitKind.Navy, "Regia Marina", 3, brigades: 18);
 		Assert.Equal("18", COutlinerText.UnitFigure(state, fleet, landRow: false, made: true));
-		// A fleet in the land tree is a land row, and shows its strength (the maintainer's screenshot: 19a Squadra di Marina).
+		// A fleet in the land tree is a land row, and shows its strength (a screenshot of the original: 19a Squadra di Marina).
 		Assert.Equal("100.0%", COutlinerText.UnitFigure(state, fleet, landRow: true, made: false));
 	}
 

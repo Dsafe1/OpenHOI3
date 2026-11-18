@@ -303,12 +303,12 @@ owner:
   is empty and nothing gives it leadership - and every country's officer ratio is counted each hour, the rebels'
   among them (`FINDINGS-occupation.md`, D.10): it is nought, and a brigade's ceiling is its figure times the ratio
   (`organisation.md`). So an army made at full organisation is at nought an hour later, and marches and fights so.
-  That is what the rules as read come to, and the maintainer confirms it of the original on 2026-10-15: rebels "dont"
+  That is what the rules as read come to, and it was confirmed of the original on 2026-10-15: rebels "dont"
   have organisation.
 
 ## 14. Against the saves
 
-All twelve of the maintainer's saves hold `rebel=1` and no `rebel_faction` block: **nothing has risen in that game by 20
+All twelve of the reference saves hold `rebel=1` and no `rebel_faction` block: **nothing has risen in that game by 20
 April 1936**, which is what the roll's one in 365 on top of the risk's one in thousands leads to. There is nothing to
 set a rising beside, so `OpenHOI3.SaveCheck rebels <install> [occupier] [occupied] [days] [seed]` is a trial, as the
 battles' are: the occupier at war with the occupied and holding ten of its provinces away from its capital, a rising

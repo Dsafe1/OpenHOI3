@@ -104,7 +104,7 @@ public class TransportTextTests
 		Assert.Equal("Can carry 120 weight.", CTransportText.Header(Localise, fleet));
 
 		CTransport.Board(fleet, Unit(state, germany, EUnitKind.Division, Kiel, CSubUnitType.TransportWeight, "10", 3));
-		// The French fleet of the maintainer's saves.
+		// The French fleet of the reference saves.
 		Assert.Equal("Can carry 90 (120) weight.", CTransportText.Header(Localise, fleet));
 		// A warship's panel says it too.
 		Assert.Equal("Can carry 0 weight.", CTransportText.Header(Localise, Unit(state, germany, EUnitKind.Navy, Kiel, "sea_attack", "5", 1)));

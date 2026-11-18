@@ -37,7 +37,7 @@ public sealed class CSpyMissionEntry
 			_priority.Pressed += () => Step(up: true);
 			_priority.RightPressed += () => Step(up: false);
 		}
-		// The title answers too, though it lets the mouse through (the maintainer, 2026-10-14).
+		// The title answers too, though it lets the mouse through (reported on 2026-10-14).
 		window.SetTooltips(_ => CEspionageTooltips.Mission(localise, mission), "title");
 		Refresh();
 	}

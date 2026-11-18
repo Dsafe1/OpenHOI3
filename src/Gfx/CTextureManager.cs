@@ -285,7 +285,7 @@ public sealed class CTextureManager
 	/// with the size rounded up to powers of two and no filter (<c>reversing/findings/FINDINGS-mapdraw.md</c>, A.3), so D3DX
 	/// makes a compressed texture of a new size and compresses the picture into it afresh; a flat stretch of colour then
 	/// comes out as the nearest colour of five, six and five bits, where the file's own blocks may have stored it otherwise.
-	/// Here the picture is unpacked and each texel set to that nearest colour - *inferred*, from the maintainer's screenshot
+	/// Here the picture is unpacked and each texel set to that nearest colour - *inferred*, from a screenshot of the original
 	/// of 2026-11-06, whose land is TFH's political colour map's grey 121 as (123, 121, 123) everywhere, where the file's
 	/// inland blocks give (121, 121, 121) and the GPU a greener grey (<c>docs/mechanics/mapdraw.md</c>, section 6). A picture
 	/// whose size is a power of two is left as it is.

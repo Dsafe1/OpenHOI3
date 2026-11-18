@@ -14,7 +14,7 @@ namespace OpenHOI3.Content.Checksum;
 public static class CFileChecksum
 {
 	/// <summary>
-	/// The original's version name, whose own sum is the last term: kept, by the maintainer's word of 2026-11-13, so that
+	/// The original's version name, whose own sum is the last term: kept, by the decision of 2026-11-13, so that
 	/// the letters are the original's for the same files.
 	/// </summary>
 	public const string VersionName = "HoI3 v4.02";

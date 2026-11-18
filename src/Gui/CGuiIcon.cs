@@ -416,7 +416,7 @@ public partial class CGuiIcon : CGuiObject
 	/// <summary>A progress bar's material, made from its sprite's effect; null for any other icon.</summary>
 	private CProgressBarMaterial? _bar;
 
-	/// <summary>A pie chart's slices, each a whole percent in its colour, drawn from three o'clock against the clock, as the maintainer's screenshot of the original has them.</summary>
+	/// <summary>A pie chart's slices, each a whole percent in its colour, drawn from three o'clock against the clock, as a screenshot of the original has them.</summary>
 	public void SetSlices(System.Collections.Generic.IReadOnlyList<(int Percent, Color Colour)> slices)
 	{
 		_slices = slices;
@@ -513,7 +513,7 @@ public partial class CGuiIcon : CGuiObject
 			return;
 		}
 		// The original's quad, y up: v nought along its foot and u nought at its left - so both pictures come out upside
-		// down, as measured on the maintainer's screenshots - and a bar that is not horizontal has u running up it, filling
+		// down, as measured on screenshots of the original - and a bar that is not horizontal has u running up it, filling
 		// from its foot (FINDINGS-progressfx.md, section 4). The effect splits the two at the share.
 		_barPoints[0] = new Vector2(0f, Size.Y);
 		_barPoints[1] = Vector2.Zero;

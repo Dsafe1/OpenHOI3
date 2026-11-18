@@ -1,11 +1,11 @@
 # The agreements: offers and pacts
 
-Diplomacy's fourth piece in the maintainer's order. An **offer** - one country proposing something to
+Diplomacy's fourth piece in the order set for it. An **offer** - one country proposing something to
 another - and the **pacts** an accepted offer makes: an alliance, a non-aggression pact, a guarantee,
 military access asked and offered, an embargo, influence on a nation and alignment towards a faction.
-The cut is this project's, not the maintainer's: **trade and aid** - trade, debt, lend-lease, licences,
+The cut is this project's, not that order's: **trade and aid** - trade, debt, lend-lease, licences,
 shared technology - come after; a declaration of war, peace, a call to arms, war goals and factions
-are later pieces of his order.
+are later pieces of that order.
 
 Source: `reversing/findings/FINDINGS-agreements.md` (an offer's way through the game, the screen's
 actions, what each pact does; read 2026-10-13), `reversing/findings/FINDINGS-diploaction.md` (the

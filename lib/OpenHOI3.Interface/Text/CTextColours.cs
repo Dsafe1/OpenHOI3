@@ -8,8 +8,8 @@ namespace OpenHOI3.Interface.Text;
 ///
 /// These are ours, and fixed. The original takes each font's from a <c>colorcodes</c>
 /// block in the font's own declaration, which a mod can change; that block is not read
-/// here. The maintainer looked at the red, green and yellow beside the top bar and
-/// kept them, and kept them again on learning where the original's are - for now. See
+/// here. The red, green and yellow were looked at beside the top bar and
+/// kept, and kept again once it was learned where the original's are - for now. See
 /// <c>docs/compatibility.md</c>, entry 5.
 /// </summary>
 public static class CTextColours

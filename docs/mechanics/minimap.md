@@ -66,7 +66,7 @@ tooltip `inferred`.
 **The terrain mode, with `mapmode_1` down**, a new game and a loaded one alike: nothing keeps a mode. `confirmed`. Since
 2026-11-07 a game here starts so, where it started in the political mode until then; `--mode=` still starts in another.
 **The lobby's map, where a country is chosen, is political**: the original's front end sets the political style
-(`reversing/findings/FINDINGS-frontend.md`, A.2), and the maintainer's word that day: "during country selection it is in
+(`reversing/findings/FINDINGS-frontend.md`, A.2), and an account of the original that day: "during country selection it is in
 political map mode."
 
 ## 4. The buttons
@@ -111,7 +111,7 @@ Since 2026-11-07 every button's mode is built; until then a button whose mode wa
 
 - **The minimap's background reaches up behind the buttons' lower part** - `minimap_bg` at 151 above the screen's foot,
   the buttons at 156. The buttons take a press anywhere on them, as in the original. *Ours:* the minimap is drawn over
-  the bar here, so its background lets the mouse through; until the maintainer's report of 2026-11-07 it took every press
+  the bar here, so its background lets the mouse through; until a report from testing of 2026-11-07 it took every press
   below a button's top five pixels.
 
 **The panel behind the column of buttons** at the screen's right is `menubar_panel_bg`, drawn from the file; nothing in the original asks for it by name [exe].
@@ -128,7 +128,7 @@ rule; that the share is the texture's whole width is `inferred`. Here a texture 
 
 **A province's tooltip stands over the minimap's upper left corner, 50 left of it and 20 above it, wherever on the map
 the mouse is** - the box standing on that point, pulled in only at the screen's right edge. `confirmed`, and the reason
-the maintainer's screenshot of the original has it over the minimap. Since 2026-11-07 this project's does so; it stood
+a screenshot of the original has it over the minimap. Since 2026-11-07 this project's does so; it stood
 over the mouse until then (`tooltips.md`, section 7). With no minimap - the front end - it stands over the mouse.
 
 ## Not established

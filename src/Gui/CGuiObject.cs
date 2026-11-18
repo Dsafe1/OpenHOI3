@@ -48,7 +48,7 @@ public partial class CGuiObject : Control
 	/// <summary>
 	/// Greys the element and everything in it, or enables them, where the original sets on an element whether it takes
 	/// the mouse and hands that down to all it holds - a screen run by the AI stopped whole and then its arrows let take
-	/// it again. The original's looks as before; this greys as well, by the maintainer's choice
+	/// it again. The original's looks as before; this greys as well, by choice
 	/// (<c>docs/mechanics/interface.md</c>, section 7; <c>docs/compatibility.md</c>, entry 19). The nearest element up the
 	/// tree that says either decides, so a row added to a greyed list later is greyed too. A button greyed draws so and
 	/// cannot be pressed; a scrollbar draws grey and cannot be moved.

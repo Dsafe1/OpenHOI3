@@ -72,7 +72,7 @@ So a province under both is striped green and red whichever came first, and a pr
 bombing mission, or under a mission of anybody else's, is grey. Each colour is the original's
 packed byte over 255: 0x80, 0x58 and 0xFF. They carry an alpha of a half; what the original's
 shaders make of that was not followed through. The ground under them is the original's
-terrain map mode turned grey - the textured one, which is not built here; the maintainer,
+terrain map mode turned grey - the textured one, which is not built here; decided on
 2026-10-11, to leave that for later. *Ours:* on land a colour is laid at its alpha over the
 flat colour of the province's terrain turned grey, and on the sea at 0.8 over the sea's colour -
 the share the original's water shader gives a province colour

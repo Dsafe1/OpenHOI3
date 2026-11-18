@@ -105,7 +105,7 @@ areas; what could differ is the order of an area's provinces after a merge, and 
 
 ## 3. Sides and groups
 
-`confirmed`. The maintainer's account, 2026-10-09, before any of it was read: "puppets are part
+`confirmed`. An account of the original, 2026-10-09, before any of it was read: "puppets are part
 of their masters network, unless they are not directly reachable (overseas or no direct
 country with master, even if that country is an ally). Allies keep their own networks, but ofc
 supply the allied units on their territory." The reading agrees with every word of it.
@@ -151,7 +151,7 @@ of a theatre's divisions and everything else in `Sim/Agents` that asks "the same
 
 ## 4. A group's depot
 
-`confirmed` as read, and **watched in the original by the maintainer** in three cases that
+`confirmed` as read, and **watched in the original** in three cases that
 turn on three of its terms (section 9); in the saves it shows only in where the supplies lie.
 
 **A group of one area that may hold no depot has none.** Every other group - more than one
@@ -348,21 +348,21 @@ one of our networks - which a wrong grouping would make happen. **The fifth is a
 has on which province a group's depot is**: where it is not the depot, the most supplies lie
 at another port of the same network or where the garrison stands, a little ahead of the depot.
 
-**And the maintainer watched the original pick a depot, on 2026-10-09**, which is the one
-thing the saves could not show. Asked whether Manchukuo's depot at Hamhung matched what he
-sees, he released countries out of Japan's Korea and looked:
+**And the original was watched picking a depot, on 2026-10-09**, which is the one
+thing the saves could not show. To see whether Manchukuo's depot at Hamhung matched the
+running game, countries were released out of Japan's Korea and looked at:
 
-> At the start Manchuko exists and is supplied from Hamhung. If I release only North Korea
-> the depot changes to Pusan for Manchuko and North Korea. If I also release South Korea it
-> switches them all to their own captial, even though Japan still has a port in Dailan.
-> HOWEVER after letting the game run a few days the puppets and Dailan all switch to
-> Pyongyang.
+- At the start Manchukuo exists and is supplied from Hamhung.
+- With only North Korea released, the depot changes to Pusan for Manchukuo and North Korea.
+- With South Korea released as well, they all switch to their own capital, even though Japan
+  still has a port in Dairen.
+- **But** after the game runs a few days, the puppets and Dairen all switch to Pyongyang.
 
 `OpenHOI3.SaveCheck supply <install> <savegame> release=PRK:JAP release=KOR:JAP` does the
 same here - a country is given every province it has a core on that its master owns and
-holds, and made its puppet - and section 4 gives **each of the three settled states he saw**:
+holds, and made its puppet - and section 4 gives **each of the three settled states seen**:
 
-| | he saw | ours |
+| | seen in the original | ours |
 | --- | --- | --- |
 | as the game starts | Manchukuo on Hamhung | Manchukuo and Japan's Korea on Hamhung |
 | North Korea released | Manchukuo and North Korea on Pusan | Manchukuo, North Korea and what is left of Japan's Korea on Pusan |
@@ -375,14 +375,14 @@ port left **a capital wins**, the best built of three.
 
 **The days in between are not ours.** With `:free` after a release the country is given its
 land and left nobody's puppet, and then each Korea draws on its own capital and Manchukuo
-and Dalian on Hsinking - what he saw "even though Japan still has a port in Dalian". So in
+and Dalian on Hsinking - what was seen "even though Japan still has a port in Dalian". So in
 the original the areas are grouped again when the land changes hands, **before** the new
 country is its master's puppet, and not again until something else calls for it some days
-later. `inferred`: it fits what he saw and it was not read. **It also foretold something he
-had not said**: that with North Korea alone released the move to Pusan would not come at
-once either. Asked, he answered "Only after a few days." *Ours:* the network is made whole
+later. `inferred`: it fits what was seen and it was not read. **It also foretold something the
+account had not said**: that with North Korea alone released the move to Pusan would not come at
+once either. Asked, the answer was "Only after a few days." *Ours:* the network is made whole
 whenever it is asked for, so here a released puppet is in its master's group at once -
-**kept so on purpose**, the maintainer's decision of the same day: `docs/compatibility.md`,
+**kept so on purpose**, by the decision of the same day: `docs/compatibility.md`,
 entry 9.
 
 On the first day there are 260 areas in 248 groups and 234 depots. Germany's land draws on
@@ -557,7 +557,7 @@ units in the capital, a friend's payments, trade and a new unit's days are paid 
 dry**. It goes up and down by thousands from one day to the next as the throwing back comes
 and goes. A test sets it out on six provinces: 30.20 asked where 22.10 is wanted.
 
-**Measured, in the original's own game** - the maintainer's Ireland game from 1936: Japan's
+**Measured, in the original's own game** - the reference Ireland game from 1936: Japan's
 provinces held 6,026 supplies in July 1937, 27,713 that December, 65,844 in September 1939 and
 **112,729 in May 1940, with 527 in its stockpile**, one province 60,414; in September 1939 forty
 of Japan's provinces were asked for up to eight times what they can pass. Britain's network at
@@ -822,8 +822,8 @@ weather and the last convoy attack (`savegame.md`).
 
 ## Not established
 
-- ~~**Which province a group's depot is**, beyond where the supplies lie.~~ The maintainer
-  watched three cases in the original and the score gives all three (section 9). What that
+- ~~**Which province a group's depot is**, beyond where the supplies lie.~~ Three cases
+  were watched in the original and the score gives all three (section 9). What that
   leaves unseen: the million for a free country's capital against a very large port, and the
   faction leader's ten million.
 - **When the original groups its areas again.** After a release it does so before the new

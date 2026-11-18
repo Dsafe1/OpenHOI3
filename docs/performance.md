@@ -1,7 +1,7 @@
 # Performance: where the time goes, and whether C++ would help
 
-Ours, not the original's. Written 2026-11-05 at the maintainer's word, as a study of rewriting this project in C++
-instead of C# to make it faster - a step he would take only once the game is finished, so that the two versions can be
+Ours, not the original's. Written 2026-11-05 on request, as a study of rewriting this project in C++
+instead of C# to make it faster - a step to be taken only once the game is finished, so that the two versions can be
 set side by side. Nothing here is decided; this is the reasoning to start that decision from, and the habits that keep it
 cheap in the meantime.
 
@@ -16,7 +16,7 @@ finished game, not now. Section 6 says what would decide it.
 As measured, with `OpenHOI3.SaveCheck profile` and the headless run, both in Release:
 
 - **An ordinary hour about 15 to 24 ms; an hour that turns a day about 90 ms**, and the map stops for that one once a
-  game day, because the simulation runs on the frame's thread (readme, *Loose ends*).
+  game day, because the simulation runs on the frame's thread (`docs/worklist.md`, *Loose ends*).
 - **A game year of the headless run about 190 to 280 seconds**, as more of the AI was built (`docs/mechanics/headless.md`).
 - **Of thirty days of 1936, the unit agents 10.8 s and the AI's trading in Lua 7.7 s** - about seventy per cent of the
   hour, which is why a replay, which skips them, runs 224 s where its recording ran 584 s (`docs/replay.md`, section 1).

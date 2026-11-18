@@ -92,8 +92,8 @@ public static class CCounterLayout
 
 	/// <summary>
 	/// Where the stack of units on the move stands from the province's own point, east
-	/// and north: the original's own figure, 2.5 and 1.0, by the maintainer's word of
-	/// 2026-11-14, where a measure of his screenshot had given 2.6 and 1.5.
+	/// and north: the original's own figure, 2.5 and 1.0, settled on
+	/// 2026-11-14, where a measure of a screenshot of the original had given 2.6 and 1.5.
 	/// </summary>
 	public static readonly Vector2 MovingStack = new(2.5f, 1.0f);
 

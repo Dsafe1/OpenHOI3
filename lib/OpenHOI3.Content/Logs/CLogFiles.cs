@@ -8,7 +8,7 @@ namespace OpenHOI3.Content.Logs;
 /// original's: <c>logs</c> in the player's folder - <c>Documents\Paradox Interactive\Hearts of Iron III</c>, or a mod's user
 /// folder below it with a mod (<c>docs/mechanics/mods.md</c>, section 2). The files are ours - <c>openhoi3.log</c> this run,
 /// <c>openhoi3_1.log</c> to <c>openhoi3_4.log</c> the four before it, newest first - so the original's own logs beside
-/// them (<c>game.log</c>, <c>error.log</c>, <c>setup.log</c> and the rest) are never written: the maintainer's word,
+/// them (<c>game.log</c>, <c>error.log</c>, <c>setup.log</c> and the rest) are never written: decided on
 /// 2026-11-18.
 /// </summary>
 public static class CLogFiles

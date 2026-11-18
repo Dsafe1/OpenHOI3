@@ -88,7 +88,7 @@ public class WeatherTests
 	[Fact]
 	public void A_province_hour_is_the_original_s_Phongsali_on_8_January()
 	{
-		// The maintainer's saves of 02:00 and 03:00 on 8 January 1936: a jungle province in season 3 by day, no front.
+		// The reference saves of 02:00 and 03:00 on 8 January 1936: a jungle province in season 3 by day, no front.
 		CGameState state = World();
 		CProvince province = state.Province(1);
 		province.Terrain = Jungle;

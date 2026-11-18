@@ -57,7 +57,7 @@ Where they came from, unmodified:
   zip holds the font as `CodeRedOctober-owwd0.ttf` and `info.txt`; both are here under
   new names, unchanged. `OFL-PTMono.txt` is `ofl/ptmono/OFL.txt` of `github.com/google/fonts`.
 
-Chosen by the maintainer on 2026-11-12. What each of the two non-OFL licences allows:
+Chosen on 2026-11-12. What each of the two non-OFL licences allows:
 
 - **Breitkopf Fraktur** is under the *1001Fonts Free For Commercial Use License*: free for
   personal and commercial use, not to be modified, and "not to be sold or published without
@@ -66,7 +66,7 @@ Chosen by the maintainer on 2026-11-12. What each of the two non-OFL licences al
   ... as long as the application does not distribute the given typeface, such as offering it
   as a download" - the zip's older copy, which is the one kept here, has no such clause. So it
   ships packed inside the exported game, which never offers it as a file of its own. **The
-  repository does not hold it** since 2026-11-12, by the maintainer's choice: a public
+  repository does not hold it** since 2026-11-12, by the choice of that day: a public
   repository would publish it, so each builder downloads it (above). It was committed before
   that, so the repository's history still holds it, until that history is rewritten or a
   public repository starts without it. The author's own page says he gives his fonts away "for commercial

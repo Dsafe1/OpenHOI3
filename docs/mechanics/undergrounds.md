@@ -7,7 +7,7 @@ to the province beside it. A government in exile can raise every ready one at on
 `reversing/findings/FINDINGS-surrender.md`, section D.2). `confirmed` unless marked.
 
 This is the fourth of the four pieces occupation and revolt were cut into (`occupation.md`). It was built first without
-the way an underground is ordered, by the maintainer's word on 2026-10-15 ("Undergrounds now, queue later"); **it is
+the way an underground is ordered, by the decision of 2026-10-15 ("Undergrounds now, queue later"); **it is
 ordered through production as any building is since the building lines that day** (`buildinglines.md`): the
 production screen's `underground` button, enabled where the country may train one, and a line of it placed from the
 deploy menu where the map shows it may go, green by the strength it would start with.
@@ -150,7 +150,7 @@ whatever its revolt risk would make it, where the province is not greyed.
 
 ## 9. Against the saves
 
-No save of the maintainer's holds an underground, so `OpenHOI3.SaveCheck underground <install> [occupier] [occupied]
+No reference save holds an underground, so `OpenHOI3.SaveCheck underground <install> [occupier] [occupied]
 [days] [seed]` is a trial: the occupier at war with the occupied and holding ten of its provinces away from its
 capital, an underground of the occupied finished in each of the first three - to spread, to raise partisans and to
 build up - and the days run.

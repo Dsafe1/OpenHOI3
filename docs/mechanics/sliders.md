@@ -115,7 +115,7 @@ agreement given and not yet ended, whatever its state - and otherwise its IC tim
 held to it, nor an excess under half a hundredth of an IC [exe]. **The game's own share is not held to it**: a country
 whose screen is not open keeps the share and its IC goes nowhere (`docs/enhanced.md`); the AI's script zeroes its own
 [mod: script/ai_production_minister.lua]. Built 2026-11-12 (`CSliderGroup.SetLimit`, `ClampToLimits`;
-`CLendLease.SliderLimit`), by the maintainer's report that the original holds the slider at nought.
+`CLendLease.SliderLimit`), on a report that the original holds the slider at nought.
 
 ## 3. The sliders always hold the whole between them
 
@@ -139,8 +139,8 @@ it. The original's floats need the ten rounds and the tolerance; whole numbers d
 `SLIDER_UNLOCKED_TOOLTIP`, "Right click to lock", and `SLIDER_LOCKED_TOOLTIP`, "Locked,
 right click to unlock". `confirmed` **A locked slider is drawn in grey**: locking is
 disabling the slider's own button, and a disabled button is drawn by the `disable`
-technique of the original's button shader (`interface.md`, section 5). The maintainer
-said the same of the running game on 2026-10-08.
+technique of the original's button shader (`interface.md`, section 5). The same
+was seen of the running game on 2026-10-08.
 
 **Where the lock is kept** (`reversing/findings/FINDINGS-countryviews.md`, section 6, `confirmed` but where marked):
 
@@ -150,8 +150,8 @@ said the same of the running game on 2026-10-08.
   upgrades, reinforcement, supplies, production, consumer goods, lend-lease, the shares' own order turned round. The
   screen writes it while open; **its sliders start locked as it says whenever they are made**. Nothing in the game reads
   it, and the balancing goes by the sliders themselves.
-- **A save keeps it for the played country alone**, `slider_locks = { 0 0 0 0 0 0 }` before `alignment` - every save of
-  the maintainer's has the one block, in the `player=` country - and a load reads it from any block. So a production lock
+- **A save keeps it for the played country alone**, `slider_locks = { 0 0 0 0 0 0 }` before `alignment` - every reference
+  save has the one block, in the `player=` country - and a load reads it from any block. So a production lock
   lasts the session and a save and a load. Where the key falls beside `mobilize` no save shows; here it is after it.
 - **The technology screen keeps no locks of its own**: its sliders start locked as the production screen's first four
   entries say - research by upgrades, espionage by reinforcement, diplomacy by supplies, officers by production - and it
@@ -190,8 +190,8 @@ shares change for any other reason the sliders follow them.
 ## 6. Tooltips
 
 Source: `reversing/findings/FINDINGS-productiontooltip.md`, section 4, read 2026-10-11, and
-`reversing/findings/FINDINGS-techtooltip.md`, section 1. Tried with `--click`; the maintainer looked
-at them on 2026-10-11: "Looks good". `confirmed` unless said.
+`reversing/findings/FINDINGS-techtooltip.md`, section 1. Tried with `--click`; reviewed in play
+on 2026-10-11: "Looks good". `confirmed` unless said.
 
 **A slider's tooltip is what its share would do at the slider's position**, before the position is
 sent to the game. Over the slider itself, the second half says `SLIDER_LOCKED_TOOLTIP` when it is
@@ -236,7 +236,7 @@ nothing.
 
 ## What is not established, in one place
 
-1. **Little was seen running.** The maintainer tried the sliders on 2026-10-08: dragging
+1. **Little was seen running.** The sliders were tried on 2026-10-08: dragging
    is right, and a locked slider is grey. The figures beside them were not compared.
 2. **Rounding**: whether `value` and `need` are rounded or cut to two decimals, and the
    term added before the colour's comparison.

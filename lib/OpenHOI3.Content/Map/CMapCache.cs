@@ -93,7 +93,7 @@ public sealed class CMapCache
 
 	/// <summary>
 	/// The game's cache: the one in the player's folder and no other, the install's never asked, built there first where it is not this
-	/// map's (the maintainer's word; <c>docs/compatibility.md</c>, entry 22). See <c>docs/mechanics/mapcache.md</c>, section 11.
+	/// map's (decided so; <c>docs/compatibility.md</c>, entry 22). See <c>docs/mechanics/mapcache.md</c>, section 11.
 	/// </summary>
 	public static CMapCache OpenOrBuild(CDirectorySettings directories, string userFolder, CMap map, Action<string> problem)
 	{

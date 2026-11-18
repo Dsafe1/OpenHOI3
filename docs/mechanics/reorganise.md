@@ -2,8 +2,8 @@
 
 The window two selected units hand brigades, ships or wings between: the original's `reorg_window` in
 `interface/unitpanel.gui`, brought up by the multi-unit panel's `reorganizebutton`. Read out of the original whole in one
-wave (`reversing/findings/FINDINGS-reorgwindow.md`, section A the window and B what may be moved) and set against the
-maintainer's two screenshots of it, two land divisions in one province and two fleets in one port, every figure on which
+wave (`reversing/findings/FINDINGS-reorgwindow.md`, section A the window and B what may be moved) and set against
+two screenshots of the original's, two land divisions in one province and two fleets in one port, every figure on which
 the reading accounts for.
 
 What is hardcoded and what a mod may change: the window's layout is `unitpanel.gui`'s and its picture `reorg_bg.dds`, its
@@ -129,5 +129,5 @@ Each looks wrong and is built so - do not tidy them:
 
 ## 9. Not established
 
-- The greyed "Select" button at the top left of the maintainer's screenshots, which is not the window's - taken to be a
+- The greyed "Select" button at the top left of the screenshots, which is not the window's - taken to be a
   selected unit's row beside it.

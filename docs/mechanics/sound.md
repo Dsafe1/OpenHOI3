@@ -59,7 +59,7 @@ v is above nought, and by nought where it is not** [exe]. A sound plays at its `
 keeping the voice's last volume [exe, *inferred*]; it is held at 0 here. The scale is asked at each play, so a sound follows the
 settings as they change, the game options window's slider among them. `ambient_volume` is read by nothing [exe].
 
-The maintainer's own settings on 2026-11-12 - `master_volume` 55, `sound_fx_volume` 5 - play a sound at −48.6 dB, which is
+The reference settings on 2026-11-12 - `master_volume` 55, `sound_fx_volume` 5 - play a sound at −48.6 dB, which is
 what the first run with sound gave.
 
 ## 5. Buttons and checkboxes

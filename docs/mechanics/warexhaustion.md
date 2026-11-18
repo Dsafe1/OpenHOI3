@@ -68,7 +68,7 @@ and BlackICE in ten files. What each says of itself is `scripttext.md`.
 
 ## Measured against nothing
 
-**No save of the maintainer's can check any of this**: every one holds `war_exhaustion=0.000` for every country,
+**No reference save can check any of this**: every one holds `war_exhaustion=0.000` for every country,
 1939's at war included. They were made with BiceLib's `disableWarExhaustionNeutralityReset` written into the
 executable on disk, which replaces the month's addition with a store of nought - so the start save's Italy is 0.000
 where the original gives 0.191 (`reversing/findings/FINDINGS-diplostate.md`, section C.6). The unpatched executable was

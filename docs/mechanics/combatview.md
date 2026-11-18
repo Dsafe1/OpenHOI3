@@ -5,8 +5,8 @@ on the map and the arrow of the unit that attacks - written as rules this projec
 implement. It is the third piece of land combat; what a battle *does* is `landcombat.md`.
 
 Read out of the original on 2026-10-09: `reversing/findings/FINDINGS-combatview.md`.
-`confirmed` means read; *measured* means taken off the maintainer's three screenshots of a
-battle of his own, of that day, set beside ours; *ours* means decided here. It was built from
+`confirmed` means read; *measured* means taken off three screenshots of a
+battle in the original, of that day, set beside ours; *ours* means decided here. It was built from
 the reading, tried with real clicks (`--click`), and then **set against those screenshots,
 which corrected four things**: where a turned flag stands, that a bar's picture is drawn
 upside down, that a round shield's flag is cut to a disc, and that a name too long for its box
@@ -20,20 +20,20 @@ at sea `CNavalSideView` and `CCombatShipEntry`, for one in the air and for a bom
 the panel's row `src/Screens/CUnitCombatEntry.cs`, the marker `src/Map/CBattleMarkers.cs`.
 
 **A battle at sea has the same window and row, with other halves**: section 10, built on
-2026-10-10 from a reading and tried with real clicks. **The maintainer looked at it that day:
+2026-10-10 from a reading and tried with real clicks. **It was reviewed in play that day:
 "The sea battle window looked perfect."** No screenshot of the original's was laid beside it
 and measured, as three were for the land window.
 
 **A battle in the air and a bombing have the window and the row too, with a third kind of
 half**: section 11, built on 2026-10-10 from a reading (`reversing/findings/FINDINGS-combatview.md`,
-sections 13 and 14) and tried with real clicks. **The maintainer has not looked at it**, and
+sections 13 and 14) and tried with real clicks. **It has not been reviewed in play**, and
 nothing of the original's was laid beside it.
 
 **Only a battle on land has a marker on the map.** The reading for the air side found the one
 place the marker is refreshed, and it leaves out a battle at sea, a battle in the air and every
 bombing: section 8. A battle at sea was built with the land battle's marker on 2026-10-10, from
-a sentence of the fact base that was wrong, and has none since that evening - **which the
-maintainer has not been asked about**, and he saw the marker on the sea when he looked.
+a sentence of the fact base that was wrong, and has none since that evening - **which has not been raised for a decision**, and the
+review in play saw the marker on the sea.
 
 ---
 
@@ -45,7 +45,7 @@ maintainer has not been asked about**, and he saw the marker on the sea when he 
   up; selecting anything else takes it down.
 - **A click on its row in a unit's panel** (section 7) lets go of the unit selected, selects
   the battle and puts the province fought over in the middle of the map. **Ours leaves the
-  map where it is** - the maintainer's word, 2026-10-09; `docs/compatibility.md`, entry 8.
+  map where it is** - decided on 2026-10-09; `docs/compatibility.md`, entry 8.
 - **The window takes itself down**: it is written again every frame, and goes when either
   side has no units, or when both of a side's lists are empty.
 - *Ours:* a click on the battle's **marker** (section 8) does what a click on the row does
@@ -174,7 +174,7 @@ and a side is worth, added up over **every brigade of every unit on it, on the f
 
 - **Both of the hour's figures count for both sides**: a unit crossing a river at a third of
   its attack is worth a ninth, since the river is against its defence too. That is how one
-  division attacking another across a river reads **6** on the maintainer's screenshot.
+  division attacking another across a river reads **6** on a screenshot of the original.
 - It is a figure for the eye and for nothing else. The original works it out only for a battle
   the player has a part in, and nothing in the fight reads it.
 
@@ -242,7 +242,7 @@ begun is two red lines with an outlined head.
 
 `confirmed` (`reversing/findings/FINDINGS-combatview.md`, section 12) unless marked. What a
 battle at sea *does* is `navalcombat.md`. Nothing here was measured against a picture of the
-original's; the maintainer looked at the window on 2026-10-10 and it "looked perfect".
+original's; the window was reviewed in play on 2026-10-10 and it "looked perfect".
 
 **The row in a fleet's panel and the window are the land battle's** - one row, one window -
 with the same share behind the bar (section 6), worked out for ships. **It has no marker**
@@ -313,7 +313,7 @@ its type's key. Each side's leader is shown since 2026-10-11 (`leaders.md`, sect
 
 `confirmed` (`reversing/findings/FINDINGS-combatview.md`, section 13) unless marked. What they
 *do* is `aircombat.md` and `bombing.md`. Nothing here was measured against a picture of the
-original's, and the maintainer has not looked at it.
+original's, and it has not been reviewed in play.
 
 **The row in a unit's panel and the window are the land battle's**, and neither has a marker
 (section 8). A bombing's row comes **after** the rows of the unit's battles, and is written for
@@ -443,7 +443,7 @@ A landing's scale makes the first figure the figure times the scale, green above
 red below, and then " / " and the figure itself in the other colour; with no landing the line is
 one yellow figure. **A landing unit's lines** - in the transports, its progress, its two scales -
 come after the leader's, and are `transport.md`'s, section 12; built since 2026-10-15 and set
-beside the maintainer's three screenshots of a landing at Danzig, figure for figure.
+beside three screenshots of the original of a landing at Danzig, figure for figure.
 
 **An attacker's reserve** says `BATTLE_REINFORCE_CHANCE` + `: §Y` + its chance of coming up
 (`landcombat.md`) as a percentage to two places + `§W%`, whatever is under the mouse.

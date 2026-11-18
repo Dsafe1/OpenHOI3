@@ -1,6 +1,6 @@
 # The convoy windows and the go-to box
 
-*Spec for the windows a player makes and manages convoys with, and `goto_box`: `reversing/findings/FINDINGS-convoywindows.md`. Read out of the original, tried with `--click`, and the maintainer has not looked at them. Files: `tfh/interface/convoys.gui`, laid over `interface/convoys.gui`, and `interface/goto.gui`. Figures are exe-hardcoded unless a define is named.*
+*Spec for the windows a player makes and manages convoys with, and `goto_box`: `reversing/findings/FINDINGS-convoywindows.md`. Read out of the original, tried with `--click`, and they have not been reviewed in play. Files: `tfh/interface/convoys.gui`, laid over `interface/convoys.gui`, and `interface/goto.gui`. Figures are exe-hardcoded unless a define is named.*
 
 `CConvoyWindowText`, `CGotoBoxText` (`Interface/Screens`), `CConvoyDialogs`, `CConvoyEntry`, `CGotoBoxView` (`src/Screens`), the eight commands in `Sim/Commands`.
 

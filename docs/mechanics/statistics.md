@@ -1,6 +1,6 @@
 # The Statistics screen
 
-*Spec for `ledger`, behind the top bar's Statistics button: `reversing/findings/FINDINGS-topscreens.md`, section B. Read out of the original, tried with `--click`, and the maintainer has not looked at it. The file's elements are `interface/hoi3ledger.gui` and `tfh/interface/hoi3ledgericons.gui`.*
+*Spec for `ledger`, behind the top bar's Statistics button: `reversing/findings/FINDINGS-topscreens.md`, section B. Read out of the original, tried with `--click`, and it has not been reviewed in play. The file's elements are `interface/hoi3ledger.gui` and `tfh/interface/hoi3ledgericons.gui`.*
 
 `Interface/Ledger` (`CLedgerPages`, `CLedgerPage`, `CLedgerColumn`, `CLedgerRow`, `CLedgerCell`, `CLedgerPie`, `CLedgerSlice`), `src/Screens/CLedgerView`, `CLedgerPieChart`.
 

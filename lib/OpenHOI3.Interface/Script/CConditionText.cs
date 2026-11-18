@@ -54,7 +54,7 @@ public static class CConditionText
 			}
 			else if (depth > 0 && IsBlock(child))
 			{
-				// Not inside a "none of", whose own asterisk stands for what it holds - the maintainer saw two.
+				// Not inside a "none of", whose own asterisk stands for what it holds - two were seen in testing.
 				text.Append(Indents(depth)).Append(insideNot ? "" : Icon(words, child, current, redWhen));
 			}
 			text.Append(Block(words, child, current, redWhen, depth));

@@ -1061,7 +1061,7 @@ On 2026-10-19, `Germany1936_01_01_00` to `_01_04_12`: **moved or not 708 of 908*
 division is sent to - the line's shares hang on the scores, the hold list and the balancing, each with its own gaps
 (`agents.md`, section 14). Italy against Ethiopia: 35 of 49 divisions move or stay as the original's, 14 of 31 bound for
 the same province; the attack takes Ethiopian provinces, eight lost by July. ~~Where the original's Italy has taken none
-of the 21 by 20 April~~ - that save is the outlier, by the maintainer's word: in the Ireland game's save of 2 February
+of the 21 by 20 April~~ - that save is the outlier, by an account of the original: in the Ireland game's save of 2 February
 1936 the original's Italy holds 8 of them.
 
 With the whole piece built, the same run: **the axis 106 of 106** (Italy's way to Addis Abeba among them), **embark and
@@ -1095,12 +1095,12 @@ the original too rebases first and lands its wings at half their organisation, a
 lists every group, worn or not, and the orphans attached at the second hour set their agent's **regroup air pending**, so
 the Zerosen merge at the third hour and the worn bombers at the full pass of the twelfth. With both built, the 4 January
 check against that new game's own save of the hour gives air units 101 of 101 countries and the Italian intercepts' end
-hours 3 of 3; against the maintainer's save Italy too is the save's, and Japan's 7 to 6 and the intercepts' hour are that
+hours 3 of 3; against the reference save Italy too is the save's, and Japan's 7 to 6 and the intercepts' hour are that
 game's own (the new game gives Japan's count exactly).
 To 20 April: air units 98 of 101 countries, where they stand 41 of 53, the mission 52 of 53 - China flies an intercept
 the save does not have.
 
-**Four corrections the maintainer's look found** (2026-10-19, after he saw Germany's divisions stay in Gera and Leipzig
+**Four corrections a look in play found** (2026-10-19, after Germany's divisions were seen to stay in Gera and Leipzig
 and an Italian division sent to Bender Beila). The check takes `player=TAG` - the Ireland game's saves have Germany run
 by the AI - and `trace=TAG`, which writes each pass of one country's land block and attack; and it sets the land each
 country holds of another beside the save's.
@@ -1125,7 +1125,7 @@ of an attack, which it no longer does. ~~Italy is still slower than the original
 February to its 8~~ - see the next paragraph. The figures against a save of February move by tens from one build to the
 next, a few hundred divisions hanging on whether the Spanish Civil War's events fire.
 
-**Attacks that stopped and started** (2026-10-19, the maintainer's look at a game: Italian divisions in Ethiopia "joining
+**Attacks that stopped and started** (2026-10-19, a look at a game in play: Italian divisions in Ethiopia "joining
 an attack, then stopping, then attacking again, over and over"). The trace (`trace=ITA`, which now also names what each
 move and each halt came from) showed two causes, both departures from readings the fact base had (`FINDINGS-moving.md`
 A.4c):
@@ -1142,7 +1142,7 @@ A.4c):
 With both: halts in Italy's land block from 197 to 2 to 2 February, and **Italy holds 9 Ethiopian provinces on 2 February
 to the original's 8**. To 4 January: moved or not 767 of 908, bound 273 of 542, standing where the save has them 738.
 
-**A defender that never took its province back** (2026-10-19, the maintainer: an Ethiopian unit sitting in a province
+**A defender that never took its province back** (2026-10-19, seen in play: an Ethiopian unit sitting in a province
 Italy held, taking it back only when another unit walked in). A unit takes the province it stands in each hour only while
 it has no way, is in no battle and is not falling back (`landcombat.md`); these were marked falling back with no way left,
 which nothing clears. Three ways the AI left them so, each against a reading:
@@ -1158,7 +1158,7 @@ which nothing clears. Three ways the AI left them so, each against a reading:
 The check now counts each day the land units left marked falling back with no way: **0 to 2 February**, where there had
 been four sitting in Italian-held land on that day.
 
-**Units that never stopped moving** (2026-10-19, the maintainer's game as Ireland: China's divisions all marching north
+**Units that never stopped moving** (2026-10-19, a reference game as Ireland: China's divisions all marching north
 for some days, then south for a day, then north again; Italy's army and navy "always moving" at home). Not a rule that
 lets a unit arrive before it is asked again - the original asks every pass, as here - but four faults of ours:
 
@@ -1186,7 +1186,7 @@ Italy's fleet orders to 2 February: about 560 to 102, none over 14 a fleet; Ital
 where the save has them 740**, fleets 237 to the save's 222. To 2 February: moved or not 806 of 930, bound 249 of 601,
 standing where the save has them 496, and Italy holds 7 Ethiopian provinces to the original's 8.
 
-**A war that never ended** (2026-10-20, the maintainer: Italy's navy "still looks wrong. In the original the AI puts
+**A war that never ended** (2026-10-20, seen in play: Italy's navy "still looks wrong. In the original the AI puts
 their navy back at base if it goes to back to peace"). Run to 20 April, Ethiopia capitulates on 30 March and Italy's
 patrols went on for three weeks after. Three faults of ours, each against the record:
 
@@ -1215,7 +1215,7 @@ original's rule. No event or decision of the base game annexes it afterwards.
 about 10 ms an hour, its hold lists and the day's balancing the dearest parts (`OpenHOI3.SaveCheck profile` lists them
 under the pass).
 
-**The Marco Polo Bridge a year late** (2026-11-02, the maintainer's Ireland game played on to August 1938, Japan and
+**The Marco Polo Bridge a year late** (2026-11-02, the reference Ireland game played on to August 1938, Japan and
 China both the original's AI). The original's Japan took `marco_polo_bridge_incident` between 1 July 01:00 and 2 July
 16:00 1937 - the autosave of 1 July has no flag and no war, the save of 5 July both - and ours in July 1938. The decision
 is posted when the prepared war is ready (`foreignminister.md`, section 7): at most 30% of the front facing China empty.

@@ -189,8 +189,8 @@ its folder.
 - `difficulty`, `year` and `input_box` as on an entry - but the input icons are the
   larger `icon_` + category, `likely`;
 - **`icon_finish_type` is the full picture here, `icon_` + category with no `_small`.**
-  The routine for the panel builds the name without it. This was drawn small until the
-  maintainer saw it was the wrong size, 2026-10-08: the reading had it right and the
+  The routine for the panel builds the name without it. This was drawn small until
+  review in play showed it was the wrong size, 2026-10-08: the reading had it right and the
   first write-up of it said "as on a tree entry";
 - `tech_status_finnished` is shown for a technology of one level that the country has,
   `tech_status_researching` for one on the queue;
@@ -257,8 +257,8 @@ cut at it after "+2." with the list box made to clip for the trial, as a control
 
 ## 9. Tooltips
 
-Source: `reversing/findings/FINDINGS-techtooltip.md`, read 2026-10-11. Tried with `--click`; the
-maintainer looked at them on 2026-10-11: "Looks good". How a tooltip is shown is `tooltips.md`; the sliders' own are
+Source: `reversing/findings/FINDINGS-techtooltip.md`, read 2026-10-11. Tried with `--click`;
+reviewed in play on 2026-10-11: "Looks good". How a tooltip is shown is `tooltips.md`; the sliders' own are
 `sliders.md`, section 6. `confirmed` unless said.
 
 **`leader_ship_label`** says where the leadership comes from:
@@ -324,8 +324,8 @@ is the script's own (`research.md`, section 5) and its account is `CConditionTex
 here**, BlackICE's `year`, `war` and `has_country_flag` among them - tried with `--click` on
 Hungary's Submarine Technology, the same before and after. Every condition is written, met or not,
 each with an asterisk, `(§G*§W)` where it holds and `(§R*§W)` where not. A level of indent is three
-spaces. **The indentation is the one the mod's DLL corrects the original's to, by the
-maintainer's word** (`docs/compatibility.md`, entry 10); the words and the order are the
+spaces. **The indentation is the one the mod's DLL corrects the original's to, by
+decision** (`docs/compatibility.md`, entry 10); the words and the order are the
 original's:
 
 - at the top the block is a plain list: each condition at no indent with its asterisk;
@@ -375,8 +375,8 @@ efficiency has no `%` and radio strength one; a building under `any_owned_provin
 
 ## What is not established, in one place
 
-1. **Little was compared figure for figure.** The maintainer used the screen on
-   2026-10-08 and found the folder buttons, the queue's priority and cancel buttons,
+1. **Little was compared figure for figure.** The screen was used in play on
+   2026-10-08, which found the folder buttons, the queue's priority and cancel buttons,
    `start` and the queue's dates reading year first all right.
 2. **What the buttons do**: the folders, an entry's click and double click, `cancel`, the
    four priority buttons, `start`, the panel's `close`.

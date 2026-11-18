@@ -3,7 +3,7 @@
 `menubar.gui`'s window `menu` - a picture and `menu_panel` with six buttons, Save Game, Game Options, Resign, Message
 Settings, Quit and Close - with two windows of its own, `menu_save` and `menu_message_settings`, and the dialog Resign and
 Quit open. Read out of the original on 2026-11-04 (`reversing/findings/FINDINGS-ingamemenu.md`; the message types
-themselves `reversing/findings/FINDINGS-messageshow.md`, and `messages.md` here), and set against the maintainer's
+themselves `reversing/findings/FINDINGS-messageshow.md`, and `messages.md` here), and set against a
 screenshot of the original's menu, which it agrees with. `confirmed` unless marked.
 
 **[exe]** marks a rule the original's executable holds, **[mod: ...]** what a file may change.
@@ -29,7 +29,7 @@ Opening it, in order:
 4. the side menus are shut and **the selection is let go**, units and provinces, and with it the unit panels;
 5. an open country view - production, technology, diplomacy, politics, intelligence - is shut.
 
-**While it is up, nothing behind it takes a click or a key** - the maintainer's account of the original, 2026-11-04:
+**While it is up, nothing behind it takes a click or a key** - an account of the original, 2026-11-04:
 "The original blocks clicks and button presses to the background (so 'enter' doesnt close message popups)". So the map,
 the panels and the top bar cannot be pressed, and no button behind the menu answers its shortcut; the menu's own
 buttons and the dialog it opens do. Following from it: **the top bar's menu button cannot shut the menu** it opened, a
@@ -49,7 +49,7 @@ menu's own windows - the save dialog, the message settings - or the game options
 - **if none is**, the clock is started again only where it is stopped and the menu stopped it - that is, where it was
   running when the menu opened - and the menu is hidden.
 
-**Looks wrong and is the original's** - confirmed by the maintainer in the original on 2026-11-04: going back to the six
+**Looks wrong and is the original's** - confirmed in the original on 2026-11-04: going back to the six
 buttons opens the menu again, and that opening notes the clock as stopped, which it is, by the menu. **So once Save
 Game, Game Options or Message Settings has been opened, closing the menu leaves the game paused.**
 
@@ -139,7 +139,7 @@ is read from (`settings.md`); a mod's is its own, and mods are not played yet [e
       }
 
   in Windows-1252, every line ended by a carriage return and a line feed, `idle` and `option` written as they are though
-  the window has no box for them. The maintainer's file is the original's and reads so.
+  the window has no box for them. A reference file is the original's and reads so.
 - **Looks wrong and is the original's**: once the file exists, **a mod's later change to a type's settings never reaches
   that player** until Reset - only types new to the mod take the mod's.
 

@@ -173,7 +173,7 @@ public static class CAirOrdersText
 
 	/// <summary>
 	/// A date widget's <c>date</c>: the year, the month's name cut to three letters, the day and the hour, under the four
-	/// columns of arrows - "1936 Jan 4 11:00". <i>Measured</i> on the maintainer's screenshots of the land orders window
+	/// columns of arrows - "1936 Jan 4 11:00". <i>Measured</i> on screenshots of the original's land orders window
 	/// (<c>docs/mechanics/landorders.md</c>, section 2); the original's formatter was not read.
 	/// </summary>
 	public static string DateText(Func<string, string> localise, long hour)

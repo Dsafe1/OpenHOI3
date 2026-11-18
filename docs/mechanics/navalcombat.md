@@ -3,7 +3,7 @@
 What brings two fleets to battle, where their ships stand in it, what an hour of it does, and
 how it ends. This is the first piece of what stage 3 has left: **fleet against fleet**. A
 fleet's missions - patrol, intercept, the hunt for convoys - are `navalmissions.md`; the
-landing, the battle in the air and bombing are pieces of their own (the readme's *Next up*).
+landing, the battle in the air and bombing are pieces of their own (the worklist's *Next up*).
 
 Everything is from `reversing/findings/FINDINGS-seabattle.md`, which joins
 `reversing/findings/FINDINGS-navaldetection.md` (the sighting, positioning, breaking off) and

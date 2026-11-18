@@ -25,10 +25,10 @@ are selected, and shows the province most recently added, or after a removal the
 - **No province is ever selected with a drag box**, which takes units only.
 - **Escape**, with anything selected, clears the selection.
 - **`close_button`** - in the view and in `underground` - clears the selection.
-- **Every selected province is lit on the map**; the view shows only the last selected - the maintainer's account, on
+- **Every selected province is lit on the map**; the view shows only the last selected - an account, on
   2026-10-15, of the original's.
-- A province the original does not simulate opens nothing; which those are was not read, and the maintainer knows of
-  none but the sea's, 2026-10-15 - which a click does not select anyway. Here every land province opens the view.
+- A province the original does not simulate opens nothing; which those are was not read, and none is known of
+  but the sea's, 2026-10-15 - which a click does not select anyway. Here every land province opens the view.
 
 **The view does not follow the province itself**: what the refresh writes (section 2) is written when the province is
 selected and stays until it is selected again, though it changes hands meanwhile. The weather, the buildings, the
@@ -265,7 +265,7 @@ and then of `local_resources` in the province; "\n"; the sources of the good's `
 - **Several provinces are selected only with Shift on provinces**; the original's selection holds one kind, and ours
   holds units apart from provinces as before.
 - **The province readout under the top bar**, scaffolding with the supply and the country's figures, is put away
-  behind a switch of **the debug menu, opened with Shift and 4** - the maintainer's choice on 2026-10-15, beside the
+  behind a switch of **the debug menu, opened with Shift and 4** - chosen on 2026-10-15, beside the
   original's console on Shift and 3.
 
 ## Not built
@@ -282,5 +282,5 @@ and then of `local_resources` in the province; "\n"; the sources of the good's `
 - That a pip hidden for an earlier province stays hidden below intelligence 6.
 - Which figure each weather limit is compared with (section 3.1).
 - Which provinces the original does not simulate, and so opens no view on (its template's `simulated` byte) - none
-  but the sea's that the maintainer knows of.
+  known of but the sea's.
 - What `%.0f` makes of an exact half - the suppression figure and a pip's tooltip are rounded half away from nought here.

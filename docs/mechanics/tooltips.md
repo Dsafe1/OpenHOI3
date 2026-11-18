@@ -5,8 +5,8 @@ tooltip's second half, the lines between the halves, the wrapping, where the box
 keeps it on screen. **What each screen's tooltips say is not here**: each is a reading of that
 screen's own routine, and they come screen by screen after this.
 
-Source: `reversing/findings/FINDINGS-tooltips.md`, read 2026-10-11. The maintainer set a province's
-tooltip beside a screenshot of the original's on 2026-10-11 - "the style looks good" - and on it
+Source: `reversing/findings/FINDINGS-tooltips.md`, read 2026-10-11. A province's
+tooltip was set beside a screenshot of the original's on 2026-10-11 - "the style looks good" - and on it
 the box is its text with the border all round, as built: the text starts 16 in from the art's
 edge across and down, lines 15 apart, and ours is 2 pixels taller at the bottom, which was left.
 
@@ -172,7 +172,7 @@ the first unit is the first of `CMapBuildings.UnitsOf`, by its number where the 
 
 **Over a counter the map's tooltip is the unit's own** (`reversing/findings/FINDINGS-countertooltip.md`;
 `CUnitCounterTooltip`), the one on top of the stack under the mouse, and stands where a province's does, above the
-minimap's corner. Built 2026-11-07, read out of the original and tried with `--click`; the maintainer has not looked at it.
+minimap's corner. Built 2026-11-07, read out of the original and tried with `--click`; it has not been reviewed in play.
 
 **Which units** [exe]: a fleet in port the fleets in that port, an air unit at its base the units based there, anything
 else the units in its province - less land units at sea, and fleets in port under a hovered land unit. **Every country's,
@@ -246,7 +246,7 @@ that is read.
 ## Not established
 
 - ~~**What the minimap does to the map's tooltip.**~~ Answered 2026-11-07: the tooltip stands over the minimap's
-  corner wherever the mouse is, which is why the maintainer's screenshot has it there (section 7; `minimap.md`).
+  corner wherever the mouse is, which is why the screenshot of the original has it there (section 7; `minimap.md`).
 - How the original breaks a tooltip's lines - at spaces, as a text box's own are broken here.
 - How it draws a text box's texture (section 1).
 - Where the original puts the box's text inside it; the box here is its text with the border

@@ -1,7 +1,7 @@
 # The alignment triangle
 
 Where each country stands between fascism, democracy and communism, and how it drifts. Brought into
-diplomacy's first piece on the maintainer's word on 2026-10-12, because threat is weighed on it
+diplomacy's first piece by the decision of 2026-10-12, because threat is weighed on it
 (`diplomacy.md`, section 5); joining, leaving and being invited to a faction stay with factions.
 
 Sources: `reversing/findings/FINDINGS-alignment.md` (the start, the schedule, the terms' gaps, the

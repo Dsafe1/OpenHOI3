@@ -2,7 +2,7 @@
 
 The list down the right of the in-game screen: the player's battles, units, allied objectives and bombings, a section
 each. Window `outliner` in `interface/outliner.gui`. Read whole on 2026-11-03 in one wave of three readers
-(`reversing/findings/FINDINGS-outliner.md`), against three screenshots of the maintainer's: a land battle row and its
+(`reversing/findings/FINDINGS-outliner.md`), against three screenshots of the original: a land battle row and its
 tooltip, the land units' tree and an army's tooltip, the naval units' counts. Every figure in them is accounted for.
 
 ## 1. Where it is, and when

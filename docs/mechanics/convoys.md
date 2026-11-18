@@ -3,7 +3,7 @@
 How a country's stockpile reaches land the sea cuts off from its capital, and how what that land
 yields comes back. Written as rules this project can implement. No addresses and no offsets.
 Each rule says how sure it is - `confirmed`, `likely`, `inferred` in the fact base's vocabulary -
-or **measured**, meaning set on 2026-10-10 against the maintainer's start-date savegame of an
+or **measured**, meaning set on 2026-10-10 against the reference start-date savegame of an
 unmodded game played as Germany. Where this project chooses its own behaviour the paragraph is
 marked **Ours**.
 
@@ -219,7 +219,7 @@ convoy sent there has nothing to load from the land and so no transport. **A cou
 emptied goes on being charged** for consumer goods and supplies (`stockpile.md`, section 4).
 
 It looks like an accident of the engine, and it was first built here with the yield kept
-apart, which left those stockpiles alone. **The maintainer's word, 2026-10-10: follow the
+apart, which left those stockpiles alone. **Decided on 2026-10-10: follow the
 original.** With one pool the harbours of the save come out to the thousandth (section 12);
 kept apart, the money in every one of them was wrong.
 

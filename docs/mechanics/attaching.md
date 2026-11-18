@@ -1,6 +1,6 @@
 # Attaching, detaching and making a headquarters
 
-*Spec for the unit panel's three kinds of button and the multi-unit panel's two: `reversing/findings/FINDINGS-attachbuttons.md`, `FINDINGS-selection.md` section B.4. Read out of the original, tried with `--click`, and the maintainer has not looked at them. Files: `single_unitpanel.gui`, `unitpanel.gui`. Figures are exe-hardcoded unless a define or a file is named.*
+*Spec for the unit panel's three kinds of button and the multi-unit panel's two: `reversing/findings/FINDINGS-attachbuttons.md`, `FINDINGS-selection.md` section B.4. Read out of the original, tried with `--click`, and they have not been reviewed in play. Files: `single_unitpanel.gui`, `unitpanel.gui`. Figures are exe-hardcoded unless a define or a file is named.*
 
 `CAttachText` (`Interface/Screens`), `CAttachmentPanel`, `CUnitButtonsEntry`, `CMultiUnitPanel` (`src/Screens`), `CAttachUnitCommand`, `CDetachUnitCommand`, `CCreateHigherCommand` (`Sim/Commands`). The shortcuts are the file's: attach `a`, detach `d`, a create button `c`.
 

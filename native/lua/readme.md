@@ -1,7 +1,7 @@
 # Lua 5.1.4
 
-The interpreter the original runs its scripts on, built from its own source - the maintainer's
-choice on 2026-10-12, over a C# interpreter of our own and over MoonSharp: "Real Lua 5.1.4,
+The interpreter the original runs its scripts on, built from its own source - chosen
+on 2026-10-12, over a C# interpreter of our own and over MoonSharp: "Real Lua 5.1.4,
 native". `docs/mechanics/lua.md` says how the game uses it.
 
 **Where it came from**: `https://www.lua.org/ftp/lua-5.1.4.tar.gz`, fetched 2026-10-12, md5

@@ -280,7 +280,7 @@ where the start save's are, less at most two days' work (section 9).
 - **A new brigade has its own organisation and nothing else**, whatever its country's
   officers and whether or not it is a reserve: it is given it before it is put in its unit,
   and the ceiling of `organisation.md`, section 2, counts neither for a brigade in no unit.
-- **Each division of a series has a name of its own** (measured, 2026-11-02, not read): in the maintainer's Ireland
+- **Each division of a series has a name of its own** (measured, 2026-11-02, not read): in the reference Ireland
   game Japan's series that gave "1 'Tokyo' Hoheishidan" went on as "7 'Asahigawa' Hoheishidan" and stands in the queue
   of 1 July 1937 as "12 'Kurume' Hoheishidan, size 2" - the line carries the name of the unit still to come - and the
   'Sendai' series gave 2 'Sendai', 6 'Kumamoto' and 11 'Zentsuji'. The names follow the country's list as new orders take

@@ -493,7 +493,7 @@ the first day is run, which is why a new game's starting manpower leaves black s
   area is; where the capital is in no area nothing counts as in it, where the original would
   compare two empty areas as one.
 - **A province's modifier is made again on the original's schedule** (section 3) since
-  2026-10-15, on the maintainer's word; until then every province was made again once a day,
+  2026-10-15, by the decision of that day; until then every province was made again once a day,
   a country's reason carried over to provinces and never decided for them. What is ours in it:
   a province holds one mark for all its buildings where the original holds one on each, which
   comes to the same since the rebuild clears every one; entering a game makes every province

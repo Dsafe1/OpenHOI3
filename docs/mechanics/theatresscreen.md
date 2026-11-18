@@ -1,6 +1,6 @@
 # The theatres screen
 
-*Spec for `country_theatres`, behind the top bar's Theatres button: `reversing/findings/FINDINGS-topscreens.md`, sections A and D. Read out of the original, tried with `--click`, and the maintainer has not looked at it. The file's elements are `tfh/interface/country_theatres.gui`. Figures are exe-hardcoded unless a file is named.*
+*Spec for `country_theatres`, behind the top bar's Theatres button: `reversing/findings/FINDINGS-topscreens.md`, sections A and D. Read out of the original, tried with `--click`, and it has not been reviewed in play. The file's elements are `tfh/interface/country_theatres.gui`. Figures are exe-hardcoded unless a file is named.*
 
 `CTheatreScreenText`, `CTheatreBuildSteps` (`Interface/Screens`), `CPlanWants`, `CPlanHoldScore` (`Sim/Agents`), `CTheatreView`, `CTheatreEntry`, `CAreaEntry` (`src/Screens`).
 

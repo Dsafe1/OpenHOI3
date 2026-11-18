@@ -7,7 +7,7 @@ namespace OpenHOI3.Content.Gui;
 
 /// <summary>
 /// A large font's glyphs as distance fields, packed into one picture: what such a font is drawn from in place of a
-/// stand-in typeface (<c>docs/mechanics/interface.md</c>, section 6). Decided 2026-11-18 by the maintainer: a font whose
+/// stand-in typeface (<c>docs/mechanics/interface.md</c>, section 6). Decided 2026-11-18: a font whose
 /// capital H stands at least <see cref="LeastCapHeight"/> pixels is drawn from its own glyphs, every smaller one from
 /// a stand-in - below that a distance field shows the pixels it was made from.
 /// </summary>

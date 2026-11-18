@@ -467,7 +467,7 @@ public partial class CLobby : Control
 		CGuiPoint at = _context.Types.FindPosition("shield_position")?.Position ?? default;
 		CGuiPoint offset = _context.Types.FindPosition("shield_offset")?.Position ?? default;
 		// Each shield's corner, before it turns about its middle: the row centred on the bottom middle's offset, measured on
-		// the maintainer's screenshot of the original's lobby (2026-11-06) - the middle one's middle at x 960, every one's at
+		// a screenshot of the original's lobby (2026-11-06) - the middle one's middle at x 960, every one's at
 		// y 845.
 		Vector2 canvas = GetViewportRect().Size;
 		float first = canvas.X / 2 + at.X - offset.X * start.Countries.Count / 2f;

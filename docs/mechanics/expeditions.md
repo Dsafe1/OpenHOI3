@@ -1,6 +1,6 @@
 # Expeditionary forces
 
-A unit lent to an ally, and taken back. No addresses. Source: `reversing/findings/FINDINGS-expedition.md`, static, and `reversing/findings/FINDINGS-surrender.md`, sections A and C.2, for an annexation and an exile; the window and a declined offer were tried with `--click`, the hand-over and the return by tests, and an exile's sending home with `OpenHOI3.SaveCheck declare ... occupy lend=TAG` (section 5). The maintainer has not looked at it. Hardcoded but the windows and words, and `EXPEDITION_INFLUENCE_COST`, `EXPEDITION_RETURN_TIME` and `EXPEDITION_RECLAIM_TIME` in `defines.lua` [mod].
+A unit lent to an ally, and taken back. No addresses. Source: `reversing/findings/FINDINGS-expedition.md`, static, and `reversing/findings/FINDINGS-surrender.md`, sections A and C.2, for an annexation and an exile; the window and a declined offer were tried with `--click`, the hand-over and the return by tests, and an exile's sending home with `OpenHOI3.SaveCheck declare ... occupy lend=TAG` (section 5). It has not been reviewed in play. Hardcoded but the windows and words, and `EXPEDITION_INFLUENCE_COST`, `EXPEDITION_RETURN_TIME` and `EXPEDITION_RECLAIM_TIME` in `defines.lua` [mod].
 
 ## 1. The window
 

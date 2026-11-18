@@ -1,16 +1,16 @@
 # Savegames: the original's `.hoi3`, both ways
 
-A game here is saved in the original's own format and the original's saves load here - the maintainer's choice of
+A game here is saved in the original's own format and the original's saves load here - the choice of
 2026-11-04, over a format of our own and over a replay. Read out of the original the same day
 (`reversing/findings/FINDINGS-savegame.md`; the value writers `reversing/findings/FINDINGS-save.md`), and set against
-the maintainer's 45 saves. `confirmed` unless marked.
+45 reference saves. `confirmed` unless marked.
 
 **[exe]** marks a rule the original's executable holds, **[mod: ...]** what a file may change.
 
 ## 1. The stages
 
 1. **The reading** - done: `FINDINGS-savegame.md`, and for the battles `FINDINGS-savedbattle.md` (2026-11-05).
-2. **The loader** - in increments, each set against the maintainer's saves (sections 4 and 5). **The first is built**:
+2. **The loader** - in increments, each set against the reference saves (sections 4 and 5). **The first is built**:
    the clock, the generator, the played country, every province and country's figures below, the factions. **So is the
    second**: the units, the leaders in service, the queue, what waits to be placed and the templates. **And the third**:
    the wars, the pacts, the trade routes, the convoys and mobilisation (section 6), and the battles, the finished
@@ -270,8 +270,8 @@ the opposite order**, and a bombing's hour is run first. Then [exe]:
 As a battle's block ends [exe]: it has begun, so its first hour is an ordinary one - no start, no naval roll; each unit
 holds it again; **a land battle sets up its attacker's front where it is not, asking twice, and never its defender's**,
 and sums its tactics; a ground bombing's side with nobody on it is the province's holder's. A land side's front counts as
-set up unless it has units and none of them on a list - a side saved before its battle's first hour, which no save of
-the maintainer's has, nor can a player's attack make one: ordered while paused and saved at once, the save holds the
+set up unless it has units and none of them on a list - a side saved before its battle's first hour, which no reference
+save has, nor can a player's attack make one: ordered while paused and saved at once, the save holds the
 march and not the battle, which the hour makes (`Soviet_Union1941_07_16_19` and `_20`, province 1985); such a defender would stand with an empty front and lose at the fourth hour without a shot, which
 is the original's. Entering the game, every unit in a battle starts its count towards breaking off again from nought.
 
@@ -491,12 +491,12 @@ A save is `CSaveWriter`'s text in the original's bytes, the file truncated where
 - No message says a save was made; a failure is logged, `Failed to write save file`.
 
 **Checked** by `SaveFilesTests` - the six frequencies' days, the three files shifted along and the dialog's names - and
-with `--click`: the dialog listing the maintainer's folder newest first, offering `Germany1936_01_01_00`, asking
+with `--click`: the dialog listing the reference save folder newest first, offering `Germany1936_01_01_00`, asking
 `CONFIRMSAVETEXT` before writing over that save and leaving it untouched on Cancel, and as Italy writing
 `Italy1936_01_01_00.hoi3`, which `OpenHOI3.SaveCheck load` read back. **The hour an autosave holds hangs on the speed
-in the original**: the maintainer's three autosaves - `1941.5.1.1`, `1941.6.1.1` and `1941.7.1.1` - were made at speed
-and hold the first hour of the day, and at a slow speed it holds the turn of the day, `.0` (his word, 2026-11-05). Here
-it always holds the turn of the day, by his decision.
+in the original**: three reference autosaves - `1941.5.1.1`, `1941.6.1.1` and `1941.7.1.1` - were made at speed
+and hold the first hour of the day, and at a slow speed it holds the turn of the day, `.0` (an account of the original, 2026-11-05). Here
+it always holds the turn of the day, by decision.
 
 ## 12. The fourth increment: politics and the research queue
 
@@ -508,7 +508,7 @@ Read and written both ways (`CSavePolitics`), each key where the original writes
 | `research` | one a technology in the queue, in its order | a name no technology has is left out and reported | after the categories |
 | `last_election` | the day of the last election, at hour 0 | `1.1.1.0` is never | then these three |
 | `last_surrender` | the hour it last surrendered | `1.1.1.0` is never | |
-| `election` | read by nothing in the original, loaded inverted and saved again | not kept | always `yes` - nothing sets it, and every save of the maintainer's has it |
+| `election` | read by nothing in the original, loaded inverted and saved again | not kept | always `yes` - nothing sets it, and every reference save has it |
 | `duration` | the country's own term in months, 0 its government's | | |
 | `spiescaught` | the spies caught at home this month | | after `diplo_influence` |
 | `organization`, `popularity` | `{ data = { a figure a party } }`, one by each ideology's number, number 0 included | made at the ideologies' count, a number past the save's nought | after the shares, **each key at column 0** |
@@ -524,13 +524,13 @@ now.
 popularity, as a new game's setting-up and every drift do (`FINDINGS-government.md`, B.4) - so a load here does too
 (`CCabinet.Allot`). And reading `cabinet` **appends** the save's list to a cabinet already made, so the seats the game
 uses are the first, and the save's list stands behind them, read by nothing and written again after them
-(`FINDINGS-government.md`, B.7, *inferred* from the reading and the saves). `Germany1936_04_20_03`, a game the
-maintainer had loaded, bears it out: every country's `cabinet` has 22 figures, the first eleven the seats its
+(`FINDINGS-government.md`, B.7, *inferred* from the reading and the saves). `Germany1936_04_20_03`, a game that
+had been loaded, bears it out: every country's `cabinet` has 22 figures, the first eleven the seats its
 popularity allots and the last eleven another set. So a country keeps the list a save gave (`CCountry.CabinetLoaded`)
 and **a game loaded here writes the seats and then the save's list**, 22 figures for a save of 11, and 33 for that one -
 as the original's would.
 
-**Not held, so not written**: `nocategory` and `last_mission_cancel` - in every save of the maintainer's `0.000` and
+**Not held, so not written**: `nocategory` and `last_mission_cancel` - in every reference save `0.000` and
 `1.1.1.0`. `nukes` is held, read and written since 2026-11-09 (`nukes.md`). `war_exhaustion` is held, read and written since 2026-11-07 (`warexhaustion.md`, section
 6).
 
@@ -561,7 +561,7 @@ first** - nought, its date the null date (`FINDINGS-savegame.md`, B.2, item 14) 
 | `covert_ops_points` | thousandths | its covert-ops points |
 
 A list that ends early leaves the rest nought. **Not held, so not written**: `last_mission_cancel`, which belongs to
-the active missions (`active_mission`, `last_mission`), not built - `1.1.1.0` in every save of the maintainer's.
+the active missions (`active_mission`, `last_mission`), not built - `1.1.1.0` in every reference save.
 
 **Checked** with `OpenHOI3.SaveCheck write` in the eleven saves of section 12, on 2026-11-06: **every country's spies
 the save's byte for byte**. `write <install> new <start save>` gives every key the start save's but `spy_allocation`,
@@ -637,7 +637,7 @@ Both ways (`CSaveAiStrategy`), after the templates [exe] (`FINDINGS-savegame.md`
 
 - **`ai_hard_strategy` and `ai_event_strategy`**, the strategies scripts give, are not built (`aistrategy.md`, section
   12): written empty - `initialized=no`, then `consolidate=no`, `static=no`, `personality=balanced`, `max_subunits=0`
-  and the four shares at nought - as every save of the maintainer's has them, and one that says anything, a scalar off
+  and the four shares at nought - as every reference save has them, and one that says anything, a scalar off
   its nought among it, is reported.
 - **`ai`**: `initialized`, `consolidate`, `static`, the `personality` (`military`, `capital`, `diplomacy`, `balanced` - a
   strategy never made `balanced`), `max_subunits`, `land_perc`, `air_perc`, `naval_perc`, `armor_bias`, then the nine
@@ -663,7 +663,7 @@ without a word and the writer left them out): `consolidate` and `static`, which 
 `max_subunits`, `land_perc`, `air_perc`, `naval_perc` and `armor_bias`, which the original works out with the strategy and
 which are not built (`FINDINGS-aistrategy.md`, C), so they stand as loaded - a new game's at nought - when a strategy
 is made again here; and `military_access`, read in part (section I), which a making here empties with the other lists.
-`war_with` and `building_prov` are in no save of the maintainer's.
+`war_with` and `building_prov` are in no reference save.
 
 **Checked** on 2026-11-06 with each country's three blocks set beside the save's, the keys not held then taken out of the
 save's: in the eleven saves of section 12 and `olderautosave.hoi3`, **every country's strategies, lists and theatres
@@ -731,7 +731,7 @@ Play (`frontend.md`, section 4).
   lend-lease numbers its countries - the original's id of the country, stored so and written and read unchanged (read,
   section 20); read and written since 2026-11-14.
 - The exception the original makes where a carrying fleet is in its passenger's own subtree, the fleet written in the
-  passenger's place: in none of the maintainer's saves, and not handled.
+  passenger's place: in none of the reference saves, and not handled.
 - A naval order's `capital`, `sub_unit` and `other`, the halt figure `stop` and an air order's figure for each air type:
   nothing here holds them, so they are reported.
 - **The first midnight after a load drops two supply convoys the original keeps** - Britain's to Dar es Salaam and
@@ -857,7 +857,7 @@ load makes it again and ours did not; or lost in the original too and not yet li
   draws nothing. **Checked** with `OpenHOI3.SaveCheck load` and the hour run, the holders noting any modifier as entered
   set beside those before the change: `Ireland1936_02_02_04` - land 2 of 2 and 2, air 5 of 5 where 0, a bombing of land
   4 of 4 where 0; `Ireland1937_07_05_02` sea 4 of 4 where 0; `Ireland1937_11_02_21` land 7 of 7 and 7, sea 6 of 6 where
-  0; `Ireland1938_08_03_14` land 13 of 13 and 13, a bombing of land 16 of 16 where 0. No save of the maintainer's holds
+  0; `Ireland1938_08_03_14` land 13 of 13 and 13, a bombing of land 16 of 16 where 0. No reference save holds
   a battle saved before its first round, so none draws. **A surprise is lost on a load**, in the original too: it is
   carried from round to round on the side, which the save does not keep (`docs/enhanced.md`).
 - **`load_oob`** did nothing in a loaded game: the reader of order-of-battle files was given to a new game alone.

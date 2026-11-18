@@ -2,8 +2,8 @@
 
 The map's surface - its land, beaches, sea, borders - drawn as the original draws it: the install's own meshes, through
 the install's own `gfx/FX` effect files translated to Godot shaders (`shaders.md`), each fed what the executable feeds it,
-so that a mod's terrain or water shader - BlackICE changes both - is the one seen. By the maintainer's word of 2026-11-06,
-"We need to actually support moddable shaders", and his choice to do that before the far view. Read in
+so that a mod's terrain or water shader - BlackICE changes both - is the one seen. By the decision of 2026-11-06,
+moddable shaders are to be supported, and that before the far view. Read in
 `reversing/findings/FINDINGS-mapdraw.md` (A the land and camera, B the sea, borders and generated textures, C the scene)
 and `FINDINGS-farmap.md` (A the far view's thresholds). **[exe]** a rule the executable holds; **[mod: file]** what a file
 may change; *Ours* where this departs.
@@ -142,7 +142,7 @@ As `FINDINGS-mapdraw.md` A.2 and B.1 have it, by parameter name:
   tile of 50 pixels, x outer and y inner, as the corner cache is read (`CBorderCache.WaterBorders`), built once and never
   again [exe]. tex1 and tex3 those two pictures; the depth test off, depth written, blended by source alpha; drawn after
   the sea and at every height - what hides them in the far view is their art, at most a fifth of black over a fifth of a
-  pixel (*inferred* there; the maintainer's screenshot of the original's far view shows none). On TFH 668,662 quads in
+  pixel (*inferred* there; a screenshot of the original's far view shows none). On TFH 668,662 quads in
   3,638 tiles: the borders between sea zones, and never the coast, which is the surf's. *Ours*: a vertex holds the map's
   own coordinates where the original's holds the tile's, the product with the world-view-projection the same, so three
   materials - a tile drawn a map's width west, where it is, a width east - serve every tile and a move of the camera sets
@@ -181,7 +181,7 @@ As `FINDINGS-mapdraw.md` A.2 and B.1 have it, by parameter name:
   raster the junctions read. The original tests `map.bin` by date - it is the map's while none of positions,
   provinces.bmp, terrain.bmp, definition.csv, adjacencies, terrain.txt, continent, region and coastlines is missing or newer
   [exe] - and not `rivers.bmp`, so it traces an edited river bitmap from the old sources. **Here `rivers.bmp` is tested
-  too** (the maintainer's word, 2026-11-06; `docs/compatibility.md`, entry 20), and where the file is missing, stale or
+  too** (decided on 2026-11-06; `docs/compatibility.md`, entry 20), and where the file is missing, stale or
   does not read the sources are those its builder would write - every index-0 pixel by rows from the south and then from the
   west [exe] - and the log says why. On this machine the player's folder's `map.bin` is the original's rebuild of TFH's,
   newer than every file, and its 722 sources are the bitmap's in order; the one TFH ships is older than all ten, some by
@@ -189,8 +189,8 @@ As `FINDINGS-mapdraw.md` A.2 and B.1 have it, by parameter name:
   the same 722. *Ours*: a tile's rivers - by their source's tile - in one
   mesh, under 65,536 vertices, with three materials for the copies of the map as the sea zones' borders have; a loop of
   river pixels, which the original would walk for
-  ever, cut and reported; vTime in seconds - its unit not read, and the maintainer found the flow's and the foam's speed
-  right on 2026-11-06.
+  ever, cut and reported; vTime in seconds - its unit not read, and the flow's and the foam's speed were found
+  right in play on 2026-11-06.
 - **The surf, beach.fx's BeachShader near and BeachShaderColor far** (C.7; `Content/Map/CWavePixel`,
   `Interface/Map/CSurfQuads`): only where settings.txt's `waves` is on, and made once [exe]. The cache's seventh piece of a
   tile is its wave pixels, 28 bytes each - a coastal pixel the terrain paints as water, x and y, its type of 52 by where
@@ -264,9 +264,9 @@ As `FINDINGS-mapdraw.md` A.2 and B.1 have it, by parameter name:
   radians (0 where not given) and `text_scale` (1 where not given); a province with no `text_position` - 8,001 of TFH's -
   has its name **two map pixels south of the centre of its bounding box** [exe the 2.0], whatever its scale - the
   point the original's geometry pass writes before positions.txt is read (`reversing/findings/FINDINGS-provincenamepoint.md`).
-  The fact base's reading had it at the map's (0, 0), never seen, from the template's constructor; the maintainer's
+  The fact base's reading had it at the map's (0, 0), never seen, from the template's constructor; a
   screenshot of the original, 2026-11-07, named Stolp, Belgard and Falkenburg, none with a `text_position`, where ours
-  had nothing, and the reading was corrected to the centre; his screenshot of 2026-11-12 had Bautzen, Lauban, Sagar and
+  had nothing, and the reading was corrected to the centre; a screenshot of 2026-11-12 had Bautzen, Lauban, Sagar and
   four more 1.9 pixels south of ours, and the 2.0 was read. Its terrain is still counted around the plain centre
   (section 4 of `map.md`). **The layout** [exe]: a name over 50 characters cut to
   49; broken only at a glyph with no height - the space - and only where the line, the word and its space taken in, is
@@ -312,7 +312,7 @@ turns Direct3D's clip depth with `z = w − z` and its y over after the vertex s
 
 **Built 2026-11-06: the land, the beaches and the sea** (`src/Map/CMapSurface`, `CSurfaceTile`), drawn through
 terrain_2_0.fx and water.fx as translated, under the 2D layers, which it lies under pixel for pixel; tried with
-`--screenshot` at four heights in the political and terrain modes, and the maintainer has not looked at it. What was seen:
+`--screenshot` at four heights in the political and terrain modes, and it has not been reviewed in play. What was seen:
 the far view's General_Low with the overlay laid over the political colours and their stripes; near, General's greyed
 terrain sheet under them; in the terrain and weather modes Graphical, the terrain sheet itself - forest, plain, town -
 dark where the player knows a province under 2, which for Germany on the first day is its own land and one ring round it
@@ -325,7 +325,7 @@ showed the surface upside down**, Godot's clip y running the other way to Direct
   rasters and the fog from them (section 5) - about 15 ms, the texel each samples worked out once for the map.
 - **What it costs**: at rest a frame of about 7 ms, the 2D map's own; a move of the camera a tenth of a millisecond; the
   surface's making about 0.9 s - the cache read in 0.2 s, 2,700 meshes and 1,774 terrain-index pictures in 0.7 - in the
-  optimised build. **A crossing of 500** cost a frame of 120 to 145 ms at first, every time (the maintainer's report,
+  optimised build. **A crossing of 500** cost a frame of 120 to 145 ms at first, every time (reported in testing,
   2026-11-06): our own work was some 17 ms, and the rest the rendering server's - giving 2,700 materials another shader,
   and then, measured with each switched off in turn, showing or hiding a few thousand instances, the land's or the
   borders' alike. *Ours* since: **the land and the beaches are drawn four ways** - Graphical near and far, General,
@@ -336,30 +336,30 @@ showed the surface upside down**, Godot's clip y running the other way to Direct
   instance. A crossing now costs 13 to 21 ms, the first zoom inwards about 70, of which 37 is the counters' first near
   draw, as on the flat map.
   **The first choice of a mode drawn another way** - any but terrain and weather, the land's General ways, or air and
-  naval, the sea's `…Color` techniques - then stalled most of a second on the materials of the way it wanted (the
-  maintainer's report, 2026-11-07, since a game starts in the terrain mode). *Ours* since: the surface makes the rest one at a
+  naval, the sea's `…Color` techniques - then stalled most of a second on the materials of the way it wanted (reported
+  in testing, 2026-11-07, since a game starts in the terrain mode). *Ours* since: the surface makes the rest one at a
   time, a way or a sea technique every fifteen frames, while the player looks at the map; a switch then costs what any
   colouring does, 80 to 150 ms, the colours some 40 of it and the rest the textures they rewrite. **Nothing is drawn ahead
   of its use**: each way made ahead was drawn under the one shown for two frames to warm it, which flickered the map as a
-  game began (the maintainer's report, 2026-11-07) and, measured, made a first switch no faster; without the warming of
+  game began (reported in testing, 2026-11-07) and, measured, made a first switch no faster; without the warming of
   the other height a first zoom inwards costs about 50 ms instead of 35.
 - **A surface gives back everything it made as it leaves the tree** - its meshes, its some 4,500 materials and their
   textures - where until then each lived on until the managed side's collector took its wrapper. Under the debugger that
   was long enough for the lobby's surfaces, one for each world it shows, to still hold their texture sets when the game's
   borders were first drawn on zooming in, and the D3D12 rendering device's descriptor heap ran out, Godot logging every
-  frame after (the maintainer's run, 2026-11-06). The heap is also raised to 262,144 descriptors in `project.godot`
+  frame after (a test run, 2026-11-06). The heap is also raised to 262,144 descriptors in `project.godot`
   (`rendering_device/d3d12/max_resource_descriptors`), one surface zoomed in using a good part of the default.
 - **A DXT1 file's see-through texels are decoded as Direct3D decodes them** - black with no alpha - where Godot's decoder
   makes every DXT1 texel solid (`CTextureManager`, for a file that has any). `map/terrain/stripes.dds` is one, and the
   province techniques mix in the second colour by its alpha: with every texel solid, occupied land was drawn wholly in the
-  owner's colour and showed no stripes (the maintainer's report, 2026-11-06).
+  owner's colour and showed no stripes (reported in testing, 2026-11-06).
 - **A compressed picture whose size is not a power of two is unpacked and each texel set to its nearest colour of five,
   six and five bits** (`CTextureManager`) - *inferred* as what the original's device holds: its texture handler rounds the
   size up to powers of two with no filter (A.3), so D3DX compresses the picture afresh into a texture of the new size, and
   a flat stretch then comes out as that nearest colour. TFH's `colormap_political.dds` is the case that showed it: a land
   and sea mask in DXT3, land 121 and sea 102, which the far technique lays under the province colours. Its own blocks
   decode to (123, 121, 123) near the coasts and (121, 121, 121) inland - a little greener on the GPU - so the far view's
-  land near a coast and inland differed by a shade in 12-pixel steps (the maintainer's report, 2026-11-06). His screenshot
+  land near a coast and inland differed by a shade in 12-pixel steps (reported in testing, 2026-11-06). A screenshot
   of the original has the land (123, 121, 123)'s tint everywhere, red and blue two above green, inland Germany (151, 149,
   151); with the picture set so, ours is (150, 148, 150) and the step gone.
 - **The original's `map/terrain/base.dds` keeps five of the ten levels its mipmap chain should have**, which Godot's
@@ -376,24 +376,24 @@ showed the surface upside down**, Godot's clip y running the other way to Direct
   cache - a mod with a map of its own and no cache - and the hover marking it drew is gone, the original marking nothing
   under the mouse. Checked with `--screenshot`: the Baltic's faint lines between its zones, and a click on a province
   lifting it while the one before goes dark.
-- **The junctions of the land borders, built the same day** (section 4), after the maintainer found the lines "very cut
+- **The junctions of the land borders, built the same day** (section 4), after testing found the lines "very cut
   up" in a save of 1941: every place three provinces met lost its corner piece on every line into it.
 - **The rivers and the surf, built the same day** (section 4), after two readings in the fact base (C.6, C.7), their
-  counts the fact base's every one (`OpenHOI3.SaveCheck quads`). Checked with `--screenshot` and the maintainer has not
-  looked at them: near, the Elbe, the Weser and the rest light bands over the land; far, the rivers fine white lines and
+  counts the fact base's every one (`OpenHOI3.SaveCheck quads`). Checked with `--screenshot` and not
+  reviewed in play: near, the Elbe, the Weser and the rest light bands over the land; far, the rivers fine white lines and
   every coast a dark line. **The near surf's foam was not made out** on a screenshot zoomed in on the German coast - the
-  pass adds white by three alphas, so it is faint by its own art, and whether as faint as the original's is for his eye.
+  pass adds white by three alphas, so it is faint by its own art, and whether as faint as the original's is for a review in play.
 - **The trees, built 2026-11-07** (section 4), after a reading in the fact base (C.8), which corrected the record's
   trees.txt reader - it reads `tree_density` too - and its quad a tree - four. Checked with `--screenshot` and `--trees`:
   the Black Forest a canopy of clumps seen from above, the Rhine plain bare; Karelia's trees snowed in the weather mode
-  and green in the terrain mode. **The maintainer's settings.txt has `renderTrees=no`**, so without `--trees` he sees
-  none, as the original would show him none. He has not looked at them.
+  and green in the terrain mode. **The reference settings.txt has `renderTrees=no`**, so without `--trees` none are
+  seen, as the original would show none. They have not been reviewed in play.
 - **The province names, built 2026-11-07** (section 4), after a reading in the fact base (`FINDINGS-farmap.md`, B.7),
   which found the shown byte gating nothing and the record's `MapTile_Update` an instruction inside another function.
   Checked with `--screenshot` under Kassel: every name on its point, Göttingen, Duderstadt and Wuppertal turned as
   positions.txt turns them, in its own case, black. **kart_font's "Another Typewriter" had no stand-in**, and Liberation
   Sans drawn into its boxes left gaps round the narrow letters - "Bi el ef el d"; it is drawn in Liberation Mono since
-  (`fonts/readme.md`), its letters 28 to 40 pixels wide being nearly a monospace. He has not looked at them.
+  (`fonts/readme.md`), its letters 28 to 40 pixels wide being nearly a monospace. They have not been reviewed in play.
 - **The hierarchy's lines and the air map's rings, built 2026-11-07** (section 4), through `hierarchy.fx` and `circle.fx`
   after readings in the fact base (`FINDINGS-hierarchy.md` 7, `FINDINGS-airmap.md` 8), which corrected the lines' seam
   - the end further east moved a width west, a copy drawn a width east only. Checked with `--screenshot`: OB West's

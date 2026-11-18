@@ -4,7 +4,7 @@ A bookmark is a dated entry point: the lobby's Historical Start lists them, and 
 before a country is chosen. The Quick Start panel offers four starts of its own, dated in the executable. Built
 2026-11-15 from two readings of that day - `reversing/findings/FINDINGS-bookmarks.md` (the file, the lobby, which
 history a later date brings) and `reversing/findings/FINDINGS-laterstart.md` (what the new-game pass does once the
-history stands) - and checked against three saves the maintainer made at the first hour of the 1939.9.1, 1941.6.22 and
+history stands) - and checked against three reference saves made at the first hour of the 1939.9.1, 1941.6.22 and
 1941.12.11 bookmarks (section 5).
 
 **[exe]** marks what the executable fixes, **[mod: file]** what a file may change.
@@ -177,7 +177,7 @@ stockpile, the build queue and the brigades' rows again on 2026-11-16:
 | theatres (number, headquarters, fronts) | 106, 106, 104 of 106 | 96 of 96 each | 97 of 97 each |
 | AI strategy lists | 74 to 75 of 75 | 73 of 73 each | 73 of 73 each |
 
-**What still differs, and where it was left** (the readme's *Loose ends*):
+**What still differs, and where it was left** (the worklist's *Loose ends*):
 
 - ~~**Alignment**~~ and ~~**an exile's own pool**~~ - settled in the second round (above): alignment 101 of 101 at every
   date, the 1936 start's one miss with it, and every exile's pool the save's in every good but France's and Belgium's
@@ -264,7 +264,7 @@ control over both your military forces and your production" - while all four bod
 `tools/OpenHOI3.SaveCheck`'s checks that set a new game beside a save of its first hour - `firstdays`, `politics`,
 `diplomacy`, `espionage`, `aistrategy`, `theatres`, `agents`, `techgap`, `supplypass`, `write ... new` and the plain
 start-date check - make their game **at the save's date** (`CStartSave`), so a save made at a bookmark's first hour is a
-start save of that bookmark. The maintainer's, of 2026-11-15, Ireland played in each:
+start save of that bookmark. The reference saves, of 2026-11-15, Ireland played in each:
 `Ireland1939_09_01_00.hoi3`, `Ireland1941_06_22_00.hoi3`, `Ireland1941_12_11_00.hoi3`.
 
 The client's `--date=1939.9.1` beside `--country=` begins a game at that date, as the lobby's bookmark of it would.

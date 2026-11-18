@@ -286,7 +286,7 @@ public class SupplyNetworkTests
 	}
 
 	/// <summary>
-	/// Korea as the maintainer watched it in the original on 2026-10-09: the master's land
+	/// Korea as it was watched in the original on 2026-10-09: the master's land
 	/// with a port, beside a puppet whose own port is the larger.
 	/// </summary>
 	private (int Pusan, int Pyongyang, int Hamhung) Korea(int pusanPort)

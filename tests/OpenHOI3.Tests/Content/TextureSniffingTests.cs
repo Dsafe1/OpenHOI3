@@ -88,7 +88,7 @@ public class TextureSniffingTests
 	[Fact]
 	public void ARecompressedPictureTakesTheNearestColourOfFiveSixAndFiveBits()
 	{
-		// TFH's political colour map's land grey, as the maintainer's screenshot has it (docs/mechanics/mapdraw.md, section 6).
+		// TFH's political colour map's land grey, as a screenshot of the original has it (docs/mechanics/mapdraw.md, section 6).
 		byte[] pixels = { 121, 121, 121, 77, 255, 0, 8, 255 };
 		CRecompression.ToNearest565(pixels);
 		Assert.Equal(new byte[] { 123, 121, 123, 77, 255, 0, 8, 255 }, pixels);

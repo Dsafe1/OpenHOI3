@@ -5,7 +5,7 @@ the player's folder, the command line that selects a mod, and the survey of what
 `reversing/findings/FINDINGS-modlayer.md` (2026-11-16), with the checksum's account of the search path in
 `reversing/findings/FINDINGS-checksum.md`, section 3, which that reading corrects. Built 2026-11-16
 (`lib/OpenHOI3.Content/Mods`, `CDirectorySettings`); **stage 1 of mod compatibility** - the layer, the launch and the
-survey. Stage 2, a BlackICE new game set beside a BlackICE save, and stage 3, playing it, are the readme's *Next up*.
+survey. Stage 2, a BlackICE new game set beside a BlackICE save, and stage 3, playing it, are the worklist's *Next up*.
 
 Every rule below is the executable's [exe]; what is in a `.mod` file and the folders it names is the mod's [mod].
 
@@ -34,7 +34,7 @@ and logged `Incorrect MOD descriptor: "<file>"`; the base game's own `mod/Dies_i
 
 *Ours*: `CModReader` reads the keys above and **reports every other** - `extend` and `replace` among them - where the
 original drops them without a word. An `archive` is **not read**: a mod with a `path` as well is laid over from its folder
-and that is said; one with an archive alone lays nothing (readme, *Loose ends*). A `path` that is no folder is said; the
+and that is said; one with an archive alone lays nothing (`docs/worklist.md`, *Loose ends*). A `path` that is no folder is said; the
 original's mount of it fails silently and its `user_dir` still applies (*likely*), as here.
 
 ## 2. The search path and `replace_path`
@@ -204,7 +204,7 @@ that finds it knows which engine runs it. Its `Files[path]` is the names of a fo
 the order the file system lists them, as LuaFileSystem's `lfs.dir` gives them on Windows - or nil where there is no such
 folder; a relative path is taken against the working folder, and a folder is listed the first time it is asked for and
 kept. It stands in for the one thing BlackICE asks of `lfs`, a native module this engine cannot load (a 32-bit DLL built
-for the original's interpreter); the maintainer's design, 2026-11-16. BlackICE's `script/file-io.lua` requires `lfs` only
+for the original's interpreter); designed so on 2026-11-16. BlackICE's `script/file-io.lua` requires `lfs` only
 where `OpenHOI3` is nil and lists a folder through `OpenHOI3.Files` where it is not, so the original is untouched.
 
 *Measured*, 2026-11-16, with the BlackICE repository's `file-io.lua` laid over an install linked together in a scratch

@@ -14,7 +14,7 @@ using OpenHOI3.Sim.Units;
 using OpenHOI3.Sim.Wars;
 
 /// <summary>
-/// A trial, not a check: no save of the maintainer's has a rising in it. On a new game the occupier is put at war
+/// A trial, not a check: no reference save has a rising in it. On a new game the occupier is put at war
 /// with the occupied and given ten of its provinces away from the capital; then a rising of the roll's three
 /// brigades is made in the first province it holds of the occupied's, and another in its own land where nobody stands; and
 /// the days are run, telling each faction's armies and land, and every rising the roll makes:

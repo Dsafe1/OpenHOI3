@@ -11,8 +11,8 @@ Source: `reversing/findings/FINDINGS-builders.md`, read for this spec, and
 order once it is given is `buildqueue.md`; how an interface file becomes something on screen
 is `interface.md`; the screen they come up over is `productionscreen.md`.
 
-**The four windows were built from the reading alone, on 2026-10-08, and the maintainer has
-tried them twice since.** What he found is section 10, with what each was. Nothing has been
+**The four windows were built from the reading alone, on 2026-10-08, and have been
+tried by hand twice since.** What was found is section 10, with what each was. Nothing has been
 measured against a screenshot of the original, and the last section says what a closer look
 would settle.
 
@@ -341,27 +341,27 @@ otherwise `likely`, read in decompiled C.
   what a carrier and its air groups were first ordered with, on 2026-10-09: the carrier
   and, after it, two lines of one air group each.
 
-## 10. What the maintainer found, 2026-10-08
+## 10. What testing by hand found, 2026-10-08
 
 Tried by hand, the first time anyone had: the windows had been checked by a developer
 switch that opens one and puts something in it, which presses nothing.
 
-| what he saw | what it was |
+| what was seen | what it was |
 | --- | --- |
 | the designer's picker greyed, and not to be clicked | the picker was drawn under the designer, whose art tints the whole window and takes the clicks (section 4) |
-| the brigade builder's lines' ground off centre - "a little too low and left", which he said of the designer's and then "same issue" of these | `brigade_entry_3` gives its button two positions and the first was used; the second stands (`interface.md`, section 2). Four down and three left |
+| the brigade builder's lines' ground off centre - "a little too low and left", which was said of the designer's and then "same issue" of these | `brigade_entry_3` gives its button two positions and the first was used; the second stands (`interface.md`, section 2). Four down and three left |
 | the ship builder's lines' ground running out past the frame on the right | `select_ship_button` is in the install as a `.tga` and as a `.dds`, two different pictures, and the game draws the `.dds` (`interface.md`, section 5) |
 | `cancel`, `accept`, the four serial and parallel buttons and `as_reserves` dead in the ship, air and brigade builders | `stats_pos`, a list box 533 by 620 holding one line, lies over all of them, and a list box took every click in its rectangle (`interface.md`, section 2) |
 
 Each is mended and was pressed with the mouse's own events afterwards - a line picked, the
 counts changed, the box ticked, the order given and the window closed, in all four.
 
-He looked again on 2026-10-09 and found all of it right, with one thing more: **a click on
+Looked at again on 2026-10-09, all of it was found right, with one thing more: **a click on
 a line's counter picks the line in the original**, and here the counter kept the click to
 itself. An icon now hands its click to the button it lies on (`interface.md`, section 5).
 
-**One was never accounted for.** It was the designer's lines he first called too low and
-left, and on the second look he did not. Their button has one position, `{ 3 1 }`, and at it a
+**One was never accounted for.** It was the designer's lines that were first called too low and
+left, and on the second look they were not. Their button has one position, `{ 3 1 }`, and at it a
 line is 572 wide under a header 572 wide and starts on the pixel the header's frame does.
 Nothing was changed there but the order the two windows are drawn in, so it was most
 likely the tint lying over them that made them look so.
@@ -370,7 +370,7 @@ likely the tint lying over them that made them look so.
 the first reading had passed over.
 
 **The ship list with every type in it, 2026-10-09.** With all thirteen ship types to
-build the list ran over the gap under its frame, and the maintainer said the game's
+build the list ran over the gap under its frame, and the game's, it was reported,
 never does. That had the list box read (`interface.md`, section 2), and what was wrong
 was general: lines were spaced by the box's `spacing` and cut off at its edge, where the
 original packs them and draws whole lines only. Mended, every list here changed - the
@@ -380,7 +380,7 @@ builder twelve and no half line.
 **The ship list itself is not settled.** Its file gives it a height of 620 - twenty-five
 lines - in a frame of about 300, so by the routine it never scrolls: twelve ship types
 end inside the frame and the thirteenth is drawn across its lower edge. That is how it
-is drawn here, and it is not what he remembers. Either the unmodded game does it and is
+is drawn here, and it is not what is remembered from play. Either the unmodded game does it and is
 seldom seen with thirteen types to build - BlackICE's own file gives the list 345, which
 is fourteen lines and then a scrollbar - or something else holds it in that was not
 found. The air builder's list and the brigade picker's are 620 high as well.
@@ -388,14 +388,14 @@ found. The air builder's list and the brigade picker's are 620 high as well.
 **The picker's scrollbar lies on its lines** when it has one. Its box is 533 wide and its
 lines 572, and a list's scrollbar stands at the box's right edge here, so with more land
 brigades than the 26 rows the box has - which `--all-units` gives - the bar is drawn over
-the columns. The maintainer, 2026-10-09: expected, and the original avoids it by never
+the columns. Judged on 2026-10-09: expected, and the original avoids it by never
 having that many brigades to list. Where the original stands a list's scrollbar was not
 read (`interface.md`, the last section, item 11), so the bar's place is ours either way.
 
 ## 11. Tooltips
 
 Source: `reversing/findings/FINDINGS-buildertooltips.md`, read 2026-10-11. Tried with `--click`;
-the maintainer has not looked at them. `confirmed` unless said.
+they have not been reviewed in play. `confirmed` unless said.
 
 **While a builder window is up it answers for every element** the production screen is asked
 about, the screen's frame among them, which it leaves silent (`tooltips.md`, section 5). By the

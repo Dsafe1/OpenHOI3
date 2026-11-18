@@ -75,7 +75,7 @@ over ten `controls`, says `n / 11`.
 
 - **A row's "?", `modifier_info`, and nothing else in it** says the entry's **`trigger` block's account of itself**
   - the window hands the element to each row in turn, and a row takes it only where it is that row's
-  `modifier_info`. Corrected 2026-10-14 on the maintainer's word ("It should only show on the '?' icon"), which the
+  `modifier_info`. Corrected 2026-10-14 on an account of the original ("It should only show on the '?' icon"), which the
   routine then bore out: the first reading had every element of a row answer. In P's scope: a line for each
   condition with a green or red asterisk, as a decision's `allow` and a technology's requirements are written
   (`scripttext.md`, section 3).

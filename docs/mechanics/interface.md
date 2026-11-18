@@ -65,7 +65,7 @@ BlackICE's: `3dButtonType`, `multiSpriteButtonType`, `threeDguiType`. `confirmed
 
 **A button's words show only on a text sprite.** *Measured*: a `guiButtonType` whose sprite is declared as a plain
 `spriteType` draws no words of its own - not its file's `buttonText`, nor any the code gives it - where one on a
-`textSpriteType` does. The maintainer's screenshots of the original, 2026-10-14: the research queue's stop button
+`textSpriteType` does. Screenshots of the original, 2026-10-14: the research queue's stop button
 (`cancel`, `buttonText = "--"`, a plain sprite) shows no "--", and the intelligence screen's `target_priority` (a plain
 sprite, `SEND_SPY_PRIORITY`) shows its words once - the label beside it, `target_priority_label`, saying them; Their
 Finest Hour's file has the button's text sprite commented out. Of Their Finest Hour's buttons with words, 205 are on text
@@ -103,13 +103,13 @@ reads an element a key at a time, each into its own place, so a later one writes
 earlier (`reversing/findings/FINDINGS-guicontainers.md`). It matters once in the base
 game: `brigade_entry_3`'s `select` button has `position = { x=0 y=4 }` and then
 `position = { x= 3 y = 0 }`, and the line it is the ground of sits at the second - drawn
-at the first it was "a little too low and left" beside the original (the maintainer,
+at the first it was "a little too low and left" beside the original (found in testing,
 2026-10-08; `reversing/findings/FINDINGS-builders.md`, section 6). Elements declared
 inside an element are each their own, however many share a keyword.
 
 **A `format` in quotes is not taken, and the one before it stands.** *Measured*, not read: the
 reorganise row's `subunit_strength` gives `format = left` and then `format = "right"` - the only
-two quoted formats in the base game - and on the maintainer's screenshot of the original's window
+two quoted formats in the base game - and on a screenshot of the original's window
 its men stand to the left, just after the box's corner, where the second would have put them past
 the row's end (`reorganise.md`, section 2). The original's reading of the key was not opened; a
 format word is taken to be matched as a word, which a quoted string is not.
@@ -134,7 +134,7 @@ does neither.
   slider on the track where the value puts it. The slider is dragged and a click on the
   track brings it to the mouse. `likely` the original holds the four numbers in
   thousandths, so a step is never less than one.
-  **An end button** was read on 2026-10-12, after the maintainer's account - "You can hold
+  **An end button** was read on 2026-10-12, after an account of the original - "You can hold
   the mouse button for them to continue changing the value. Holding CTRL speed that up
   considerably" (`reversing/findings/FINDINGS-scrollbar.md`). `confirmed` unless said:
   - **a press** moves the value by the declared step, except that **a step of exactly a
@@ -142,7 +142,7 @@ does neither.
     ten times that**, 0.10, **with Ctrl a hundred times**, 1.00, and with both a thousand
     times, 10.00. The original asks the two keys by number: that the one is Ctrl is `likely`,
     the builder windows' tooltip naming the same number Ctrl, and that the other is Shift is
-    the maintainer's word, 2026-10-12: "Its shift.";
+    settled on 2026-10-12: "Its shift.";
   - **holding it** repeats the press. The first frame starts a clock; on each frame after,
     **the whole time held is counted out in 0.15 s, a press for each** - nothing for 0.15 s,
     then a press a frame, then two, and so on. So it goes faster the longer it is held,
@@ -155,7 +155,7 @@ does neither.
   **A bar that runs up and down has its `leftbutton`, and its least value, at the
   bottom.** `measured`: the list boxes' scrollbar gives its `leftbutton` the picture
   of an arrow pointing down and its `rightbutton` one pointing up, and in the original
-  the arrow at the top points up (the maintainer, 2026-10-08, on seeing them the other
+  the arrow at the top points up (reported 2026-10-08, on seeing them the other
   way round here). So the file's sprites are not swapped, as this project's readme said
   for a long time; the bar is read from the bottom. A list is at its top when its bar
   is at its most.
@@ -195,7 +195,7 @@ does neither.
   between them: one made as the game is entered, which is not drawn here, and **the list
   a selected unit's panel is made of** (`unitpanel.md`), which is. In that mode each line
   goes straight under the one before it, **touching it**, and all are shown. *Measured*
-  on the maintainer's screenshot of the original's unit panel, 2026-10-09, whose every
+  on a screenshot of the original's unit panel, 2026-10-09, whose every
   entry begins on the row after the one before ends - though its list declares a
   `spacing` of 2, and the routine was read, as `likely`, as putting the spacing between
   them. The original scrolls such a list when its lines do not all fit; not built.
@@ -299,7 +299,7 @@ files, with nothing in it placed by hand.
   times** - the declared size over the file's, in integer division - each copy stretched to fill. `confirmed`
   (`reversing/findings/FINDINGS-buttonstatefx.md`, section 7). The quad is built up from its foot (y up), and the foot
   is placed by the file's own height, as a plain sprite's would be, so a quad declared taller than its file rises
-  above where the file would start: `measured` on the maintainer's screenshot of BlackICE's backdrop (2026-11-18), the
+  above where the file would start: `measured` on a screenshot of BlackICE's backdrop in the original (2026-11-18), the
   size the original places a tile sprite by not read. Only the `topcolor_*` backdrops use it (`countryviews.md`,
   section 6): the base game's, 64 by 512 declared 2048 by 512, repeat 32 times across at their own scale;
   BlackICE's, declared 2048 by 1000, 32 across and once down, 1000 over 512 being 1, stretched to 1000 high
@@ -318,8 +318,8 @@ files, with nothing in it placed by hand.
 
   Their Finest Hour names 652 textures `.tga`; most exist only as `.dds`. Three exist as
   both and differ: `select_ship_button`, where the `.tga` is an older picture 60 wider
-  that runs over the ship builder's frame - which is how this was found, the maintainer
-  seeing the lines overflow here and not in the game - `divdesigner_listbutton2`, a row
+  that runs over the ship builder's frame - which is how this was found, the lines
+  seen in testing to overflow here and not in the game - `divdesigner_listbutton2`, a row
   higher, and `gfx/test/factions`. `measured`
 
   *Ours:* a name no layer has under either extension is then tried with the others,
@@ -403,7 +403,7 @@ files, with nothing in it placed by hand.
   `{ 0 0 0 0 }` is clear. `horizontal = no` turns u up the bar, filling it from its foot.
   **Both pictures are drawn upside down**, and the reading says why: the original's quad
   has v nought along its foot (`likely` - the caller that makes its matrix was not read).
-  *Measured* first, 2026-10-09, on the maintainer's screenshots of a battle: the plate
+  *Measured* first, 2026-10-09, on screenshots of a battle in the original: the plate
   under a unit of the battle window (`GFX_combat_unit_bg`) has its light band over its
   dark one, where the picture has the dark over the light; and the unit panel's two
   standing bars are bright on the left, which a quarter turn of their pictures as they
@@ -439,7 +439,7 @@ files, with nothing in it placed by hand.
   for the canvas (`shaders.md`, section 3.10), so a mod's `buttonstate.fx` is the one
   that counts - it was written again by hand for this engine until then - and a
   scrollbar's slider and bar are drawn with it too - which is why a locked slider is grey, as
-  the maintainer said it should be on 2026-10-08. **A sprite is drawn through the effect
+  it was said it should be on 2026-10-08. **A sprite is drawn through the effect
   file it names, and one that names none through `buttonstate.fx`** - the original's
   sprite type starts with that file before its declaration is read
   (`reversing/findings/FINDINGS-buttonstatefx.md`), `confirmed` - so a sprite with no
@@ -457,9 +457,9 @@ files, with nothing in it placed by hand.
   sentence above is wrong for them. **The technology screen's folder tabs are settled**:
   the screen sets each tab's frame outright on every pass, 2 for the chosen folder and 1
   for the rest, and a frame set so overrides the state's, so a tab keeps its picture under
-  the mouse - which is how BlackICE's avionics tab switches when chosen (the maintainer's
-  pointer, 2026-11-07; `reversing/findings/FINDINGS-buttonstatefx.md`, *Not
-  established*; `technologyscreen.md`, section 3). The maintainer knows of no button
+  the mouse - which is how BlackICE's avionics tab switches when chosen (pointed out in
+  testing, 2026-11-07; `reversing/findings/FINDINGS-buttonstatefx.md`, *Not
+  established*; `technologyscreen.md`, section 3). No button is known, from play,
   that changes its picture on hover. *Ours:* an icon is drawn plainly until a screen
   gives it a look, which `up` with a white `Color` comes to; the effect's `Point`
   sampler is the element's own filter, as for every drawn texture (`shaders.md`, section
@@ -484,7 +484,7 @@ files, with nothing in it placed by hand.
   flag under its frame. **The small round shield's is a disc**, 40 by 26 under an overlay of
   32 by 32: this said until 2026-10-09 that every mask shipped was blank and applied none,
   and the battle row of the unit panel showed a square flag behind a round frame. That the
-  mask sits in the overlay's middle was *measured* on the maintainer's screenshot of that
+  mask sits in the overlay's middle was *measured* on a screenshot of the original's
   row and is now read. *Ours:* the original's flag is a cell of an atlas of every country's
   flag, `FlagCoords` its column and row; here it is the country's own picture with
   `FlagCoords` (1, 1, 0, 0), as the original draws a shield that has a picture of its own;
@@ -510,7 +510,7 @@ files, with nothing in it placed by hand.
   shown frame, scaled from its size on screen to the texture's; an icon does not, and hands
   a click on to a button under it only where that button would take it. Whether a button
   whose sprite is `allwaystransparent` takes a click at all is not read, and here it does.
-- **An icon lying on a button does not keep a click from it.** The maintainer,
+- **An icon lying on a button does not keep a click from it.** An account of the original,
   2026-10-09: "The original allows clicks on the icon" - the counter on a line of a
   builder's list, whose sprite has `transparencecheck` and is solid where it was
   clicked. *Ours* for how: the icon hands the press, the release and the mouse's being
@@ -540,15 +540,15 @@ files, with nothing in it placed by hand.
   `g` 176 176 176, `Y` 255 189 0. A section sign and `!` goes back to the font's own
   colour. **Ours are not those**: red, green and yellow were chosen by eye before this
   was known - the red is the same to a point, the green darker, the yellow lighter -
-  and the maintainer said on 2026-10-08 that they stay. They are fixed in the code, so
-  a mod's `colorcodes` changes nothing here. Told where the original keeps them, the
-  maintainer said the same day that it can stay so for now: `docs/compatibility.md`,
+  and it was decided on 2026-10-08 that they stay. They are fixed in the code, so
+  a mod's `colorcodes` changes nothing here. Raised again with where the original keeps them,
+  it was decided the same day that it can stay so for now: `docs/compatibility.md`,
   entry 5.
 - **Text before any escape is drawn in the font's own colour.** `inferred` A `bitmapfont`
   declares one.
 - **A text box does not place its text; its font does**, given the box, the border, the
   format and the orientation. `confirmed`, from
-  `reversing/findings/FINDINGS-textdraw.md`, read after the maintainer twice pointed at
+  `reversing/findings/FINDINGS-textdraw.md`, read after testing twice pointed at
   a figure off-centre in the circle painted for it. For a box measured from the upper
   left, which 1077 of the 1118 are:
 
@@ -624,7 +624,7 @@ files, with nothing in it placed by hand.
 - **Every glyph is then drawn one unit right and one up of that.** The original adds
   half a pixel to both coordinates of every corner of a glyph, in a space whose second
   axis points up (`confirmed`), and beside its pictures that comes out as a whole pixel
-  each way (`measured`, on a screenshot of the running game the maintainer sent: the
+  each way (`measured`, on a screenshot of the running game: the
   difficulty's `1` and the year beside it are each one right and one up of the
   arithmetic). *Ours:* all text is drawn so. With it the figure's stem is in the same
   two columns as the original's and its top and bottom on the same rows; what differs
@@ -702,7 +702,7 @@ files, with nothing in it placed by hand.
 *Ours, and two decisions.* On 2026-10-08, **a small font's glyph texture is not drawn**:
 its glyphs are a dozen pixels high and cannot be scaled into anything readable, which is
 the one thing the scalable canvas of section 3 could not survive. On 2026-11-18, **a large
-font is drawn from its own glyphs**, made into distance fields - the maintainer's word:
+font is drawn from its own glyphs**, made into distance fields - decided so:
 "large fonts (at least 38) get upscaled, and the other ones use a fallback" - because a
 mod's display faces have no stand-in and came out in Liberation Sans, and a stand-in is
 never the font's own letters. So:
@@ -759,7 +759,7 @@ never the font's own letters. So:
     descriptor does not give moves the pen nothing and draws nothing. Its kerning pairs are
     not applied, as the widths of the interface leave them out (`CFontDescriptor.Width`).
   - *Cost:* a font is made the first time it is asked for, in 14 to 280 ms on the
-    maintainer's machine (2026-11-18), the glyphs side by side.
+    development machine (2026-11-18), the glyphs side by side.
   - *Which fonts* - by the height of their H, and what they are declared as:
 
     | layer | drawn from its glyphs |
@@ -789,10 +789,10 @@ never the font's own letters. So:
 - **A font whose descriptor gives every character the same advance is drawn a character
   to a cell of that advance**, each letter in the middle of its own and **narrowed to the
   width of the original's glyph of it** where the typeface draws it wider - an M of
-  Liberation Sans ran over its neighbours, the maintainer's screenshot of 2026-11-04,
+  Liberation Sans ran over its neighbours, a screenshot of 2026-11-04,
   where `timefont`'s M is 10 wide like its cell. Two in the base game
   are: `Courier` and `timefont`, the date widget's, whose 143 characters all advance 10.
-  *Measured* on the maintainer's screenshots of the land orders window: each character of
+  *Measured* on screenshots of the land orders window: each character of
   the date starts exactly 10 pixels after the last, so its figures stand in the boxes of
   `time_overlay` behind them - drawn in a typeface of its own widths they ran across the
   boxes (`landorders.md`, section 2).
@@ -844,9 +844,9 @@ never the font's own letters. So:
 - **An icon's `rotation` turns it about the middle of its lower left pixel, and a positive
   quarter stands it on its end, running upwards.** So an icon `w` long and `h` high at
   `(x, y)`, turned a quarter, covers `x - h + 1` to `x + 1` across and `y + h - w` to
-  `y + h` down. *Measured*, 2026-10-09, on a screenshot the maintainer gave of the
+  `y + h` down. *Measured*, 2026-10-09, on a screenshot of the
   original's unit panel beside this one's: the bars of 24 by 8 fall on the original's to
-  the pixel in the header and in a brigade's row. Two guesses came first and he saw both
+  the pixel in the header and in a brigade's row. Two guesses came first and both were seen
   wrong - about the upper left corner, which stood the bars 8 too high, and about the
   middle of the near end, which stood them 7 too far right; the second was "confirmed" by
   the bars then standing in the exact middle of a place in the row's picture, which the
@@ -856,11 +856,11 @@ never the font's own letters. So:
 - **A flag turns about its own middle instead**, a pixel and a half to the right of it. The
   battle window's two shields are 66 by 51 and turned a negative quarter, and stand 51 wide
   and 66 high: one at `(x, y)` covers `x + 9` to `x + 60` across and `y - 8` to `y + 58`
-  down, with what was its left edge at the top. *Measured*, 2026-10-09, on the
-  maintainer's screenshot of that window; the bar's rule would have stood them 55 further
+  down, with what was its left edge at the top. *Measured*, 2026-10-09, on a
+  screenshot of the original's window; the bar's rule would have stood them 55 further
   left, over the picture between them. Not read, and known for those two only. **A button that draws a country's shield
   turns the same way** since 2026-11-06 - the lobby's shortcut shields, `lobby.gui`'s `shield` a negative quarter, set
-  beside the maintainer's screenshot of the original's lobby (`frontend.md`, section 3) - and with them the lobby's
+  beside a screenshot of the original's lobby (`frontend.md`, section 3) - and with them the lobby's
   `player_shield`, the province view's `owner_flag` and the politics screen's two selection buttons, whose files turn
   them too. A button of any other picture is not turned.
 - **A line too wide for a text box that says `fixedsize = yes` is cut, and ends in three
@@ -874,9 +874,9 @@ never the font's own letters. So:
   space likely the ten pixels short (not measured again). A colour in the text is counted as nothing and kept.
 - **A window whose file says `moveable = 1` is dragged with the left button held anywhere
   on it but on a button, a scrollbar or a list** - a picture or a text lying over a button
-  counts as the button - and a window that is the screen is never dragged. The maintainer's
+  counts as the button - and a window that is the screen is never dragged. An
   account of the original's event window, 2026-10-12, and **no part of the window may leave
-  the screen** - his too, the same day. That the rest of the original's moveable windows drag
+  the screen** - from the same account, the same day. That the rest of the original's moveable windows drag
   the same way was not read. *Ours*: the key is what decides, so the orders windows and the
   dialogs drag too; the window's extent is the `size` its file declares, so a background
   picture larger than that may still reach past the edge; and a window larger than the
@@ -891,7 +891,7 @@ never the font's own letters. So:
 - **The typefaces are in `fonts/`, with their licences**, and `fonts/readme.md` says where
   each came from. Which stands for which is one table in the client.
 - **A button's shortcut is read** for function keys, `ESCAPE`, `ENTER` and single letters
-  and digits. The other words the files use are not yet keys. *Ours*, by the maintainer's word of 2026-11-12: **a
+  and digits. The other words the files use are not yet keys. *Ours*, by the decision of 2026-11-12: **a
   held key presses its button again and again**, at the keyboard's own repeat, all but Escape - which would close a
   window and then open the in-game menu and close it again - and **the number pad's Enter is Enter**. The clock's speed
   keys repeat too; Space, Escape, H, the console's key and the debug menu's do not. **The arrow keys go no further
@@ -912,7 +912,7 @@ never the font's own letters. So:
   takes it only where a screen asks, so a right click elsewhere still goes on to what lies
   under it. The original's observer of a button has nine events and of a checkbox six; which
   is which was not read, and the leader window's two that are taken for the right button
-  were inferred from where they sit - the maintainer confirmed both on 2026-10-11
+  were inferred from where they sit - both were confirmed in play on 2026-10-11
   (`leaders.md`, section 12).
 - **An element greys everything it holds** (`CGuiObject.Greying`, 2026-11-06): greyed, enabled, or left to what holds
   it, the nearest element up the tree that says either deciding. A greyed button draws as a disabled one and cannot be
@@ -921,7 +921,7 @@ never the font's own letters. So:
   the mouse, set on an element and handed down to every element under it as it is set - a button told no answers no
   click and looks as before (`reversing/findings/FINDINGS-frontend.md`, C.4; `FINDINGS-guistatic.md`). A screen run by the
   AI stops taking the mouse whole and its arrows then take it again (`frontend.md`, section 4.4); here it is greyed as
-  well, by the maintainer's choice (`docs/compatibility.md`, entry 19). Here the flag is asked up the tree instead, so a
+  well, by a choice made here (`docs/compatibility.md`, entry 19). Here the flag is asked up the tree instead, so a
   row added later to a greyed list is greyed with it, and a button its screen enables each frame stays greyed under a
   greyed window - which the original's would not, at the next frame. A button's own `Disabled` and its greying are
   apart: either keeps it from being pressed.
@@ -1003,8 +1003,8 @@ Read out of the original on 2026-11-05 for the save dialog (`reversing/findings/
   hides it until it next comes on - up to a second.
 - **A box's `textureFile` is drawn behind its text** [mod: the `.gui`], in the nine parts of section 6 - its corners
   kept to the box's `borderSize` and the rest **stretched** between them - **from the border to 2 short of the box's
-  right and bottom edges**, where the border that way is not nought. *Measured* first on the maintainer's screenshot
-  of the save dialog (2026-11-05): `game_name`, 260 by 32 with a border of 8 by 6, shows `small_tiles_dialog`'s rim 246
+  right and bottom edges**, where the border that way is not nought. *Measured* first on a screenshot of the original's
+  save dialog (2026-11-05): `game_name`, 260 by 32 with a border of 8 by 6, shows `small_tiles_dialog`'s rim 246
   by 20 at 10 and 8 in - the picture has 2 clear all round - and set beside it ours lies on it to the pixel (the text
   and the caret were said to as well, and were two and one pixels off - the bullets above). **Read on 2026-11-14** (`reversing/findings/FINDINGS-textdraw.md`, section 2.2.2), and the
   reading gives exactly that: the object that draws the line stands the border in and shows the box less the border,
@@ -1022,7 +1022,7 @@ Read out of the original on 2026-11-05 for the save dialog (`reversing/findings/
 - **A character Windows-1252 has no byte for is not taken** and goes on; the original's window would be handed the
   code page's own stand-in. Text set by code puts the caret at its end, where the original's was not read.
 - ~~**The text stands where section 7 measured it**, 15 across and 9 down in the unit panel's box~~ - until
-  2026-11-14, when the maintainer's screenshot of the save dialog with a name typed showed `game_name`'s line two
+  2026-11-14, when a screenshot of the original's save dialog with a name typed showed `game_name`'s line two
   pixels lower than that and its caret one higher, and the reading's placing (above) was taken with the one unit
   measured. The caret's bar on that screenshot stands a unit right of ours, the line before it being a unit wider in
   the original's font than in the typeface here.
@@ -1070,7 +1070,7 @@ is; where the caret goes across a space a line was cut at.
     2026-11-04 (section 7): the second, and the fourth while switched off.
 13. **Which element takes a click.** How the original hands the mouse to an element was
     not read, beyond a sprite's own test of a pixel (section 5), whose caller was not
-    found; two things are known from the maintainer's eye. A list box does
+    found; two things are known from watching the original. A list box does
     not keep a click from what it lies over (section 2), and **an icon does not keep
     one from a button under it** - a click on the counter of a line of a list picks the
     line (2026-10-09). Here a button, a scrollbar and any icon not `allwaystransparent`

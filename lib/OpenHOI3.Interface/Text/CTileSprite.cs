@@ -10,7 +10,7 @@ namespace OpenHOI3.Interface.Text;
 /// **The quad stands on its foot**: the original builds every sprite's quad up from its origin (y up), and places the
 /// origin by the sprite's file height, which the tile sprite does not change - so a tile quad taller than its file rises
 /// above where the file would start, its foot where the file's foot would be. BlackICE's, at y 573 in its window, has its
-/// foot at 1085 and its top at 85, as the maintainer's screenshot of the original shows (*measured*; the size the original
+/// foot at 1085 and its top at 85, as a screenshot of the original shows (*measured*; the size the original
 /// places a tile sprite by was not read).
 /// </summary>
 public static class CTileSprite

@@ -12,7 +12,7 @@ Sources: `reversing/findings/FINDINGS-triggereval.md` (the scope, the composites
 `reversing/findings/FINDINGS-triggergrammar.md` (the names that are not keywords). Nothing here was
 tried in a running game.
 
-**The maintainer's word on what the simulation does not hold yet, 2026-10-12**: a condition about
+**The decision on what the simulation does not hold yet, 2026-10-12**: a condition about
 something nothing here keeps - a flag, a government, an ideology, a minister's dates, a spy, a
 threat, a battle's history - **answers false and is reported as unbuilt**. It is not answered from
 the history files or anything else standing in for the system that will own it: "Taking the
@@ -317,10 +317,10 @@ whether it has none of the group (`script.md`, section 5), and is false where th
 
 Every one of these answers **false** - whatever was written, `= no` included, and inside a `not`
 that makes the `not` true - and **is reported** with the key that asked. Each is listed with what it
-waits for. They are not answered from the history, by the maintainer's decision at the top.
+waits for. They are not answered from the history, by the decision at the top.
 
 **And a condition that holds because of one holds**: an event whose `not = { government = x }`
-is true only because governments are unbuilt fires like any other. The maintainer's word on
+is true only because governments are unbuilt fires like any other. Decided on
 2026-10-12, asked whether such an event may fire: "Just fire them." Of the base game's events,
 five held everywhere on the start date for that reason when it was asked, flags then unbuilt
 (`OpenHOI3.SaveCheck conditions`).

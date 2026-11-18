@@ -35,7 +35,7 @@ sort and its direction are kept across tabs:
 | `unaligned_button` | owning a province, in no faction, **neither P nor the chosen country** | the countries' order |
 | a faction's button | its members owning a province, not P | by name |
 | a continent's button | every country whose capital is on it, owning a province, not P | by name |
-| `self_button` | **nothing**: no code asks its name, as in the original - the maintainer's word on 2026-10-14, "put it down as not working on purpose" | |
+| `self_button` | **nothing**: no code asks its name, as in the original - decided on 2026-10-14, "put it down as not working on purpose" | |
 
 By name is the names' bytes compared, case and all, equals in the countries' order. The faction buttons stand at
 `espionage_faction_start` a step `espionage_faction_offset` apart; the continent buttons from
@@ -158,7 +158,7 @@ So with nothing known - F at or below nought and no industry intelligence - both
 | `value_our_neutrality` | `ESP_NEUTRALITY`, P's effective neutrality rounded | |
 | `value_active_spies`, **in either window** | `ESP_NUM_SPIES` of the chosen country | `ESP_NUM_SPIES_DELAYED`, its priority |
 | the seven goods, `ic_number`, `diplomacy_number`, `espionage_number`, `manpower_number`, `dissent_number`, `national_unity_number`, `leadership_number` | `ESP_ESTIMATE_RES`, NUM **the box's text as it stands**, colours and `?` included; ITEM the good's name, or `MODIFIER_IC`, `DISTRIBUTE_DIPLOMACY`, `DISTRIBUTE_ESPIONAGE`, `MANPOWER_IRO`, `DISSENT_IRO`, `ESP_NATIONAL_UNITY`, `PV_LEADERSHIP` | `ESP_ESTIMATE_RES_DELAY` |
-| `attempt_coup_button` | two lines: `COUP_DESC_DISABLED` where the two ruling parties are of one group or the target's government is not fractured, else `COUP_DESC` where the player's group holds a seat there and `COUP_NOT_ENOUGH_SUPPORT` where it holds none, both with the target's name; then `COV_OPS_COST` and the cost, or `COV_OPS_COST_LACKING` with the cost and the points (`reversing/findings/FINDINGS-espionage.md` D.9, read after the maintainer's screenshot) | |
+| `attempt_coup_button` | two lines: `COUP_DESC_DISABLED` where the two ruling parties are of one group or the target's government is not fractured, else `COUP_DESC` where the player's group holds a seat there and `COUP_NOT_ENOUGH_SUPPORT` where it holds none, both with the target's name; then `COV_OPS_COST` and the cost, or `COV_OPS_COST_LACKING` with the cost and the points (`reversing/findings/FINDINGS-espionage.md` D.9, read after a screenshot of the original) | |
 | a mission row, its title included | the mission's `SPYMISSION_*_DESC` | |
 | a minister row | its colour: the party's name; anything else: what his personality does | |
 
@@ -167,7 +167,7 @@ Nothing else answers: not the country rows, the research rows, the production ro
 
 ## What looks wrong and is built so
 
-The original's, none put to the maintainer but the first:
+The original's, none raised for a decision but the first:
 
 - `self_button` does nothing;
 - the Priority sort never reverses, yet turns the shared direction over;

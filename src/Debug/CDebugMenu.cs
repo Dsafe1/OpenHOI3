@@ -5,7 +5,7 @@ namespace OpenHOI3.Debug;
 
 /// <summary>
 /// Ours: a small menu of developer switches, drawn with the engine's own controls and not from the original's interface
-/// files. Shift and 4 opens and shuts it, beside the original's console on Shift and 3 - the maintainer's choice,
+/// files. Shift and 4 opens and shuts it, beside the original's console on Shift and 3 - chosen on
 /// 2026-10-15. Each switch is a box that is ticked or not.
 /// </summary>
 public sealed partial class CDebugMenu : PanelContainer

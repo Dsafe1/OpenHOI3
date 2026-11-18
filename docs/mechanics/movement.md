@@ -25,8 +25,8 @@ march's own are here.
 - **A right click on a province with a unit selected** sends the unit there. With **shift**
   held the order is added to the path the unit already has; without, it replaces it.
   `confirmed`: the original's routine for the click takes the province and one flag, and
-  passes the flag's opposite to the command as `clear`. That the flag is the shift key is
-  the maintainer's word, 2026-10-09: "Yes it is shift."
+  passes the flag's opposite to the command as `clear`. That the flag is the shift key was
+  confirmed on 2026-10-09: "Yes it is shift."
 - A click on **the province the unit stands in** halts it - unless the order is being
   added to a path, when it is one more leg. `confirmed`
 - A click on a province the unit **may not go to** does nothing but play the error sound
@@ -285,7 +285,7 @@ attack breaks the attack off.** (`landcombat.md`, section 7.)
 
 **A unit with an attack delay running does not take its first step** - of any march, not only
 towards an enemy - and one that arrives with a delay running starts its next leg from
-nothing. A unit already walking keeps walking. `confirmed`, and the maintainer's word for it
+nothing. A unit already walking keeps walking. `confirmed`, and an account of the original for it
 on 2026-10-09: a delay stops all movement but the walk into the province that was attacked,
 where the unit may arrive with it still running (`landcombat.md`, section 9).
 
@@ -359,7 +359,7 @@ strategic redeployment and in no battle, is given the brigades, the fuel and the
 the earlier save shows; what an hour adds here, times the hours between, is set against
 what the saves say it gained. Where its weather or its fuel is not the same in both saves
 the gain has only to lie between the two speeds. *Measured* against four saves of one
-game the maintainer made on 2026-10-09, in which an AI has some 480 of 950 divisions on
+reference game made on 2026-10-09, in which an AI has some 480 of 950 divisions on
 the move:
 
 | saves | weather and fuel the same | changed in between |
@@ -374,14 +374,14 @@ the move:
   ground between two muddy saves.
 - It covers terms 2, 3, 5, 6 and 7 and the two cuts: infantry, cavalry, motorised and
   armoured divisions, garrisons and mountain troops, over plain edges and rivers, in mud,
-  in frost and in neither, with fuel and without. The maintainer's own division, the
+  in frost and in neither, with fuel and without. The player's own division, the
   SS-Verfügungstruppe out of Berlin, gains 0.405 an hour in the saves and here: its
   brigades' 8 with the 0.1 Germany's technology adds, on dry plains, times 0.05.
 - **`loaded`** after the saves loads the earlier save as a game (`savegame.md`) and takes each division as it
   loads - its own brigades, their technology, its leader and whether it is falling back - where without it a
   division is put together out of a new game's brigades and the start date's technology, which only a save of
   early 1936 answers. *Measured* 2026-11-14 on the war start of 6 September 1939 (`Ireland1939_09_06_18`, two
-  of the maintainer's runs saved hourly): seven single hours, 57 to 60 of 55 to 61 divisions an hour to the
+  reference runs saved hourly): seven single hours, 57 to 60 of 55 to 61 divisions an hour to the
   thousandth with it, 40 to 45 without - the misses without it Poland's retreating divisions, a tenth faster,
   and the 1939 brigades and technology. Those left with it are a Hungarian cavalry division in mountain mud
   (0.032 an hour in the saves, 0.072 here), a German division of a headquarters brigade alone (0.019, 0.150)
@@ -494,7 +494,7 @@ with what is left over carried into the next leg as the march itself carries it.
 - **Every moving unit has a small green pointer beside its counter**, pointing the way
   it is going, selected or not (`mapunits.md`, section 2).
 - **The selected unit's way is drawn as an arrow**, and only a selected unit's. Read out
-  of the original after the maintainer gave a screenshot of it on 2026-10-09
+  of the original after a screenshot of it was given on 2026-10-09
   (`reversing/findings/FINDINGS-movement.md`, section 10): `confirmed` unless marked
 
   - it is the `moveArrow` `arrowType` of `interface/arrows.gfx`, whose picture is the arrow
@@ -541,12 +541,12 @@ with what is left over carried into the next leg as the march itself carries it.
   **where an enemy of the unit's country holds the next province of its way** - whether or
   not anybody stands there, so a walk into undefended enemy ground is drawn as an attack.
   `confirmed` (`reversing/findings/FINDINGS-combatview.md`, section 9); the attack's was set
-  beside the maintainer's screenshot of one on 2026-10-09 (`combatview.md`, section 9). A land
+  beside a screenshot of one on 2026-10-09 (`combatview.md`, section 9). A land
   unit going ashore from the sea, on anybody's ground, has `unitInvasionArrow`, asked after the
   retreat's (`transport.md`, section 12). **A unit under a strategic redeployment has
   `stratArrow`**, asked after the attack's and before the march's (`reversing/findings/FINDINGS-movement.md`,
-  the arrow's reading; built 2026-11-04 with the land orders window, `landorders.md`, at the
-  maintainer's word that its colour differs in the original) - its picture, `stratarrow.tga`,
+  the arrow's reading; built 2026-11-04 with the land orders window, `landorders.md`, on an
+  account of the original that its colour differs there) - its picture, `stratarrow.tga`,
   is the colour.
 - **The click leaves a mark on the province ordered**: `legal_selection_projection` where the
   unit was sent - a blue ring - and `illegal_selection_projection` where it was refused - a red

@@ -228,7 +228,7 @@ public partial class CGuiWindow : CGuiObject
 	/// <summary>
 	/// A moveable window is dragged by the left button held anywhere on it but a button, a
 	/// scrollbar or a list - an icon or a text over a button is the button. The innermost
-	/// moveable window under the mouse is the one dragged. By the maintainer's account of the
+	/// moveable window under the mouse is the one dragged. By an account of the
 	/// original's event window; see <c>docs/mechanics/interface.md</c>, section 7.
 	/// </summary>
 	public override void _Input(InputEvent @event)
@@ -263,7 +263,7 @@ public partial class CGuiWindow : CGuiObject
 	}
 
 	/// <summary>
-	/// Where a corner may go so that no part of the window leaves the screen - the maintainer's
+	/// Where a corner may go so that no part of the window leaves the screen - an
 	/// account of the original. A window larger than the screen keeps its upper left on it.
 	/// </summary>
 	private Vector2 OnScreen(Vector2 corner)

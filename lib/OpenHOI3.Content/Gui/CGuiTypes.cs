@@ -487,7 +487,7 @@ public sealed class CGuiTypes
 	}
 
 	/// <summary>
-	/// A <c>format</c> written in quotes: <i>measured</i>, on the maintainer's screenshot of the reorganise window, where
+	/// A <c>format</c> written in quotes: <i>measured</i>, on a screenshot of the original's reorganise window, where
 	/// <c>subunit_strength</c>'s <c>format = left</c> and then <c>format = "right"</c> draw its men to the left - the only
 	/// two quoted formats in the base game.
 	/// </summary>

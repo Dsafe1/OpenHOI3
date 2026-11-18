@@ -6,8 +6,8 @@ Each is chosen by its button by the minimap (`minimap.md`, section 4) or with `-
 the original in `reversing/findings/FINDINGS-mapmodesfigures.md` (infrastructure, victory points, strength, resources),
 `reversing/findings/FINDINGS-mapmodescountries.md` (political, diplomatic, intel, theatre) and
 `reversing/findings/FINDINGS-mapmodesrest.md` (simplified terrain, region, naval); where a resource icon stands is
-`reversing/findings/FINDINGS-resourceicons.md`. **All of it was read and tried with `--screenshot`, and the maintainer
-has not looked at it.**
+`reversing/findings/FINDINGS-resourceicons.md`. **All of it was read and tried with `--screenshot`, and it
+has not been reviewed in play.**
 
 A figure marked **[exe]** is fixed in the original's code; one marked **[mod]** comes from a file a mod may change.
 
@@ -104,7 +104,7 @@ in play changes no icon until the next game - and drawn **only in this mode and 
   place in the goods pool - the 3rd to the 6th building of the file. Their Finest Hour's puts them on `coastal_fort`,
   `land_fort`, `anti_air` and `radar_station`; BlackICE's on `coastal_fort`, `beach_defence`, `land_fort` and `fortress`.
   So a built fort's picture stands on the icon that shares its point. **Where positions.txt gives the province no point
-  for the building, the icon stands on the province's label point** - the maintainer's word, 2026-11-07, correcting the
+  for the building, the icon stands on the province's label point** - observed in the original on 2026-11-07, correcting the
   fact base, whose reading had inferred the map's corner (`reversing/findings/FINDINGS-resourceicons.md`, section 4).
   BlackICE's file gives `beach_defence` no point at all, so its metal icons stand there.
 - `STRATEGIC_` and the resource's key on the province's **label point**, the middle of its box.

@@ -223,7 +223,7 @@ public class OrdersTextTests
 	[Fact]
 	public void A_date_widget_writes_the_year_the_month_cut_to_three_letters_the_day_and_the_hour()
 	{
-		// As the maintainer's screenshots of the land window have it (landorders.md, section 2).
+		// As screenshots of the original's land window have it (landorders.md, section 2).
 		long hour = (long)new CDate(1936, 1, 4).DayNumber * CGameState.HoursPerDay + 11;
 		Assert.Equal("1936 Jan 4 11:00", CAirOrdersText.DateText(key => key, hour));
 		Assert.Equal("1936 May 1 0:00", CAirOrdersText.DateText(key => key, (long)new CDate(1936, 5, 1).DayNumber * 24));

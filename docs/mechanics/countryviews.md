@@ -85,10 +85,10 @@ view close, as Escape lets them go. So only one screen is up at a time, and a sc
 over a selection. The Statistics screen, opened over a country screen, shuts it through the same
 toggle, and so clears the selection then; opened over the map it leaves the selection alone
 (`statistics.md`; `reversing/findings/FINDINGS-topscreens.md`, section B.1). Built so since
-2026-11-14, on the maintainer's report that the selection stayed; until then a screen opened over
+2026-11-14, on a report from testing that the selection stayed; until then a screen opened over
 it and the deploy menu stayed open.
 
-**A screen stands over an event's window and a message's popup**, as the maintainer saw the original do on
+**A screen stands over an event's window and a message's popup**, as the original was watched doing on
 2026-10-14: they come up under it, over the map and the panels, and the top bar stands over all of them. Not read:
 where the original keeps them, so the order of the rest is ours.
 
@@ -105,7 +105,7 @@ where the original keeps them, so the order of the rest is ours.
 
 ## 6. The picture behind them
 
-`menubar.gui`'s `bg_main_menus` (`GFX_bg_main_menus`) is up behind a country screen and the Statistics, and only them [exe]. It stands at the screen's corner, scaled by the larger of the screen's width over its width and the screen's height over its height, where that is above one, so a picture larger than the screen is cut off at the right and bottom [exe]. It covers the map and the bottom bar - the log, the map modes' buttons and the rest - and only the chat is put over it, the screen, the top bar and the alerts coming after [exe]; the map takes no click through it. The maintainer set this beside the original on 2026-11-09: the log and the map modes' buttons do not show there, and what stays over the picture is as it is here.
+`menubar.gui`'s `bg_main_menus` (`GFX_bg_main_menus`) is up behind a country screen and the Statistics, and only them [exe]. It stands at the screen's corner, scaled by the larger of the screen's width over its width and the screen's height over its height, where that is above one, so a picture larger than the screen is cut off at the right and bottom [exe]. It covers the map and the bottom bar - the log, the map modes' buttons and the rest - and only the chat is put over it, the screen, the top bar and the alerts coming after [exe]; the map takes no click through it. This was set beside the original on 2026-11-09: the log and the map modes' buttons do not show there, and what stays over the picture is as it is here.
 
 A country screen also takes down the minimap, `minimap_bg` and `minimap_overlay` while it is up [exe], as well; the Statistics do not.
 
@@ -115,7 +115,7 @@ A country screen also takes down the minimap, `minimap_bg` and `minimap_overlay`
 `topcolor_icon`, a `tileSpriteType`: a quad of its sprite's declared `size`, the strip repeated across it
 (`interface.md`, section 5). The base game's strips, opaque at the top, stand under the top bar; BlackICE's are opaque
 at the foot and declared 1000 high at `LOWER_LEFT` y -195, so they rise from the screen's foot over its lower half, as
-the maintainer's screenshot of the original shows (2026-11-18). Until then the window was stretched over the screen
+a screenshot of the original shows (2026-11-18). Until then the window was stretched over the screen
 and the strip spread across it, which put BlackICE's band below the screen and drew the Statistics' as a stripe at its
 left edge.
 

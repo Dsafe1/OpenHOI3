@@ -27,7 +27,7 @@ for them between the lobby and the first hour.
   time to happen fires until the 2nd of the next month, and then every candidate has its first roll
   at once. Triggered-only events, fired by others, are not touched. *Exe-hardcoded*; a fault of the
   original, kept (`docs/enhanced.md`, *Script, events and weather*). BlackICE's DLL mends it, which
-  this engine does not give (`docs/enhanced.md`, *Asked for by the maintainer*).
+  this engine does not give (`docs/enhanced.md`, *Asked for*).
 Making them throws every country's away and then, for each event in the order the files were read
 and each country **that owns a province** in the order the countries were declared, keeps the event
 for that country where:
@@ -108,7 +108,7 @@ So six even options have shares of 16, running to 96, and a roll of 97, 98 or 99
 taken one time in a hundred, on a roll of 0.
 
 **The roll is the game's generator's**, `% 100`. The original draws it on a fresh generator seeded
-with the time of day, which no run can repeat; the maintainer's choice is to draw it on the game's
+with the time of day, which no run can repeat; the choice made here is to draw it on the game's
 own (`docs/compatibility.md`, entry 11).
 
 ## 6. `fire_only_once`

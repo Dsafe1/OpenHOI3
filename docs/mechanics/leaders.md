@@ -270,7 +270,7 @@ he has not the rank for it - or `NO_LEADER`, and his portrait; and a row of a un
 gives its leader's name in brackets. `confirmed` *Ours:* a portrait the install has not got
 leaves the file's picture, where the original would show what an absent texture shows.
 
-A counter carries its unit's name and not its leader's: the maintainer's decision
+A counter carries its unit's name and not its leader's: a decision made here
 (`docs/compatibility.md`, entry 7).
 
 The radio icon of the panel's status row (`unitpanel.md`, section 3) and the line of a unit on
@@ -328,7 +328,7 @@ half to the units under him and a quarter to theirs.
   come down the chain to it: `upkeep.md`, section 1.
 - A headquarters with nobody in command has a skill of nothing and gives nothing.
 
-**Each rank's skill has a part of its own.** The maintainer's account of the original,
+**Each rank's skill has a part of its own.** An account of the original,
 2026-10-11, set beside what is read:
 
 | commander | his skill | his traits, to a unit under him | here |
@@ -507,7 +507,7 @@ original keeps a flag for each on the side; they are made in the same places.
 
 The original's `leader_selection_panel`, from `unitpanel.gui`
 (`reversing/findings/FINDINGS-leaderwindow.md`). `confirmed` except where it says. The
-maintainer looked at the window as built on 2026-10-11: "Everything looked good with the
+window as built was reviewed in play on 2026-10-11: "Everything looked good with the
 leaders."
 
 **Opening it.** The unit panel's `leader_button` (`unitpanel.md`, section 3) and its portrait
@@ -550,7 +550,7 @@ again; the filter button opens and closes the window, and its other mouse button
 on. The game keeps the traits that are on, for each kind of leader, from one window to the next;
 **where it kept none - the first time, or every trait was off - everything is on**. Which mouse
 events the original's "other" ones are was not read: they were taken for the right button from
-where they sit among the events, and **the maintainer's word, 2026-10-11, is that this is
+where they sit among the events, and **it was confirmed on 2026-10-11 that this is
 correct** - a right click on the filter button turns every trait on, and on a row shows that
 trait alone.
 
@@ -585,7 +585,7 @@ side whose leader has more skill has the arrow of initiative (`combatview.md`, s
 ## 13. The window's tooltips
 
 Read whole on 2026-10-12 (`reversing/findings/FINDINGS-leadertooltips.md`); built in
-`CLeaderWindowTooltips`, tried with `--click`, and the maintainer has not looked at them.
+`CLeaderWindowTooltips`, tried with `--click`, and they have not been reviewed in play.
 `confirmed` except where it says. How a tooltip is shown is `tooltips.md`.
 
 **The order it is asked in.** The trait filter, where it is up and the element is in it - and its
@@ -626,7 +626,7 @@ leader's kind.
 
 **The original shows them.** The routine is asked only by the unit panel, for an element inside
 the panel's window, and the bytes read do not show how the leader window comes to be inside it -
-but the maintainer's screenshot of the running game, 2026-10-12, has a trait's name, `Engineer`,
+but a screenshot of the running game, 2026-10-12, has a trait's name, `Engineer`,
 in the box over a row's trait icon.
 
 ## Kept as read, though they look odd

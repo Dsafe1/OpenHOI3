@@ -2,8 +2,8 @@
 
 Diplomacy's fifth piece, after the agreements (`agreements.md`, `trade.md`, `aid.md`), read out of the
 original in the war and peace wave (`reversing/findings/FINDINGS-war.md`, sections A to D) and the
-surrender wave (`reversing/findings/FINDINGS-surrender.md`). It is built in two pieces, a cut the
-maintainer took on 2026-10-13 ("Ok split it"): **declaring a war and who joins it** - sections 1 to 10 -
+surrender wave (`reversing/findings/FINDINGS-surrender.md`). It is built in two pieces, a cut
+decided on 2026-10-13 ("Ok split it"): **declaring a war and who joins it** - sections 1 to 10 -
 and then **peace and the capitulation**, sections 11 to 13. Figures are thousandths unless said
 otherwise; the defines are the diplomacy block's.
 
@@ -363,7 +363,7 @@ faction's name, COUNTRY the member's adjective.
 **The rows** (`agreements.md`, section 7), at peace with the chosen country: **Declare War**, where there
 is no alliance and they are not in one real faction; **Declare Limited War**, the same and where the
 player's faction has the `LIMITED_WAR` rule. That the row asks the faction's rule is the reading's
-inference - it reads a byte of the country's that stands where that rule's would - and **the maintainer's
+inference - it reads a byte of the country's that stands where that rule's would - and **a
 screenshot of the original, 2026-10-13, shows the row**, greyed under Declare War, for a player leading a
 faction (its list has Invite to Faction); which faction was not said. At war: **Peace** (section 11) and
 **Add war goal**, in that order, after the technology row and before the alliance. And **A Call to Arms!** towards

@@ -3,8 +3,8 @@
 The window a land unit's right click brings up with **Ctrl** held: the original's `land_unit_order` in
 `interface/orders.gui`. It is the only way a player gives a land unit a **strategic redeployment** or a **support
 attack**, and it gives a plain move with a date to start at or to arrive by. Read out of the original whole in one wave
-(`reversing/findings/FINDINGS-landorders.md`, section A the window and B the orders) and set against the maintainer's two
-screenshots of it, one on a province of his own and one on an enemy's, every figure on which the reading accounts for.
+(`reversing/findings/FINDINGS-landorders.md`, section A the window and B the orders) and set against two
+screenshots of it, one on a province of the player's own and one on an enemy's, every figure on which the reading accounts for.
 
 What is hardcoded and what a mod may change: the window's layout is `orders.gui`'s and the date widget's
 `datewidget.gui`, its words are localisation (`MOVE_ORDER`, `SUPPORT_ATTACK`, `ORDER_STRATEGIC_REDEPLOYMENT`,
@@ -142,7 +142,7 @@ Each looks wrong and is built so - do not tidy them:
 - **The date widget may be set in the past**, which holds nothing back.
 - **A strategic redeployment starts its attack delay again every hour** on the way, drawing on the generator each time.
 - **A strategic redeployment's test asks nothing about distance or a way**; one with no way there is dropped the hour
-  it is given. The maintainer's word, 2026-11-04, on its row being open for a province it cannot reach: "The
+  it is given. Confirmed on 2026-11-04, on its row being open for a province it cannot reach: "The
   availability of the strategic redeploy to unreachable provinces is the same in the original."
 - **A support attack counts its hours of attacking in its own hour as well as the battle's.**
 - **A support attack's way into a province with no battle is taken away with the order**, so the AI's support attack on

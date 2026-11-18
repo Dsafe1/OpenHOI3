@@ -3,8 +3,8 @@
 What the original's `common/unit_upgrades.txt` lets a player do to a brigade: turn it into another type. Not the upgrade
 share of IC, which raises the levels of a brigade's technologies (`upkeep.md`, section 5). No addresses and no offsets.
 
-Source: `reversing/findings/FINDINGS-upgrades.md`, read 2026-11-08, static. **One line of it was set beside a save of the
-maintainer's**: the 1 March 1936 autosave's Infanterie-Regiment 8, infantry to motorised at 0.499 of its strength, a reserve;
+Source: `reversing/findings/FINDINGS-upgrades.md`, read 2026-11-08, static. **One line of it was set beside a reference
+save**: the 1 March 1936 autosave's Infanterie-Regiment 8, infantry to motorised at 0.499 of its strength, a reserve;
 its line costs 2.403 IC and takes 78.5 days, and here it shows 2.40 and the date those days come to.
 
 Hardcoded unless it names a file or a define.
@@ -72,14 +72,14 @@ build; a press lights it and opens `select_upgrade_window`'s `list`: a `select_u
 the type's name, and a last row `UPGRADE_CANCEL`. A row orders the change and closes the list; another row's button, a change of
 selection and Cancel close it too. **The list stands at the button's position in its row plus the row's offset in the panel, taken as a
 place on the screen**: not inside its window, which the file puts 254 to the right of the panel, nor the panel, 108 down. The sum is
-read; that it is a place on the screen, and one pixel lower, are measured on the maintainer's screenshot of 2026-11-08, on
+read; that it is a place on the screen, and one pixel lower, are measured on a screenshot of the original of 2026-11-08, on
 which a row's first target stands level with the panel's right edge and just above its row.
 
 **Above the brigades' rows, a row for each line changing one**: its counter is the new type's, `subunit_name` is `UNIT_UPG_PROGRESS`,
 the percentage to a tenth, and everything else on it is hidden or empty; it takes no click, and all of it answers with the line's tooltip.
 The button's own tooltip is `UNIT_CAN_UPGRADE_TO` and a line for each target.
 
-**The button shows only for the player's own units**, by the maintainer's word on 2026-11-08: foreign units "should not be manually
+**The button shows only for the player's own units**, by the decision of 2026-11-08: foreign units "should not be manually
 upgradeable". The reading found no test of the owner in the routines it read, so where the original makes it was not found.
 
 ## 6. The multi-unit panel

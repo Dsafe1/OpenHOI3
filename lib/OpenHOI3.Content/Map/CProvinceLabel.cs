@@ -15,7 +15,7 @@ public readonly record struct CProvinceLabel(float X, float Y, bool Given, float
 	/// <summary>
 	/// How far south of the bounding box's centre a name stands where the file gives no <c>text_position</c>, in map pixels
 	/// whatever its scale [exe]. The centre alone put Bautzen, Lauban, Sagar and the others 1.9 to 2 pixels north of the
-	/// original's names in the maintainer's screenshot, 2026-11-12.
+	/// original's names in a screenshot of it, 2026-11-12.
 	/// </summary>
 	public const float FallbackSouth = 2f;
 }

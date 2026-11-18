@@ -1,7 +1,7 @@
 # Replay: a game's AI and players recorded, and played back in their place
 
-Ours, not the original's: the original has nothing like it. Built 2026-11-03 at the maintainer's word ("Make the Replay
-system our next step"), because the headless runs that look into the AI's wars take twelve minutes each and most of them
+Ours, not the original's: the original has nothing like it. Built 2026-11-03 by the decision of that day to make the
+replay system the next step, because the headless runs that look into the AI's wars take twelve minutes each and most of them
 re-run one war with more tracing; and the players' commands the same day (section 8), so that a game somebody played can
 be recorded and watched again too.
 
@@ -23,7 +23,7 @@ what any rule does puts units elsewhere, and the recorded orders no longer fit w
 It does not serve a fix tried: that needs the AI deciding again.
 
 **It is for development only.** It records from one starting point - a new game, or one save loaded - and plays back from
-that point, so it never crosses a load. **The replay the maintainer wants for players** (2026-11-12) records a whole game
+that point, so it never crosses a load. **The replay wanted for players** (2026-11-12) records a whole game
 from its start to its end, through every save and load, to be watched afterwards; that needs a game to go on after a load
 exactly as it would have without one, which a save in the original's keys cannot give. It is in `enhanced.md`, and every
 addition is checked against it (`CLAUDE.md`, *Always*).
@@ -120,13 +120,13 @@ It leaves out what the AI keeps for itself.
 
 ## 6. Watching one in the client
 
-`--replay=FILE` (2026-11-03, the maintainer's choice of the first and third of three pieces): the client makes the game
+`--replay=FILE` (2026-11-03, the first and third of three pieces, as chosen that day): the client makes the game
 with **the countries played the recording's header names**, and plays the recording back from the first hour. Who plays
 changes the game itself - a played country is left its events to answer, its idle fleets start no battle, its ministers
 do not run - so a replay played by another would part from its recording at the first such point; `--country` is left
 aside.
 
-**A replay looks on: everything is shown and nothing pressed does anything** - the maintainer's word on 2026-11-03, after
+**A replay looks on: everything is shown and nothing pressed does anything** - decided on 2026-11-03, after
 a first try that left out what stood for no country, the top bar with it: "show everything, but block actions". **A replay
 takes no command from outside** (`CSimulation.Post` answers false, `TakesCommands`), and a paused frame does not drain the
 queue as it otherwise does - the recording says when to. And on top of that, what may be pressed is shown so:
@@ -138,7 +138,7 @@ queue as it otherwise does - the recording says when to. And on top of that, wha
 - **the province view** comes up for any province, its building rows, underground and covert operations greyed;
 - **the top bar** is all there.
 
-**Recorded by the headless run, nobody played**, there is no country to look through, and by the maintainer's choice that
+**Recorded by the headless run, nobody played**, there is no country to look through, and by the choice made that
 day **each thing is seen through its own country's eyes**: a province through its controller's, else its owner's - what
 the view says of it hangs on how well the country looking knows it - and a unit through its owner's. The top bar's figures,
 flag and name are empty, and its buttons open nothing, there being no country's screens: the production, technology,
@@ -156,7 +156,7 @@ they do nothing is all that is shown of it.
 
 ## 8. A game somebody plays
 
-Added 2026-11-03, after the maintainer asked whether every command could be caught at the queue rather than tied to the
+Added 2026-11-03, after the question was raised whether every command could be caught at the queue rather than tied to the
 AI: it can be told apart there, and must be, because a command the game posts itself comes out again by itself in a
 replay, and one given twice would run twice. So **`CSimulation.Post` is the way in from outside the game** - a player's
 screens, the developer switches, a tool - and only what comes that way is recorded as a player's; what the game posts as
@@ -187,7 +187,7 @@ file are three tables of functions (`Utils`, `Support_Trade`, `Support_License`)
 
 The other way round from the rest of this file: not our game recorded, but **the original's draws put into ours**, so that a
 difference between the two in the series of the original's hourly saves is a rule and not a roll. Built 2026-11-15, when
-Germany's one-in-six call of Italy into its war against Mongolia (`readme.md`, *Next up*, item 5) moved the July 1941
+Germany's one-in-six call of Italy into its war against Mongolia (`docs/worklist.md`, *Next up*, item 5) moved the July 1941
 series by half each time an unrelated commit shifted the scripts' shared `math.random`. It is a measuring instrument of the
 savegame tool and nothing of it is in the game.
 

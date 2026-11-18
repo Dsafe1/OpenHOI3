@@ -1,7 +1,7 @@
 # The console
 
 The original's cheat and developer console. No addresses and no offsets. Source: `reversing/findings/FINDINGS-console.md`, static; what follows has been tried
-with `--click`, and the maintainer has not looked at it.
+with `--click`, and it has not been reviewed in play.
 
 Hardcoded: everything here but the window, `console_wnd` and `console_entry_wnd` in `interface/core.gui` [mod].
 
@@ -34,7 +34,7 @@ The first word is looked up **exactly, with its case**, by a row's name or one o
 
 ## 3. What is not
 
-Everything else in the table answers `Not built.`, *Ours*, in red: the commands the readme rates not worth building. `nukes` adds a bomb for each one given (`nukes.md`), and `nextsong` plays the next song at once and answers `Now playing ` and its path (`music.md`, section 2.4).
+Everything else in the table answers `Not built.`, *Ours*, in red: the commands the worklist rates not worth building. `nukes` adds a bomb for each one given (`nukes.md`), and `nextsong` plays the next song at once and answers `Now playing ` and its path (`music.md`, section 2.4).
 
 **`tag` gives no country's pictures** (read 2026-11-15, `reversing/findings/FINDINGS-topbar.md`, *The skin*): the command it posts changes who plays, takes the country's AI away where a lobby was reopened, refreshes the lobby's row and has the outliner made again - and nothing more. The top bar's `topbar_TAG` and the six country screens' `country_bg_TAG` are given once, as the game is entered, so after a `tag` they stay the first country's (`topbar.md`, section 1; `countryviews.md`, section 2); the ledger's, made each time it opens, is the country played. Built so (`CSessionCarry.EnteredAs`) and tried with `--click`: Germany, then `tag ENG`, keeps Germany's bar over the United Kingdom's name and figures, and its production screen Germany's picture. A fault of the original, listed in `docs/enhanced.md`. Hardcoded [exe].
 

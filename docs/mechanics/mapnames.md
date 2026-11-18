@@ -76,7 +76,7 @@ for its line not drawn; the trim's run over the sea and not over foreign land; a
 read from the left; the spline's ends, the ANSI upper case and the blanks. By eye with `--screenshot` on 2026-11-06, the
 start of 1936 over Europe: every large country named and bent along its land - SWEDEN up its length, ITALY down the
 peninsula, `Germany` in the Axis font's own case - and the small ones, Belgium, the Netherlands, Denmark, Switzerland,
-too small for the rule of six. The maintainer has not looked at it.
+too small for the rule of six. It has not been reviewed in play.
 
 ## 6. Not established
 

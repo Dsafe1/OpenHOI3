@@ -427,7 +427,7 @@ public partial class CFrontEnd : Node
 	/// <summary>
 	/// The camera where the original's front end puts it as the lobby opens: over the map's (2900, 1600), its rows counted
 	/// from the bottom (<c>reversing/findings/FINDINGS-frontend.md</c>, A.2) - at a zoom of ours, measured on the
-	/// maintainer's screenshot of the original's lobby, Europe from Ireland to Turkey across the screen.
+	/// a screenshot of the original's lobby, Europe from Ireland to Turkey across the screen.
 	/// </summary>
 	public void LookAtStart()
 	{

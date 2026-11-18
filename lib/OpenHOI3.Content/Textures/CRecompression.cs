@@ -6,7 +6,7 @@ namespace OpenHOI3.Content.Textures;
 /// What the original's device makes of a compressed picture whose size is not a power of two: its texture handler loads
 /// with the size rounded up to powers of two and no filter (<c>reversing/findings/FINDINGS-mapdraw.md</c>, A.3), so D3DX
 /// compresses the picture afresh into a texture of the new size, and each texel comes out as the nearest colour of five,
-/// six and five bits - *inferred*, from the maintainer's screenshot of 2026-11-06 (<c>docs/mechanics/mapdraw.md</c>,
+/// six and five bits - *inferred*, from a screenshot of the original of 2026-11-06 (<c>docs/mechanics/mapdraw.md</c>,
 /// section 6). The alpha is left as it is.
 /// </summary>
 public static class CRecompression

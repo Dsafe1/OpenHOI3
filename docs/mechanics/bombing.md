@@ -12,13 +12,13 @@ Sources: `reversing/findings/FINDINGS-bombing.md`, with `reversing/findings/FIND
 `reversing/findings/FINDINGS-combatmods.md` (what the hour makes of each side).
 
 **Nothing here was watched in the original, and nothing can be checked against a save**: none
-of the maintainer's has a bombing, and the rolls cannot be made again. It is the fifth of the
+of the reference saves has a bombing, and the rolls cannot be made again. It is the fifth of the
 pieces air and naval combat was cut into (`navalcombat.md`); a carrier's aircraft, the raid on
 convoys from the air (`navalmissions.md`, section 8.1, whose battle is a bombing of ships run by
 this spec's hour) and the air side on screen are not in it.
 
 **It is written to do what the original does, its oddities with it.** Section 12 gathers the
-oddest, and the maintainer has seen none of them.
+oddest, and none of them has been reviewed.
 
 In the code: `lib/OpenHOI3.Sim/Missions` (`CBombingOrders`, `CBombingMissions`,
 `CBombingProvinces`), `lib/OpenHOI3.Sim/Combat` (`CBombing`, `CBomberFire`, `CProvinceBombing`,
@@ -392,8 +392,8 @@ says `repair = no`.
 
 ## 12. Worth a look in the original
 
-Built as read, and odd enough that somebody who knows the game should say. None has been put
-to the maintainer.
+Built as read, and odd enough that somebody who knows the game should say. None has been raised
+for a decision.
 
 1. **A bomber with no leader has a ship on its list one time in a hundred**, each hour, each
    ship. Naval strikes and port strikes then wear the port and hardly touch the ships. Its
@@ -412,7 +412,7 @@ to the maintainer.
    strategic kinds pick afresh each time.
 7. **A land unit under bombs fires its plain air attack**, by day or night, supplied or not.
 8. **Nothing defends a target** - no air defence, no fort, no screens - which is the air
-   battle's oddity again (`aircombat.md`, section 9, item 3, which the maintainer called a bug
+   battle's oddity again (`aircombat.md`, section 9, item 3, which was called a bug
    in the original).
 9. **An installation strike bombs radar only.**
 

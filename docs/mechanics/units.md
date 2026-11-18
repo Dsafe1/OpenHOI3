@@ -198,7 +198,7 @@ So **equals keep the order they came in**, and a new one of the highest priority
 - **The base game's start save bears it out unit for unit** (**measured**, 2026-11-18): Their Finest Hour's
   `ENG_1936.txt` lists the 5th Indian Infantry as two `infantry_brigade` (7) and then a `gurkha_brigade` (9), and
   `Germany1936_01_01_00.hoi3` has the Gurkhas first; the Home Fleet's `carrier` (10) leads its six battleships (9).
-  Across the 50 saves of the base game in the maintainer's folder that the original wrote, and the 19 of BlackICE, not
+  Across the 50 reference saves of the base game that the original wrote, and the 19 of BlackICE, not
   one unit of more than one priority is out of this order (in BlackICE's, leaving aside four types older saves hold
   that today's files no longer declare). The folder's three others have units out of it exactly as the history files
   list them, and are this project's own: `Germany1936_01_01_08.hoi3` among them, eight hours after a start save that is
@@ -465,14 +465,14 @@ Three things the comparison had to allow for, each of which says something:
   history says `volunteer_army` and its reserves are at the half a `two_year_draft` leaves -
   and training afterwards.
 
-  **The maintainer checked this in the running game on 2026-10-08**: a fresh 1936 game as
-  Germany shows `two_year_draft` on the first screen with nothing touched. His reading is
-  that it is a bug - the AI should not have touched the country the player plays. It has
+  **This was checked in the running game on 2026-10-08**: a fresh 1936 game as
+  Germany shows `two_year_draft` on the first screen with nothing touched. The reading
+  taken then is that it is a bug - the AI should not have touched the country the player plays. It has
   the shape of the AI script's own rule, "the next law up, if it is allowed", applied
   twice to conscription and twice to the economy; it is not Germany's history file,
   though that file does hold the same law in a block dated 1944. How the script comes to
   run before the first hour, and why training did not move with conscription, is not
-  established. **Ours, decided by the maintainer the same day: the player's country keeps
+  established. **Ours, decided the same day: the player's country keeps
   its history's laws**, and its units are made under them - `docs/compatibility.md`, entry
   6. So Germany's reserves starting at a quarter here is meant.
 - **Organisation is not where section 4 put it two days in**: 958 brigades are, 2745 are

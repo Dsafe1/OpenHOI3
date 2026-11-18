@@ -183,7 +183,7 @@ for every country O in order but A that owns a province, with q = O's presence i
 - **The two are read nowhere else**, and nothing swaps them: `counter_espionage` is the catcher's own and helps at
   home only; `espionage_bonus` is the country the spies are in, and only hinders catching there. Both are written
   green when positive, which for `espionage_bonus` reads as the opposite of what it does. Settled 2026-10-14
-  (`reversing/findings/FINDINGS-occupation.md`, section F) on the maintainer's account from play: it works "more as a
+  (`reversing/findings/FINDINGS-occupation.md`, section F) on an account from play: it works "more as a
   'Domestic Counterespionage Difficulty' modifier", with no effect abroad and an inverted tooltip - which is
   `espionage_bonus`, BlackICE's name for it. A model of the start save's two days from the save's own spies expects
   24.9 catches (sd 5.0) as read, where the save has 33 and this project's new game 22.
@@ -351,7 +351,7 @@ a rising, its election and its seats, before the next country's spies - as a rec
 (`reversing/findings/FINDINGS-liveread.md`, section 120): the levels abroad 10053 of 10100, the catches falling on
 other rolls.
 
-Played on as Germany to the saves of 4 January 12:00 and 8 January 07:00 of the maintainer's other game: **the home
+Played on as Germany to the saves of 4 January 12:00 and 8 January 07:00 of the other reference game: **the home
 at 7 and every priority and mission weight agree**, and the pool is short by that 0.089 a day and nothing else. The
 abroad levels differ where catches did, and by the setup of the other game (A.7). The 20 April save has the player's
 espionage share moved, so its pool is not compared.
@@ -399,7 +399,7 @@ the save.
 
 ## What looks wrong and is built so
 
-The original's, kept, and none put to the maintainer:
+The original's, kept, and none raised for a decision:
 
 - the band cursor never wraps within a day, so a band can sit out a day with spies in the pool, and a country's only
   presence in a band gets a spy every second day at most;

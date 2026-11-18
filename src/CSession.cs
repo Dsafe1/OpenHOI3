@@ -255,7 +255,7 @@ public partial class CSession : Node
 		else if (Player is { ActingCapital: > 0 } played)
 		{
 			// A game opens over the player's capital, at the height the original's camera starts at - a new game and a
-			// loaded one alike (the maintainer's word, 2026-11-12). Before the map modes are prepared, so that the view
+			// loaded one alike (decided on 2026-11-12). Before the map modes are prepared, so that the view
 			// the loading screen makes ready is the one the game opens on.
 			_mapView.CentreOnFrom(played.ActingCapital, CMapCamera.StartHeight);
 		}
@@ -628,7 +628,7 @@ public partial class CSession : Node
 			layer.AddChild(offers);
 
 			// An event's windows and the message popups come up over the map and the panels, and under the four
-			// screens the top bar opens - the original's, by the maintainer's account on 2026-10-14
+			// screens the top bar opens - the original's, by an account of it on 2026-10-14
 			// (docs/mechanics/countryviews.md).
 			_events = new CEventWindows();
 			_events.Setup(gui, _simulation, Player);
@@ -1165,7 +1165,7 @@ public partial class CSession : Node
 	/// <summary>
 	/// A battle was chosen, by its marker or by its row in a unit's panel: the unit
 	/// selected is let go and the battle's window comes up. The map stays where it is -
-	/// the maintainer's word, 2026-10-09 - where the original's row in a unit's panel
+	/// decided on 2026-10-09 - where the original's row in a unit's panel
 	/// takes it to the province fought over.
 	/// </summary>
 	private void ShowCombat(CCombat combat)

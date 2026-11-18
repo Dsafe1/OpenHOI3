@@ -126,7 +126,7 @@ and sets its progress to nought. Their Finest Hour's history has none; BlackICE'
 order would and sets it beside the save; then it works each line paid in full in both saves for the days between,
 paid in full every day, and sets what is left of it - or that nothing is - beside the later save. A line keeps its
 number only within one session of the game, so two saves with a load between them are priced and not worked forward.
-*Measured* on 2026-10-15, the maintainer's game:
+*Measured* on 2026-10-15, a reference game:
 
 | saves | priced | worked forward |
 | --- | --- | --- |

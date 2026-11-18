@@ -2,7 +2,7 @@
 
 What the window of a selected unit shows. Read out of the original on 2026-10-09:
 `reversing/findings/FINDINGS-unitpanel.md`. `confirmed` means read; *ours* means decided
-here. It was built from the reading and checked with real clicks. **The maintainer set it
+here. It was built from the reading and checked with real clicks. **It was set
 beside the original on 2026-10-09**, one infantry division in both, and what that
 screenshot showed is mended and marked *measured* below: where the bars stand, that the
 entries touch, and where the name sits. The rest of the layout agreed with it.
@@ -51,7 +51,7 @@ frame from the unit as it then is.
   written; the original makes it again on events that were not read. *Ours.*
 - **The panel is up while a unit is selected** and comes down with the selection. With the
   deploy menu open it stands beside it, the order of battle browser between the two, as the
-  original's screenshots show them (the maintainer's, 2026-11-13; `mapunits.md`, section 6);
+  original's screenshots show them (given 2026-11-13; `mapunits.md`, section 6);
   until then it gave way to the menu.
 - The window's own `oob_button`, the tab down the screen's left edge, opens the order of
   battle browser. Not built: it is shown and cannot be pressed.
@@ -66,7 +66,7 @@ The rows are a plain walk up the order of battle, nothing else asked
 (`reversing/findings/FINDINGS-unitpanel.md`, section 2, and `FINDINGS-transport.md`, section D.1, read 2026-11-14). **An air group aboard a carrier is in the order of
 battle under its carrier's fleet** - hung there as it is read from an order of battle or a save, or rebased to the
 carrier (`transport.md`, section 13.1) - so its rows are the fleet and whatever is above the fleet: the 5th Air wing
-aboard USS Ranger shows "CONUS East Theater" and "USS Ranger Taskforce" on the maintainer's screenshot of the original,
+aboard USS Ranger shows "CONUS East Theater" and "USS Ranger Taskforce" on a screenshot of the original,
 and HMS Furious's 1st Air wing "Home Command Theatre" and "Home Fleet" here. A click on the fleet's row selects the fleet
 and takes the map to it, as for any row. A group whose fleet was merged into another has nobody above it and no rows.
 
@@ -231,7 +231,7 @@ no order and with the way it was on: a fleet sent somewhere keeps sailing. `conf
 home by itself** once it has no way to go and is in no battle and no bombing
 (`aircombat.md`, section 1): so a mission taken back over enemy ground stays over its bombing
 or its battle until that ends, and then goes home. Until 2026-10-10 the button here halted a
-marching unit of any kind and did nothing for anything else - the maintainer found it did
+marching unit of any kind and did nothing for anything else - testing found it did
 nothing for a mission.
 
 ## 6. The brigades
@@ -372,7 +372,7 @@ sank is no longer based on it, and is listed. `confirmed`
 ## 9. A headquarters' row
 
 The window `sup_objectives`, for a corps, an army, an army group and a theatre, between
-the order and the buttons. Built after the maintainer set a corps' panel beside the
+the order and the buttons. Built after a corps' panel was set beside the
 original's on 2026-10-09 and the row was missing. It has two faces: `confirmed`
 
 | element | under the player's hand | an AI in command |
@@ -393,7 +393,7 @@ original's on 2026-10-09 and the row was missing. It has two faces: `confirmed`
 Both faces are built (2026-11-09, `reversing/findings/FINDINGS-hqrows.md`). `automate_checkbox` takes away the highest agent over the unit or, with none, makes one for it, as a command (`CAutomateUnitCommand`).
 **Only a theatre's headquarters can be handed over here**, the agents being a theatre's: below that the box is greyed, *Ours*. `reorg_hq_checkbox` sets the plan's flag. The aggression box and slider are commands too, and a battle's tactic is picked by the leader's unit's aggressiveness: the first unit from it upward with an active plan by its stance (-1, -0.5, 0, 0.5, 1), or with none, the first with an aggression of its own.
 
-**Under an agent, on it or above it**, five rows follow, a headquarters only. A stance row each for the ground, air and naval stance, all `sup_unit_stance`: the button says the stance and its tooltip its description, and is greyed where a unit **above** this one holds the agent. It opens `sup_stance_change_window` over the row, five rows for the ground and three each for air and sea, the stance in force not marked; a second press fills it again and does not shut it, and a pick shuts it. A ground pick goes through the agent, its reserve let go; an air or naval pick is one change of the plan. `sup_power_ratios`: each side's power over the larger side's, the larger bar about full, under 0.100 both empty; the row takes no click and shows no tooltip: the original's routine has one for each bar, but the two text boxes lie over them and the maintainer has hovered there and seen none (2026-11-09). `sup_desired_assets`: `WE_NEED`, and each group's representative type the plan is short of as a number and its counter, or `TRADE_NOTHING`; its tooltip lists them by name.
+**Under an agent, on it or above it**, five rows follow, a headquarters only. A stance row each for the ground, air and naval stance, all `sup_unit_stance`: the button says the stance and its tooltip its description, and is greyed where a unit **above** this one holds the agent. It opens `sup_stance_change_window` over the row, five rows for the ground and three each for air and sea, the stance in force not marked; a second press fills it again and does not shut it, and a pick shuts it. A ground pick goes through the agent, its reserve let go; an air or naval pick is one change of the plan. `sup_power_ratios`: each side's power over the larger side's, the larger bar about full, under 0.100 both empty; the row takes no click and shows no tooltip: the original's routine has one for each bar, but the two text boxes lie over them and hovering there in the original shows none (2026-11-09). `sup_desired_assets`: `WE_NEED`, and each group's representative type the plan is short of as a number and its counter, or `TRADE_NOTHING`; its tooltip lists them by name.
 
 ## 10. Tooltips
 

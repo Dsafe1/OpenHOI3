@@ -3,7 +3,7 @@
 The original's AI is written in Lua - `script/` in an install, a mod's own over it - and the game
 asks it questions: what relations a new game gives, which laws a country wants, what the AI makes of
 an offer. This is how those scripts are run here: on **the original's own interpreter, Lua 5.1.4,
-built from its source** - the maintainer's choice on 2026-10-12, over a C# interpreter of our own
+built from its source** - chosen on 2026-10-12, over a C# interpreter of our own
 and over MoonSharp - with the classes the original hands them, built one at a time on the
 simulation. The first slice was what a new game's relations need (`diplomacy.md`, section 2); the
 second, on 2026-10-13, what the AI answers an offer with (section 6).
@@ -301,7 +301,7 @@ reported - the original sets 25 before the call and keeps it on a Lua error (a n
 uncaught C++ exception there; here it is the same 25, reported).
 
 **`Laws(country)`**, which the original calls next for every country, the player's included, is
-called for every country **nobody plays** - not the player's, by the maintainer's decision
+called for every country **nobody plays** - not the player's, by a decision made here
 (`docs/compatibility.md`, entry 6) - handed the country itself, and again until it posts nothing
 (`politics.md`, section 12; since 2026-10-14). **`PoliticsMinister_Tick(minister)`**, handed a
 `CAIPoliticsMinister`, is each such country's politics minister's day, in its own hour. What both post

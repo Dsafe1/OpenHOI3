@@ -257,11 +257,11 @@ whoever holds it**):
 
 A unit of its own is a division, a fleet or an air unit by the arm, named as a new one is, based in the province where
 it is a fleet or an air unit. Then a battle is looked for where it stands. That the brigade has **no technology** is
-the maintainer's word on the original, 2026-10-16: "The original spawns it with 0 techs."
+an account of the original, 2026-10-16: "The original spawns it with 0 techs."
 
 **The Spanish Civil War, and why it waits for the AI.** Event 2001 declares the war before it splits the troops, so
 the giver's units standing in the land just given take it at the declaration (`war.md`, section 5, step 13). In the
-original that does not end the war, by the maintainer's account (2026-10-16): **its AI has moved the Republic's
+original that does not end the war, by an account of it from play (2026-10-16): **its AI has moved the Republic's
 units to the border with Portugal by then, so the Nationalists' victory points stand empty**, and the Nationalists get
 units of their own in their capital. With no AI here the divisions stand where the history put them, the Nationalists
 hold none of their victory points, and they capitulate the next midnight (`headless.md`, section 4). Nothing to mend

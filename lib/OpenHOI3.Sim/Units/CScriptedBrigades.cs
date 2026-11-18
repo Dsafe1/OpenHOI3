@@ -88,7 +88,7 @@ public static class CScriptedBrigades
 		var brigade = new CSubUnit(type) { Id = ++state.LastUnitId, Unit = into };
 		brigade.Name = CUnitNames.ForSubUnit(state, owner, type);
 		CUnitNames.Register(owner, brigade.Name);
-		// Every technology at nought - the maintainer's word on the original, 2026-10-16.
+		// Every technology at nought - by an account of the original, 2026-10-16.
 		CUnits.RebuildStats(brigade);
 		brigade.Strength = CFixedPoint.Max(CFixedPoint.Zero, CUnits.MaxStrength(state, owner, brigade) / 2);
 		brigade.Highest = brigade.Strength;

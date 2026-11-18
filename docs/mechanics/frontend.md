@@ -2,7 +2,7 @@
 
 What the player sees before a game and after one: the original's main menu, and its lobby as far as one start needs - a
 new game and a country chosen, or a save loaded. Read out of the original on 2026-11-06
-(`reversing/findings/FINDINGS-frontend.md`, A the main menu and B the lobby) and built on the maintainer's word of the same
+(`reversing/findings/FINDINGS-frontend.md`, A the main menu and B the lobby) and built by the decision of the same
 day, "Pared-down lobby": the lobby of `lobby.gui` with the start and the saved games, where `CLAUDE.md` had said it was
 not coming back. `confirmed` unless marked. **[exe]** a rule the executable holds, **[mod: ...]** what a file may change.
 
@@ -36,10 +36,10 @@ No button has a tooltip [exe]. A click on the map does nothing here; the map is 
 `lobby.gui`'s `lobby` [mod], the front end's own window hidden so the map shows behind it. **On opening** [exe]: the world
 made at the start date, the start selected, and the Historical Start tab shown; nothing in the save list ticked and
 nothing loaded (B.1). The camera over the map's (2900, 1600), its rows counted from the bottom [exe] (A.2), at a zoom of
-ours, 1.43, which frames Europe from Ireland to Turkey as the maintainer's screenshot of the original does (*measured*).
-**That zoom is fixed**: the wheel does nothing on the lobby's map, the maintainer's word of 2026-11-09. A chosen country is
-lit whole, every province it owns taking the lift a selected province takes, in place of the one clicked (the maintainer's
-word of 2026-11-09; the amount of the lift is the in-game selection's, set beside no screenshot of the lobby).
+ours, 1.43, which frames Europe from Ireland to Turkey as a screenshot of the original does (*measured*).
+**That zoom is fixed**: the wheel does nothing on the lobby's map, decided on 2026-11-09. A chosen country is
+lit whole, every province it owns taking the lift a selected province takes, in place of the one clicked (decided on
+2026-11-09; the amount of the lift is the in-game selection's, set beside no screenshot of the lobby).
 
 **The chat log** `chatlog` [exe] (B.1, B.2): a row of `temp_frontend.gui`'s `lobby_chat_text` a line, a paragraph cut
 where it is wider than the row - CONNECTED "Connected." as the lobby opens, the start's name in yellow and its
@@ -49,7 +49,7 @@ box is hidden in a game of one.
 **The players' box** `multiplayer`, shown in a game of one too: FE_NUM_PLAYERS "Number of Players: 1", `checksum` the
 version label, `OpenHOI3` and the original's four letters (`checksum.md`, section 5), and a row of `multiplayer_entry` for the player - `player_shield` the chosen country's, `name` the
 player's name, which is `settings.txt`'s `lastplayer` (*inferred*: the original makes its human from the application's
-name, and the maintainer's screenshot and file both say "Player").
+name, and a screenshot of the original and a reference file both say "Player").
 
 **The tabs**: `newgame_tab` shows `bookmarks`, `savedgame_tab` `save_games`; a pressed tab takes frame 2 and the other
 frame 1. `scenario_tab` and `cgm_tab` are hidden (*Ours*).
@@ -61,7 +61,7 @@ first chosen. Choosing one: the world at its date held to the defines' range (a 
 `shield` for each of the bookmark's `country` entries** [mod: lobby.gui]:
 each unturned shield's corner `shield_offset` from the last, the row centred on `shield_position` from the bottom middle,
 and each turned a quarter about its middle by its type's `rotation`, so that the flags stand upright and apart (the
-middle one's middle at x 960 and all at y 845, as on the maintainer's screenshot - *measured*); each with SHORTCUT_SHIELD
+middle one's middle at x 960 and all at y 845, as on a screenshot of the original - *measured*); each with SHORTCUT_SHIELD
 and choosing its country, the map going to its capital. With no bookmark read the list is one row of the defines'
 start date alone, and no shields (*Ours*).
 
@@ -73,8 +73,8 @@ pressed - as the save dialog lists them (`savegame.md`, section 11). A row is `s
 **its `player` chosen and the map centred on that country's capital** [exe], **at the lobby's fixed zoom**: the original
 keeps one camera for the front end, so a save loaded moves it and does not zoom it. Choosing another loads that. *Ours:*
 each world gets a map view of its own, and the new one takes the old one's camera before it is centred; until 2026-11-14
-it did not, and a save loaded came up over the whole map, centred there on the capital at that zoom - the maintainer's
-report.
+it did not, and a save loaded came up over the whole map, centred there on the capital at that zoom - reported in
+testing.
 
 **Choosing a country** (B.4): a click on the map chooses **the owner of the province** - not its holder - where it has
 one [exe]; a save's country may be changed so, its own player then left to the AI. A shield of the start chooses too.
@@ -177,7 +177,7 @@ one down, each wrapping** [exe]. Each press hands the area over or takes it back
 
 **What the AI running a screen takes from the player** [exe]. In the original these controls **stop taking the mouse
 and look exactly as before** - a click on them passes through; nothing is greyed. **Here they are also greyed**, the
-sliders' bars and knobs among them, by the maintainer's choice (`docs/compatibility.md`, entry 19):
+sliders' bars and knobs among them, by a choice made here (`docs/compatibility.md`, entry 19):
 
 | screen | taken |
 | --- | --- |
@@ -206,7 +206,7 @@ says the lines.
   and Custom Games tabs are greyed**, each with a tooltip of ours saying why (`docs/compatibility.md`, entries 1 and 17).
 - **With no bookmark read, the list is one row of the defines' start date**, where the original's would offer nothing to
   press.
-- **The GamersGate store's button, "Buy Bonus Items", is greyed** with a tooltip of ours saying no store is opened (the maintainer's word, 2026-11-06), **and the four links to the publisher's pages are hidden.**
+- **The GamersGate store's button, "Buy Bonus Items", is greyed** with a tooltip of ours saying no store is opened (decided on 2026-11-06), **and the four links to the publisher's pages are hidden.**
 - **`version_label`** says `OpenHOI3` where the original writes its version name, then in brackets the four letters of its
   file checksum, the original's for the same files - `OpenHOI3 (GSKH)` for Their Finest Hour (`checksum.md`, since
   2026-11-13).

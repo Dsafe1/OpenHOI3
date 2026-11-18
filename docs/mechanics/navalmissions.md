@@ -2,7 +2,7 @@
 
 What a fleet does under each of the orders that are more than "go there": reserve, patrol,
 intercept, sortie, the raid on convoys and their escort - and the battle a raid fights. This is
-the second piece of what stage 3 has left (the readme's *Next up*); the battle between fleets
+the second piece of what stage 3 has left (the worklist's *Next up*); the battle between fleets
 is `navalcombat.md`, and the orders that only send a unit somewhere are `fleetsandair.md`.
 
 Everything is from `reversing/findings/FINDINGS-navalmissions.md`, with the sighting from
@@ -12,7 +12,7 @@ Everything is from `reversing/findings/FINDINGS-navalmissions.md`, with the sigh
 is; what this project does of its own is marked *Ours*.
 
 **It is written to do what the original does, its oddities with it.** The oddest are gathered
-in section 12; the maintainer has said they are the original's, bugs or not, and they are not
+in section 12; it has been decided that they are the original's, bugs or not, and they are not
 tidied.
 
 In the code: `lib/OpenHOI3.Sim/Missions`, with the raid's battle in
@@ -520,9 +520,9 @@ entered. For a fleet:
     its country's own and its friends' ground, a port among it   9
 
 So a fleet that has just sailed into a province knows it at 2 by the end of that hour, where
-this was first built to know nothing of it until midnight. The maintainer's word on 2026-10-10,
-asked whether it was daily or hourly, was "I think its daily" - given before the hour's raise
-was read; put to him once it was, his word on 2026-10-14 was "Keep it as read."
+this was first built to know nothing of it until midnight. The answer on 2026-10-10,
+asked whether it was daily or hourly, was that it is probably daily - given before the hour's raise
+was read; raised for a decision once it was, the decision on 2026-10-14 was "Keep it as read."
 
 ## 10. Mission efficiency
 
@@ -561,12 +561,12 @@ such a block that is neither of the two is reported.
 ## 12. Worth a look in the original
 
 These are the places where the reading says something a player might not expect. Each is
-built as read. **The maintainer, 2026-10-10, shown the six in a line each: "All those things
-are correct, and they may be bugs, but thats ok."** So they are the original's by his word as
-well as by the reading, and they stay; do not tidy them. (That he meant these six is how his
+built as read. **Decided on 2026-10-10, with the six shown in a line each: "All those things
+are correct, and they may be bugs, but thats ok."** So they are the original's by that decision as
+well as by the reading, and they stay; do not tidy them. (That it meant these six is how the
 answer was taken - it came after a list that also asked three other things, section 13 and
 `tick.md`, section 6. The second half of item 3 and the priority in item 4 were not in the
-line he was shown.)
+line that was shown.)
 
 1. **An interceptor goes out once.** After its first return to base it lies in port under its
    order and does nothing (section 5).
@@ -649,7 +649,7 @@ gives the air unit with the most sea attack that reaches the province the raid f
 ### Not established
 
 - Whether the intelligence levels are in practice worked out daily or hourly (section 9).
-  The maintainer thinks daily, which is what is built.
+  It is thought to be daily, which is what is built.
 - What the original's list of a country's naval bases holds, and in what order (section 1).
 - ~~What an order's two dates are set to by anything but the orders window~~: the AI's patrol is given the hour and a
   week on, its raid three weeks (`moving.md`, section D), and the order ends when the hour reaches the second. An order

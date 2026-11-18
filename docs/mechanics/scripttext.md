@@ -52,8 +52,8 @@ puts into the original** (`docs/compatibility.md`, entry 10), and extended here 
   writes its conditions on the line its parent placed for it, in the turned-round words, with its
   own asterisk where it sits below the top; its conditions' asterisks are red where they *hold*.
   **A block inside a `not` below the top has no asterisk of its own** - the `not`'s stands for it, as
-  for a condition there. The corrected arithmetic gives it one, and the line showed two: the
-  maintainer's word on seeing it, 2026-10-12 (`docs/compatibility.md`, entry 10).
+  for a condition there. The corrected arithmetic gives it one, and the line showed two: decided
+  on seeing it, 2026-10-12 (`docs/compatibility.md`, entry 10).
 - **`and`** below the top: AND_TRIGGER_STARTS + `:` and a break, then each condition a level deeper
   with its asterisk; **`or`**: OR_TRIGGER_STARTS, the same; a block inside a block at its real depth.
 - **`any_owned_province`**: ANY_PROVINCE_STARTS + ` (` + the scope country's name + `):`;

@@ -175,7 +175,7 @@ moved. That is the original pricing again only on a day a line finishes, which t
 - **The deploy menu lists the buildings after the units**, each kind in the order it was finished; the original keeps
   one list of both, in the order of finishing.
 - **The unit being placed still tints the map our way**, green over the mode's colours; the original paints the same
-  grey and green for a unit as for a building (`mapunits.md`, section 6) - left so until the maintainer has looked.
+  grey and green for a unit as for a building (`mapunits.md`, section 6) - left so until it has been reviewed in play.
 - **The confirm-build dialog's buttons do not repeat while held**; the original repeats after 0.3 s and then every 0.1 s
   (*inferred*). The share the colour weighs is the production share times the country's IC; the original's "factor" in
   it was not read.

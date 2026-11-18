@@ -22,7 +22,7 @@ goods (`confirmed`):
 - **`trade_to`**, what `to` hands `from` each day.
 
 **One block holds goods and the other money**, the money being the price of the goods (all 582 routes
-in four of the maintainer's saves are so). A route has a start date, and day by day whether it is
+in four reference saves are so). A route has a start date, and day by day whether it is
 **inactive** and why (section 6); and a **convoy**, where the two need one (section 5).
 
 **Setting an amount** (`confirmed`), for an offer being made - by the dialog's sliders or by a script:
@@ -183,7 +183,7 @@ the screen is hidden or the offer stops being valid.
 
 **Where it stands** (`confirmed`, `FINDINGS-tradeui.md` B.3): its upper left corner at **the screen's
 middle plus `diplo_request_pos`**, (10, -100) in the files - not where its own file puts it. The
-diplomacy screen's other request dialog stands there too. The maintainer's screenshot gave it first,
+diplomacy screen's other request dialog stands there too. A screenshot of the original gave it first,
 within three pixels.
 
 ## 8. The rule `free_resource_gifts`
@@ -362,7 +362,7 @@ months from the offer while the two are not at war**, and declines when it close
   **A player's automate-trade is answered in its place**: the scripts of the countries before it run, then
   it, then the rest, since answering changes the player's list of offers. And the trading comes **after the
   hour's answers to offers** - which of the two the original's hour runs first was not read. On the
-  maintainer's machine it took an hour from 30 ms to 9 (`OpenHOI3.SaveCheck profile`).
+  development machine it took an hour from 30 ms to 9 (`OpenHOI3.SaveCheck profile`).
 - **A cancelled route's convoy delivers nothing** on the day the convoys' look removes it; whether the
   original's convoy, carrying money and no longer a trade convoy, delivers once first was not read.
 - **A good is named in a trade's text by the key the diplomacy screen names it by** - `METAL_IRO` and

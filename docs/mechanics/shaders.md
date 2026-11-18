@@ -4,8 +4,8 @@ The original draws its map and much of its interface through **effect files** - 
 models 1.1 and 2.0, plain text in the install - and a mod may ship its own: BlackICE changes `terrain_2_0.fx` (its terrain
 tiling, edge noise, brightness and fog of war), `water_include.h` (its sea's colour, no waves, no fog) and `circle.fx`
 (the air map's green fill). So they are not rewritten by hand here: **each is read as it is and translated, pass by pass,
-into a Godot shader** when the game loads, by the maintainer's word of 2026-11-06 - "We need to actually support moddable
-shaders". Built that day. **The interface's buttons, icons and scrollbars draw through `buttonstate.fx` since then**
+into a Godot shader** when the game loads, by the decision of 2026-11-06 that moddable
+shaders are to be supported. Built that day. **The interface's buttons, icons and scrollbars draw through `buttonstate.fx` since then**
 (section 3.10), and **the map's land, beaches and sea through `terrain_2_0.fx` and `water.fx`** (`mapdraw.md`). Ours
 throughout: the effect files are [mod] and what is done with them
 is this project's.

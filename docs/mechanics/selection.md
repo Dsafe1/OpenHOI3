@@ -2,7 +2,7 @@
 
 What the player selects on the map and what the screen does with several units selected. Read for this project in
 the fact base's selection wave of 2026-10-16 (`reversing/findings/FINDINGS-selection.md`, sections A and B), on the
-maintainer's word that day: "implement the drag-box-selection; implement the shift-multiselect for units (combines
+decision of that day: "implement the drag-box-selection; implement the shift-multiselect for units (combines
 with the drag box)". The province's own click and Shift-click are `provinceview.md`, section 1; the single unit panel
 is `unitpanel.md`; carrying several units at once is `transport.md`, section 12.
 
@@ -161,7 +161,7 @@ is.
 
 ### 5.3 The single panel: the ribbon and Ctrl on its rows
 
-Read 2026-10-16 after the maintainer's screenshot of the ribbon, "1 Army group(s), 4 Corps", and his word: "In the
+Read 2026-10-16 after a screenshot of the original's ribbon, "1 Army group(s), 4 Corps", and an account of it: "In the
 original clicking the ribbon will select all subordinate units" (`FINDINGS-selection.md` A.12). `confirmed`
 
 - **The ribbon** - `select_all_childunits`, the header of the units under the unit (`unitpanel.md`, section 8),

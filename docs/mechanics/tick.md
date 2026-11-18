@@ -48,7 +48,7 @@ carried over under a cap - which played eight to twelve times the original's pac
 *Ours:* pause is a separate switch rather than a speed, and time that passes while paused is
 not owed when it ends.
 
-*Ours, decided 2026-11-18 by the maintainer: the client runs its hours beside the frame*
+*Ours, decided 2026-11-18: the client runs its hours beside the frame*
 (`CSimulation.BeginAdvance`, `Collect`). After a frame is drawn, the hour the clock says is due - one at
 most, as above, the real time of every frame since the last added up - is started on a worker thread. The
 frames go on drawing meanwhile, their time owed to the clock: the map's camera pans and zooms and its
@@ -148,7 +148,7 @@ landing on one hour. `confirmed` A second per-country gate fires at the hour equ
    happen. See the note below - this is not where the candidates come from.
 6. **Intelligence is made again**, whole: `intelligence.md`, section 3. And at the end of every hour the provinces
    units left or entered are raised, or the whole made again where the hour changed who holds what or who is allied
-   to whom (section 5). The maintainer had said on 2026-10-10 "I think its daily", before the hour's raise was read; on 2026-10-14, shown it: "Keep it as read."
+   to whom (section 5). The answer on 2026-10-10 had been that it is probably daily, before the hour's raise was read; on 2026-10-14, with it shown, the decision was "Keep it as read."
 
 Several further steps of the daily pass are called in a known order and are **not yet
 identified**.

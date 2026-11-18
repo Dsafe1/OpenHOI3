@@ -3,7 +3,7 @@
 What `country_diplomacy` shows of what two countries hold of each other (`diplomacy.md`), and of where
 each stands on the alignment triangle (`alignment.md`): the list of countries with its tabs and sorts,
 the triangle's markers and the faction boxes, the chosen country's panel, and every tooltip on them.
-Diplomacy's second piece, in the maintainer's order of 2026-10-12. Its decision list is `events.md`,
+Diplomacy's second piece, in the order set on 2026-10-12. Its decision list is `events.md`,
 section 12; what it shares with the other country screens is `countryviews.md`.
 
 Sources: `reversing/findings/FINDINGS-diplomacyview.md` - D the list half and E the panel half, read in

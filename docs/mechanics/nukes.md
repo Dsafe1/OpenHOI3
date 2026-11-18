@@ -35,7 +35,7 @@ In this order [exe]:
 
 Nothing else: no manpower, leadership, revolt risk, dissent, relations or threat.
 
-The maintainer has seen a bomb land in the original, and on 2026-11-09 confirmed the scale of item 4: a brigade loses about a hundredth of its strength and most of its organisation, and ships are usually sunk.
+A bomb has been seen landing in the original, and on 2026-11-09 the scale of item 4 was confirmed from it: a brigade loses about a hundredth of its strength and most of its organisation, and ships are usually sunk.
 
 ## 5. A province event
 

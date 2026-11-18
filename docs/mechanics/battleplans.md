@@ -1,6 +1,6 @@
 # Battle plans
 
-*Spec for `battleplans_window` and drawing on the map: `reversing/findings/FINDINGS-battleplans.md`, `reversing/findings/FINDINGS-battleplandraw.md`. Read out of the original, tried with `--click`, and the maintainer has not looked at them. Files: `tfh/interface/battleplansinterface.gui`, `.gfx`, `battlearrow.gfx`, `battleplans/bp_settings.txt`. Figures are exe-hardcoded unless a file is named.*
+*Spec for `battleplans_window` and drawing on the map: `reversing/findings/FINDINGS-battleplans.md`, `reversing/findings/FINDINGS-battleplandraw.md`. Read out of the original, tried with `--click`, and they have not been reviewed in play. Files: `tfh/interface/battleplansinterface.gui`, `.gfx`, `battlearrow.gfx`, `battleplans/bp_settings.txt`. Figures are exe-hardcoded unless a file is named.*
 
 `CBattlePlan`, `CPlanStroke`, `CPlanIcon`, `CPlanText` (`Sim/Plans`), `CBattlePlanFile`, `CBattlePlanSettings`, `CPlanObjectTypes` (`Content/BattlePlans`), `CBattlePlanBook`, `CPlanEditor`, `CArrowMesh`, `CBattlePlanText` (`Interface/BattlePlans`), `CBattlePlanWindow`, `CBattlePlanRow` (`src/Screens`), `CMapSurfaceBattlePlans.cs`, `CBattlePlanSigns` (`src/Map`).
 

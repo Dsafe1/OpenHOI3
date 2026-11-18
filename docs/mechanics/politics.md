@@ -5,7 +5,7 @@ unity and its dissent; how its laws and ministers are changed; the screen; and t
 out of the original in one wave (`reversing/findings/FINDINGS-government.md`, sections A to E), with
 what was known before it (`reversing/findings/FINDINGS-effectrun.md` sections 1.4 and 1.5,
 `reversing/findings/FINDINGS-politics.md`, `reversing/findings/FINDINGS-triggerleaves.md`). Built in
-four pieces, by the maintainer's word on 2026-10-14: the government's figures and their days; laws and
+four pieces, by the decision of 2026-10-14: the government's figures and their days; laws and
 ministers changed; the screen; the AI's politics.
 
 Figures are thousandths unless said otherwise; a party's figure is thousandths of a percentage point, so
@@ -309,10 +309,10 @@ one, else its name, and its icon is tinted the party's colour.
 **The parties.** The pie has a slice for every ideology from 1, in the database's order and its colour, each its
 **whole percent rounded half to even** of the popularity summed from 1 - the null party is never in it - and none at
 all where that sum is 1.000 or less. A party at nought has a slice of nought. How the original draws a pie was not
-read: **its slices run from three o'clock against the clock**, from the maintainer's screenshot of the original on
+read: **its slices run from three o'clock against the clock**, from a screenshot of the original on
 2026-10-14, and it is **twice its `size` across with its `scale` not applied and the `.gui` position the top of its
 middle** - measured on the shadow the screen's art has under it, which is 100 across with its middle 50 below that
-position, and on which his screenshot's pie sits. The organisation bars are the icons `<ideology>_org`, filled from the foot to
+position, and on which the screenshot's pie sits. The organisation bars are the icons `<ideology>_org`, filled from the foot to
 organisation / 1000 cut to a whole percent, in the party's colour; their sprite has no picture, and a bar with none
 is drawn here as its colour alone. *Ours*: an ideology with no bar in the file is passed over, where the original would
 use it untested. The legend has a row for every ideology from 1, its name for the country and its colour, under the
@@ -348,7 +348,7 @@ mobilising and taken off again on standing down. **Being mobilised is what calls
 brigade is then held neither to the share of its strength nor of its organisation `RESERVES_PENALTY_SIZE` keeps back,
 and the day's reinforcement fills it, doubled by `initial_mobilization`'s `reinforcement_bonus` while that lasts. It
 is one flag, the original's one byte, which a war sets too; until 2026-10-14 the reserves read a second flag of ours
-set only at the start, so the button changed nothing a unit felt, which the maintainer found. **`revolt`**, "Organized
+set only at the start, so the button changed nothing a unit felt, which testing found. **`revolt`**, "Organized
 Revolt!", raises the exile's ready undergrounds in its own land at once, may be pressed where one is ready, and says how
 many are - built since 2026-10-15 (`undergrounds.md`, section 6). *Not built*: making a puppet and liberating a
 country - both buttons are greyed, `create_puppet` saying
@@ -395,7 +395,7 @@ minister keeps the last portrait; mobilising is greyed at war, not hidden.
 Built 2026-10-14, read out of the original, tried with `--click`: the pie's and a bar's tooltips, a minister replaced
 by Replace and SELECT with the message after it, a law chosen through its confirmation with the money taken and the
 message after it, and mobilising. `--screen=politics` opens it, and `--money=GER:500` gives a country money so that a
-law may be paid for on a new game, where none can be. **The maintainer has not looked at it.**
+law may be paid for on a new game, where none can be. **It has not been reviewed in play.**
 
 ### 11.1 Making a puppet and liberating a country
 
@@ -411,7 +411,7 @@ A row's flag opens a `DefaultDialog` at its own place and (150, 150), the target
 
 `FINDINGS-government.md`, section E. **The minister is only for the countries nobody plays**; **a new game's look at
 the laws is for every country, the player's too**, as the original's is - ~~the player's laws and ministers are never
-the AI's (`docs/compatibility.md`, entry 6)~~, reversed by the maintainer on 2026-11-02, when it was found that part of
+the AI's (`docs/compatibility.md`, entry 6)~~, reversed on 2026-11-02, when it was found that part of
 what moves the player's laws in the original is the engine's own (section 13). `CPoliticsAi` in `Sim/Politics`; the
 Lua's classes in `lib/OpenHOI3.Lua/Api`.
 

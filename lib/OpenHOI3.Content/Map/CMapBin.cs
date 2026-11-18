@@ -11,7 +11,7 @@ namespace OpenHOI3.Content.Map;
 /// (<c>reversing/findings/FINDINGS-mapdraw.md</c>, B.7 and C.6). It is not tested against the <c>time</c> stamp as the rest
 /// of the cache is, but by date: it is the map's while no file it is built from is missing or newer than it [exe]. Those are
 /// nine of default.map's files - and here a tenth, <c>rivers.bmp</c>, which the original leaves out, so that an edited
-/// river bitmap is traced from its own sources and not from the last ones (the maintainer's word, 2026-11-06;
+/// river bitmap is traced from its own sources and not from the last ones (decided on 2026-11-06;
 /// <c>docs/compatibility.md</c>, entry 20). See <c>docs/mechanics/mapdraw.md</c>, section 4.
 /// </summary>
 public static class CMapBin

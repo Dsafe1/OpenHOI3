@@ -369,7 +369,7 @@ after province for as long as what it has left covers the next distance.
 `OpenHOI3.SaveCheck march <install> <earlier save> <later save>` gives every fleet and air
 unit that has a path in the earlier save its ships or wings, its fuel, its place, its path
 and its progress, moves it here hour by hour for the hours between, and sets it against the
-later save. *Measured* against saves of one game the maintainer made on 2026-10-09 with a
+later save. *Measured* against saves of one reference game made on 2026-10-09 with a
 submarine flotilla sailing from Kiel for Königsberg and an air fleet changing its base to
 Königsberg, the AI having some fifteen more fleets under way:
 
@@ -379,7 +379,7 @@ Königsberg, the AI having some fifteen more fleets under way:
 | 8 January 03:00 to 06:00 | 17 of 17 fleets | 17 of 17 |
 | 7 January 22:00 to 8 January 02:00 | 12 of 12 fleets | 12 of 12 |
 
-- The maintainer's submarines gain 5.75 an hour: 11.5 with their technologies, times a half.
+- The player's submarines gain 5.75 an hour: 11.5 with their technologies, times a half.
 - **The air unit crosses six provinces in its hour** and ends 6.7 along the seventh edge,
   here and in the save: the carrying over of section 6 of `movement.md`, which had only been
   read.
@@ -463,7 +463,7 @@ play no part (`tooltips.md`, section 9).
   section 7), and the air unit in a battle sent straight on since 2026-11-14 (section 4). The window's tooltips
   are built since 2026-10-12 (section 8).
 - ~~**The land window**, `land_unit_order` (the original's `CLandOrdersView`), which a land unit's right click brings
-  up with **Ctrl** held - the maintainer's word, 2026-10-19 - and which is the only way a player gives a land unit a
+  up with **Ctrl** held - settled on 2026-10-19 - and which is the only way a player gives a land unit a
   strategic redeployment or a support attack. Not read, not built.~~ Read and built 2026-11-04: `landorders.md`.
 
 ## What is not established

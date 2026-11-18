@@ -387,7 +387,7 @@ public class TransportTests
 			hours++;
 			if (hours == 2)
 			{
-				// Two hours in: 1.0 of 24, so 41 thousandths - the maintainer's screenshot's 4.10%.
+				// Two hours in: 1.0 of 24, so 41 thousandths - a screenshot of the original's 4.10%.
 				Assert.Equal(41, CLanding.Progress(state, division));
 				Assert.Same(fleet, division.Transport);
 			}

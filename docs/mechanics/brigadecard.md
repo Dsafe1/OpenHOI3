@@ -1,6 +1,6 @@
 # A brigade's card, the sunk ships and the pride of the fleet
 
-*Spec for `brigade_view` and `sunk_ships_view`: `reversing/findings/FINDINGS-sunkships.md`. Read out of the original, tried with `--click`, and the maintainer has not looked at them. File: `tfh/interface/brigadeview.gui`. Figures are exe-hardcoded unless a define is named.*
+*Spec for `brigade_view` and `sunk_ships_view`: `reversing/findings/FINDINGS-sunkships.md`. Read out of the original, tried with `--click`, and they have not been reviewed in play. File: `tfh/interface/brigadeview.gui`. Figures are exe-hardcoded unless a define is named.*
 
 `CBrigadeCardText` (`Interface/Screens`), `CPride` (`Sim/Units`), `CMakePrideCommand`, `CRenameSubUnitCommand` (`Sim/Commands`), `CBrigadeCards`, `CBrigadeCard`, `CSunkShipsWindow` (`src/Screens`).
 

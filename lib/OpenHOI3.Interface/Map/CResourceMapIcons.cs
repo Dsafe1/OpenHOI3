@@ -11,7 +11,7 @@ namespace OpenHOI3.Interface.Map;
 /// that mode and only near, under a camera height of 500. A good's icon stands where a building does: the building of
 /// buildings.txt whose place, counting the original's own <c>nobuilding</c> first, is the good's in the goods pool - the 3rd
 /// to the 6th - on that building's point, and where positions.txt gives the province none, on the middle of the province, its
-/// label point, by the maintainer's word of 2026-11-07. The strategic resource's always stands on the label point. See <c>docs/mechanics/mapmodes.md</c>, section 5, and
+/// label point, by the decision of 2026-11-07. The strategic resource's always stands on the label point. See <c>docs/mechanics/mapmodes.md</c>, section 5, and
 /// <c>reversing/findings/FINDINGS-resourceicons.md</c>.
 /// </summary>
 public static class CResourceMapIcons

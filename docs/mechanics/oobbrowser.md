@@ -1,6 +1,6 @@
 # The order of battle browser
 
-*Spec for `oobbrowser`: `reversing/findings/FINDINGS-oobbrowser.md`. Read out of the original, tried with `--click`, and the maintainer has not looked at it. File: `tfh/interface/oobbrowser.gui`. Figures are exe-hardcoded; the window's layout is the file's.*
+*Spec for `oobbrowser`: `reversing/findings/FINDINGS-oobbrowser.md`. Read out of the original, tried with `--click`, and it has not been reviewed in play. File: `tfh/interface/oobbrowser.gui`. Figures are exe-hardcoded; the window's layout is the file's.*
 
 `COobTree`, `COobRow`, `COobBrowserText` (`Interface/Screens`); `COobBrowser`, `COobEntry` (`src/Screens`).
 

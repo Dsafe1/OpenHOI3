@@ -247,8 +247,8 @@ depends on.
 ## 9. Terrain
 
 **The rule was read out of the executable on 2026-10-09**
-(`reversing/findings/FINDINGS-movement.md`, section 8). Until then this section held the
-maintainer's rule from experience of modding the original - *the category that covers the
+(`reversing/findings/FINDINGS-movement.md`, section 8). Until then this section held a
+rule from experience of modding the original - *the category that covers the
 most of a province's pixels* - marked as not read. The original's is close to that and
 narrower: it counts **only a small square around where the province's name is written**.
 
@@ -278,7 +278,7 @@ narrower: it counts **only a small square around where the province's name is wr
 - **Province 1737 is in the executable by number**: its terrain is what is painted at its
   text position, with nothing counted. Kept, so that the base game comes out the same.
 - **A `terrain = <category>` line in the province's history file overrides that.**
-  (maintainer)
+  (from modding experience)
 - A point off the east or the north edge of the bitmap reads as palette index 0. A palette
   index no entry of `terrain.txt` covers would crash the original at a unit point and is
   skipped in the count; *ours:* such a pixel paints nothing, a province with nothing else has
@@ -297,7 +297,7 @@ terrain: it is what a pixel of that terrain adds to a distance (`movement.md`, s
 ## 10. Whose colour a province is
 
 On the political map a province is **the colour of whoever holds it, and striped with its
-owner's where that is another country.** The maintainer, 2026-10-09, asked how the
+owner's where that is another country.** Asked on 2026-10-09 how the
 original shows occupied ground: "It uses striping", with a screenshot.
 
 - **The stripes are the original's own picture**, `map/terrain/stripes.dds`: 128 pixels
@@ -307,14 +307,14 @@ original shows occupied ground: "It uses striping", with a screenshot.
   how much of the second a point takes, and the picture repeats **every 8 map pixels** both
   ways, measured from the map's south-west corner. (measured) So the stripes are fixed to the
   ground and grow with the zoom.
-- **Which colour is the stripes'** was not read. The maintainer's word, 2026-10-09: "The
+- **Which colour is the stripes'** was not read. Settled on 2026-10-09: "The
   owner is the thin stripe, the controller the wide one." It was built the other way round
   first, from a guess at the same screenshot that took its heavy border for the edge of
   what a country owns.
 - **A border between countries is drawn where the holder changes**, and stripes make none.
   In the screenshot the heavy border and the war's dashed line run along the side of the
   striped province that faces the country of the narrow bands, and a thin line along the
-  side facing the country of the wide ones; with his word on which is which, that puts the
+  side facing the country of the wide ones; with that word on which is which, that puts the
   heavy line at the edge of what is held. `inferred`
 
 Since 2026-11-07, as read (`reversing/findings/FINDINGS-mapmodescountries.md`, section 1): both colours are at half
@@ -331,7 +331,7 @@ striped.
 - for **terrain**: what `priority` on an index entry means, and where the original puts a port that `positions.txt`
   does not place. ~~Which terrain about one land province in two hundred takes~~: **settled 2026-11-13** - none of the
   48 had a `text_position`, and the original counts round its default text point, two pixels south of the centre, where
-  ours counted round the centre; the name is still drawn about the middle of the box, as the maintainer's screenshots
+  ours counted round the centre; the name is still drawn about the middle of the box, as screenshots of the original
   have it. With that every province's terrain is the running game's, all 14,168 read off it, and `weather` agrees in
   every province (`reversing/findings/FINDINGS-liveread.md`, section 74);
 - ~~the **bearing** between a land province and a sea province~~: the naval base is the land end, its default the

@@ -13,7 +13,7 @@ using OpenHOI3.Sim.Revolts;
 using OpenHOI3.Sim.Wars;
 
 /// <summary>
-/// A trial, not a check: no save of the maintainer's holds an underground. On a new game the occupier is put at war
+/// A trial, not a check: no reference save holds an underground. On a new game the occupier is put at war
 /// with the occupied and given ten of its provinces away from its capital; an underground of the occupied is finished
 /// in each of the first three, as a line of the queue would finish it, to spread, to raise partisans and to build up; and the days are run,
 /// telling each underground's strength, the partisans it raises, its spreading and its end:

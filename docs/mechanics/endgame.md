@@ -1,7 +1,7 @@
 # The end of a game, and the windows of the victory conditions
 
 How a game ends and what shows how near it is. Read whole in `reversing/findings/FINDINGS-endgame.md` (2026-11-08); the rules of the conditions themselves are `factions.md`, sections 8 and 9.
-`Interface/Screens/CEndGameText` and `CVictoryWindowText` say what is shown; `src/FrontEnd/CEndGameScreen`, `src/Screens/CVictoryConditionsView` and `src/FrontEnd/CVictorySelectWindow` show it. Read from the original and tried with `--click`; the maintainer has not looked at them.
+`Interface/Screens/CEndGameText` and `CVictoryWindowText` say what is shown; `src/FrontEnd/CEndGameScreen`, `src/Screens/CVictoryConditionsView` and `src/FrontEnd/CVictorySelectWindow` show it. Read from the original and tried with `--click`; they have not been reviewed in play.
 **[exe]** a rule the executable holds; **[mod: file]** what a file may change; *Ours* where this departs.
 
 ## 1. The dialog

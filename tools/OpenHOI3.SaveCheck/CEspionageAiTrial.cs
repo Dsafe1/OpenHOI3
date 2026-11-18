@@ -19,7 +19,7 @@ using OpenHOI3.Sim.Espionage;
 ///
 ///   OpenHOI3.SaveCheck espionageai &lt;install folder&gt; [days] [tag] [save to set beside]
 ///
-/// Germany played for 110 days with none given - to the 20 April 1936 of the maintainer's save. It tells how many
+/// Germany played for 110 days with none given - to the 20 April 1936 of the reference save. It tells how many
 /// countries' ministers acted and what they posted, what of the Lua failed or read what is not built, and given a save
 /// of that day sets every AI country's priority towards every country owning a province beside it: the reading set the
 /// script's rules against that save and found 5,802 of 5,929 alike. The missions are drawn by the C runtime's

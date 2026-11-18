@@ -3,8 +3,8 @@
 `settings.gui`'s `menu_settings_ingame`, which the in-game menu's Game Options opens (`ingamemenu.md`): four tabs - Game,
 Video, Audio, Controls - an Apply and a Back, over the menu's picture. It holds the player's `settings.txt` (`settings.md`)
 and writes it. Read out of the original on 2026-11-04 (`reversing/findings/FINDINGS-settingswindow.md`), and set against
-the maintainer's `settings.txt`, which the original wrote; that Apply with nothing to restart shuts the whole menu the
-maintainer confirmed in the original the same day. `confirmed` unless marked.
+a reference `settings.txt`, which the original wrote; that Apply with nothing to restart shuts the whole menu was
+confirmed in the original the same day. `confirmed` unless marked.
 
 **[exe]** marks a rule the original's executable holds, **[mod: ...]** what a file may change.
 
@@ -108,7 +108,7 @@ camera off, and the file then says so [exe].
 - **The settings nothing here drives yet** are kept, shown and written all the same: the volumes (there is no sound),
   scroll speed, zoom speed and the legacy camera (the camera is OpenHOI3's own), trees, advanced water and the unit names
   on the counters (none is drawn), and the counter distance and scale. The gamma and the hierarchy's lines on the map are
-  driven. The readme's *Loose ends* lists the rest.
+  driven. The worklist's *Loose ends* lists the rest.
 - The gamma is a layer over everything drawn, where the original's is the screen's own ramp - which Direct3D applies
   only in full screen, by its documentation; here it applies in a window too.
 

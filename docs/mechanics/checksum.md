@@ -34,7 +34,7 @@ as a file or as a folder to go down into. A folder whose name ends in the extens
 not `interface`, `gfx`, `localisation`, `script` - the AI's Lua - `sound`, `music`, `scenarios`, any other map file, or any
 subfolder of `common` but `countries`.
 
-**The version name is the original's**, by the maintainer's word on 2026-11-13: "match the originals name". So the same
+**The version name is the original's**, by the decision of 2026-11-13: "match the originals name". So the same
 files give the same letters here as in the original, and a player can set this game's beside the original's main menu.
 
 ## 3. Which copy of a file

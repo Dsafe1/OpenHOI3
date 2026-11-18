@@ -100,7 +100,7 @@ public static class CMapBuildings
 	/// <summary>
 	/// Where a building's picture stands, a world point - x east, y north, a pixel's middle on whole coordinates, as
 	/// positions.txt writes it: where the file puts that building in the province, as it is, or where the file says
-	/// nothing the middle of the province, its label point - the maintainer's word, 2026-11-07. The original hangs the
+	/// nothing the middle of the province, its label point - decided on 2026-11-07. The original hangs the
 	/// picture on the province's anchor moved by the building's place less the label point, which comes to the place
 	/// itself (mapunits.md, section 9); the 2D map draws it through <see cref="CWorldPoint"/>, half a pixel east and south.
 	/// </summary>

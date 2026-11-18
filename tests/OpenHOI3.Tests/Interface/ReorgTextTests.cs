@@ -9,7 +9,7 @@ using OpenHOI3.Sim.Units;
 namespace OpenHOI3.Tests.Interface;
 
 /// <summary>
-/// What the reorganise window writes, against <c>docs/mechanics/reorganise.md</c>, section 2, and the maintainer's
+/// What the reorganise window writes, against <c>docs/mechanics/reorganise.md</c>, section 2, and
 /// screenshots of the original's: "2,999" and "100%", "2 / 7 / 0" and a penalty in thousandths.
 /// </summary>
 public class ReorgTextTests
