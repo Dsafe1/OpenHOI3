@@ -328,7 +328,7 @@ original's battle had and ours lacked (`reversing/findings/FINDINGS-liveread.md`
 
 **Shore bombardment** is worked out once for each side, each hour, and put on every unit of it, attack and defence
 alike: `confirmed` (`reversing/findings/FINDINGS-combatmods.md`, BM_SHORE_BOMBARD, as `FINDINGS-transport.md` corrects
-it; the side's test read 2026-11-18)
+it; the side's test, `reversing/findings/FINDINGS-definesuse.md`, section 5)
 
     for each province the battle's province has an edge to that is a sea:
         for each unit there that is going nowhere - no province left on its path -

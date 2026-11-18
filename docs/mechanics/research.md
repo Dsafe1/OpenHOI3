@@ -370,7 +370,8 @@ the save, which fought air battles ours did not. Every move on either side is a 
 part, the battles fought did.
 
 Sources: `reversing/findings/FINDINGS-landbattle.md`, `FINDINGS-seabattle.md`, `FINDINGS-airbattle.md`,
-`FINDINGS-bombing.md`; the shared gain and the defines' names read 2026-11-18. Built 2026-11-18 (`CCombatPractical`).
+`FINDINGS-bombing.md`; the shared gain and the defines' names, `reversing/findings/FINDINGS-definesuse.md`, sections 2
+and 3. Built 2026-11-18 (`CCombatPractical`).
 Nothing new is kept: the practicals are a country's abilities, saved and loaded already.
 
 ## What is not established, in one place

@@ -749,7 +749,7 @@ puppet of the $FACTION$." or its kin. **Coming home** sets the government back i
 that was cut comes back. `government_in_exile = yes|no` asks it, and Lua's `IsGovernmentInExile`.
 
 **Its partisans become militia as it comes home**, first: `confirmed` (`reversing/findings/FINDINGS-surrender.md`, C.2;
-the brigade's test read 2026-11-18). For every land unit of the country, at every level, every brigade whose own
+the brigade's test, `reversing/findings/FINDINGS-definesuse.md`, section 6). For every land unit of the country, at every level, every brigade whose own
 `supply_consumption` - its figure with its technologies in - is nothing or less becomes the type the defines' top-level
 `base_militia` names (`militia_brigade` in Their Finest Hour, where only `partisan_brigade` uses nothing), where a type
 of exactly that name exists. It keeps the level of each technology the new type shares and its progress towards the
