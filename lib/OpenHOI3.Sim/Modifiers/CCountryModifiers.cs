@@ -55,7 +55,7 @@ public static class CCountryModifiers
 	/// <summary>One country's modifier made again, as a decision taken does.</summary>
 	public static void RebuildOne(CGameState state, CCountry country)
 	{
-		RebuildOne(state, country, ProvincesHeld(state));
+		RebuildOne(state, country, ProvincesHeld(state, country.Tag));
 	}
 
 	private static void RebuildOne(CGameState state, CCountry country, Dictionary<string, List<CProvince>> fromProvinces)
@@ -189,6 +189,25 @@ public static class CCountryModifiers
 			}
 		}
 		return modifier;
+	}
+
+	/// <summary>
+	/// The provinces one country controls that have a modifier at all, in their order, as <see cref="ProvincesHeld(CGameState)"/>
+	/// gives them for it - without making every other country's list, which a decision's rebuild of one country did.
+	/// </summary>
+	private static Dictionary<string, List<CProvince>> ProvincesHeld(CGameState state, CCountryTag tag)
+	{
+		var list = new List<CProvince>();
+		foreach (CProvince province in state.Provinces)
+		{
+			// Matched as the whole map's lists are keyed, by the tag's text without case.
+			if (province.Controller is { } controller && province.Modifier.Values.Count != 0
+				&& string.Equals(controller.Value, tag.Value, StringComparison.OrdinalIgnoreCase))
+			{
+				list.Add(province);
+			}
+		}
+		return new Dictionary<string, List<CProvince>>(StringComparer.OrdinalIgnoreCase) { [tag.Value] = list };
 	}
 
 	/// <summary>The provinces each country controls that have a modifier at all, by tag, in their order.</summary>
