@@ -692,7 +692,11 @@ makes nobody at war (`war.md`, section 1).
    its level and two - to the theatre's port in its commander's area with the least distance from the commander + 10,
    +2000 a ship over the port's level, x0.75 for staying, in single precision, a fleet leaving taken off its old base's
    count (read on the listing 2026-11-13, `reversing/findings/FINDINGS-liveread.md`, section 64: the USA's 2nd USN
-   Submarine Fleet, based at Manila, which the Philippines own, sails for Honolulu at the eleventh hour). **A fleet holding a transport goes no further**: neither counted
+   Submarine Fleet, based at Manila, which the Philippines own, sails for Honolulu at the eleventh hour). **A fleet rebased
+   so goes no further**: its turn ends there, neither counted nor free, though its order is still none until the command
+   runs - so the patrol and the intercept cannot take it in the same pass (`reversing/findings/FINDINGS-liveread.md`,
+   section 128: the British 10th Navy rebased to 2021 at 09:00 on 17 July 1941, and the 11445 patrol going to the 16th
+   Navy). **A fleet holding a transport goes no further**: neither counted
    nor free, it is sent on no patrol and no intercept (`reversing/findings/FINDINGS-liveread.md`, section 42). Any other's
    power, with no rebase or raid, adds to the own power; a fleet not busy - or on patrol or escort - is **free**.
 8. **Patrol**, with the naval stance not 0 and at war or with raided waters: the raided waters, or else the sea of each of
@@ -700,6 +704,10 @@ makes nobody at war (`war.md`, section 1).
    fleet with no order, no submarine and a screen is given a **patrol** over them for 168 hours. None left: the phase ends.
    Each sea taken, and each fleet sent, leaves its list by the original's swap with the last, so which of two equally near
    comes first after it is the original's (`FINDINGS-moving.md`, D.2) - until 2026-11-16 the rest closed up in order.
+   **Every order of the fleets' body goes as the AI's** - its rebases, raids, patrols and intercepts - which asks only for
+   the unit, a province and a base and **no range**, as the original's `CSetOrderCommand` does (`reversing/findings/
+   FINDINGS-liveread.md`, sections 122 and 128): until 2026-11-18 a patrol whose centre lay beyond the fleet's reach from
+   its base was refused, and the fleet left with no order was taken again by the next pass.
 9. **Intercept**, for each surveyed enemy fleet at sea: passed over where the enemy's power is over 1.5 times the own (2
    at naval stance 1) unless it carries troops; the nearest free fleets, reachable, with power, not on patrol unless the
    enemy carries troops, with a screen against all submarines, are gathered until they hold twice its power; holding its

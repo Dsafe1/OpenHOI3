@@ -233,10 +233,25 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    patrol's change had moved it by a roll.
    **The ranking's staging step was right**: the original draws it inline, past the recorder, which now logs that one too
    (section 105); a July recording with it (`wr4`) has every draw of the AI's generator, and ours's staging draws match.
-   **Open, in order**: (a) what ours still draws beyond the original - a few answers to offers, the Soviet Union's raid,
-   some Lua - and what the original's Lua drew that ours did not: `math.random` for Cuba, Bulgaria, Yugoslavia, Finland
-   and others. (b) The July list against `wr4` with its draws: 233 the same, 74 alone, 43 none, 24 other end - the Soviet
-   Union's 43 alone, 22 none and 18 other end, Germany's 31 alone and 21 none.
+   **From 2026-11-15 to 2026-11-18** each difference against a recording was read and built, liveread sections 106 to
+   126: what a load draws before its first hour, a lent unit's officers, the scripts' first day after a load, the line's
+   pull counting its picks on a count of its own, the countries' passes racing, the patrols' end and `rand()`, a way round
+   a known enemy stack, the submarines' raid, a neutral's raided waters, a loaded game's first midnight, a redeployed
+   brigade's organisation, falling back's stop, a raid's convoy ship, the country's day one country at a time, a province
+   lost and a redeployment into an enemy's province, a support attack binding nothing for the rest of the pass, a fleet
+   under bombs seen with no roll, and a battle started by the asker's order (`moving.md`, section 10; `navalcombat.md`,
+   section 1). The recordings grew probes as they went (`wr5` to `wr19`: draws, the game generator's callers, every AI
+   move with its caller, the reserve's picks, the sighting calls, the caches).
+   **Then sections 127 and 128** (2026-11-18): the paradrop planner and its daily list of weak enemy ports, an airborne
+   army staged at its target's air base and a plane's passenger free to walk (`moving.md`, section 9.1), and a fleet the
+   naval body rebases free for nothing else that pass, its orders refused for no range (section 14). Hour 41's weather was
+   a name the comparison had not mapped, and is mapped in the kit's `runcmp.py`.
+   **Open, in order**, measured against `wr19` (48 hours from `Ireland1941_07_16_07`, every probe): 467 of 469 land orders
+   the same, none of ours alone, fleets 159 of 165; `wr15` 467 of 467, `wr14` 466 of 484, `wr11` 452 of 488. An hour is
+   measured by its **draws**, not its dice alone, since the playback puts the generator back at each battle; every hour of
+   `wr19` agrees before its first battle but hour 46. (a) Hour 46: the sightings at its 308th draw, the original's 21 to
+   ours's 7. (b) The German 3. Infanterie-Division at hour 36, which the original's garrison step sends from 23 to Oslo
+   (812) and ours leaves bound for 38.
 
 **Noticed in testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces

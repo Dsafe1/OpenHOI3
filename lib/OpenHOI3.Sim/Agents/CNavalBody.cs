@@ -181,7 +181,7 @@ public static class CNavalBody
 			state.Outbox.Add(new CMoveUnitCommand(country.Tag, fleet.Id, fleet.Base));
 			return;
 		}
-		state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleet.Id, EUnitOrder.Rebase, fleet.Base > 0 ? fleet.Base : fleet.Location));
+		state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleet.Id, EUnitOrder.Rebase, fleet.Base > 0 ? fleet.Base : fleet.Location, ai: true));
 	}
 
 	/// <summary>Phase 6: the power of every enemy fleet within reach of the theatre's ports, troop carriers first.</summary>
@@ -247,7 +247,12 @@ public static class CNavalBody
 			{
 				Raid(state, country, agent, fleet, arriving);
 			}
-			Rebase(state, country, agent, fleet, arriving, census.Submarines);
+			// A fleet rebased here is neither counted nor free: the original jumps past both once it has posted the order, so
+			// the patrol and the intercept cannot take it in the same pass (FINDINGS-liveread.md, section 128).
+			if (Rebase(state, country, agent, fleet, arriving, census.Submarines))
+			{
+				continue;
+			}
 			// A fleet carrying a transport is neither counted nor free: it patrols and intercepts nothing
 			// (FINDINGS-liveread.md, section 42).
 			if (census.Transports > 0)
@@ -329,7 +334,7 @@ public static class CNavalBody
 		if (chosen > 0)
 		{
 			state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleet.Id, EUnitOrder.ConvoyRaid, chosen,
-				endHour: state.TotalHours + RaidHours));
+				endHour: state.TotalHours + RaidHours, ai: true));
 		}
 	}
 
@@ -365,7 +370,7 @@ public static class CNavalBody
 			{
 				arriving[fleet.Base] = arriving.GetValueOrDefault(fleet.Base) - fleet.SubUnits.Count;
 			}
-			state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleet.Id, EUnitOrder.Rebase, best));
+			state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleet.Id, EUnitOrder.Rebase, best, ai: true));
 			return true;
 		}
 		return false;
@@ -378,12 +383,12 @@ public static class CNavalBody
 	/// ship over the port's level, x0.75 for staying, in single precision (reversing/findings/FINDINGS-airnaval4.md, the
 	/// naval body's rebase; reversing/findings/FINDINGS-liveread.md, section 64).
 	/// </summary>
-	private static void Rebase(CGameState state, CCountry country, CAgent agent, CUnit fleet, Dictionary<int, int> arriving,
+	private static bool Rebase(CGameState state, CCountry country, CAgent agent, CUnit fleet, Dictionary<int, int> arriving,
 		int submarines)
 	{
 		if (IsBusy(fleet) || CAgents.TheatreOf(state, country, agent) is not { } theatre)
 		{
-			return;
+			return false;
 		}
 		Supply.CSupplyNetwork network = Supply.CSupplyNetworks.Refresh(state);
 		int commanderAt = fleet.Parent?.Location ?? 0;
@@ -394,7 +399,7 @@ public static class CNavalBody
 		{
 			if (submarines > 0)
 			{
-				return;
+				return false;
 			}
 			if (!ReferenceEquals(network.AreaOf(fleet.Base), commanderArea))
 			{
@@ -402,12 +407,12 @@ public static class CNavalBody
 			}
 			else if (Berths(state, fleet.Base) + arriving.GetValueOrDefault(fleet.Base) <= Level(state, fleet.Base) + 2)
 			{
-				return;
+				return false;
 			}
 		}
 		if (commanderAt <= 0)
 		{
-			return;
+			return false;
 		}
 		int best = 0;
 		float least = 1e6f;
@@ -442,8 +447,10 @@ public static class CNavalBody
 			{
 				arriving[fleet.Base] = arriving.GetValueOrDefault(fleet.Base) - fleet.SubUnits.Count;
 			}
-			state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleet.Id, EUnitOrder.Rebase, best));
+			state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleet.Id, EUnitOrder.Rebase, best, ai: true));
+			return true;
 		}
+		return false;
 	}
 
 	/// <summary>
@@ -494,13 +501,18 @@ public static class CNavalBody
 				CStdVector.SwapRemove(waters, nearest);
 			}
 			CUnit? fleet = Nearest(state, free, centre, f => !IsBusy(f) && CShipCensus.Of(f) is { Submarines: 0, Screens: > 0 });
+			if (System.Environment.GetEnvironmentVariable("OHDBG_PATROL") == country.Tag.Value) // DBGPATROL
+			{
+				System.Console.WriteLine($"DBGPATROL {state.Date}.{state.Hour} centre {centre} picked {fleet?.Name}: " + string.Join("; ",
+					free.ConvertAll(f => $"{f.Name}@{f.Location} order {f.Order} subs {CShipCensus.Of(f).Submarines} screens {CShipCensus.Of(f).Screens} sea {CSeaTargets.Sea(state, f.Location, centre)}")));
+			}
 			if (fleet is null)
 			{
 				return;
 			}
 			CStdVector.SwapRemove(free, fleet);
 			state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleet.Id, EUnitOrder.Patrol, centre, provinces: area,
-				endHour: state.TotalHours + PatrolHours));
+				endHour: state.TotalHours + PatrolHours, ai: true));
 		}
 	}
 
@@ -543,7 +555,7 @@ public static class CNavalBody
 			}
 			// An intercept on the enemy fleet, which the order names (moving.md, section 14).
 			state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, group[0].Id, EUnitOrder.Intercept, enemy.Location,
-				endHour: state.TotalHours, target: enemy.Id));
+				endHour: state.TotalHours, target: enemy.Id, ai: true));
 			for (int index = 1; index < group.Count; index++)
 			{
 				state.Outbox.Add(new CJoinUnitCommand(country.Tag, group[index].Id, group[0].Id));
