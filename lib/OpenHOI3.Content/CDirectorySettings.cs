@@ -190,6 +190,21 @@ public sealed class CDirectorySettings
 		return folder is not null && IsGameRoot(folder) ? new CDirectorySettings(folder) : null;
 	}
 
+	/// <summary>
+	/// The install at a folder the launcher names (<c>--install=</c>, <c>docs/launcher.md</c>, section 5), or null where
+	/// that folder is not one. Unlike <see cref="At(string)"/> it is checked, as a folder a player chose has to be.
+	/// </summary>
+	public static CDirectorySettings? Named(string folder)
+	{
+		return IsInstall(folder) ? new CDirectorySettings(Path.GetFullPath(folder)) : null;
+	}
+
+	/// <summary>Whether a folder is an install: it holds the folders every install has beside its executable.</summary>
+	public static bool IsInstall(string folder)
+	{
+		return folder.Length > 0 && IsGameRoot(folder);
+	}
+
 	public static string[] SearchedLocations(string projectDir)
 	{
 		var result = new List<string>();

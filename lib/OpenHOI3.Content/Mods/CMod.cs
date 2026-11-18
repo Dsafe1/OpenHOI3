@@ -16,5 +16,7 @@ namespace OpenHOI3.Content.Mods;
 /// <param name="UserDir">The <c>user_dir</c> line as written, or null where the file gives none.</param>
 /// <param name="ReplacePaths">The <c>replace_path</c> lines, '\' turned to '/' and nothing else changed.</param>
 /// <param name="Dependencies">The names in its <c>dependencies</c> block.</param>
+/// <param name="Engine">The <c>engine</c> line - a key of ours, not the original's: the version of the engine the mod is
+/// made for, which it ships in its folder's <c>engine</c> (<c>docs/launcher.md</c>, section 3); null where it names none.</param>
 public sealed record CMod(string Name, string File, string VirtualPath, string? Folder, string? PathAsWritten, string? Archive,
-	string? UserDir, IReadOnlyList<string> ReplacePaths, IReadOnlyList<string> Dependencies);
+	string? UserDir, IReadOnlyList<string> ReplacePaths, IReadOnlyList<string> Dependencies, string? Engine = null);

@@ -5,6 +5,8 @@
 
   The build plays the install it is placed in - the folder holding the exe - so it is used by copying the whole of
   export/OpenHOI3/ beside hoi3_tfh.exe. That copy is the player's step; this script never writes to an install.
+  Started by the launcher, it plays the install the launcher names wherever it stands: launcher/publish.ps1 puts it
+  in the launcher's engine folder. Its engine.txt says what it is (docs/launcher.md, section 2).
 
   It needs the Godot 4.7.1 .NET export templates (the editor's Editor > Manage Export Templates). The Godot
   executable is taken from -Godot, else from the "godotTools.editorPath.godot4" setting in .vscode/settings.json.
@@ -72,5 +74,21 @@ if (-not (Test-Path $fraktur)) {
     Write-Warning 'fonts/BreitkopfFraktur.ttf is not downloaded, so this export draws the Axis names in Liberation Sans; fonts/readme.md says where to get it.'
 }
 
-Write-Host "Exported $out"
+# What the launcher reads to know this engine without starting it (docs/launcher.md, section 2): the normal engine's
+# version by the date and the commit it was built from, and the version of the launcher's command line it understands,
+# which is CLaunchContract.Version.
+$contract = Select-String -Path (Join-Path $root 'lib\OpenHOI3.Content\Launch\CLaunchContract.cs') -Pattern 'const int Version = (\d+);' |
+    Select-Object -First 1
+if (-not $contract) {
+    throw 'CLaunchContract.Version was not found, so engine.txt cannot say which command line this engine understands.'
+}
+$commit = (& git -C $root rev-parse --short HEAD 2>$null)
+if (-not $commit) { $commit = 'unknown' }
+$dirty = if (& git -C $root status --porcelain 2>$null) { '+' } else { '' }
+$version = "normal-$(Get-Date -Format 'yyyy.MM.dd')-$commit$dirty"
+$engineText = "# The engine in this folder, as the launcher reads it (docs/launcher.md).`n" +
+    "version = `"$version`"`nexecutable = `"OpenHOI3.exe`"`ncontract = $($contract.Matches[0].Groups[1].Value)`n"
+[System.IO.File]::WriteAllText((Join-Path $out 'engine.txt'), $engineText, (New-Object System.Text.UTF8Encoding $false))
+
+Write-Host "Exported $out, engine $version"
 Write-Host 'Copy the whole folder''s contents beside hoi3_tfh.exe to play.'

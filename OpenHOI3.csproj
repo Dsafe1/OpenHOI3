@@ -22,6 +22,7 @@
     <Compile Remove="tests/**/*.cs" />
     <Compile Remove="lib/**/*.cs" />
     <Compile Remove="tools/**/*.cs" />
+    <Compile Remove="launcher/**/*.cs" />
   </ItemGroup>
 
   <ItemGroup>

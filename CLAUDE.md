@@ -60,11 +60,11 @@ event and decision with their triggers and effects by the original's grammar, wh
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
-## Five projects, and which way they may reference
+## Six projects, and which way they may reference
 
 Split on 2026-10-07, so that the simulation can run headless and under test; the fourth
-was added on 2026-10-08 with the interface, for the same reason, and the fifth on
-2026-10-12 with Lua:
+was added on 2026-10-08 with the interface, for the same reason, the fifth on
+2026-10-12 with Lua, and the sixth on 2026-11-18 with the launcher (`docs/launcher.md`):
 
 | project | what it is | may reference |
 | --- | --- | --- |
@@ -73,6 +73,7 @@ was added on 2026-10-08 with the interface, for the same reason, and the fifth o
 | `lib/OpenHOI3.Interface` | what the screens show, with no engine: the text of each figure as the original writes it, colour escapes, where an element goes | `Sim`, `Content` |
 | `lib/OpenHOI3.Lua` | the install's Lua scripts on the original's interpreter, Lua 5.1.4 built from `native/lua`, and the classes they are handed | `Sim`, `Content` |
 | `OpenHOI3.csproj`, with `src/` | the Godot client: scenes, drawing, input, texture decoding, typefaces, the live interface | all four |
+| `launcher/OpenHOI3.Launcher` | the launcher, in Avalonia: lists the mods and starts the engine a choice is played on - what it decides is `Content/Launch`, under test | `Sim`, `Content` - **not Godot, and never an engine at run time**: it speaks to one by `CLaunchContract`'s command line alone |
 
 **The simulation asks the Lua through an interface of its own**, `Sim/Ai/IAiScripts`, which
 `OpenHOI3.Lua` answers and the caller hands to `CGameStateLoader.LoadStart` - so `Sim` still
@@ -93,8 +94,8 @@ plain .NET run. `CColor` and `System.Numerics.Vector2` stand in for the engine's
 `src/Gfx/CEngineTypes.cs` converts at the edge, and `CDiagnostics` holds a sink the client
 points at Godot's log on startup.
 
-`lib/` and `tests/` each carry a `.gdignore`, so the editor does not import their sources or
-write `.uid` files beside them. The client's project file removes both folders from its own
+`lib/`, `tests/`, `tools/` and `launcher/` each carry a `.gdignore`, so the editor does not import their sources or
+write `.uid` files beside them. The client's project file removes them from its own
 compile glob for the matching reason - `Godot.NET.Sdk` would otherwise compile them twice.
 
 ## Settled decisions, which are not merely unbuilt

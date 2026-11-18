@@ -82,6 +82,11 @@ Editor*. Set the path of the Godot executable in the `godotTools.editorPath.godo
 needs the Godot 4.7.1 .NET export templates. An exported build plays the install it is placed in:
 copy the folder's contents beside `hoi3_tfh.exe`.
 
+**The launcher** is built by [`launcher/publish.ps1`](launcher/publish.ps1) into `export/Launcher/` -
+with `-WithEngine`, the standalone build goes into its `engine` folder. Put that folder anywhere: it
+finds the install, or asks for it, lists the mods to tick and starts the engine each choice is played
+on, a mod's own where it ships one. [`docs/launcher.md`](docs/launcher.md) has the details.
+
 **One typeface is downloaded rather than kept here**, because its licence does not allow it to be
 published: Breitkopf Fraktur. [`fonts/readme.md`](fonts/readme.md) says where to get it; without it,
 the names it is used for are drawn in Liberation Sans.

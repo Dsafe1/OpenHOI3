@@ -2322,6 +2322,8 @@ public partial class CSession : Node
 	/// <c>--mod=BlackICE GitHub</c> lays that mod of the install's <c>tfh/mod</c> over the install - and so does the original
 	/// launcher's own <c>-mod=</c> - the main menu included, a game or none (read before anything is, by <c>Main</c>, not
 	/// here; <c>docs/mechanics/mods.md</c>, section 3),
+	/// <c>--install=C:\Games\Hearts of Iron 3</c> plays that install, wherever the engine stands - how the launcher starts it
+	/// (read before anything is, by <c>Main</c>; <c>docs/launcher.md</c>, section 5),
 	/// <c>--centre=1861</c> puts a province in the middle and selects it,
 	/// <c>--country=ENG</c> plays that country and not Germany, <c>--date=1939.9.1</c> begins its game at that date as the
 	/// lobby's bookmark of it would (read as the game is made, not here),

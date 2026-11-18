@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using OpenHOI3.Content;
+using OpenHOI3.Content.Launch;
 using OpenHOI3.Content.Mods;
 using OpenHOI3.Content.Music;
 using OpenHOI3.Loading;
@@ -134,7 +135,8 @@ public partial class Main : Control
 		{
 			// The game's switches want a game, which nothing has said to play; the front end plays only the clicks.
 			string[] unused = CSession.UserArguments()
-				.Where(argument => argument.StartsWith("--") && !FrontEndSwitches.Any(argument.StartsWith) && !CModSwitch.Is(argument))
+				.Where(argument => argument.StartsWith("--") && !FrontEndSwitches.Any(argument.StartsWith) && !CModSwitch.Is(argument)
+					&& !CLaunchContract.Is(argument))
 				.ToArray();
 			if (unused.Length > 0)
 			{
@@ -156,12 +158,23 @@ public partial class Main : Control
 	}
 
 	/// <summary>
-	/// The install to play, or null with the reason shown. Run from the editor, it is found by walking up from the
-	/// project; an exported build plays the install it was placed in, the folder of its executable
+	/// The install to play, or null with the reason shown. The one the launcher names with <c>--install=</c>, first
+	/// (<c>docs/launcher.md</c>, section 5); else, run from the editor, it is found by walking up from the project; an
+	/// exported build plays the install it was placed in, the folder of its executable
 	/// (<see cref="CDirectorySettings.BesideExecutable"/>).
 	/// </summary>
 	private CDirectorySettings? FindInstall()
 	{
+		if (CLaunchContract.Install(CSession.UserArguments()) is { } named)
+		{
+			CDirectorySettings? given = CDirectorySettings.Named(named);
+			if (given is null)
+			{
+				ShowMessage("OpenHOI3 was told to play the Hearts of Iron 3 install at\n\n" + named
+					+ "\n\nand this is not one: it has no interface, gfx and localisation folders.");
+			}
+			return given;
+		}
 		if (!OS.HasFeature("editor"))
 		{
 			string executable = OS.GetExecutablePath();
@@ -170,7 +183,7 @@ public partial class Main : Control
 			{
 				ShowMessage("OpenHOI3 plays the Hearts of Iron 3 install it is placed in, and this is not one:\n\n" +
 					System.IO.Path.GetDirectoryName(executable) +
-					"\n\nPut OpenHOI3.exe and its data folder beside hoi3_tfh.exe.");
+					"\n\nStart it from the OpenHOI3 launcher, or put OpenHOI3.exe and its data folder beside hoi3_tfh.exe.");
 			}
 			return beside;
 		}

@@ -1993,6 +1993,14 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 
 ## Loose ends
 
+- **The launcher - built 2026-11-18, what is left** (`docs/launcher.md`). Built: the Avalonia window
+  (`launcher/OpenHOI3.Launcher`), its logic under test (`lib/OpenHOI3.Content/Launch`), `--install=` in the engine, the
+  `engine` key of a descriptor, `engine.txt` from `tools/export.ps1` and `launcher/publish.ps1`; run end to end on
+  BlackICE GitHub. Left, each waiting on something: a save recording the engine it was made with and the check between
+  players covering the engine, for the enhanced engine (section 8); a mod's release putting its engine in its
+  folder, for the first mod that names one (section 9); fetching missing engines and updating itself, if wanted later; trying it
+  off Windows.
+
 - **Twenty defines nobody is sure the original reads** (2026-11-18). OpenHOI3 asks for none of these. The fact base calls
   eleven of them readerless: `SURPRISE_BONUS`, `UNDERGROUND_PARTISAN_STRENGTH`, `MILACC_CANCEL_RELATION_CHANGE`,
   `NAP_INFLUENCE_COST`, `RELATION_INFLUENCE_COST`, `WAR_THREAT`, `SPY_MISSION_CHANGE_DAYS`,

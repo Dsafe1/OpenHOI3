@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The launcher (docs/launcher.md): a program outside the engine that lists an install's mods, chooses the engine each
+    choice is played on - the launcher's own, or the one a mod ships in its folder - and starts it with the command line
+    of CLaunchContract, and nothing else. Avalonia, so that it is small beside an engine and runs where .NET does; no
+    Godot. It compiles in OpenHOI3.Content for reading .mod files as the engine reads them, at the launcher's own version:
+    nothing of it is shared with a running engine.
+  -->
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>OpenHOI3.Launcher</RootNamespace>
+    <AssemblyName>OpenHOI3.Launcher</AssemblyName>
+    <ApplicationIcon>../../icon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.6" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.6" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../lib/OpenHOI3.Content/OpenHOI3.Content.csproj" />
+  </ItemGroup>
+
+  <!-- Typefaces are shipped and none is taken from the machine (CLAUDE.md): the repository's own Liberation Sans. -->
+  <ItemGroup>
+    <AvaloniaResource Include="../../fonts/LiberationSans-Regular.ttf" Link="Assets/Fonts/LiberationSans-Regular.ttf" />
+    <AvaloniaResource Include="../../fonts/LiberationSans-Bold.ttf" Link="Assets/Fonts/LiberationSans-Bold.ttf" />
+    <AvaloniaResource Include="../../icon.ico" Link="Assets/icon.ico" />
+  </ItemGroup>
+
+</Project>

@@ -29,11 +29,15 @@ The keys it reads:
 | `checksum`, `affects_checksum`, `steam_id`, `pdx_id`, `gamersgate_id` | read and not used here (no reader of the first two was found) |
 
 A key given twice keeps its last value. A descriptor with no `name`, or with neither `path` nor `archive`, is **refused**
-and logged `Incorrect MOD descriptor: "<file>"`; the base game's own `mod/Dies_irae_*.mod`, written in the older
-`extend`/`replace` form, are refused so under Their Finest Hour. Of two descriptors of one name the first is kept.
+and logged `Incorrect MOD descriptor: "<file>"`; the install's own `mod/*.mod`, written in the older `extend`/`replace`
+form, are refused so under Their Finest Hour - **they are not mods but the base game's expansions from before it** (Dies
+Irae Götterdämmerung, Dies Irae USA, Secret Weapons of WWII; the user's account, 2026-11-18), and only `tfh/mod` holds
+Their Finest Hour's mods, which is all the launcher offers (`docs/launcher.md`, section 4). Of two descriptors of one name the first is kept.
 
 *Ours*: `CModReader` reads the keys above and **reports every other** - `extend` and `replace` among them - where the
-original drops them without a word. An `archive` is **not read**: a mod with a `path` as well is laid over from its folder
+original drops them without a word - **but one of ours, `engine`**: the version of the engine a mod is made for, which the
+launcher starts it on (`docs/launcher.md`, section 3). The original passes over it as over any key it does not know, so a
+descriptor with one stays valid there; the engine itself does nothing with it. An `archive` is **not read**: a mod with a `path` as well is laid over from its folder
 and that is said; one with an archive alone lays nothing (`docs/worklist.md`, *Loose ends*). A `path` that is no folder is said; the
 original's mount of it fails silently and its `user_dir` still applies (*likely*), as here.
 
@@ -109,6 +113,11 @@ localised name after the letters (`CVersionText`; `reversing/findings/FINDINGS-f
 which of several the original names not being read.
 
 *Not built*: `userdir.txt`, `-settings=`, `-logpostfix=`, `-exclude_dlc=` and `-dlcmod`.
+
+**This project's launcher** (`docs/launcher.md`, section 5) writes neither form of the original's: it gives everything after
+`--` - `--install=<folder>`, the install to play wherever the engine stands, and a `--mod=` for each mod by its virtual
+path, which the developer's switch takes as it is - so that a mod whose file name holds a `-`, which the original's line
+cannot name, can be chosen. `--install=` is read before anything else, ahead of the install the engine stands in.
 
 **The savegame tool**: `mod=<name>` anywhere among the arguments lays that mod over the install for **every command**
 (`CToolDirectories`), taken out before the command reads its own; `checksum <install> <mod name>` and `modsurvey <install>

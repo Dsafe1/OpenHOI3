@@ -22,6 +22,15 @@ public static class CModReader
 	};
 
 	/// <summary>
+	/// The one key of ours a <c>.mod</c> file may hold, which the original passes over: the version of the engine the mod
+	/// is made for (<c>docs/launcher.md</c>, section 3).
+	/// </summary>
+	public const string EngineKey = "engine";
+
+	/// <summary>The words of the report of a key no <c>.mod</c> file has, by which the launcher leaves it to the log.</summary>
+	public const string UnknownKeyNote = "is not a key of a .mod file";
+
+	/// <summary>
 	/// Every descriptor the original lists: <c>mod/*.mod</c> over its first search path - the player's folder, then
 	/// <c>tfh/</c>, then the install - each name once, the first folder's copy; as virtual path and file.
 	/// </summary>
@@ -151,6 +160,7 @@ public static class CModReader
 		string path = "";
 		string archive = "";
 		string? userDir = null;
+		string? engine = null;
 		var replaced = new List<string>();
 		var dependencies = new List<string>();
 		foreach (ClausewitzNode entry in root.Children)
@@ -189,6 +199,10 @@ public static class CModReader
 				case "replace_path":
 					replaced.Add(entry.Value.Replace('\\', '/'));
 					break;
+				case EngineKey:
+					// Ours, which the original passes over: the engine the mod is made for (docs/launcher.md, section 3).
+					engine = entry.Value.Length > 0 ? entry.Value : null;
+					break;
 				case "checksum":
 				case "affects_checksum":
 				case "steam_id":
@@ -196,7 +210,7 @@ public static class CModReader
 				case "gamersgate_id":
 					break;
 				default:
-					warn($"'{virtualPath}': '{entry.Key}' is not a key of a .mod file ({string.Join(", ", Keys)}); the original drops it");
+					warn($"'{virtualPath}': '{entry.Key}' {UnknownKeyNote} ({string.Join(", ", Keys)}); the original drops it");
 					break;
 			}
 		}
@@ -225,6 +239,6 @@ public static class CModReader
 			warn($"'{virtualPath}': its path is written with a backslash, so its {replaced.Count} replace_path lines do nothing, as in the original");
 		}
 		return new CMod(name, Path.GetFullPath(file), virtualPath, folder, path.Length > 0 ? path : null, archive.Length > 0 ? archive : null,
-			userDir, replaced, dependencies);
+			userDir, replaced, dependencies, engine);
 	}
 }

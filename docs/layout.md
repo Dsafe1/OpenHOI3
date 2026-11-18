@@ -127,6 +127,9 @@ lib/OpenHOI3.Content/   reading an install: finding and layering it, localisatio
     Script/             events and decisions: their words, the keyword tables, the names
                         a key may be, the readers of triggers, effects, events and
                         decisions and the on_actions, and the problems found
+    Launch/             the launcher's side of an install: its mods listed and ticked, the engine a choice is
+                        played on, engine.txt, the command line to an engine, where an install is looked for
+                        and what the launcher remembers (docs/launcher.md)
     Logs/               where the game's own log goes, in the player's folder's logs, and the runs kept
     Messages/           the message types of interface/messagetypes.txt
     Mods/               a .mod file, the mods a command line selects and their order, the layering's rules
@@ -170,8 +173,11 @@ lib/OpenHOI3.Lua/       the install's Lua, run on the simulation: the state the 
 native/lua/             Lua 5.1.4's source, its licence, our trampoline and the build of
                         openhoi3_lua.dll, which the Lua project runs
 tools/OpenHOI3.SaveCheck/   checks the libraries against a savegame the original wrote
+launcher/OpenHOI3.Launcher/ the launcher, in Avalonia: the window that lists the mods and starts an engine;
+                        launcher/publish.ps1 builds it, with the normal engine in its engine folder
 docs/mechanics/         one spec per system: what the original computes, and how sure that is
 docs/compatibility.md   where a valid file of the original's is treated differently on purpose
+docs/launcher.md        the launcher: choosing the mods and the engine each one runs on
 tests/OpenHOI3.Tests/   Sim/, Content/, Interface/ and Lua/: the tests of each library
 ```
 
