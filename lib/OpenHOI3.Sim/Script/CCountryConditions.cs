@@ -26,7 +26,8 @@ public static class CCountryConditions
 		Supply.CSupplyNetwork network = Supply.CSupplyNetworks.Refresh(state);
 		Supply.CSupplyArea? capital = network.AreaOf(country.ActingCapital);
 		int count = 0;
-		foreach (Provinces.CProvince province in state.Provinces)
+		// Over the provinces it owns, kept until one changes hands, and not the whole map: a count, so in any order.
+		foreach (Provinces.CProvince province in Countries.COwnedCounts.Of(state).Provinces(country.Tag))
 		{
 			if (province.Owner == country.Tag && province.PortSea != 0
 				&& Movement.CMovementRules.BuildingLevel(state, province, Movement.CMovementRules.NavalBase) > CFixedPoint.Zero
