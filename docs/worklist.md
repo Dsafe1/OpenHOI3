@@ -1995,6 +1995,24 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 
 ## Loose ends
 
+- **Twenty defines nobody is sure the original reads** (2026-11-18). OpenHOI3 asks for none of these. The fact base calls
+  eleven of them readerless: `SURPRISE_BONUS`, `UNDERGROUND_PARTISAN_STRENGTH`, `MILACC_CANCEL_RELATION_CHANGE`,
+  `NAP_INFLUENCE_COST`, `RELATION_INFLUENCE_COST`, `WAR_THREAT`, `SPY_MISSION_CHANGE_DAYS`,
+  `SPY_CONNECTION_DETECTION_CHANCE`, `SPY_BASE_CONNECTION_DETECTION_CHANCE`, `REBEL_ACCEPTANCE_MONTHS` and
+  `ROUGH_COUNTRY_RUIN_EST_MODIFIER`. Nobody has looked for readers of the other nine: `CORE_GAIN`, `CORE_LOSE`,
+  `IC_TO_CONSUMER_GOODS`, `MAX_PROVINCE_SELL_PRICE`, `COMBAT_EVENT_DURATION`, `MINIMUM_STRENGTH`,
+  `NAVAL_STACKING_PENALTY`, `JOINBLOCK_INFLUENCE_COST` and `PURCHASE_INFLUENCE_COST`. A static search cannot settle
+  them, because the defines are reached in ways it misses, so the running game will, through the Cheat Engine bridge,
+  once it is free (one session uses it at a time). The probe is the fact base's `probes/hoidefwatch.lua`, queued in its
+  `CANDIDATES.md`, *Live probes queued*. Any field found read becomes a mechanic to build here.
+
+- **Three defines gaps that need a reading or a save question first** (2026-11-18; items 1-4 of the same survey are
+  built on branch `defines-gaps`). A lend-lease convoy's efficiency (`LL_CONVOY_EFF_IMPACT`, `LL_CONVOY_EFF_REGAIN`;
+  `reversing/findings/FINDINGS-convoys.md`): read whole, but no save holds the figure, so whether the original writes
+  it only when not one or never is to be settled before it is built. Strategic warfare's allies term
+  (`STRAT_ALLIES_HELP`, `STRAT_NO_ALLIES_HELP_PENALTY`; `politics.md`, section 6): which allies count as strong is not
+  read. Demobilisation's manpower back (`DEMOBILIZATION_FACTOR`): the demobilising loop over every brigade is not read.
+
 - **Pictures code gives an icon** (`docs/mechanics/interface.md`, section 5): the original draws every one through its
   picture sprite, in the icon's sprite's box with the sprite's texture coordinates; here only the country screens', the
   ledger's and the top bar's skins do since 2026-11-16 (`CGuiIcon.ShowPicture`), which mended BlackICE's diplomacy and
