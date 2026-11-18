@@ -58,7 +58,10 @@ first frame after it is done. Then what it told is told, in the order it told it
 the clock's events and the state's, the messages and popups among them - and every event the player gave
 meanwhile, held as it came, is handed to the interface in its order: a click waits at most one hour's
 running. A command posted meanwhile waits too, and joins the queue as the hour is collected
-(`CSimulation.Post`). The interface then has at least that frame with the game to itself before the next
+(`CSimulation.Post`). **What in the held interface waits a time of the real clock reads the clock**, and does not
+add up the times of the frames it is processed in: at the top speed most frames pass the HUD by, and an event
+window's second before its options may be pressed, counted so, came to several (fixed 2026-11-19,
+`CEventWindowView`). The interface then has at least that frame with the game to itself before the next
 hour starts, so at the top speed an hour is run for every frame the interface has the game - the
 original's hour a frame. Tools and tests run hours in line (`Advance`, `RunHours`), and both ways run the
 same hours in the same order. Measured 2026-11-18 at the top speed, Germany, with the original's clock:

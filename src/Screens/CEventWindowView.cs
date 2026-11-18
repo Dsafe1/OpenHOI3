@@ -26,7 +26,14 @@ public sealed partial class CEventWindowView : Control
 	private readonly List<CGuiButton> _options = new();
 	private CGuiContext _context = null!;
 	private CSimulation _simulation = null!;
-	private double _open;
+
+	/// <summary>
+	/// When it was opened, on the engine's clock of real time in microseconds. The second is told from it and not by
+	/// adding up the frames' times: the HUD is not processed while hours run beside the frame, so at full speed most
+	/// frames pass this window by, and frames counted made the second several (docs/mechanics/tick.md, section 2).
+	/// </summary>
+	private ulong _openedAt;
+
 	private bool _answered;
 
 	public COpenEvent Open { get; private set; } = null!;
@@ -46,6 +53,7 @@ public sealed partial class CEventWindowView : Control
 	{
 		MouseFilter = MouseFilterEnum.Ignore;
 		SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+		_openedAt = Time.GetTicksUsec();
 		CEventScope scope = Open.Scope;
 		CEvent shown = Open.Event;
 		CGameState state = _simulation.State;
@@ -143,8 +151,8 @@ public sealed partial class CEventWindowView : Control
 
 	public override void _Process(double delta)
 	{
-		_open += delta;
-		if (_open >= Lockout && !_answered)
+		double open = (Time.GetTicksUsec() - _openedAt) / 1_000_000.0;
+		if (open >= Lockout && !_answered)
 		{
 			foreach (CGuiButton button in _options)
 			{
