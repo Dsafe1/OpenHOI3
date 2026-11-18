@@ -10,9 +10,11 @@ namespace OpenHOI3.Gfx;
 /// <c>gfx/fonts</c>, and the colour tints it - several logical fonts differ only by
 /// colour.
 ///
-/// The original's glyph texture is not what is drawn. The typeface the descriptor names
+/// A small font's glyph texture is not what is drawn. The typeface the descriptor names
 /// is, as outlines, at the size that makes text as wide as the original's glyphs made
 /// it - so it fits the boxes the interface files give it and stays sharp on any screen.
+/// A large font is drawn from its own glyphs, made into distance fields
+/// (<c>docs/mechanics/interface.md</c>, section 6).
 /// </summary>
 public sealed class CGuiFont
 {

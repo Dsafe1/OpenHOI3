@@ -71,7 +71,11 @@ text as wide as the original's glyphs made it. The interface files name fonts ex
 before, text lands where it did, and it is sharp at any size. **Those typefaces ship with
 the game**, in `fonts/`, under the SIL Open Font License; nothing is taken from the
 machine it runs on, so text is the same on every one. A mod supplies a typeface of its
-own by putting a `.ttf` of the font's name beside its descriptor.
+own by putting a `.ttf` of the font's name beside its descriptor. **A large font is the
+exception to the exception** (decided 2026-11-18): one whose capital H stands 38 pixels or
+more - the map's faction and province names, and BlackICE's display faces, which have no
+stand-in - is drawn from its own glyph texture, made into distance fields as it loads, in
+its own letters and sharp at any size.
 
 Two limits are worth stating. Scaling cannot add detail to a bitmap, so icons soften
 when enlarged. The remedy is that the runtime works in
@@ -2770,9 +2774,12 @@ None of these blocks the list above.
   Condensed for Franklin Gothic, EB Garamond for Garamond, Anton for Impact, Breitkopf Fraktur for Olde English (the Axis
   names, downloaded by each builder) and Code Red October for KyrillaSansSerif (the Comintern's) are near relatives,
   sized by the height of a line and narrowed where they come out wider; which stands
-  for which is a choice made by eye and easy to change (`fonts/readme.md`). Three display
-  typefaces the original names - Eurostile, SV Basic Manual and urania_czech - have no
-  stand-in and are drawn in Liberation Sans, with a line in the log. `docs/mechanics/interface.md`, section 6.
+  for which is a choice made by eye and easy to change (`fonts/readme.md`). Two display
+  typefaces the original names - Eurostile (the counters') and SV Basic Manual (the date's) - and BlackICE's Verdana have no
+  stand-in and are drawn in Liberation Sans, with a line in the log; all three are small, so the distance fields of
+  2026-11-18 do not reach them. A large font is drawn from its own glyphs, so Breitkopf Fraktur and Liberation Mono's
+  place as Another Typewriter's draw nothing in the base game or BlackICE today: `old_english` and `kart_font` are
+  large. `docs/mechanics/interface.md`, section 6.
 - **How scrollbars and boxes of overlapping elements lay themselves out is ours.**
   Neither was read out of the original; each is the plain reading of what the files
   declare. ~~So is where a line of text breaks.~~ That was read on 2026-11-14 (`interface.md`, section 6). **The list box was the third, and when it

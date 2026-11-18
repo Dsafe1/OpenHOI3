@@ -1,4 +1,4 @@
-
+using System.Linq;
 using OpenHOI3.Content.Gui;
 
 namespace OpenHOI3.Tests.Content;
@@ -48,6 +48,15 @@ public class FontDescriptorTests
 		Assert.Equal(7, font.Advance('0'));
 		Assert.Equal(7 + 5 + 3 + 8, font.Width("01 A"));
 		Assert.Equal(7, font.Width("0z"));                           // a character it does not have adds nothing
+	}
+
+	[Fact]
+	public void AGlyphKeepsWhereItsBoxLiesInTheTexture()
+	{
+		CFontDescriptor font = CFontDescriptor.Parse(Descriptor);
+
+		Assert.Equal(new CFontGlyph(8, 9, -1, 3, 8, 30, 20), font.Glyph('A'));
+		Assert.Equal(new[] { 32, 48, 49, 65 }, font.Glyphs.Select(pair => pair.Key));
 	}
 
 	[Fact]

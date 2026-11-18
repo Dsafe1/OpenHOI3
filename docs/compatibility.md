@@ -60,19 +60,24 @@ bookmarks `docs/mechanics/bookmarks.md`.
 | why | a dozen pixels of text on a 4K screen is unreadable, and that is what the files would give |
 | to undo | a setting for the canvas's scale, down to one unit a pixel. None exists yet |
 
-## 3. A font's glyph texture is not drawn
+## 3. A ~~font's~~ small font's glyph texture is not drawn
 
 **Decided** 2026-10-08 by the maintainer, on seeing the top bar scaled: "I think we should
 just make the decision that the old font system is replaced with a better one."
+**Narrowed** 2026-11-18 by the maintainer, on seeing a test of distance fields made from the
+glyph textures and the sizes of every font of the base game and BlackICE: "large fonts (at
+least 38) get upscaled, and the other ones use a fallback". So a font whose capital H stands
+38 pixels or more - the map's faction and province names, and BlackICE's display faces - is
+drawn from its own glyphs again, as distance fields; only the smaller ones are not.
 
 | | |
 | --- | --- |
 | the original | draws text from a texture of glyphs, `gfx/fonts/<name>.tga`, cut up by the descriptor `<name>.fnt` beside it |
-| here | the texture is not drawn. The descriptor is still read - for the typeface it says the glyphs were made from, how wide they came out and how high a line is - and that typeface is drawn as outlines, at the size that reproduces those widths |
-| a mod loses | **glyphs it painted itself.** A font whose texture is hand-drawn, or made from a typeface this project does not ship, comes out in a stand-in. A font's colour baked into its texture is kept, as one colour: the average of the texture |
-| a mod can | put a `.ttf` or `.otf` of the font's name beside the descriptor. The original ignores it; this draws it |
-| why | glyphs a dozen pixels high cannot be enlarged into anything readable (entry 2) |
-| to undo | drawing the textures again at one unit to one pixel. Not planned: `CLAUDE.md` says not to bring them back |
+| here | ~~the texture is not drawn.~~ **a small font's** texture is not drawn. The descriptor is still read - for the typeface it says the glyphs were made from, how wide they came out and how high a line is - and that typeface is drawn as outlines, at the size that reproduces those widths. **A large font's** glyphs are cut out of its texture by the descriptor and drawn as distance fields, sharp at any size, in the descriptor's own layout |
+| a mod loses | **for a small font, glyphs it painted itself.** A font whose texture is hand-drawn, or made from a typeface this project does not ship, comes out in a stand-in. A font's colour baked into its texture is kept, as one colour: the average of the texture - a large one's too |
+| a mod can | put a `.ttf` or `.otf` of the font's name beside the descriptor. The original ignores it; this draws it, ahead of a large font's own glyphs |
+| why | glyphs a dozen pixels high cannot be enlarged into anything readable (entry 2); glyphs of 38 and more can, and a display face has no stand-in |
+| to undo | drawing the textures again at one unit to one pixel. Not planned: `CLAUDE.md` says not to bring a small font's back. The line is `CDistanceFieldAtlas.LeastCapHeight` |
 
 `docs/mechanics/interface.md`, section 6.
 
@@ -85,7 +90,7 @@ pc installs."
 | --- | --- |
 | the original | has no such question: its glyphs are in its textures |
 | here | every typeface drawn is a file in `fonts/` or in a mod's own `gfx/fonts`. No installed font is looked up, and a character a typeface lacks is left out rather than borrowed |
-| a mod loses | nothing it had. But a descriptor that names a typeface this project has no stand-in for is drawn in Liberation Sans, and says so in the log; and the Axis names' Fraktur, whose licence forbids passing the file on, is drawn only where whoever builds the game has downloaded it (`fonts/readme.md`) |
+| a mod loses | nothing it had. But a small font whose descriptor names a typeface this project has no stand-in for is drawn in Liberation Sans, and says so in the log - a large one is drawn from its own glyphs since 2026-11-18 (entry 3); and the Axis names' Fraktur, whose licence forbids passing the file on, is drawn only where whoever builds the game has downloaded it (`fonts/readme.md`) - which no font of the base game or BlackICE asks for any more, their `old_english` being large |
 | why | the same text on every machine; and the original's typefaces are commercial and cannot be passed on, so open ones stand for them |
 | to undo | nothing to undo; a mod that wants a face supplies it (entry 3) |
 

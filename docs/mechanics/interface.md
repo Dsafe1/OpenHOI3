@@ -699,15 +699,21 @@ files, with nothing in it placed by hand.
   ten of them, Garamond in seven, Trebuchet MS, Franklin Gothic Demi Cond, Impact,
   Tahoma and a few display faces in the rest.
 
-*Ours, and a decision (2026-10-08): the glyph textures are not drawn.* They are a dozen
-pixels high and cannot be scaled into anything readable, which is the one thing the
-scalable canvas of section 3 could not survive. So:
+*Ours, and two decisions.* On 2026-10-08, **a small font's glyph texture is not drawn**:
+its glyphs are a dozen pixels high and cannot be scaled into anything readable, which is
+the one thing the scalable canvas of section 3 could not survive. On 2026-11-18, **a large
+font is drawn from its own glyphs**, made into distance fields - the maintainer's word:
+"large fonts (at least 38) get upscaled, and the other ones use a fallback" - because a
+mod's display faces have no stand-in and came out in Liberation Sans, and a stand-in is
+never the font's own letters. So:
 
-- **A font is named as the files name it and drawn from its typeface, as outlines.**
-  Nothing about a `.gui` or a `.gfx` file changes.
-- **Where the typeface comes from**, in order: a `.ttf` or `.otf` of the font's name
+- **A font is named as the files name it**, and nothing about a `.gui` or a `.gfx` file
+  changes. A small one is drawn from a typeface, as outlines; a large one from its glyphs
+  (below).
+- **Where the letters come from**, in order: a `.ttf` or `.otf` of the font's name
   beside its descriptor, in any layer - how a mod supplies one, with a file the original
-  ignores; else the typeface shipped in `fonts/` that stands for the one the descriptor
+  ignores; else, **for a font whose capital H stands at least 38 pixels, its own glyph
+  texture**; else the typeface shipped in `fonts/` that stands for the one the descriptor
   names. **Nothing is taken from the machine the game runs on**, and a character a
   typeface lacks is left out and not borrowed from an installed font: text is the same
   everywhere.
@@ -729,8 +735,46 @@ scalable canvas of section 3 could not survive. So:
   | anything else | Liberation Sans, with a line in the log | no |
 
   "Anything else" is three display faces in the install: Eurostile, SV Basic Manual and
-  urania_czech.
-- **The size is whatever makes the text as wide as the original's glyphs made it.** The
+  urania_czech - and urania_czech's `tahoma_60` is large, so drawn from its glyphs - and
+  in BlackICE Verdana. Olde English and Another Typewriter are large wherever they are
+  used - `old_english` and `kart_font` - so their two stand-ins draw nothing in the base
+  game or BlackICE today, and stay for a mod with a small font of either face.
+- **A large font is drawn from its own glyphs, as distance fields** (2026-11-18;
+  `CDistanceFieldAtlas`, `CDistanceField`, `CGlyphPage` in `Content/Gui`, `CDistanceFieldFont` in `src/Gfx`).
+  - *Large* is the height of its capital H's ink: the rows of the H's box in the texture
+    with a pixel at least half solid, 38 or more. A font with no H is not large. The
+    texture's alpha is the shape - every glyph texture of the base game and BlackICE keeps
+    its glyphs there.
+  - *The field:* each glyph's box, with six texels of nothing round it - its neighbours on
+    the page are not read - is enlarged four times by bilinear sampling, which puts the
+    edge where an antialiased pixel is half solid; each sample's exact Euclidean distance
+    to the other side is taken (Felzenszwalb and Huttenlocher's transform), half a sample
+    short, averaged back to the texture's pixels and stored as a half plus the distance
+    over a range of 8 texels. The fields are packed in rows, tallest first, into one
+    picture 1024 wide, and drawn through Godot's multichannel distance-field font with the
+    one field in all three channels, so that the median its shader takes is the field.
+  - *The layout is the descriptor's own pixels*: each character's advance, its box and
+    offsets, the baseline and the line's height are the original's, so text stands where
+    the original's stood and is exactly as wide, with no narrowing. A character the
+    descriptor does not give moves the pen nothing and draws nothing. Its kerning pairs are
+    not applied, as the widths of the interface leave them out (`CFontDescriptor.Width`).
+  - *Cost:* a font is made the first time it is asked for, in 14 to 280 ms on the
+    maintainer's machine (2026-11-18), the glyphs side by side.
+  - *Which fonts* - by the height of their H, and what they are declared as:
+
+    | layer | drawn from its glyphs |
+    | --- | --- |
+    | base game | `old_english` 40 (`axis_country`), `tahoma_60` 44 (none), `kart_font` 46 (`neutral_country`; `tahoma_60`, the province names) |
+    | BlackICE | `acie` 38 (`allies_country`), `bullshorn` 42, `kart_font` 46, `cassino` 52, `godofwar` 53 (`axis_country`), `kyrilla` 53, `tungsten` 53 (`tahoma_60`, the province names), `Typingrad` 60 (`comintern_country`), `wallington` 61, `eldon` 66 (`neutral_country`) |
+
+    Every other font of either is 26 or less - `Kyril` 26, `Garamond_40` and
+    `trebuchet_45` 25, `impact` 24 - so nothing falls near the line. Below it a field shows
+    the pixels it was made from: on the test sheets of 2026-11-17, `standard` at 18 pixels
+    was lumpy at four times its size, and the hard-pixelled `Arial12` came out as rounded
+    steps. `old_english`, whose lower case is 17, is a little soft at four times.
+  - *Measured:* the far map of the base game and of BlackICE, 2026-11-18, every faction's
+    name in its own font's letters.
+- **A typeface's size is whatever makes the text as wide as the original's glyphs made it.** The
   descriptor gives how far the pen moves for each character; the letters and digits it
   has are measured in both, and the typeface is drawn at the size where the two agree.
   For a typeface of the same widths that is the original's size, and text fits the boxes
@@ -755,12 +799,14 @@ scalable canvas of section 3 could not survive. So:
 - **The colour is the declaration's times the colour the glyphs were painted in.** Some
   glyph textures are white and take their colour from the `bitmapfont` entry; some
   carry it - the top bar's button font is dark grey in its texture and has no entry.
-  The texture is read for its average colour and for nothing else.
+  A small font's texture is read for its average colour and for nothing else; a large
+  font takes its colour the same way, its field holding only the shape - so a texture
+  painted in more than one colour comes out in their average.
 - **Measured:** the top bar at 1920 by 1080 and at 2560 by 1440, every figure where the
   glyph textures put it and sharp at both, in Liberation Sans, Fira Sans and Barlow
   Condensed, with no font of the machine's used.
 - The adjustments between particular pairs of letters that a descriptor lists are not
-  read; the typeface has its own.
+  read; a typeface has its own, and a large font drawn from its glyphs has none.
 - **A text box set to the text it already shows does nothing.** `confirmed` So a screen
   may set every box every frame.
 - **`format` is `left`, `centre` or `right`**, and `center` is written 51 times and works.

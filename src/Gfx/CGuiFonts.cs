@@ -10,14 +10,16 @@ using OpenHOI3.Sim;
 namespace OpenHOI3.Gfx;
 
 /// <summary>
-/// The fonts the interface files name, drawn as outlines and not from the original's
-/// glyph textures. See <c>docs/mechanics/interface.md</c>, section 6.
+/// The fonts the interface files name, drawn so that they stay sharp on a scaled canvas.
+/// See <c>docs/mechanics/interface.md</c>, section 6.
 ///
 /// A font is still declared and named exactly as the original's files do it. What
 /// changes is where its letters come from, in this order:
 /// a <c>.ttf</c> or <c>.otf</c> of the font's name beside its descriptor, which is how
-/// a mod supplies a typeface; else the shipped typeface that stands for the one the
-/// descriptor says its glyphs were made from. Nothing is taken from the machine.
+/// a mod supplies a typeface; else, for a large font, its own glyph texture made into
+/// distance fields (<see cref="CDistanceFieldAtlas"/>); else the shipped typeface that
+/// stands for the one the descriptor says its glyphs were made from. Nothing is taken
+/// from the machine.
 /// </summary>
 public sealed class CGuiFonts
 {
@@ -176,7 +178,25 @@ public sealed class CGuiFonts
 		CFontDescriptor? descriptor = File.Exists(descriptorPath) ? CFontDescriptor.Load(descriptorPath) : null;
 
 		bool sameWidths = false;
+		Image? texture = GlyphTexture(fontName);
 		Font? face = Supplied(fontName);
+		if (face is null && descriptor is { LineHeight: > 0 } && texture is not null && Atlas(descriptor, texture) is { } atlas)
+		{
+			// Large enough to be drawn from its own glyphs, in the descriptor's own pixels.
+			int size = descriptor.LineHeight;
+			var own = new CGuiFont
+			{
+				Name = fontName,
+				FontName = fontName,
+				Font = CDistanceFieldFont.Make(descriptor, atlas, size),
+				Color = Ink(texture),
+				Size = size,
+				Ascent = descriptor.Base,
+				LineHeight = descriptor.LineHeight,
+			};
+			_files[fontName] = own;
+			return own;
+		}
 		if (face is null)
 		{
 			if (descriptor is null)
@@ -190,24 +210,20 @@ public sealed class CGuiFonts
 		CGuiFont? made = null;
 		if (face is not null)
 		{
-			made = new CGuiFont { Name = fontName, FontName = fontName, Font = face, Color = Ink(fontName) };
+			made = new CGuiFont { Name = fontName, FontName = fontName, Font = face, Color = Ink(texture) };
 			Measure(made, descriptor, sameWidths);
 		}
 		_files[fontName] = made;
 		return made;
 	}
 
-	/// <summary>
-	/// The colour the original's glyphs were painted in: the average of its glyph
-	/// texture, counting each pixel by how solid it is. White when there is no texture.
-	/// The texture is read for this and for nothing else.
-	/// </summary>
-	private Color Ink(string fontName)
+	/// <summary>The font's glyph texture, <c>gfx/fonts/&lt;name&gt;.tga</c> in whichever layer has it, as RGBA; null where none decodes.</summary>
+	private Image? GlyphTexture(string fontName)
 	{
 		string? path = _directories.ResolveTexture($"gfx/fonts/{fontName}.tga");
 		if (path is null)
 		{
-			return Colors.White;
+			return null;
 		}
 		var image = new Image();
 		Error error = Path.GetExtension(path).Equals(".dds", StringComparison.OrdinalIgnoreCase)
@@ -215,15 +231,43 @@ public sealed class CGuiFonts
 			: image.LoadTgaFromBuffer(File.ReadAllBytes(path));
 		if (error != Error.Ok || image.IsEmpty())
 		{
-			return Colors.White;
+			return null;
 		}
 		if (image.IsCompressed())
 		{
 			image.Decompress();
 		}
 		image.Convert(Image.Format.Rgba8);
+		return image;
+	}
 
-		byte[] pixels = image.GetData();
+	/// <summary>
+	/// The font's glyphs as distance fields, where its capital H stands at least
+	/// <see cref="CDistanceFieldAtlas.LeastCapHeight"/> pixels; null for a smaller font, which a stand-in draws.
+	/// </summary>
+	private static CDistanceFieldAtlas? Atlas(CFontDescriptor descriptor, Image texture)
+	{
+		byte[] pixels = texture.GetData();
+		var alpha = new byte[pixels.Length / 4];
+		for (int i = 0; i < alpha.Length; i++)
+		{
+			alpha[i] = pixels[4 * i + 3];
+		}
+		var page = new CGlyphPage(texture.GetWidth(), texture.GetHeight(), alpha);
+		return CDistanceFieldAtlas.Suits(descriptor, page) ? CDistanceFieldAtlas.Build(descriptor, page) : null;
+	}
+
+	/// <summary>
+	/// The colour the original's glyphs were painted in: the average of its glyph
+	/// texture, counting each pixel by how solid it is. White when there is no texture.
+	/// </summary>
+	private static Color Ink(Image? texture)
+	{
+		if (texture is null)
+		{
+			return Colors.White;
+		}
+		byte[] pixels = texture.GetData();
 		double red = 0, green = 0, blue = 0, solid = 0;
 		for (int index = 0; index + 3 < pixels.Length; index += 4)
 		{

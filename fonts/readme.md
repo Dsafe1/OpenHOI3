@@ -1,8 +1,13 @@
 # The typefaces that ship with the game
 
-Every letter the game draws comes from a file in this folder, or from a typeface a mod
-puts in its own `gfx/fonts`. Nothing is taken from the machine the game runs on, so text
-is the same on every one. `docs/mechanics/interface.md`, section 6, is how they are used.
+Every letter the game draws comes from a file in this folder, from a typeface a mod
+puts in its own `gfx/fonts`, or - for a large font, whose capital H stands 38 pixels or
+more, since 2026-11-18 - from that font's own glyph texture in the player's install or mod,
+made into distance fields as it loads and never copied here. Nothing is taken from the
+machine the game runs on, so text is the same on every one. `docs/mechanics/interface.md`,
+section 6, is how they are used. So Breitkopf Fraktur (Olde English) and Liberation Mono's
+place as Another Typewriter stand for nothing in the base game or BlackICE today: the fonts
+made from those faces there, `old_english` and `kart_font`, are large.
 
 These are not the original's. Its fonts are textures of glyphs made from commercial
 typefaces - Arial, Trebuchet MS, Franklin Gothic, Garamond, Impact, Olde English - none of

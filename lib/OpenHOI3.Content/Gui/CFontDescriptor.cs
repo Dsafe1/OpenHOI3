@@ -8,9 +8,10 @@ namespace OpenHOI3.Content.Gui;
 
 /// <summary>
 /// What one of the original's font descriptors says, <c>gfx/fonts/&lt;name&gt;.fnt</c>:
-/// the typeface its glyphs were drawn from, and how big they came out. The glyph
-/// texture beside it is not used. The typeface is drawn afresh at whatever size the
-/// screen needs, and this is the measure of the size the text was meant to be. See
+/// the typeface its glyphs were drawn from, how big they came out and where each lies in
+/// the glyph texture beside it. A small font's typeface is drawn afresh at whatever size the
+/// screen needs, and this is the measure of the size the text was meant to be; a large
+/// font's glyphs are cut out of its texture by it. See
 /// <c>docs/mechanics/interface.md</c>, section 6.
 /// </summary>
 public sealed class CFontDescriptor
@@ -27,6 +28,9 @@ public sealed class CFontDescriptor
 	{
 		return _glyphs.TryGetValue(character, out CFontGlyph glyph) ? glyph : null;
 	}
+
+	/// <summary>Every glyph the descriptor gives, by the character's number in the file, in the file's order.</summary>
+	public IEnumerable<KeyValuePair<int, CFontGlyph>> Glyphs => _glyphs;
 
 	/// <summary>The typeface's name, as the tool that made the glyphs was given it: <c>Arial</c>.</summary>
 	public string Face { get; private set; } = "";
@@ -83,7 +87,8 @@ public sealed class CFontDescriptor
 				{
 					descriptor._advances[numbers[0]] = numbers[7];
 					descriptor._widths[numbers[0]] = numbers[3];
-					descriptor._glyphs[numbers[0]] = new CFontGlyph(numbers[3], numbers[4], numbers[5], numbers[6], numbers[7]);
+					descriptor._glyphs[numbers[0]] = new CFontGlyph(numbers[3], numbers[4], numbers[5], numbers[6], numbers[7],
+						numbers[1], numbers[2]);
 				}
 			}
 			else if (line.StartsWith("kerning ", StringComparison.Ordinal))
