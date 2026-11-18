@@ -348,7 +348,22 @@ mobilising and taken off again on standing down. **Being mobilised is what calls
 brigade is then held neither to the share of its strength nor of its organisation `RESERVES_PENALTY_SIZE` keeps back,
 and the day's reinforcement fills it, doubled by `initial_mobilization`'s `reinforcement_bonus` while that lasts. It
 is one flag, the original's one byte, which a war sets too; until 2026-10-14 the reserves read a second flag of ours
-set only at the start, so the button changed nothing a unit felt, which testing found. **`revolt`**, "Organized
+set only at the start, so the button changed nothing a unit felt, which testing found.
+
+**Standing down gives the men back**, after the threat - on every order to stand down, mobilised or not: `confirmed`
+(`reversing/findings/FINDINGS-definesuse.md`, section 7). For every unit of the country, every level, and each of its
+brigades, ships and wings in order, with the flag already cleared:
+
+    most   = the brigade's most strength - for a reserve, less RESERVES_PENALTY_SIZE where its owner is neither
+             mobilised nor at war (section above; the owner the lender's for a lent unit)
+    excess = strength - most;  nothing more where it is nought or less
+    men    = excess / max_strength x build_cost_manpower x DEMOBILIZATION_FACTOR     each step truncated
+    strength and highest strength = most                                             the highest lowered too
+    manpower += men, never below nought
+
+so a reserve filled up while mobilised is cut back to its peacetime share, and half the men of the cut (0.5 in Their
+Finest Hour) come home: a full reserve brigade of the base game's infantry under a -0.5 penalty goes from 30 to 15 and
+gives back 0.5 x 3.33 x 0.5 = 0.832 manpower. The figures are the brigade's own, with its technologies in. Built 2026-11-18 (`CDemobilisation`). **`revolt`**, "Organized
 Revolt!", raises the exile's ready undergrounds in its own land at once, may be pressed where one is ready, and says how
 many are - built since 2026-10-15 (`undergrounds.md`, section 6). *Not built*: making a puppet and liberating a
 country - both buttons are greyed, `create_puppet` saying

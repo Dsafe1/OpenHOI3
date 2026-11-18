@@ -2004,15 +2004,14 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   the running game will, through the Cheat Engine bridge, once it is free (one session uses it at a time). The probe is the fact base's `probes/hoidefwatch.lua`, queued in its
   `CANDIDATES.md`, *Live probes queued*. Any field found read becomes a mechanic to build here.
 
-- **Three defines gaps that need a reading or a save question first** (2026-11-18). The same survey's other four are
+- **Two defines gaps that need a reading or a save question first** (2026-11-18). The same survey's other five are
   built that day: a strategic redeployment's supplies (`upkeep.md`, section 1), the practicals a battle teaches
-  (`research.md`, section 10), shore bombardment (`landcombat.md`, section 4) and an exile's partisans becoming militia
-  as it comes home (`war.md`, section 14). A lend-lease convoy's efficiency (`LL_CONVOY_EFF_IMPACT`, `LL_CONVOY_EFF_REGAIN`;
+  (`research.md`, section 10), shore bombardment (`landcombat.md`, section 4), an exile's partisans becoming militia
+  as it comes home (`war.md`, section 14) and the men standing down gives back (`politics.md`, section 11). A lend-lease convoy's efficiency (`LL_CONVOY_EFF_IMPACT`, `LL_CONVOY_EFF_REGAIN`;
   `reversing/findings/FINDINGS-convoys.md`): read whole, but no save holds the figure, so whether the original writes
   it only when not one or never is to be settled before it is built. Strategic warfare's allies term
   (`STRAT_ALLIES_HELP`, `STRAT_NO_ALLIES_HELP_PENALTY`; `politics.md`, section 6): which allies count as strong is not
-  read. Demobilisation's manpower back (`DEMOBILIZATION_FACTOR`): the demobilising loop over every brigade is found and
-  not read (`reversing/findings/FINDINGS-definesuse.md`, section 7).
+  read.
 
 - **Pictures code gives an icon** (`docs/mechanics/interface.md`, section 5): the original draws every one through its
   picture sprite, in the icon's sprite's box with the sprite's texture coordinates; here only the country screens', the

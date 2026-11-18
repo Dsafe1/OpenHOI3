@@ -9,8 +9,9 @@ namespace OpenHOI3.Sim.Commands;
 /// A country mobilised or stood down, from the politics screen or the AI's Lua: mobilising gives it
 /// <c>initial_mobilization</c> for <c>MOBILIZATION_BONUS_DAYS</c> and standing down takes it away - each only where it
 /// changes something - and then, whatever happened, its threat spread over the map from its acting capital,
-/// <c>MOBILIZE_THREAT_IMPACT</c> on mobilising and off again on standing down. The original's message to the player
-/// was not read. See <c>docs/mechanics/politics.md</c>, section 11.
+/// <c>MOBILIZE_THREAT_IMPACT</c> on mobilising and off again on standing down. An order to stand down, mobilised or
+/// not, then gives back the men of every brigade above its most (<see cref="Units.CDemobilisation"/>). The original's
+/// message to the player was not read. See <c>docs/mechanics/politics.md</c>, section 11.
 /// </summary>
 public sealed class CToggleMobilisationCommand : CCommand
 {
@@ -48,5 +49,9 @@ public sealed class CToggleMobilisationCommand : CCommand
 		}
 		long impact = state.Defines["country", "MOBILIZE_THREAT_IMPACT"].Raw;
 		CThreat.SpreadOverMap(state, country, impact, Mobilise ? CThreat.Adds : -CThreat.Adds, state.Province(country.ActingCapital));
+		if (!Mobilise)
+		{
+			Units.CDemobilisation.GiveBack(state, country);
+		}
 	}
 }
