@@ -216,6 +216,11 @@ public static class CAirBody
 	private static void Rebase(CGameState state, CCountry country, CAgent agent, CUnit headquarters, List<CUnit> candidates,
 		HashSet<CUnit> handled)
 	{
+		// With no group to send, nothing below is asked: the count of every country's air units is not made.
+		if (candidates.Count == 0)
+		{
+			return;
+		}
 		CBuilding? airBase = CTheatreFigures.AirBase(state);
 		// Every air unit based at a province, nested under a headquarters or not: the air base's own list
 		// (FINDINGS-liveread.md, section 26).
