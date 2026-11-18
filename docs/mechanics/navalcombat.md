@@ -53,6 +53,7 @@ that one**: a failed sighting of it ends the look, whoever else is there. Then, 
         of them, cut to a whole number                                  -> no
     its country knows the sea province at level 9                       -> a battle
     the other fleet is in a battle already                              -> a battle
+    the other fleet is under bombs (bombing.md)                         -> a battle
     otherwise a roll for each pair of ships, theirs outside and its
     own inside, the first that passes -> a battle:
         seen    = its ship's surface_detection
@@ -74,6 +75,11 @@ and its detection is never halved against a submarine [exe, `ShouldStartNavalCom
 bomber looking for ships drew on through its pairs where the original's had seen them: set beside the original's own run
 draw for draw, every hour's draws before its first battle were the original's but for these, 7 to 29 too many an hour,
 and with it rolled out of 1,000 eleven of twelve hours agree to the draw and every battle's dice are the original's.
+
+**A fleet under bombs is seen without a roll**: the test that answers "in a battle" asks two things of the other fleet,
+its battles and the bombing it is in, which is kept apart from them [exe; `reversing/findings/FINDINGS-liveread.md`,
+section 125]. Ours had asked its battles alone, so a carrier's air group looking at its own fleet under an Italian naval
+strike in July 1941 rolled once a ship where the original's rolled nothing.
 
 - **An idle fleet of a country nobody plays never starts a battle.** It waits to be found; an
   idle fleet of a player's looks every hour. That is the original's, and with no AI to give

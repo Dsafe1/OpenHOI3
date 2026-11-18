@@ -229,6 +229,21 @@ public class NavalCombatTests
 	}
 
 	[Fact]
+	public void AFleetUnderBombsIsSeenWithNoRoll()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		state.Played.Add(Ger);
+		state.FogOfWar = true;
+		CUnit ours = Fleet(state, germany, Bight, Destroyer);
+		CUnit theirs = Fleet(state, poland, Bight, Destroyer, Destroyer, Destroyer);
+		theirs.Bombing = new CCombat(Bight, ECombatKind.NavalBombing);
+
+		long draws = state.Random.Draws;
+		Assert.True(CNavalSpotting.ShouldStart(state, ours, theirs));
+		Assert.Equal(draws, state.Random.Draws);
+	}
+
+	[Fact]
 	public void AFleetStillWaitingAfterABattleStartsNone()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);

@@ -105,11 +105,12 @@ public static class CNavalSpotting
 
 		CProvince province = state.Province(ours.Location);
 		int level = CIntelligence.Level(state, province, ours.Owner);
-		// A fleet in a battle, or one whose passengers are landing or fighting, is found without a roll - and by a played
-		// country's fleet, every fleet with the fog of war off (ours: the original's finds every fleet so, the AI's too -
-		// docs/compatibility.md, entry 21).
+		// A fleet in a battle or under bombs (FINDINGS-liveread.md, section 125), or one whose passengers are landing or
+		// fighting, is found without a roll - and by a played country's fleet, every fleet with the fog of war off (ours: the
+		// original's finds every fleet so, the AI's too - docs/compatibility.md, entry 21).
 		bool noFog = !state.FogOfWar && state.Played.Contains(ours.Owner);
-		if (level >= Intelligence.CProvinceIntel.Most || theirs.IsFighting || noFog || HasBusyPassenger(theirs))
+		if (level >= Intelligence.CProvinceIntel.Most || theirs.IsFighting || theirs.Bombing is not null || noFog
+			|| HasBusyPassenger(theirs))
 		{
 			return true;
 		}
