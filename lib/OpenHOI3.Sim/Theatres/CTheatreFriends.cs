@@ -46,7 +46,7 @@ public static class CTheatreFriends
 	}
 
 	/// <summary>The original's membership of <c>non_hostile_countries</c>, for another country: fighting beside it, not at war with it.</summary>
-	private static bool IsNonHostile(CGameState state, CCountry country, CCountry other)
+	public static bool IsNonHostile(CGameState state, CCountry country, CCountry other)
 	{
 		return CCountryLists.FightingTogether(state, country.Tag, other.Tag) && !CCountryLists.AtWar(state, country.Tag, other.Tag)
 			&& country.Tag.Value != Revolts.CRebelFactions.Rebels && other.Tag.Value != Revolts.CRebelFactions.Rebels;

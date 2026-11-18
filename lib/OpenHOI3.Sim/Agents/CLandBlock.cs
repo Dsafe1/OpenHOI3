@@ -35,6 +35,10 @@ public static class CLandBlock
 	{
 		Position(state, country, agent);
 		FallBack(state, country, agent);
+		if (agent.AirTransports.Count > 0)
+		{
+			CParadropPlanner.Run(state, country, agent);
+		}
 		CheckMarches(state, country, agent);
 	}
 

@@ -42,4 +42,10 @@ public sealed class CUnitAi
 
 	/// <summary>The areas it may invade or reinforce by sea, best first.</summary>
 	public List<(Supply.CSupplyArea Area, long Score)> RankedAreas { get; } = new();
+
+	/// <summary>
+	/// Its enemies' undefended capitals and small areas' ports, best first, made again once a day: what its paradrops aim
+	/// at (<c>CWeakEnemyPorts</c>). Not saved, as the original's is not.
+	/// </summary>
+	public List<(int Province, float Score)> WeakEnemyPorts { get; } = new();
 }

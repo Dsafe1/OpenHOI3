@@ -257,11 +257,7 @@ public static class CMovementRules
 		{
 			return false;
 		}
-		// A land unit aboard an air unit goes only where the air unit takes it (transport.md, Ours).
-		if (unit.Plane is not null)
-		{
-			return false;
-		}
+		// A land unit aboard an air unit is not held back: it walks, still aboard (FINDINGS-liveread.md, section 127).
 		if (IsLandUnit(unit) && state.Country(unit.Owner) is { } owner
 			&& IsEnemyIn(state, province.Controller, unit.Owner, province.Id))
 		{

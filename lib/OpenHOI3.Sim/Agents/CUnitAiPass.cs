@@ -159,6 +159,7 @@ public static class CUnitAiPass
 				CAgentProfile.Time(state, "the balancing", () => CTheatreBalance.Run(state, country));
 			}
 			CPlanObjectives.RebuildPriorityProvinces(state, country);
+			CWeakEnemyPorts.Rebuild(state, country);
 			foreach (CAgent agent in ai.Agents)
 			{
 				CPlanObjectives.Generate(state, country, agent);

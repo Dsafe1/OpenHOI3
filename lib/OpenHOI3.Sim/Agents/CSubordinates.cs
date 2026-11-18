@@ -24,6 +24,7 @@ public static class CSubordinates
 		agent.TransportFleets.Clear();
 		agent.Air.Clear();
 		agent.AirTransports.Clear();
+		agent.Airborne.Clear();
 		agent.InvasionTargets.Clear();
 		foreach (CUnit unit in country.UnitsInOrder())
 		{
@@ -55,6 +56,17 @@ public static class CSubordinates
 					break;
 				default:
 					agent.Land.Add(unit);
+					if (CArmyRole.Of(unit) == CArmyRole.Airborne)
+					{
+						agent.Airborne.Add(unit);
+						// A staging province with no air base built is let go (FINDINGS-liveread.md, section 127).
+						if (unit.Staging > 0
+							&& CMovementRules.BuildingLevel(state, state.Province(unit.Staging), CMovementRules.AirBase) < CFixedPoint.One)
+						{
+							unit.Staging = 0;
+							state.Outbox.Add(new Commands.CSetAiParamCommand(country.Tag, unit.Id, unit.SealiftTarget, 0));
+						}
+					}
 					// One the sealift or a drop has claimed goes on no other list, a headquarters as much as a division, and
 					// so is not pulled in (FINDINGS-agents.md, C.6, step 5; FINDINGS-liveread.md, section 48).
 					if (unit.Kind != EUnitKind.Division && !CTransportReservation.IsReserved(state, unit))

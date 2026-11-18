@@ -707,9 +707,11 @@ each row's strength 1.
   is given here; the original notes it wherever any path is set.
 - **The selection goes to the fleet once the load command has run**, where the original moves it inside the command, so
   that the fleet's list is made with the unit in it.
-- **A land unit boarding an air unit has its path taken away**, and one aboard is not sent anywhere. The original's
-  command leaves a path alone, and whether a passenger aboard an air unit then walks was not read; the panel offers a
-  plane only where the unit stands, so a unit on the march is the one case.
+- **A land unit boarding an air unit has its path taken away.** The original's command leaves a path alone; the panel
+  offers a plane only where the unit stands, so a unit on the march is the one case. ~~One aboard is not sent
+  anywhere~~: **a passenger aboard an air unit may be sent, and walks still aboard**, as the original's AI sent the July
+  1941 save's 1. Fallschirmjäger Division from Berlin to Oslo (2026-11-18; `moving.md`, section 9.1;
+  `reversing/findings/FINDINGS-liveread.md`, section 127; `enhanced.md`).
 - **Carrier protection's line in the unit panel** is `CAG_DUTY_SHORT_DESC` with "Returning", "Resting" in its base's
   province, "Fighting" in a battle or a bombing and "Flying" otherwise - the rebase to carrier's four. What the original
   puts there was not read.

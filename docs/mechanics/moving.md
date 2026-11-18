@@ -353,6 +353,51 @@ and the distance at least the unit's speed x 0.25 x (200 at war, 600 at peace) -
 attack, whose way is the one province attacked, is left alone; a headquarters whose way crosses enemy land in an area of
 more than 3 provinces is stood down, a division cut to its next step.
 
+### 9.1 Paradrops (`CAIUnit_PlanParadrops`, `CEU3AI_RebuildWeakEnemyPorts`; `FINDINGS-liveread.md`, section 127)
+
+Built 2026-11-18. **The targets** are made again once a day, at the country's hour of the day (`id % 24`), beside the
+invasion ranking: over the countries the country is at war with, in the database's order, and then its prepared wars'
+targets - not deduplicated, so a country on both is walked twice - each target's own **capital** (not where its
+government sits) where no land unit of anybody's with a brigade stands, and every port of each of its areas of **at most
+5 provinces** where none stands. Each is scored, in single precision, **100 a whole level of naval base built** + **10 a
+level of air base working, in fractions** + **1000 where the province is its own depot**, kept above nought, highest first
+and a new one after its equals. A loaded game has none until its hour, as the original's list is not saved.
+
+**The planner** runs in the land block between falling back and the march check, only for an agent with air transports
+(`agent.AirTransports`), and only where its headquarters has a theatre. Its airborne armies are its land units of the
+airborne role, of every level, in the order of its land units, put on their list as they are sorted - and there **a staging
+province with no air base built to level 1 is cleared**, with the set-param command (sealift target kept, staging nought).
+k is the lesser of the airborne armies and the transports.
+
+1. **Targets**: down the list while fewer than k, each takes **the nearest air base** of any area held by the country or a
+   country it is not hostile to (itself first, then the database's order) - at war, only its own where the target lies on
+   another continent from the headquarters - if its distance x 1000 is within **the first transport's range** (ours: the
+   unit's shortest wing range). An area's air bases are its provinces with an air base built to a whole level, the
+   largest first. The base is the slot's **staging**.
+2. **Staging**, round the slots in turn: each base takes the nearest free airborne army not aboard a fleet and not holding
+   ground - one already standing there or bound there at once - the distance in single precision, **100,000 more where
+   the country cannot get from the base to the army by areas** (enemies avoided). Its staging becomes the base (set
+   directly and by the command). Bound there already, nothing more; joined, **it marches there** (the AI's move, very
+   safe); else it marches to the nearest air base of its own area, if it is not bound there; else, with no sealift target
+   yet, its target becomes the base's area's nearest port (the command, staging the base) - a call for the sealift. A slot
+   that finds no army ends the round; the rounds go on while one gave somebody and armies are left.
+3. **Boarding**: each airborne army not aboard a fleet and not holding ground, whose destination (or place) has an air base
+   built and a holder it may operate in, takes the nearest empty transport (measured from the transport's base to where
+   the army stands), each transport once. A transport based elsewhere is sent there with `rebase_air`; one based there
+   loads the army (`CLoadOnPlaneCommand`) and is sent on `paradrop_mission` **to the army's staging** - unless the army
+   is at its staging, is not standing there, or may not board.
+4. **Dropping**: for each slot whose target is now held by an enemy (a war, the rebels, or a war nobody declared over it),
+   every transport based at its base, going nowhere and with no order (or `support_attack` or `carrier_protection`):
+   empty, it loads one airborne army standing at the base and not yet loaded and flies `paradrop_mission` at the target;
+   carrying, with no order, in no battle and at its base, it is sent.
+
+**A land unit aboard an aeroplane still walks.** The 1. Fallschirmjäger Division of the July 1941 save is aboard the 14th
+Air wing, based at Oslo, while it stands in Berlin - the running game's `carried_by_air` points at the plane and the
+plane's carrying list holds it. At 03:00 on 18 July Oslo, Norway's capital and empty, comes on the list with Oslo itself
+as its base, and the planner marches the division there by strategic redeployment through Sweden, where Germany has
+military access; it walks, still aboard. So nothing here holds a plane's passenger back from a way of its own
+(`transport.md`, *Ours*, struck through; `enhanced.md`).
+
 ## 10. Moving a unit (`CEU3AI::MoveUnit`)
 
 To a province: a retreating unit is not moved; **nor one the click's test refuses there** (`movement.md`, section
@@ -1033,13 +1078,12 @@ months on) - at least three hours left, and the order ends then.
 
 ## 20. Not built
 
-- Paradrops (`CAIUnit_PlanParadrops`): no 1936 order of battle has an airborne army with transport planes.
+- ~~Paradrops (`CAIUnit_PlanParadrops`)~~: built since 2026-11-18 (section 9.1).
 - The Allies' Baltic ban on patrols and intercepts (`CAIUnit_IsBalticBarredToAllies`), and the four provinces the raid
   passes over.
 - Of invasions: the reinforcement of a friend's area by sea (the ranking's second list and the planner's friendly branch);
   the tallies of transports and brigades short it leaves for the production minister; the carrier aircraft sent over the
-  beach; a landed division put under a theatre's headquarters; the played country's invasions over its own units; and
-  the weak enemy ports the paradrop planner would read.
+  beach; a landed division put under a theatre's headquarters; and the played country's invasions over its own units.
 - The enemy's war industry handed to the agents whose air bases are nearest (section 12): so no strategic bombing or nuke
   mission (17.4; `nukes.md`, *Ours*), and the strategic list (17.1) measures against the objectives.
 - The scenario game's rules (nine tenths of the garrisons to the line): there is one start.

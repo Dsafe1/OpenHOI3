@@ -72,6 +72,9 @@ public sealed class CAgent
 	/// <summary>Its air units that carry troops.</summary>
 	public List<CUnit> AirTransports { get; } = new();
 
+	/// <summary>Its airborne land units, of every level, in the order of its land units: what its paradrops fly.</summary>
+	public List<CUnit> Airborne { get; } = new();
+
 	/// <summary>Its area of operations as it last set it.</summary>
 	public List<int> Area { get; } = new();
 

@@ -92,7 +92,7 @@ public class AirTransportTests
 		return type;
 	}
 
-	private static CGameState State(out CCountry germany, out CCountry poland)
+	private static CGameState State(out CCountry germany, out CCountry poland, bool paved = false)
 	{
 		germany = new CCountry { Tag = Ger, Name = "Germany", DefinitionFile = "" };
 		poland = new CCountry { Tag = Pol, Name = "Poland", DefinitionFile = "" };
@@ -143,12 +143,13 @@ public class AirTransportTests
 				Land(Lodz, "Lodz", Pol, 50, 30, Edge(Border), Edge(Warsaw)),
 				Land(Warsaw, "Warsaw", Pol, 70, 30, Edge(Lodz)),
 			},
-			new[] { germany, poland }, buildings: new[] { NavalBase, AirBase }, defines: defines, wars: new List<CWar> { war })
+			new[] { germany, poland }, buildings: paved ? CTestRoads.With(NavalBase, AirBase) : new[] { NavalBase, AirBase },
+			defines: defines, wars: new List<CWar> { war })
 		{
 			MapWidth = 1000,
 			MapHeight = 1000,
 		};
-		return state;
+		return paved ? state.Paved() : state;
 	}
 
 	private static CUnit Unit(CGameState state, CCountry country, EUnitKind kind, int province, int count, CSubUnitType type,
@@ -411,7 +412,6 @@ public class AirTransportTests
 		Assert.Same(plane, division.Plane);
 		Assert.Equal(new[] { division }, plane.Passengers);
 		Assert.Equal(EUnitOrder.None, division.Order);
-		Assert.False(CMovementRules.MayMoveTo(state, germany, division, state.Province(Border)));
 
 		CMovement.SetPath(plane, new[] { Kiel }, clear: true);
 		RunHours(state, germany, plane, 1);
@@ -427,6 +427,59 @@ public class AirTransportTests
 		Assert.Null(division.Plane);
 		Assert.Empty(plane.Passengers);
 		Assert.Equal(Berlin, division.Location);
+	}
+
+	[Fact]
+	public void APassengerAboardMayStillBeSentAndWalksStillAboard()
+	{
+		// The original's AI marched an airborne division aboard a plane based elsewhere, and it walked, still aboard
+		// (FINDINGS-liveread.md, section 127).
+		CGameState state = State(out CCountry germany, out _, paved: true);
+		CUnit plane = Planes(state, germany);
+		CUnit division = Paratroops(state, germany);
+		CAirTransport.Board(plane, division);
+
+		Assert.True(CMovementRules.MayMoveTo(state, germany, division, state.Province(Border)));
+		CMovement.SetPath(division, new[] { Border }, clear: true);
+		RunHours(state, germany, division, 48);
+		Assert.Equal(Border, division.Location);
+		Assert.Same(plane, division.Plane);
+		Assert.Equal(new[] { division }, plane.Passengers);
+	}
+
+	// --- the AI's paradrop targets ---
+
+	[Fact]
+	public void AWeakPortScoresAHundredAWholeNavalLevelAndTenAWorkingAirLevelInFractions()
+	{
+		CGameState state = State(out _, out _, paved: true);
+		CProvince warsaw = state.Province(Warsaw);
+		warsaw.SetBuildingLevel(NavalBase, CFixedPoint.Parse("1.5"));
+		warsaw.SetBuildingLevel(AirBase, CFixedPoint.FromInt(2));
+		warsaw.SetBuildingCurrentLevel(AirBase, CFixedPoint.Parse("0.5"));
+		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
+		float depot = network.DepotOf(Warsaw) == Warsaw ? 1000f : 0f;
+
+		Assert.Equal(100f + 5f + depot, OpenHOI3.Sim.Agents.CWeakEnemyPorts.Score(state, network, warsaw));
+	}
+
+	[Fact]
+	public void AnEnemysUndefendedCapitalIsATargetAndALandBrigadeThereTakesItOff()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland, paved: true);
+		poland.Capital = Warsaw;
+		state.Province(Warsaw).SetBuildingLevel(AirBase, CFixedPoint.FromInt(1));
+
+		OpenHOI3.Sim.Agents.CWeakEnemyPorts.Rebuild(state, germany);
+		Assert.Contains(germany.UnitAi.WeakEnemyPorts, entry => entry.Province == Warsaw);
+
+		Unit(state, poland, EUnitKind.Division, Warsaw, 1, Infantry);
+		OpenHOI3.Sim.Agents.CWeakEnemyPorts.Rebuild(state, germany);
+		Assert.DoesNotContain(germany.UnitAi.WeakEnemyPorts, entry => entry.Province == Warsaw);
+
+		// A country's own capital is never its target.
+		OpenHOI3.Sim.Agents.CWeakEnemyPorts.Rebuild(state, poland);
+		Assert.All(poland.UnitAi.WeakEnemyPorts, entry => Assert.NotEqual(Warsaw, entry.Province));
 	}
 
 	[Fact]
