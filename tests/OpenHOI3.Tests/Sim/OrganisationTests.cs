@@ -428,6 +428,25 @@ public class OrganisationTests
 	}
 
 	[Fact]
+	public void ARedeployedBrigadeHasTheLossTakenOffItsGainAndNeverLosesInItsHour()
+	{
+		// The July 1941 save's 22. Infanterie-Division: 0.100 an hour less 0.020 is the original's 0.080. A starved
+		// brigade's loss is held at nought - the original's, which never lets the redeployment's hour take any away.
+		CCountry country = Germany();
+		CSubUnit redeployed = Brigade(Infantry(), Unit(country), organisation: "42.1");
+		CSubUnit starved = Brigade(Infantry(), Unit(country), organisation: "30");
+		CSubUnit small = Brigade(Infantry(), Unit(country), organisation: "30");
+
+		COrganisation.Regain(redeployed, 1000, ceiling: 56000, lowBonus: 300, redeploymentLoss: 20);
+		COrganisation.Regain(starved, -1000, ceiling: 56000, lowBonus: 300, redeploymentLoss: 20);
+		COrganisation.Regain(small, 100, ceiling: 56000, lowBonus: 300, redeploymentLoss: 20);
+
+		Assert.Equal(CFixedPoint.Parse("42.122"), redeployed.Organisation);
+		Assert.Equal(CFixedPoint.Parse("30"), starved.Organisation);
+		Assert.Equal(CFixedPoint.Parse("30"), small.Organisation);
+	}
+
+	[Fact]
 	public void WithNoSuppliesABrigadeLosesAFifthOfItsMoraleAnHour()
 	{
 		CCountry country = Germany();

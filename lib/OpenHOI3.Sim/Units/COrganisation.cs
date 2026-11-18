@@ -35,6 +35,9 @@ public static class COrganisation
 	/// <summary>The define a brigade low on organisation gains faster by, and one nearly full slower.</summary>
 	public const string LowRegainBonus = "LOW_ORG_REGAIN_BONUS";
 
+	/// <summary>The define taken off the hour's gain of a land brigade whose unit is being strategically redeployed.</summary>
+	public const string RedeploymentLoss = "STRAT_REDEP_ORG_LOSS";
+
 	/// <summary>However bad the roads, a hundredth of the usual comes back.</summary>
 	private const long LeastInfrastructure = 10;
 
@@ -215,9 +218,11 @@ public static class COrganisation
 	/// One hour of one brigade: it gains a fifth of its morale times the unit's factor -
 	/// more of it while it is low, less once it is nearly full - and is then held to
 	/// what it may have. So this is also what brings a brigade down when its ceiling
-	/// has fallen below it.
+	/// has fallen below it. With <paramref name="redeploymentLoss"/> - a land brigade whose unit is being strategically
+	/// redeployed - that much is taken off the gain and what is left held at nought, so such a brigade never loses
+	/// organisation in its hour, not even with no supplies (<c>docs/mechanics/organisation.md</c>, section 3).
 	/// </summary>
-	public static void Regain(CSubUnit subUnit, long factor, long ceiling, long lowBonus)
+	public static void Regain(CSubUnit subUnit, long factor, long ceiling, long lowBonus, long? redeploymentLoss = null)
 	{
 		long organisation = subUnit.Organisation.Raw;
 		long share = ceiling == 0 ? -1 : organisation * CFixedPoint.Scale / ceiling;
@@ -232,6 +237,10 @@ public static class COrganisation
 
 		long gain = subUnit.Stats[Morale].Raw * factor / CFixedPoint.Scale;
 		gain = gain * ShareOfAnHour / CFixedPoint.Scale;
+		if (redeploymentLoss is { } loss)
+		{
+			gain = Math.Max(gain - loss, 0);
+		}
 
 		organisation = Math.Min(organisation + gain, ceiling);
 		subUnit.Organisation = new CFixedPoint(Math.Max(organisation, 0));
@@ -256,6 +265,9 @@ public static class COrganisation
 	{
 		var crowding = new CBaseCrowding(state);
 		long lowBonus = state.Defines[CManpower.MilitarySection, LowRegainBonus].Raw;
+		long? redeploymentLoss = state.Defines.Has(CManpower.MilitarySection, RedeploymentLoss)
+			? state.Defines[CManpower.MilitarySection, RedeploymentLoss].Raw
+			: null;
 		foreach (CCountry country in state.Countries)
 		{
 			foreach (CUnit unit in country.AllUnits())
@@ -265,9 +277,12 @@ public static class COrganisation
 				{
 					long factor = RegainFactor(state, country, unit, crowding);
 					long bonus = CommanderBonus(state, unit);
+					long? loss = unit.Order == EUnitOrder.StrategicRedeployment && Movement.CMovementRules.IsLandUnit(unit)
+						? redeploymentLoss ?? 0
+						: null;
 					foreach (CSubUnit subUnit in unit.SubUnits)
 					{
-						Regain(subUnit, factor, CeilingWithBonus(state, country, subUnit, bonus).Raw, lowBonus);
+						Regain(subUnit, factor, CeilingWithBonus(state, country, subUnit, bonus).Raw, lowBonus, loss);
 					}
 				}
 				// Then a dropped unit's first hour out of a battle (transport.md, section 13.4).

@@ -126,6 +126,8 @@ Then each brigade:
     if share is under 0.250:      factor = factor x (1 + LOW_ORG_REGAIN_BONUS)
     else if it is over 0.750:     factor = factor x (1 - LOW_ORG_REGAIN_BONUS)
     gain = default_morale x factor x 0.2
+    for a land brigade whose unit is being strategically redeployed:
+        gain = gain - STRAT_REDEP_ORG_LOSS, and nothing where that is under nothing
     organisation = organisation + gain, held between nothing and most
 
 - **An hour at a factor of 1 brings back a fifth of a brigade's morale**: 0.06 for infantry
@@ -146,13 +148,18 @@ Then each brigade:
   organisation when its officers are lost.
 - **`org_regain`** is a country modifier: the minister type `school_of_psychology` gives
   0.1.
+- **`STRAT_REDEP_ORG_LOSS`** is a military define, 0.02 in Their Finest Hour: a division on a strategic redeployment
+  regains that much less an hour. Read on the listing 2026-11-18 (`reversing/findings/FINDINGS-liveread.md`, section
+  117): the original's July 1941 divisions on redeployment gain 0.080 and then 0.097 a brigade an hour where ours gave
+  0.100 and 0.117 until then. **Taken off the gain and then held at nothing**, so a redeployed brigade's hour never takes
+  organisation away - not even with no supplies, when every other unit loses it. The original's, kept and listed in
+  `docs/enhanced.md`. The define is read only where the file has it; with none the hold at nothing is all that is left.
 
 **A unit that is fighting gets nothing back, nor one marching into a province an enemy
 holds** - with a path, no attack delay running, and the next province held by a country its
-own is at war with. Built with the battle (`landcombat.md`). The original also skips an army
-aboard a fleet at sea; it multiplies organisation by `PARATROOP_DROP_ORG_MULT` once after a
-drop; and it takes `STRAT_REDEP_ORG_LOSS` off the hour's gain of a brigade being strategically
-redeployed. None of those three can happen yet.
+own is at war with. Built with the battle (`landcombat.md`). Nor does an army aboard a fleet at
+sea (`transport.md`, section 5), and a dropped unit's organisation is multiplied by
+`PARATROOP_DROP_ORG_MULT` once after the drop (`transport.md`, section 13.4).
 
 **What the unit panel says of it** (read 2026-11-14, `reversing/findings/FINDINGS-unitpaneltooltips.md`, section 3.5;
 `COrganisation.ShownRegain`): the organisation bar's tooltip works the factor out again, not quite as the hour does -
