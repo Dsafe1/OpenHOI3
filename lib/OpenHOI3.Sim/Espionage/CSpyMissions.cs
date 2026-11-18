@@ -20,9 +20,16 @@ public static class CSpyMissions
 		}
 	}
 
-	/// <summary>One country's spies at work, in its own day.</summary>
+	/// <summary>
+	/// One country's spies at work, in its own day - only for a country that owns a province or is a government in
+	/// exile: one annexed keeps its spies abroad and they do nothing (FINDINGS-liveread.md, section 121).
+	/// </summary>
 	public static void RunCountry(CGameState state, CCountryFacts facts, CCountry country)
 	{
+		if (facts.OwnedCount(country.Tag) <= 0 && !country.InExile)
+		{
+			return;
+		}
 		foreach (CCountry target in state.Countries)
 		{
 			if (facts.OwnedCount(target.Tag) <= 0)

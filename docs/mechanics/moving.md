@@ -1014,8 +1014,8 @@ months on) - at least three hours left, and the order ends then.
 - The enemy's war industry handed to the agents whose air bases are nearest (section 12): so no strategic bombing or nuke
   mission (17.4; `nukes.md`, *Ours*), and the strategic list (17.1) measures against the objectives.
 - The scenario game's rules (nine tenths of the garrisons to the line): there is one start.
-- A strategic redeployment's cost in supplies and organisation (`STRAT_REDEP_SUPPLY_MOD`, `STRAT_REDEP_ORG_LOSS`): not
-  read.
+- A strategic redeployment's cost in supplies (`STRAT_REDEP_SUPPLY_MOD`): not read. Its cost in organisation,
+  `STRAT_REDEP_ORG_LOSS`, is built since 2026-11-18 (`organisation.md`, section 3).
 - The human's delegated AI: the objectives' areas (11.1), the agentless divisions of the played country (7.4).
 - **A province lost** (`CAIUnit::OnProvinceControllerChanged`, `FINDINGS-moving.md` A.4e, read 2026-11-03): an agent
   told that a province its country held, in an area of three provinces or fewer beside its theatre, has changed

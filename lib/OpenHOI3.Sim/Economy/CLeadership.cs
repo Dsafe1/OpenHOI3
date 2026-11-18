@@ -242,17 +242,23 @@ public static class CLeadership
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			if (!TakesPart(country))
-			{
-				continue;
-			}
-
-			country.Officers = AddNeverBelowNothing(country.Officers, OfficersMade(state, country));
-			country.DiplomaticInfluence = AddNeverBelowNothing(country.DiplomaticInfluence, InfluenceMade(state, country));
-			// The spies trained, and whole ones placed out of the free ones (espionage.md, section 4).
-			Espionage.CSpyPlacing.Run(state, country, SpiesMade(state, country));
-			CResearch.RunDaily(state, country, Allocated(country, ELeadershipCategory.Research));
+			RunCountry(state, country);
 		}
+	}
+
+	/// <summary>One country's four shares, in its own day.</summary>
+	public static void RunCountry(CGameState state, CCountry country)
+	{
+		if (!TakesPart(country))
+		{
+			return;
+		}
+
+		country.Officers = AddNeverBelowNothing(country.Officers, OfficersMade(state, country));
+		country.DiplomaticInfluence = AddNeverBelowNothing(country.DiplomaticInfluence, InfluenceMade(state, country));
+		// The spies trained, and whole ones placed out of the free ones (espionage.md, section 4).
+		Espionage.CSpyPlacing.Run(state, country, SpiesMade(state, country));
+		CResearch.RunDaily(state, country, Allocated(country, ELeadershipCategory.Research));
 	}
 
 	private static CFixedPoint AddNeverBelowNothing(CFixedPoint held, CFixedPoint made)

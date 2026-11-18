@@ -121,8 +121,15 @@ project's list does not have: "the list's first place" is REB's, which owns no p
 
 ## 5. The day: the missions
 
-Once a day, for every country in the order of the list, late in its day - after the alignment's step and before its
-election (`reversing/findings/FINDINGS-politics.md`, the rest of the pass):
+Once a day, for every country in the order of the list **that owns a province or is a government in exile** - one
+annexed keeps its spies abroad and they do nothing - late in its day, after the alignment's step and before its
+election (`reversing/findings/FINDINGS-politics.md`, the rest of the pass). **A country's day is run whole before the
+next's** (`reversing/findings/FINDINGS-liveread.md`, sections 120 and 121, a recording of July 1941): its spies are
+placed (section 4), its mission looked at, its spies set to work, its undergrounds and its roll for a rising run, and
+only then the next country's - so a spy one country places today is there for the catches of the countries after it
+and not of those before, and each draw falls where the original's does. Just before its spies, every country that owns
+a province and is not REB makes its mission's state afresh, there being none: two draws of the game's generator, the
+scopes' seeds (`CCountryMission`; missions are not built, and no file of Their Finest Hour's or BlackICE's has one):
 
     for each country T in order, itself included, that owns a province:
         p = this country's presence in T
