@@ -253,18 +253,14 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    the same, none of ours alone, fleets 159 of 165, air units 25 of 26; `wr15` 467 of 467 (one of ours alone, that run's
    original keeping the 3. Infanterie-Division off to 38), `wr14` 466 of 484, `wr11` 453 of 488. **Every hour of `wr19`
    agrees draw for draw before its first battle, and no battle's dice part in its 47 hours**, so what is left of it is
-   orders no draw shows - and the AI's own draws, which the playback counts by country: (a) **the Soviet Union's Lua at
-   09:00 on 17 July** (series hour 26) makes nine `math.random` draws and one on the AI's generator that the original's
-   does not, and the next hour its naval body's raids, asked in the original's order of the ready fleets (read on the
-   running game), are one draw out - the 4th, 12th, 15th, 16th and 17th Navies each sent where the next was. **The cause
-   is the supply pass, not the AI**: the draws are the production minister's `CreateUnit`, which builds land units because
-   the day's slider balance cut the supplies share to its floor - `BalanceProductionSliders` shuts supplies off over 50,000
-   in the stockpile, and at the first midnight after the load ours's Moscow went from 49,502.333 to 50,246.956 (+744.6)
-   where the original's went to 49,907.945 (+405.6), the rest of the network's pools within 100 of the save's.
-   `supplyledger` from `Ireland1941_07_16_07` for a day: home 367, thrown back to the depot 644, units' usage 1 - the
-   throwing back and the usage of a loaded game's first day are where to look (`supply.md`, section 12.1; the fact base's
-   liveread, section 116). A hook naming each `math.random` caller is in the session scratchpad as `dbg7-luarand.patch`
-   (`OHDBG_LUARAND=TAG`). Likewise Cuba's and Haiti's Lua at hours 27 and 31,
+   orders no draw shows - and the AI's own draws, which the playback counts by country: (a) **the Soviet naval body's
+   raids at 10:00 on 17 July** (series hour 27) make one draw more than the original's, asked in the original's order of
+   the ready fleets (read on the running game), so the 4th, 12th, 15th, 16th and 17th Navies are each sent where the next
+   was. The Soviet Lua's nine extra draws of the hour before are gone since section 131 (2026-11-18): they were the
+   production minister's, building because Moscow's stockpile had crossed the 50,000 at which its script shuts supplies
+   off, ours's redeploying armies having used single supplies where the original's use `STRAT_REDEP_SUPPLY_MOD` times
+   (`upkeep.md`, section 1). A hook naming each `math.random` caller is in the session scratchpad as
+   `dbg7-luarand.patch` (`OHDBG_LUARAND=TAG`). Likewise Cuba's and Haiti's Lua at hours 27 and 31,
    and New Zealand's and France's patrol centres at hours 6 and 29; (b) the other fleets ours sends that the original
    leaves - the British 31st and 41st Navies, the German 33. Unterseebootsflottille and 6th Navy - and the Omani dive
    bombers; (c) `wr14`, whose dice part at hour 13, and `wr11`.

@@ -56,8 +56,14 @@ full reach - and nothing for a unit that is nowhere. Then what the leaders'
 commander's, a quarter his. The floor at nothing is tested once, after both. `confirmed`, and
 built (`CUnitSupply.Potency`, 2026-10-11).
 
-The original also has a land unit on a strategic redeployment use `STRAT_REDEP_SUPPLY_MOD`
-times its supplies and no fuel. `confirmed` *Ours:* there are no strategic redeployments.
+**A land unit on a strategic redeployment uses `STRAT_REDEP_SUPPLY_MOD` times its supplies -
+twice in Their Finest Hour - and no fuel**, the unit's total and each brigade's figure alike, the
+supplies after the strength term. `confirmed` (`reversing/findings/FINDINGS-unitdaily.md`), and
+built since 2026-11-18 (`CUnitSupply`). It was left out while there were no strategic
+redeployments, and stayed out after they came: on the July 1941 save it made the Soviet Union's
+provinces ask 494.75 a day where the original's ask 636.33, and the first midnight after the load
+left 339 more supplies in Moscow, over the 50,000 at which the production minister's script shuts
+supplies off (`reversing/findings/FINDINGS-liveread.md`, section 131).
 
 (measured) A save keeps one figure of this: a country's `usage` of supplies is what its
 units **standing in its capital** were given, plus what the supply network carried out of

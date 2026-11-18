@@ -150,6 +150,26 @@ public class UpkeepTests
 	}
 
 	[Fact]
+	public void AUnitOnAStrategicRedeploymentUsesTwiceTheSuppliesAndNoFuel()
+	{
+		CCountry country = Country();
+		CUnit unit = Unit(country);
+		Brigade(Infantry(), unit, strength: "15");
+		CSubUnit armour = Brigade(LightArmour(), unit);
+		CGameState state = State(country);
+		state.Defines.Set(CManpower.MilitarySection, CUnitSupply.RedeploymentSupply, CFixedPoint.FromInt(2));
+		Assert.Equal(CFixedPoint.Parse("1.335"), CUnitSupply.SupplyConsumption(state, country, unit));
+		Assert.Equal(CFixedPoint.Parse("1.2"), CUnitSupply.FuelConsumption(state, country, unit));
+
+		unit.Order = EUnitOrder.StrategicRedeployment;
+		// 0.335 and 1, twice, after the strength term; the brigade's own figure twice too.
+		Assert.Equal(CFixedPoint.Parse("2.67"), CUnitSupply.SupplyConsumption(state, country, unit));
+		Assert.Equal(CFixedPoint.Parse("2"), CUnitSupply.SubUnitSupply(state, country, armour));
+		Assert.Equal(CFixedPoint.Zero, CUnitSupply.FuelConsumption(state, country, unit));
+		Assert.Equal(CFixedPoint.Zero, CUnitSupply.SubUnitFuel(state, country, armour));
+	}
+
+	[Fact]
 	public void AShipUsesTheSameWhateverStateItIsIn()
 	{
 		CCountry country = Country();

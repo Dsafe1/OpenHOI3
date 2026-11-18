@@ -37,6 +37,26 @@ public static class CUnitSupply
 	/// <summary>What each point of an army group commander's skill takes off, from a float of 50.5.</summary>
 	private const long CommanderDiscount = 50;
 
+	/// <summary>What a land unit on a strategic redeployment uses of supplies, times its usual: 2 in Their Finest Hour.</summary>
+	public const string RedeploymentSupply = "STRAT_REDEP_SUPPLY_MOD";
+
+	/// <summary>
+	/// A land unit on a strategic redeployment: it uses <see cref="RedeploymentSupply"/> times the supplies, and no fuel
+	/// (<c>reversing/findings/FINDINGS-unitdaily.md</c>; <c>docs/mechanics/upkeep.md</c>, section 1).
+	/// </summary>
+	private static bool IsRedeploying(CUnit unit) =>
+		unit.Order == EUnitOrder.StrategicRedeployment && Movement.CMovementRules.IsLandUnit(unit);
+
+	/// <summary>The supplies scaled for a strategic redeployment, where the defines say how much.</summary>
+	private static long Redeployed(CGameState state, CUnit unit, long used)
+	{
+		if (!IsRedeploying(unit) || !state.Defines.Has(CManpower.MilitarySection, RedeploymentSupply))
+		{
+			return used;
+		}
+		return used * state.Defines[CManpower.MilitarySection, RedeploymentSupply].Raw / CFixedPoint.Scale;
+	}
+
 	/// <summary>
 	/// What everything a unit uses is multiplied by, in thousandths: one and the
 	/// country's modifier, less a twentieth for each point of the skill of the army
@@ -74,7 +94,7 @@ public static class CUnitSupply
 		{
 			used = used * Share(subUnit) / CFixedPoint.Scale;
 		}
-		return new CFixedPoint(used);
+		return new CFixedPoint(Redeployed(state, unit, used));
 	}
 
 	/// <summary>
@@ -86,6 +106,10 @@ public static class CUnitSupply
 		if (subUnit.Unit is not { } unit)
 		{
 			return subUnit.Stats[FuelStatisticKey];
+		}
+		if (IsRedeploying(unit))
+		{
+			return CFixedPoint.Zero;
 		}
 		long used = subUnit.Stats[FuelStatisticKey].Raw * (Potency(state, owner, unit) + LevelsHeld(subUnit) * PerLevel) / CFixedPoint.Scale;
 		if (subUnit.Type.Branch != EUnitBranch.Naval)
@@ -127,13 +151,17 @@ public static class CUnitSupply
 			}
 			total += used;
 		}
-		return new CFixedPoint(total);
+		return new CFixedPoint(Redeployed(state, unit, total));
 	}
 
 	/// <summary>The fuel a unit's own brigades use in a day when they use any. Strength does not come into it.</summary>
 	public static CFixedPoint FuelConsumption(CGameState state, CCountry owner, CUnit unit)
 	{
 		owner = state.Country(unit.FiguresOwner) ?? owner;
+		if (IsRedeploying(unit))
+		{
+			return CFixedPoint.Zero;
+		}
 		long potency = Potency(state, owner, unit);
 		long total = 0;
 		foreach (CSubUnit subUnit in unit.SubUnits)
