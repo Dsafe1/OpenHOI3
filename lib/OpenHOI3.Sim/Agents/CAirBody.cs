@@ -478,8 +478,9 @@ public static class CAirBody
 	}
 
 	/// <summary>
-	/// At the offensive air stance, till sunset: a naval strike at the first enemy fleet handed to the agent at sea, or the
-	/// sea it sails into next, in reach and in weather to 330; with none, a port strike at the first in a harbour.
+	/// At the offensive air stance, till sunset: a naval strike over every sea in reach of the enemy fleets handed to the
+	/// agent at sea and the seas they sail into next, in weather to 330, the first its province; with none, a port strike
+	/// over the harbours in reach the same way.
 	/// </summary>
 	private static void NavalStrike(CGameState state, CCountry country, CAgent agent, List<CUnit> groups)
 	{
@@ -513,27 +514,33 @@ public static class CAirBody
 			{
 				continue;
 			}
-			if (First(state, group, atSea, EUnitOrder.NavalStrike) is { } sea)
+			// Every sea in reach is the mission's, in the list's order, repeats and all, the first its province
+			// (FINDINGS-liveread.md, section 129).
+			if (InReach(state, group, atSea, EUnitOrder.NavalStrike) is { Count: > 0 } seas)
 			{
-				state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, group.Id, EUnitOrder.NavalStrike, sea, stance: CMission.Defensive, endHour: end));
+				state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, group.Id, EUnitOrder.NavalStrike, seas[0], stance: CMission.Defensive,
+					provinces: seas, endHour: end));
 			}
-			else if (First(state, group, inPort, EUnitOrder.PortStrike) is { } port)
+			else if (InReach(state, group, inPort, EUnitOrder.PortStrike) is { Count: > 0 } ports)
 			{
-				state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, group.Id, EUnitOrder.PortStrike, port, stance: CMission.Defensive, endHour: end));
+				state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, group.Id, EUnitOrder.PortStrike, ports[0], stance: CMission.Defensive,
+					provinces: ports, endHour: end));
 			}
 		}
 	}
 
-	private static int? First(CGameState state, CUnit group, List<int> provinces, EUnitOrder order)
+	/// <summary>The provinces of the list the group reaches, in the list's order.</summary>
+	private static List<int> InReach(CGameState state, CUnit group, List<int> provinces, EUnitOrder order)
 	{
+		var reached = new List<int>();
 		foreach (int id in provinces)
 		{
 			if (CUnitOrders.IsInRange(state, group, order, state.Province(id)))
 			{
-				return id;
+				reached.Add(id);
 			}
 		}
-		return null;
+		return reached;
 	}
 
 	/// <summary>

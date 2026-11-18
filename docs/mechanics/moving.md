@@ -989,8 +989,11 @@ months on) - at least three hours left, and the order ends then.
     one step behind the front - land beside an enemy-held front province, held by an enemy, with infrastructure of 0.2
     or more, touching none of its holder's enemies by land.
   - **Strategic bombing** at the enemy's war industry: none handed here (section 20).
-  - **Naval strike**, till sunset: the first in reach of the seas of the enemy fleets handed to the agent at sea - and
-    the sea each sails into next - in weather to 0.330; with none, a **port strike** at the first such fleet in a harbour.
+  - **Naval strike**, till sunset: over the seas of the enemy fleets handed to the agent at sea - and the sea each sails
+    into next - in weather to 0.330, **every one in reach, in that order and repeats and all, is the mission's**, the first
+    its province; with none, a **port strike** over the harbours of those in port the same way (`reversing/findings/
+    FINDINGS-liveread.md`, section 129: the Italian 1st Air wing of 18 July 1941 strikes 10571 and moves on to 11456,
+    where until then its mission held 10571 alone and it turned for home).
 
 ## 18. Kept as the original does them
 

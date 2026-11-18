@@ -245,13 +245,15 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    **Then sections 127 and 128** (2026-11-18): the paradrop planner and its daily list of weak enemy ports, an airborne
    army staged at its target's air base and a plane's passenger free to walk (`moving.md`, section 9.1), and a fleet the
    naval body rebases free for nothing else that pass, its orders refused for no range (section 14). Hour 41's weather was
-   a name the comparison had not mapped, and is mapped in the kit's `runcmp.py`.
+   a name the comparison had not mapped, and is mapped in the kit's `runcmp.py`. **And section 129**: the AI's naval strike
+   covers every sea in reach (`moving.md`, section 17.4).
    **Open, in order**, measured against `wr19` (48 hours from `Ireland1941_07_16_07`, every probe): 467 of 469 land orders
-   the same, none of ours alone, fleets 159 of 165; `wr15` 467 of 467, `wr14` 466 of 484, `wr11` 452 of 488. An hour is
-   measured by its **draws**, not its dice alone, since the playback puts the generator back at each battle; every hour of
-   `wr19` agrees before its first battle but hour 46. (a) Hour 46: the sightings at its 308th draw, the original's 21 to
-   ours's 7. (b) The German 3. Infanterie-Division at hour 36, which the original's garrison step sends from 23 to Oslo
-   (812) and ours leaves bound for 38.
+   the same, none of ours alone, fleets 159 of 165, air units 25 of 26; `wr15` 467 of 467, `wr14` 466 of 484, `wr11` 452 of
+   488. **Every hour of `wr19` agrees draw for draw before its first battle, and no battle's dice part in its 47 hours**, so
+   what is left of it is orders no draw shows: (a) the German 3. Infanterie-Division at hour 36, which the original's
+   garrison step sends from 23 to Oslo (812) and ours leaves bound for 38; (b) the fleets ours sends that the original
+   leaves - the Soviet 4th Navy and Cernoje Flote, the British 31st and 41st Navies, the German 33.
+   Unterseebootsflottille and 6th Navy - and the Omani dive bombers; (c) `wr14`, whose dice part at hour 13, and `wr11`.
 
 **Noticed in testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces
