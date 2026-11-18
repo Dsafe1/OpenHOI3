@@ -337,20 +337,8 @@ public static class CCountryLists
 	/// </summary>
 	public static List<CProvince> Controlled(CGameState state, CCountryTag? country)
 	{
-		var controlled = new List<CProvince>();
-		if (country is not { } tag)
-		{
-			return controlled;
-		}
-		foreach (CProvince province in state.Provinces)
-		{
-			if (province.Controller == tag)
-			{
-				controlled.Add(province);
-			}
-		}
-		SortByControlOrder(controlled);
-		return controlled;
+		// A list of the caller's own, copied from the one kept until a province changes hands (CControlledLists).
+		return country is { } tag ? new List<CProvince>(CControlledLists.Of(state, tag)) : new List<CProvince>();
 	}
 
 	/// <summary>Puts provinces into the order of their controllers' lists, the province's number between equals.</summary>

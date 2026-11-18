@@ -881,6 +881,9 @@ public sealed class CGameState
 	/// <summary>How many provinces each country owns, kept by <see cref="Countries.COwnedCounts"/>.</summary>
 	public Countries.COwnedCounts? OwnedCounts { get; set; }
 
+	/// <summary>The provinces each country controls in its list's order, kept by <see cref="Countries.CControlledLists"/>.</summary>
+	public Countries.CControlledLists? ControlledLists { get; set; }
+
 	/// <summary>
 	/// What every roll of this game starts from. An hour's rolls depend on it, on the
 	/// hour, and on the order they are made in - and on nothing else.

@@ -187,9 +187,14 @@ public static class CCountryEconomyMethods
 	{
 		CBuilding? air = Find(api, AirBase);
 		int airfields = 0;
-		foreach (CProvince province in api.State.Provinces)
+		if (air is null)
 		{
-			if (air is not null && province.Controller == country.Tag && province.BuildingMaxLevel(air).Raw > 0)
+			return 0;
+		}
+		// The provinces it controls, kept until one changes hands, and not the whole map: a count, whatever their order.
+		foreach (CProvince province in Sim.Countries.CControlledLists.Of(api.State, country.Tag))
+		{
+			if (province.BuildingMaxLevel(air).Raw > 0)
 			{
 				airfields++;
 			}
