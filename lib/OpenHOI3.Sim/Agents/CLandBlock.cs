@@ -45,6 +45,8 @@ public static class CLandBlock
 	/// <summary>The dispatcher: the allied-soil budget, the split, the line, else the garrisons, else the reserve.</summary>
 	private static void Position(CGameState state, CCountry country, CAgent agent)
 	{
+		// The original clears it at this step's end, on every pass that runs it, full or not; nothing between reads it, and
+		// the fall-back after it may set it again (FINDINGS-liveread.md, section 134).
 		agent.FullPassPending = false;
 		if (agent.Unit is null)
 		{

@@ -70,13 +70,14 @@ public static class CAgentTick
 		// At war, in a war nobody declared, or with provinces in revolt (FINDINGS-liveread.md, section 25).
 		bool fighting = state.IsAtWar(country.Tag) || Wars.CUndeclaredWars.Involves(state, country.Tag);
 		bool landHour = full || (hour % 3 == 0 && (fighting || country.UnitAi.InRevolt));
+		// The land block's first step clears the pending full pass, and a defender pulled out of a losing battle sets it again
+		// for the next hour: nothing here clears it after the block (FINDINGS-liveread.md, section 134).
 		if (landHour)
 		{
 			CAgentProfile.Time(state, "the land block", () => CLandBlock.Run(state, country, agent));
 		}
 		if (full)
 		{
-			agent.FullPassPending = false;
 			CCommandProvince.PullIn(state, country, agent);
 		}
 		// Daily, at once while its flag is set, or every hour for a country the AI does not run (FINDINGS-moving.md, section D;

@@ -154,7 +154,8 @@ The **positions** are the area's scored records (section 3). n = the committed d
 / 2 where the country leads a faction, else n / 5 where its capital's area borders land at war with it, else n / 3 - less
 those on a friend's soil already. Then: **the split** (7.2); **the line** (7.3) where there is a line and positions;
 **only where that moved nothing**, the garrisons (7.4); **only where neither did**, the reserve (7.5). Full pass pending
-is cleared.
+is cleared - on every pass that runs the dispatcher, full or every third hour, and nowhere else
+(`CAIUnit::PositionLandUnits`' end, `FINDINGS-liveread.md`, section 134).
 
 ### 7.2 The split
 
@@ -346,7 +347,8 @@ inside it**, and that ends the sending: the list is gone round again only when t
 (`FINDINGS-liveread.md`, section 118). So with two neighbours outside and any inside, two defenders go and the rest stay
 for the next pass: the July 1941 save's 1809 sends the 119. to 1810 and the 125. to 1929 at 15:00 on 17 July and the 64.
 an hour later, where ours had sent the 64. back round to 1810 with them. The original sends an ally's defender too; here only the country's own. A sent unit
-sets full pass pending.
+sets full pass pending, after the dispatcher has cleared it, so **the next hour's pass is full**, whatever the hour
+(`agents.md`, section 3; `FINDINGS-liveread.md`, section 134).
 
 ## 9. The march check (`CAIUnit_CheckLandMarches`)
 

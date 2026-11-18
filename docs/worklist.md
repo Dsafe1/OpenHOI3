@@ -260,9 +260,13 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    counts by country. **Every `math.random` draw of `wr19` is the original's since 2026-11-19**: Cuba's and Haiti's two
    beyond at hours 27 and 31 were a puppet's debt revoke ours let through, which cost Britain the influence that pays
    its upkeep on the Dominican Republic, whose influence modifier then went and with it the friend Cuba's and Haiti's
-   intelligence ministers saw (`aid.md`, section 1). Open: (a) New Zealand's and France's patrol centres at hours 6 and
-   29, and the Soviet one left at 34 - a hook naming each `math.random` caller is in the session scratchpad as
-   `dbg7-luarand.patch` (`OHDBG_LUARAND=TAG`); (b) the fleets and air units ours orders otherwise -
+   intelligence ministers saw (`aid.md`, section 1). **And every patrol draw but two**: the Soviet one left at 34 was a
+   full pass the fall-back asks for the next hour, which ours wiped (`agents.md`, section 3); New Zealand's and France's
+   at hours 6 and 29 the original makes too - read on the running game - and the recording lost
+   (`reversing/findings/FINDINGS-liveread.md`, section 134), so a playback reports them as ours beyond. Open: (a) the
+   offers the AI answers one draw out in `wr15`, `wr14` and `wr11` (`CPactPasses.Answer`), and Sweden's Lua draw at 46
+   of `wr11` - a hook naming each `math.random` caller is in the session scratchpad as `dbg7-luarand.patch`
+   (`OHDBG_LUARAND=TAG`); (b) the fleets and air units ours orders otherwise -
    the British 31st and 41st Navies, the German 33. Unterseebootsflottille, 5th and 6th Navy, the Soviet Cernoje Flote,
    the German 26th Air wing and the Omani dive bombers; (c) `wr14`, whose dice part at hour 13, and `wr11`.
 
