@@ -5,7 +5,8 @@ using Godot;
 namespace OpenHOI3.Debug;
 
 /// <summary>
-/// What an exception nothing caught leaves behind: a file <c>crash-&lt;time&gt;.log</c> in the folder of Godot's own logs, the
+/// What an exception nothing caught leaves behind: a file <c>crash-&lt;time&gt;.log</c> beside the game's log - in the player's
+/// folder's <c>logs</c> once the install is known, Godot's own logs folder before it (<c>docs/mechanics/logs.md</c>) - the
 /// exception with its stack and inner exceptions, written straight to the disk as the process goes down. An access
 /// violation inside a call into the engine ends the process through .NET and never reaches Godot's log, which is where the
 /// trace of a crash is wanted.
@@ -13,6 +14,13 @@ namespace OpenHOI3.Debug;
 public static class CCrashLog
 {
 	private static string? _folder;
+
+	/// <summary>Where a crash's file is written: the player's folder's logs, set as soon as the install is known.</summary>
+	public static string? Folder
+	{
+		get => _folder;
+		set => _folder = value ?? _folder;
+	}
 
 	/// <summary>Watches for an exception nothing catches, from the start; once is enough.</summary>
 	public static void Install()

@@ -75,6 +75,8 @@ public partial class Main : Control
 		// code the line was written says nothing about them.
 		CDiagnostics.WarnSink = message => GD.Print("WARNING: " + message);
 		CDiagnostics.ErrorSink = message => GD.PushError(message);
+		// Everything printed from here on goes to the log file too, once its folder is known (docs/mechanics/logs.md).
+		Debug.CFileLog.Install();
 		// An exception nothing catches - a crash inside the engine among them - is written beside the logs.
 		Debug.CCrashLog.Install();
 
@@ -102,6 +104,11 @@ public partial class Main : Control
 		// The mod is known before anything is read: the main menu is the mod's interface too (docs/mechanics/mods.md).
 		directories = WithModsNamed(directories);
 		_directories = directories;
+		// The log in the player's folder's logs, the mod's with a mod, where the original keeps its own - under our own name,
+		// the runs before it kept (docs/mechanics/logs.md); a crash's file beside it.
+		string logs = Content.Logs.CLogFiles.Folder(directories);
+		Debug.CFileLog.Instance?.Open(Content.Logs.CLogFiles.Start(logs));
+		Debug.CCrashLog.Folder = logs;
 		// The install is the working folder, as the original's launcher starts it: a mod's script opens its files by paths
 		// written against it (docs/mechanics/mods.md, section 6). A path switch is kept against the folder started in.
 		CSession.LaunchFolder = System.IO.Directory.GetCurrentDirectory();

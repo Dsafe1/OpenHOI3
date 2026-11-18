@@ -3160,6 +3160,7 @@ lib/OpenHOI3.Content/   reading an install: finding and layering it, localisatio
     Script/             events and decisions: their words, the keyword tables, the names
                         a key may be, the readers of triggers, effects, events and
                         decisions and the on_actions, and the problems found
+    Logs/               where the game's own log goes, in the player's folder's logs, and the runs kept
     Messages/           the message types of interface/messagetypes.txt
     Mods/               a .mod file, the mods a command line selects and their order, the layering's rules
     Saves/              the original's .hoi3 saves: the loader, a save's values, its ids, units, orders, leaders and lines, wars, pacts and convoys, battles, what a load left unread, the writer and its layout
