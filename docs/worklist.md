@@ -253,9 +253,14 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    the same, none of ours alone, fleets 159 of 165, air units 25 of 26; `wr15` 467 of 467 (one of ours alone, that run's
    original keeping the 3. Infanterie-Division off to 38), `wr14` 466 of 484, `wr11` 453 of 488. **Every hour of `wr19`
    agrees draw for draw before its first battle, and no battle's dice part in its 47 hours**, so what is left of it is
-   orders no draw shows: (a) the fleets ours sends that the original leaves - the Soviet 4th Navy and Cernoje Flote, the
-   British 31st and 41st Navies, the German 33. Unterseebootsflottille and 6th Navy - and the Omani dive bombers; (b)
-   `wr14`, whose dice part at hour 13, and `wr11`.
+   orders no draw shows - and the AI's own draws, which the playback counts by country: (a) **the Soviet Union's Lua at
+   09:00 on 17 July** (series hour 26) makes nine `math.random` draws and one on the AI's generator that the original's
+   does not, and the next hour its naval body's raids, asked in the original's order of the ready fleets (read on the
+   running game), are one draw out - the 4th, 12th, 15th, 16th and 17th Navies each sent where the next was; which
+   script draws wants a hook on `math.random` that names its caller; likewise Cuba's and Haiti's Lua at hours 27 and 31,
+   and New Zealand's and France's patrol centres at hours 6 and 29; (b) the other fleets ours sends that the original
+   leaves - the British 31st and 41st Navies, the German 33. Unterseebootsflottille and 6th Navy - and the Omani dive
+   bombers; (c) `wr14`, whose dice part at hour 13, and `wr11`.
 
 **Noticed in testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces
