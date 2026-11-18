@@ -4,6 +4,7 @@ using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Units;
+using OpenHOI3.Sim.Modifiers;
 
 namespace OpenHOI3.Sim.Transport;
 
@@ -13,6 +14,12 @@ namespace OpenHOI3.Sim.Transport;
 /// </summary>
 public static class CTransport
 {
+	/// <summary>The key of <c>CSubUnitType.TransportWeight</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey TransportWeightKey = CModifierKey.Of(CSubUnitType.TransportWeight);
+
+	/// <summary>The key of <c>TransportCapability</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey TransportCapabilityKey = CModifierKey.Of(TransportCapability);
+
 	public const string TransportCapability = "transport_capability";
 
 	private const long Scale = CFixedPoint.Scale;
@@ -23,7 +30,7 @@ public static class CTransport
 		long sum = 0;
 		foreach (CSubUnit subUnit in unit.SubUnits)
 		{
-			sum += subUnit.Stats[CSubUnitType.TransportWeight].Raw;
+			sum += subUnit.Stats[TransportWeightKey].Raw;
 		}
 		return sum / Scale;
 	}
@@ -45,7 +52,7 @@ public static class CTransport
 		long sum = 0;
 		foreach (CSubUnit subUnit in carrier.SubUnits)
 		{
-			sum += subUnit.Stats[TransportCapability].Raw;
+			sum += subUnit.Stats[TransportCapabilityKey].Raw;
 		}
 		return sum / Scale;
 	}

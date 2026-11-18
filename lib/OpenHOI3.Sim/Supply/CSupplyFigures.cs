@@ -2,6 +2,7 @@ using System;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Modifiers;
 
 namespace OpenHOI3.Sim.Supply;
 
@@ -12,6 +13,24 @@ namespace OpenHOI3.Sim.Supply;
 /// </summary>
 public static class CSupplyFigures
 {
+	/// <summary>The key of <c>Infrastructure</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey InfrastructureKey = CModifierKey.Of(Infrastructure);
+
+	/// <summary>The key of <c>LocalInfrastructure</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey LocalInfrastructureKey = CModifierKey.Of(LocalInfrastructure);
+
+	/// <summary>The key of <c>GlobalInfrastructure</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey GlobalInfrastructureKey = CModifierKey.Of(GlobalInfrastructure);
+
+	/// <summary>The key of <c>Throughput</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey ThroughputKey = CModifierKey.Of(Throughput);
+
+	/// <summary>The key of <c>PartisanSupport</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey PartisanSupportKey = CModifierKey.Of(PartisanSupport);
+
+	/// <summary>The key of <c>TransferCost</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey TransferCostKey = CModifierKey.Of(TransferCost);
+
 	public const string Military = "military";
 	public const string WeatherSection = "weather";
 	public const string ThroughputImpact = "INFRA_THROUGHPUT_IMPACT";
@@ -40,8 +59,8 @@ public static class CSupplyFigures
 	/// </summary>
 	public static long EffectiveInfrastructure(CProvince province)
 	{
-		long built = province.Modifier[Infrastructure].Raw
-			* (CFixedPoint.Scale + province.Modifier[LocalInfrastructure].Raw + province.Modifier[GlobalInfrastructure].Raw)
+		long built = province.Modifier[InfrastructureKey].Raw
+			* (CFixedPoint.Scale + province.Modifier[LocalInfrastructureKey].Raw + province.Modifier[GlobalInfrastructureKey].Raw)
 			/ CFixedPoint.Scale;
 		return Math.Clamp(built, LeastInfrastructure, CFixedPoint.Scale);
 	}
@@ -130,7 +149,7 @@ public static class CSupplyFigures
 		long better = CFixedPoint.Scale;
 		if (state.Country(province.Controller) is { } holder)
 		{
-			better += holder.Modifier[Throughput].Raw + holder.Technology[Throughput].Raw;
+			better += holder.Modifier[ThroughputKey].Raw + holder.Technology[ThroughputKey].Raw;
 		}
 		return new CFixedPoint(better * worth / CFixedPoint.Scale);
 	}
@@ -153,7 +172,7 @@ public static class CSupplyFigures
 		// province takes off it - the figure its last day made, held between nothing and one (supply.md, section 8).
 		if (CMovementRules.IsEnemy(state, province.Controller, province.Owner))
 		{
-			long partisans = state.Defines[Military, PartisanTax].Raw * province.Modifier[PartisanSupport].Raw / CFixedPoint.Scale;
+			long partisans = state.Defines[Military, PartisanTax].Raw * province.Modifier[PartisanSupportKey].Raw / CFixedPoint.Scale;
 			long suppression = Math.Clamp(province.Suppression.Raw, 0, CFixedPoint.Scale);
 			times += partisans * (CFixedPoint.Scale - suppression) / CFixedPoint.Scale;
 		}
@@ -161,7 +180,7 @@ public static class CSupplyFigures
 
 		if (state.Country(province.Controller) is { } holder)
 		{
-			tax += holder.Technology[TransferCost].Raw;
+			tax += holder.Technology[TransferCostKey].Raw;
 		}
 		return new CFixedPoint(Math.Max(tax, 0));
 	}

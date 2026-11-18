@@ -121,7 +121,7 @@ internal static class CReloadCheck
 		"CUnit.LeaderId", "CUnit.LeaderLine", "CUnit.IsReserve", "CGameState.LoadedFromSave",
 		"CGameState._navalDistances", "CGameState.RouteScratch", "CProvince.NearProvinces", "CGameState.AirBaseHolders",
 		"CGameState._handChanges", "CProvince._handChanges", "CGameState._controlledCounts", "CGameState._controlledCountsAt",
-		"CGameState.IntelFingerprint", "CCountryFacts.ControlChanges", "COwnedCounts.ControlChanges", "CGameState.PlanTypeOrder", "CGameState.ContinentNames", "CGameState.PlanGroups", "CGameState.ControlledLists",
+		"CGameState.IntelFingerprint", "CCountryFacts.ControlChanges", "COwnedCounts.ControlChanges", "CGameState.PlanTypeOrder", "CGameState.ContinentNames", "CGameState.PlanGroups", "CGameState.ControlledLists", "CModifier._slots", "CModifier._view",
 		"CSupplyNetwork.ControlChanges",
 		"CUnit.CombatAttack", "CUnit.CombatModifiers", "CUnit.DefencesUsed",
 		"CSubUnit.CombatAttack", "CSubUnit.CombatDefence", "CSubUnit.CombatModifiers",

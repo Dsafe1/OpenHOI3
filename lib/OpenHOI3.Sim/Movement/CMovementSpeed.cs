@@ -5,6 +5,7 @@ using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
 using OpenHOI3.Sim.Weather;
+using OpenHOI3.Sim.Modifiers;
 
 namespace OpenHOI3.Sim.Movement;
 
@@ -16,6 +17,30 @@ namespace OpenHOI3.Sim.Movement;
 /// </summary>
 public static class CMovementSpeed
 {
+	/// <summary>The key of <c>"infrastructure"</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey InfrastructureKey = CModifierKey.Of("infrastructure");
+
+	/// <summary>The key of <c>"local_infrastructure"</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey LocalInfrastructureKey = CModifierKey.Of("local_infrastructure");
+
+	/// <summary>The key of <c>"global_infrastructure"</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey GlobalInfrastructureKey = CModifierKey.Of("global_infrastructure");
+
+	/// <summary>The key of <c>MaximumSpeed</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey MaximumSpeedKey = CModifierKey.Of(MaximumSpeed);
+
+	/// <summary>The key of <c>LocalUnitSpeed</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey LocalUnitSpeedKey = CModifierKey.Of(LocalUnitSpeed);
+
+	/// <summary>The key of <c>MobileSpeed</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey MobileSpeedKey = CModifierKey.Of(MobileSpeed);
+
+	/// <summary>The key of <c>MovementAdjuster</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey MovementAdjusterKey = CModifierKey.Of(MovementAdjuster);
+
+	/// <summary>The key of <c>CUnitSupply.FuelStatistic</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey FuelStatisticKey = CModifierKey.Of(CUnitSupply.FuelStatistic);
+
 	public const string MaximumSpeed = "maximum_speed";
 	public const string IsMobile = "is_mobile";
 
@@ -90,8 +115,8 @@ public static class CMovementSpeed
 	/// </summary>
 	private static long Redeployment(CGameState state, CProvince here)
 	{
-		long infrastructure = here.Modifier["infrastructure"].Raw
-			* (Scale + here.Modifier["local_infrastructure"].Raw + here.Modifier["global_infrastructure"].Raw) / Scale;
+		long infrastructure = here.Modifier[InfrastructureKey].Raw
+			* (Scale + here.Modifier[LocalInfrastructureKey].Raw + here.Modifier[GlobalInfrastructureKey].Raw) / Scale;
 		infrastructure = System.Math.Clamp(infrastructure, 10, Scale);
 		return state.Defines[CManpower.MilitarySection, StratRedeployBaseSpeed].Raw * infrastructure / Scale;
 	}
@@ -108,7 +133,7 @@ public static class CMovementSpeed
 		CFixedPoint slowest = CFixedPoint.Zero;
 		foreach (CSubUnit subUnit in unit.SubUnits)
 		{
-			CFixedPoint speed = subUnit.Stats[MaximumSpeed];
+			CFixedPoint speed = subUnit.Stats[MaximumSpeedKey];
 			if (!any || speed < slowest)
 			{
 				slowest = speed;
@@ -189,12 +214,12 @@ public static class CMovementSpeed
 		if (isLand)
 		{
 			long weather = CWeatherEffects.Movement(state, here.Weather, country);
-			modifier = modifier * (Scale + weather + here.Modifier[LocalUnitSpeed].Raw) / Scale;
+			modifier = modifier * (Scale + weather + here.Modifier[LocalUnitSpeedKey].Raw) / Scale;
 
 			long share = MobileShare(unit);
 			if (share > 0)
 			{
-				long bonus = country.Modifier[MobileSpeed].Raw * share / Scale;
+				long bonus = country.Modifier[MobileSpeedKey].Raw * share / Scale;
 				modifier = modifier * (Scale + bonus) / Scale;
 			}
 		}
@@ -249,11 +274,11 @@ public static class CMovementSpeed
 		if (IsLand(unit))
 		{
 			weather = Scale + CWeatherEffects.Movement(state, here.Weather, country);
-			local = Scale + here.Modifier[LocalUnitSpeed].Raw;
+			local = Scale + here.Modifier[LocalUnitSpeedKey].Raw;
 			long share = MobileShare(unit);
 			if (share > 0)
 			{
-				mobile = Scale + country.Modifier[MobileSpeed].Raw * share / Scale;
+				mobile = Scale + country.Modifier[MobileSpeedKey].Raw * share / Scale;
 			}
 		}
 		long retreating = unit.IsRetreating ? Scale + RetreatHaste : Scale;
@@ -276,7 +301,7 @@ public static class CMovementSpeed
 		{
 			if (CUnits.CountsTowardsItsUnit(unit, subUnit) && subUnit.Stats.Adjusters.TryGetValue(name, out Modifiers.CModifier? adjuster))
 			{
-				sum += adjuster[MovementAdjuster].Raw;
+				sum += adjuster[MovementAdjusterKey].Raw;
 			}
 		}
 		return sum / unit.SubUnits.Count;
@@ -304,7 +329,7 @@ public static class CMovementSpeed
 	{
 		foreach (CSubUnit subUnit in unit.SubUnits)
 		{
-			if (subUnit.Stats[CUnitSupply.FuelStatistic] > CFixedPoint.Zero)
+			if (subUnit.Stats[FuelStatisticKey] > CFixedPoint.Zero)
 			{
 				return true;
 			}

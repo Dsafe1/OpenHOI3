@@ -34,6 +34,9 @@ public sealed class CSubUnitStats
 
 	public CFixedPoint this[string statistic] => Values[statistic];
 
+	/// <summary>A statistic by its key, for what asks it every hour (<see cref="CModifierKey"/>).</summary>
+	public CFixedPoint this[CModifierKey statistic] => Values[statistic];
+
 	/// <summary>Makes this a copy of another.</summary>
 	public void CopyFrom(CSubUnitStats other)
 	{

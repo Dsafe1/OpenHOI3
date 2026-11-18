@@ -3,6 +3,7 @@ using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Modifiers;
 
 namespace OpenHOI3.Sim.Units;
 
@@ -17,6 +18,33 @@ namespace OpenHOI3.Sim.Units;
 /// </summary>
 public static class COrganisation
 {
+	/// <summary>The key of <c>CSubUnitType.DefaultOrganisation</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey DefaultOrganisationKey = CModifierKey.Of(CSubUnitType.DefaultOrganisation);
+
+	/// <summary>The key of <c>CUnits.ReservesPenaltySize</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey ReservesPenaltySizeKey = CModifierKey.Of(CUnits.ReservesPenaltySize);
+
+	/// <summary>The key of <c>RegainModifier</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey RegainModifierKey = CModifierKey.Of(RegainModifier);
+
+	/// <summary>The key of <c>Infrastructure</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey InfrastructureKey = CModifierKey.Of(Infrastructure);
+
+	/// <summary>The key of <c>LocalInfrastructure</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey LocalInfrastructureKey = CModifierKey.Of(LocalInfrastructure);
+
+	/// <summary>The key of <c>GlobalInfrastructure</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey GlobalInfrastructureKey = CModifierKey.Of(GlobalInfrastructure);
+
+	/// <summary>The key of <c>Morale</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey MoraleKey = CModifierKey.Of(Morale);
+
+	/// <summary>The key of <c>CSubUnitType.MaxStrength</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey MaxStrengthKey = CModifierKey.Of(CSubUnitType.MaxStrength);
+
+	/// <summary>The key of <c>CSubUnitStats.BuildCostManpower</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey BuildCostManpowerKey = CModifierKey.Of(CSubUnitStats.BuildCostManpower);
+
 	public const string LandOrganisation = "land_organisation";
 	public const string NavalOrganisation = "naval_organisation";
 	public const string AirOrganisation = "air_organisation";
@@ -83,7 +111,7 @@ public static class COrganisation
 		bool penaltyAtWar = false, bool penaltyAlways = false)
 	{
 		owner = (subUnit.Unit is { } lent ? state.Country(lent.FiguresOwner) : null) ?? owner;
-		long most = subUnit.Stats[CSubUnitType.DefaultOrganisation].Raw;
+		long most = subUnit.Stats[DefaultOrganisationKey].Raw;
 		if (state.IsBeingMade)
 		{
 			return new CFixedPoint(most);
@@ -93,7 +121,7 @@ public static class COrganisation
 			most += bonus;
 			if (subUnit.IsReserve && CUnits.ReservePenaltyApplies(state, owner, penaltyAtWar, penaltyAlways))
 			{
-				most = (CFixedPoint.Scale + owner.Modifier[CUnits.ReservesPenaltySize].Raw) * most / CFixedPoint.Scale;
+				most = (CFixedPoint.Scale + owner.Modifier[ReservesPenaltySizeKey].Raw) * most / CFixedPoint.Scale;
 			}
 			most = most * owner.OfficerRatio.Raw / CFixedPoint.Scale;
 		}
@@ -170,7 +198,7 @@ public static class COrganisation
 		{
 			factor = crowding.Of(unit) * factor / CFixedPoint.Scale;
 		}
-		factor = (owner.Modifier[RegainModifier].Raw + CFixedPoint.Scale) * factor / CFixedPoint.Scale;
+		factor = (owner.Modifier[RegainModifierKey].Raw + CFixedPoint.Scale) * factor / CFixedPoint.Scale;
 
 		return unit.SuppliesReceived.Raw == 0 ? Unsupplied : factor;
 	}
@@ -200,7 +228,7 @@ public static class COrganisation
 		{
 			factor = new CBaseCrowding(state).Of(unit) * factor / CFixedPoint.Scale;
 		}
-		factor = (owner.Modifier[RegainModifier].Raw + CFixedPoint.Scale) * factor / CFixedPoint.Scale;
+		factor = (owner.Modifier[RegainModifierKey].Raw + CFixedPoint.Scale) * factor / CFixedPoint.Scale;
 		factor = CUnitTotals.Mean(unit, Morale).Raw * factor / CFixedPoint.Scale;
 		return factor * ShareOfAnHour / CFixedPoint.Scale;
 	}
@@ -208,8 +236,8 @@ public static class COrganisation
 	/// <summary>The roads' term: a province's infrastructure by its two modifiers, held between a hundredth and the whole.</summary>
 	private static long Roads(CProvince province)
 	{
-		long roads = province.Modifier[Infrastructure].Raw
-			* (province.Modifier[LocalInfrastructure].Raw + province.Modifier[GlobalInfrastructure].Raw + CFixedPoint.Scale)
+		long roads = province.Modifier[InfrastructureKey].Raw
+			* (province.Modifier[LocalInfrastructureKey].Raw + province.Modifier[GlobalInfrastructureKey].Raw + CFixedPoint.Scale)
 			/ CFixedPoint.Scale;
 		return Math.Min(Math.Max(roads, LeastInfrastructure), CFixedPoint.Scale);
 	}
@@ -235,7 +263,7 @@ public static class COrganisation
 			factor = (CFixedPoint.Scale - lowBonus) * factor / CFixedPoint.Scale;
 		}
 
-		long gain = subUnit.Stats[Morale].Raw * factor / CFixedPoint.Scale;
+		long gain = subUnit.Stats[MoraleKey].Raw * factor / CFixedPoint.Scale;
 		gain = gain * ShareOfAnHour / CFixedPoint.Scale;
 		if (redeploymentLoss is { } loss)
 		{
@@ -306,9 +334,9 @@ public static class COrganisation
 				long over = subUnit.Strength.Raw - most;
 				if (over > 0)
 				{
-					long full = subUnit.Stats[CSubUnitType.MaxStrength].Raw;
+					long full = subUnit.Stats[MaxStrengthKey].Raw;
 					long share = full == 0 ? -1 : over * CFixedPoint.Scale / full;
-					long men = share * subUnit.Stats[CSubUnitStats.BuildCostManpower].Raw / CFixedPoint.Scale;
+					long men = share * subUnit.Stats[BuildCostManpowerKey].Raw / CFixedPoint.Scale;
 					country.Manpower = new CFixedPoint(Math.Max(0, country.Manpower.Raw + men));
 
 					// The most it has ever had starts again from here.

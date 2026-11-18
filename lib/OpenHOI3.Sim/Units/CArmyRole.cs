@@ -1,4 +1,5 @@
 using OpenHOI3.Sim.Leaders;
+using OpenHOI3.Sim.Modifiers;
 
 namespace OpenHOI3.Sim.Units;
 
@@ -10,6 +11,18 @@ namespace OpenHOI3.Sim.Units;
 /// </summary>
 public static class CArmyRole
 {
+	/// <summary>The key of <c>CCommandReach.RadioStrength</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey RadioStrengthKey = CModifierKey.Of(CCommandReach.RadioStrength);
+
+	/// <summary>The key of <c>CUnitTotals.Softness</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey SoftnessKey = CModifierKey.Of(CUnitTotals.Softness);
+
+	/// <summary>The key of <c>CSubUnitType.CombatWidth</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey CombatWidthKey = CModifierKey.Of(CSubUnitType.CombatWidth);
+
+	/// <summary>The key of <c>Speed</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey SpeedKey = CModifierKey.Of(Speed);
+
 	public const int Headquarters = 0;
 	public const int Support = 1;
 	public const int Infantry = 2;
@@ -36,7 +49,7 @@ public static class CArmyRole
 	/// </summary>
 	public static int Of(CSubUnitType type)
 	{
-		if (type.Stats[CCommandReach.RadioStrength].Raw > CFixedPoint.Scale)
+		if (type.Stats[RadioStrengthKey].Raw > CFixedPoint.Scale)
 		{
 			return Headquarters;
 		}
@@ -44,15 +57,15 @@ public static class CArmyRole
 		{
 			return role;
 		}
-		if (type.Stats[CUnitTotals.Softness].Raw < ArmourSoftness)
+		if (type.Stats[SoftnessKey].Raw < ArmourSoftness)
 		{
 			return Armour;
 		}
-		if (type.Stats[CSubUnitType.CombatWidth].Raw < CFixedPoint.Scale)
+		if (type.Stats[CombatWidthKey].Raw < CFixedPoint.Scale)
 		{
 			return Support;
 		}
-		return type.Stats[Speed].Raw >= FastSpeed ? Fast : Infantry;
+		return type.Stats[SpeedKey].Raw >= FastSpeed ? Fast : Infantry;
 	}
 
 	/// <summary>
@@ -84,9 +97,9 @@ public static class CArmyRole
 			{
 				byKey[role]++;
 			}
-			softness += brigade.Stats[CUnitTotals.Softness].Raw;
-			speed += brigade.Stats[Speed].Raw;
-			if (type.Stats[CSubUnitType.CombatWidth].Raw < CFixedPoint.Scale)
+			softness += brigade.Stats[SoftnessKey].Raw;
+			speed += brigade.Stats[SpeedKey].Raw;
+			if (type.Stats[CombatWidthKey].Raw < CFixedPoint.Scale)
 			{
 				narrow++;
 			}

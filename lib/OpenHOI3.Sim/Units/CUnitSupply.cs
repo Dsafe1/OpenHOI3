@@ -4,6 +4,7 @@ using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Research;
+using OpenHOI3.Sim.Modifiers;
 
 namespace OpenHOI3.Sim.Units;
 
@@ -15,6 +16,18 @@ namespace OpenHOI3.Sim.Units;
 /// </summary>
 public static class CUnitSupply
 {
+	/// <summary>The key of <c>Consumption</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey ConsumptionKey = CModifierKey.Of(Consumption);
+
+	/// <summary>The key of <c>SupplyStatistic</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey SupplyStatisticKey = CModifierKey.Of(SupplyStatistic);
+
+	/// <summary>The key of <c>FuelStatistic</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey FuelStatisticKey = CModifierKey.Of(FuelStatistic);
+
+	/// <summary>The key of <c>CSubUnitType.MaxStrength</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey MaxStrengthKey = CModifierKey.Of(CSubUnitType.MaxStrength);
+
 	/// <summary>The modifier a law or a minister sets: more or less of everything a unit uses.</summary>
 	public const string Consumption = "supply_consumption";
 
@@ -35,7 +48,7 @@ public static class CUnitSupply
 	/// </summary>
 	public static long Potency(CGameState state, CCountry owner, CUnit unit)
 	{
-		long potency = CFixedPoint.Scale + owner.Modifier[Consumption].Raw;
+		long potency = CFixedPoint.Scale + owner.Modifier[ConsumptionKey].Raw;
 
 		CUnit? group = unit;
 		while (group is not null && CCommandReach.Level(group) != 1)
@@ -57,9 +70,9 @@ public static class CUnitSupply
 	{
 		if (subUnit.Unit is not { } unit)
 		{
-			return subUnit.Stats[SupplyStatistic];
+			return subUnit.Stats[SupplyStatisticKey];
 		}
-		long used = subUnit.Stats[SupplyStatistic].Raw * (Potency(state, owner, unit) + LevelsHeld(subUnit) * PerLevel) / CFixedPoint.Scale;
+		long used = subUnit.Stats[SupplyStatisticKey].Raw * (Potency(state, owner, unit) + LevelsHeld(subUnit) * PerLevel) / CFixedPoint.Scale;
 		if (unit.Kind != EUnitKind.Navy)
 		{
 			used = used * Share(subUnit) / CFixedPoint.Scale;
@@ -75,9 +88,9 @@ public static class CUnitSupply
 	{
 		if (subUnit.Unit is not { } unit)
 		{
-			return subUnit.Stats[FuelStatistic];
+			return subUnit.Stats[FuelStatisticKey];
 		}
-		long used = subUnit.Stats[FuelStatistic].Raw * (Potency(state, owner, unit) + LevelsHeld(subUnit) * PerLevel) / CFixedPoint.Scale;
+		long used = subUnit.Stats[FuelStatisticKey].Raw * (Potency(state, owner, unit) + LevelsHeld(subUnit) * PerLevel) / CFixedPoint.Scale;
 		if (subUnit.Type.Branch != EUnitBranch.Naval)
 		{
 			used = used * Share(subUnit) / CFixedPoint.Scale;
@@ -88,7 +101,7 @@ public static class CUnitSupply
 	/// <summary>A brigade's strength over its most, in thousandths; -1 where its type has no most.</summary>
 	private static long Share(CSubUnit subUnit)
 	{
-		long full = subUnit.Stats[CSubUnitType.MaxStrength].Raw;
+		long full = subUnit.Stats[MaxStrengthKey].Raw;
 		return full == 0 ? -1 : subUnit.Strength.Raw * CFixedPoint.Scale / full;
 	}
 
@@ -114,10 +127,10 @@ public static class CUnitSupply
 		long total = 0;
 		foreach (CSubUnit subUnit in unit.SubUnits)
 		{
-			long used = subUnit.Stats[SupplyStatistic].Raw * (potency + LevelsHeld(subUnit) * PerLevel) / CFixedPoint.Scale;
+			long used = subUnit.Stats[SupplyStatisticKey].Raw * (potency + LevelsHeld(subUnit) * PerLevel) / CFixedPoint.Scale;
 			if (unit.Kind != EUnitKind.Navy)
 			{
-				long full = subUnit.Stats[CSubUnitType.MaxStrength].Raw;
+				long full = subUnit.Stats[MaxStrengthKey].Raw;
 				long share = full == 0 ? -1 : subUnit.Strength.Raw * CFixedPoint.Scale / full;
 				used = used * share / CFixedPoint.Scale;
 			}
@@ -134,7 +147,7 @@ public static class CUnitSupply
 		long total = 0;
 		foreach (CSubUnit subUnit in unit.SubUnits)
 		{
-			total += subUnit.Stats[FuelStatistic].Raw * (potency + LevelsHeld(subUnit) * PerLevel) / CFixedPoint.Scale;
+			total += subUnit.Stats[FuelStatisticKey].Raw * (potency + LevelsHeld(subUnit) * PerLevel) / CFixedPoint.Scale;
 		}
 		return new CFixedPoint(total);
 	}

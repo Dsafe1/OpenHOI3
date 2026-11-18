@@ -1,6 +1,7 @@
 using System.Linq;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Modifiers;
 
 namespace OpenHOI3.Sim.Units;
 
@@ -10,6 +11,9 @@ namespace OpenHOI3.Sim.Units;
 /// </summary>
 public static class COfficers
 {
+	/// <summary>The key of <c>CSubUnitType.Officers</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey OfficersKey = CModifierKey.Of(CSubUnitType.Officers);
+
 	/// <summary>The define the ratio is never above.</summary>
 	public const string MostRatio = "MAX_OFFICERS";
 
@@ -25,14 +29,14 @@ public static class COfficers
 		{
 			foreach (CSubUnit subUnit in unit.SubUnits)
 			{
-				needed += subUnit.Stats[CSubUnitType.Officers];
+				needed += subUnit.Stats[OfficersKey];
 			}
 		}
 		foreach (CUnit unit in country.Deployments)
 		{
 			foreach (CSubUnit subUnit in unit.SubUnits)
 			{
-				needed += subUnit.Stats[CSubUnitType.Officers];
+				needed += subUnit.Stats[OfficersKey];
 			}
 		}
 		return needed;
