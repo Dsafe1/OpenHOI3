@@ -231,6 +231,7 @@ which is what the last thousandth depends on:
 | **a paradrop** | an attacker dropped from the air (`transport.md`, section 13.4) | `PARADROP_PENALTY` + `paradrop_mission`, where below nothing; and then no landing |
 | **a landing** | an attacker standing in the sea (not the rebels'), or whose way is a strait | `AMPHIBIOUS_LANDING_PENALTY` + the unit's `amphibious` attack figure + `amph_attack`, where below nothing - cut by its fleet's invasion defence where it is going ashore from aboard one, and a hundredth worse with none (`transport.md`, section 9) - and no worse than -0.99 |
 | **forts** | an attacker | the province's `fort_level` - its `coastal_fort_level` for a landing - in **whole levels** x `BASE_FORT_PENALTY`, + `fort_attack` + the unit's `fort` attack figure; never in the attacker's favour |
+| **shore bombardment** | every unit of a side, either side, with enemy units still in the seas beside the province | below |
 | **several battles** | a defender in more than one | -`MULTIPLE_COMBATS_PENALTY`, once however many |
 | **experience** | every unit | a hundredth for each point of its brigades' average experience (a pride of the fleet counting for `PRIDE_BONUS_EXP` more), x (1 + `experience_bonus`) |
 | **combined arms** | a unit whose mix of brigades counts - every brigade's group, a broken support brigade's too (`reversing/findings/FINDINGS-liveread.md`, section 28) | what the mix is worth (`builders.md`, section 6) + `combined_arms_bonus` |
@@ -325,9 +326,34 @@ against it, never in its favour, put on after envelopment. `confirmed` on the ru
 original's battle had and ours lacked (`reversing/findings/FINDINGS-liveread.md`, section 31;
 `reversing/findings/FINDINGS-aihelpers.md` for the test). The AI's odds weigh it too (`moving.md`, 11.4).
 
-*Not built:* shore bombardment (fleets do not fight); mission efficiency; the
-landing craft that ease a landing at a port; and three technology figures - one off the
-crowding, one on the chance to avoid a hit, one on the dig-in cap.
+**Shore bombardment** is worked out once for each side, each hour, and put on every unit of it, attack and defence
+alike: `confirmed` (`reversing/findings/FINDINGS-combatmods.md`, BM_SHORE_BOMBARD, as `FINDINGS-transport.md` corrects
+it; the side's test read 2026-11-18)
+
+    for each province the battle's province has an edge to that is a sea:
+        for each unit there that is going nowhere - no province left on its path -
+            whose owner is not the owner of the side's first unit, and is at war with it,
+            or either of the two is the rebels:
+                shore += its brigades' shore_bombardment x SHORE_BOMBARDMENT_MOD, truncated
+    shore = the larger of shore and SHORE_BOMBARDMENT_CAP
+
+with `SHORE_BOMBARDMENT_MOD` -0.01 and `SHORE_BOMBARDMENT_CAP` -0.25 in Their Finest Hour, so the cap holds the penalty
+at a quarter. A side with no units has none.
+
+- **It is the side's first unit whose owner is asked**, so a side of two countries is bombarded by the first one's
+  enemies alone.
+- **Nothing asks whether the side has fleets of its own** offshore, or whether the bombarding units are fleets: any
+  unit standing in the sea counts by its brigades' figure, which only ships have.
+- **A fleet under way bombards nothing**, and one standing still does - escorts waiting off a beach bombard its
+  defenders, the landing's attackers being on the other side.
+- **The cap is a floor taken as it stands**: a mod whose cap is above nothing puts that much on every unit of every
+  land battle, bombarded or not. Kept as the original's; `docs/enhanced.md`.
+
+Built 2026-11-18 (`CCombatModifiers.ShoreBombardment`). The icon and its text are the install's (`CMOD_BM_SHORE_BOMBARD`,
+`BM_SHORE_BOMBARD`).
+
+*Not built:* mission efficiency; the landing craft that ease a landing at a port; and three technology figures - one
+off the crowding, one on the chance to avoid a hit, one on the dig-in cap.
 
 ## 5. The shooting
 
@@ -642,11 +668,11 @@ whom, for how long, and how many stand on each front; it is scaffolding.
 - ~~**Leaders**, wherever one is named above.~~ Built on 2026-10-11, but for the
   aggressiveness a side's leader picks a tactic with (section 11).
 - ~~**Experience** from a battle, a leader's included, and the traits he earns there.~~
-  Built on 2026-10-11 (`leaders.md`, section 11). **The practical knowledge** a round gives is
-  not.
+  Built on 2026-10-11 (`leaders.md`, section 11). ~~**The practical knowledge** a round gives is
+  not.~~ Built on 2026-11-18 (`research.md`, section 10).
 - **Air units**: a battle in the air and bombing are their own pieces. Fleets fight one
-  another at sea since 2026-10-10 (`navalcombat.md`), and have no part in a land battle
-  yet: shore bombardment is not built.
+  another at sea since 2026-10-10 (`navalcombat.md`), and bombard a land battle's sides from
+  the sea beside it since 2026-11-18 (section 4).
 - **Supply**: a unit fights and walks by the supplies `upkeep.md` hands it, which do not
   depend on where it is.
 - **The AI**: nothing moves unless the player moves it.

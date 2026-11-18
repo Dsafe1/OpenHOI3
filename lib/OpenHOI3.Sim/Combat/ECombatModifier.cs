@@ -15,6 +15,9 @@ public enum ECombatModifier
 
 	Amphibious,
 	Fort,
+
+	/// <summary>On land: enemy fleets standing still in the seas beside the battle (<c>landcombat.md</c>, section 4).</summary>
+	ShoreBombardment,
 	MultipleCombats,
 
 	/// <summary>The difficulty, for a played country's unit (<c>frontend.md</c>, section 4).</summary>

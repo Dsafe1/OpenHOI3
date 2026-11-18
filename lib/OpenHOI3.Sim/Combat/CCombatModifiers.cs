@@ -32,6 +32,11 @@ public static class CCombatModifiers
 	public const string EnvelopmentPenalty = "ENVELOPMENT_PENALTY";
 	public const string EncircledPenalty = "ENCIRCLED_PENALTY";
 	public const string LeaderImpact = "COMBAT_LEADER_IMPACT";
+	public const string ShoreBombardmentMod = "SHORE_BOMBARDMENT_MOD";
+	public const string ShoreBombardmentCap = "SHORE_BOMBARDMENT_CAP";
+
+	/// <summary>A unit type's figure for what it does to a shore from the sea beside it.</summary>
+	public const string ShoreBombardmentStatistic = "shore_bombardment";
 
 	/// <summary>The country modifier a defending unit's leader bonus is made more or less by.</summary>
 	public const string LeaderDefence = "leader_defence";
@@ -77,6 +82,7 @@ public static class CCombatModifiers
 		long stacking = Stacking(state, side, directions);
 		bool isNight = CDaylight.IsNight(state, province);
 		bool isCutOff = IsIsolatedLand(state, province);
+		long shore = ShoreBombardment(state, province, side);
 		CDefines defines = state.Defines;
 
 		foreach (CUnit unit in side.Units)
@@ -96,6 +102,11 @@ public static class CCombatModifiers
 			if (side.IsAttacker)
 			{
 				Assault(state, province, unit);
+			}
+
+			if (shore != 0)
+			{
+				Add(unit, ECombatModifier.ShoreBombardment, shore);
 			}
 
 			if (!side.IsAttacker && unit.Combats.Count > 1)
@@ -203,6 +214,46 @@ public static class CCombatModifiers
 				Add(unit, ECombatModifier.TerritorialPride, owner.Modifier[TerritorialPride].Raw);
 			}
 		}
+	}
+
+	/// <summary>
+	/// What enemy fleets in the seas beside the battle do to a side, worked out once for it: every unit in each sea
+	/// province the battle's province has an edge to that is going nowhere, and whose owner is not the owner of the side's
+	/// first unit but at war with it - or either is the rebels - gives its brigades' <c>shore_bombardment</c> times
+	/// <c>SHORE_BOMBARDMENT_MOD</c>, each truncated; the sum is held at <c>SHORE_BOMBARDMENT_CAP</c>, the defines being
+	/// negative. Nothing asks whether the side has a fleet of its own (<c>landcombat.md</c>, section 4).
+	/// </summary>
+	public static long ShoreBombardment(CGameState state, CProvince province, CCombatSide side)
+	{
+		if (side.Units.Count == 0)
+		{
+			return 0;
+		}
+		CCountryTag first = side.Units[0].Owner;
+		CDefines defines = state.Defines;
+		long factor = defines[CManpower.MilitarySection, ShoreBombardmentMod].Raw;
+		long shore = 0;
+		foreach (CProvinceEdge edge in province.Edges)
+		{
+			if (!state.Province(edge.To).IsSea)
+			{
+				continue;
+			}
+			foreach (CUnit fleet in state.UnitsIn(edge.To))
+			{
+				if (fleet.Path.Count > 0 || fleet.Owner == first)
+				{
+					continue;
+				}
+				if (!CCountryLists.AtWar(state, fleet.Owner, first)
+					&& !Revolts.CRebelFactions.IsRebels(first) && !Revolts.CRebelFactions.IsRebels(fleet.Owner))
+				{
+					continue;
+				}
+				shore += CUnitTotals.Sum(fleet, ShoreBombardmentStatistic).Raw * factor / CFixedPoint.Scale;
+			}
+		}
+		return Math.Max(shore, defines[CManpower.MilitarySection, ShoreBombardmentCap].Raw);
 	}
 
 	/// <summary>

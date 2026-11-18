@@ -48,8 +48,11 @@ public class CombatModifierTests
 		return new CProvinceEdge(to, kind, 0, CFixedPoint.One);
 	}
 
+	/// <summary>The Baltic, beside Posen where a test asks for a sea.</summary>
+	private const int Baltic = 6;
+
 	private static CGameState State(out CCountry germany, out CCountry poland, CTerrain? terrain = null,
-		EProvinceEdgeKind berlinToPosen = EProvinceEdgeKind.Plain)
+		EProvinceEdgeKind berlinToPosen = EProvinceEdgeKind.Plain, bool withSea = false, CCountry? third = null)
 	{
 		germany = new CCountry { Tag = Ger, Name = "Germany", DefinitionFile = "", Capital = Berlin };
 		poland = new CCountry { Tag = Pol, Name = "Poland", DefinitionFile = "", Capital = Warsaw };
@@ -69,6 +72,8 @@ public class CombatModifierTests
 		Define(CCombatModifiers.EnvelopmentPenalty, "0.1");
 		Define(CDigIn.Cap, "10");
 		Define(CReinforcement.PrideBonus, "10");
+		Define(CCombatModifiers.ShoreBombardmentMod, "-0.01");
+		Define(CCombatModifiers.ShoreBombardmentCap, "-0.25");
 
 		CProvince Land(int id, string name, CCountryTag owner, int x, params CProvinceEdge[] edges)
 		{
@@ -82,17 +87,29 @@ public class CombatModifierTests
 		var war = new CWar("war");
 		war.Attackers.Add(Ger);
 		war.Defenders.Add(Pol);
-		return new CGameState(new CDate(1936, 1, 1),
-			new[]
-			{
-				new CProvince(0, "", isSea: false),
-				Land(Berlin, "Berlin", Ger, 500, Edge(Posen, berlinToPosen)),
-				Land(Posen, "Posen", Pol, 500, Edge(Berlin, berlinToPosen), Edge(Warsaw), Edge(Breslau), Edge(Stettin)),
-				Land(Warsaw, "Warsaw", Pol, 500, Edge(Posen)),
-				Land(Breslau, "Breslau", Ger, 500, Edge(Posen)),
-				Land(Stettin, "Stettin", Ger, 500, Edge(Posen)),
-			},
-			new[] { germany, poland }, defines: defines, wars: new[] { war })
+		var posenEdges = new List<CProvinceEdge> { Edge(Berlin, berlinToPosen), Edge(Warsaw), Edge(Breslau), Edge(Stettin) };
+		var provinces = new List<CProvince>
+		{
+			new CProvince(0, "", isSea: false),
+			Land(Berlin, "Berlin", Ger, 500, Edge(Posen, berlinToPosen)),
+			Land(Posen, "Posen", Pol, 500),
+			Land(Warsaw, "Warsaw", Pol, 500, Edge(Posen)),
+			Land(Breslau, "Breslau", Ger, 500, Edge(Posen)),
+			Land(Stettin, "Stettin", Ger, 500, Edge(Posen)),
+		};
+		if (withSea)
+		{
+			posenEdges.Add(Edge(Baltic));
+			provinces.Add(new CProvince(Baltic, "Baltic", isSea: true) { Edges = new[] { Edge(Posen) }, PositionX = 500, PositionY = 500 });
+		}
+		provinces[Posen].Edges = posenEdges.ToArray();
+		var countries = new List<CCountry> { germany, poland };
+		if (third is not null)
+		{
+			countries.Add(third);
+		}
+		return new CGameState(new CDate(1936, 1, 1), provinces,
+			countries, defines: defines, wars: new[] { war })
 		{
 			MapWidth = 1000, MapHeight = 1000,
 		};
@@ -165,6 +182,66 @@ public class CombatModifierTests
 
 	/// <summary>The middle of the day at the middle of the map, whose clock is the game's own.</summary>
 	private const int Noon = 12;
+
+	/// <summary>A fleet of one ship of the shore bombardment given, in the Baltic.</summary>
+	private static CUnit Fleet(CGameState state, CCountry country, string shoreBombardment)
+	{
+		var type = new CSubUnitType("battleship", EUnitBranch.Naval);
+		type.Stats.Values.Set(CSubUnitType.MaxStrength, CFixedPoint.FromInt(100));
+		type.Stats.Values.Set(CCombatModifiers.ShoreBombardmentStatistic, CFixedPoint.Parse(shoreBombardment));
+		var fleet = new CUnit(EUnitKind.Navy, country.Tag) { Id = ++state.LastUnitId, Location = Baltic, Name = "Fleet" };
+		var ship = new CSubUnit(type) { Id = ++state.LastUnitId, Unit = fleet, Strength = CFixedPoint.FromInt(100), Organisation = CFixedPoint.FromInt(30) };
+		ship.Stats.CopyFrom(type.Stats);
+		fleet.SubUnits.Add(ship);
+		country.Units.Add(fleet);
+		state.ForgetPositions();
+		return fleet;
+	}
+
+	// --- shore bombardment ---
+
+	[Fact]
+	public void AnEnemyFleetStandingInTheSeaBesideTheBattleBombardsTheSideItIsAtWarWith()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland, withSea: true);
+		CUnit attacker = Division(state, germany, Berlin);
+		CUnit defender = Division(state, poland, Posen);
+		Fleet(state, germany, "5");
+		Battle(state, attacker, defender, Noon);
+
+		// 5 x -0.01 on the Polish side, attack and defence alike; nothing on the side the fleet is with.
+		Assert.Equal(CFixedPoint.Parse("-0.05"), Of(defender, ECombatModifier.ShoreBombardment));
+		Assert.Equal(CFixedPoint.Parse("0.95"), defender.CombatDefence);
+		Assert.Equal(CFixedPoint.Zero, Of(attacker, ECombatModifier.ShoreBombardment));
+	}
+
+	[Fact]
+	public void ShoreBombardmentIsHeldAtTheCap()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland, withSea: true);
+		CUnit attacker = Division(state, germany, Berlin);
+		CUnit defender = Division(state, poland, Posen);
+		Fleet(state, germany, "30");
+		Fleet(state, germany, "10");
+		Battle(state, attacker, defender, Noon);
+
+		Assert.Equal(CFixedPoint.Parse("-0.25"), Of(defender, ECombatModifier.ShoreBombardment));
+	}
+
+	[Fact]
+	public void AFleetUnderWayOrOfACountryNotAtWarBombardsNothing()
+	{
+		var sweden = new CCountry { Tag = new CCountryTag("SWE"), Name = "Sweden", DefinitionFile = "", Capital = Berlin };
+		CGameState state = State(out CCountry germany, out CCountry poland, withSea: true, third: sweden);
+		CUnit attacker = Division(state, germany, Berlin);
+		CUnit defender = Division(state, poland, Posen);
+		CUnit moving = Fleet(state, germany, "5");
+		moving.Path.Add(Posen);
+		Fleet(state, sweden, "5");
+		Battle(state, attacker, defender, Noon);
+
+		Assert.Equal(CFixedPoint.Zero, Of(defender, ECombatModifier.ShoreBombardment));
+	}
 
 	// --- the arithmetic ---
 

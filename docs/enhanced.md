@@ -106,6 +106,10 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - **A sea in no region is the Black Sea where the map lacks one.** Closed waters are asked by each sea's first region against the regions named `black_sea_region`, `baltic_sea_region` and `mediterranean_region`; a sea in no region and a name the map does not have both come out as nothing, so with a mod's `region.txt` missing one of the three, every sea in no region is taken for that sea. And a fleet in a battle may be sent only beside it, by the land unit's test of falling back, which asks for land strength and knows nothing of the enemy's ships. `fleetsandair.md`, 1; `movement.md`, 1. *Oversight.* Risk: none in Their Finest Hour, whose map has all three.
 - **"Arrived" where it was halted.** A unit halted on arrival because it may no longer stand in the province ahead - its holder changed under it - is told it has safely arrived, in the province it never left; and a land unit boarding a fleet whose way ran on and back to the same sea is told twice, the first time naming the shore. `movement.md`, 6. *Display.* Risk: none.
 - **Rebels have no organisation.** Their country has no officers, so a brigade's ceiling is nought after its first hour; experience starts at -1.0. Confirmed. `rebels.md`, 13. *Oversight.* Risk: rebels far stronger.
+- **Shore bombardment asks only the side's first unit's owner, and its cap is a floor taken as it stands.** A side of
+  several countries is bombarded by the first one's enemies alone, and a mod whose `SHORE_BOMBARDMENT_CAP` is above
+  nothing puts that much on every unit of every land battle, with no fleet anywhere. `landcombat.md`, 4. *Oversight.*
+  Risk: none in Their Finest Hour, whose cap is negative.
 - **The attacker picks its tactic with the defender's aggressiveness,** and the defender always with none. One value is written from each side's leader in turn and only the attacker's pick is given it. `landcombat.md`, 11. *Bug.* Risk: small; which tactics come up.
 
 ## Sea
