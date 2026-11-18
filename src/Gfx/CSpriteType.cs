@@ -68,6 +68,12 @@ public sealed class CSpriteType
 	public bool IsTiled => Kind.Equals("corneredTileSpriteType", StringComparison.OrdinalIgnoreCase);
 
 	/// <summary>
+	/// A <c>tileSpriteType</c>: a quad of <see cref="TileSize"/>, its texture repeated the declared size over its own, in
+	/// integer division, each way (<c>CTileSprite</c>; <c>docs/mechanics/interface.md</c>, section 5).
+	/// </summary>
+	public bool IsTileStrip => Kind.Equals("tileSpriteType", StringComparison.OrdinalIgnoreCase);
+
+	/// <summary>
 	/// A plain picture, a <c>spriteType</c>: a button drawn with one shows no words of its own, whatever its file or code
 	/// gives it (<c>docs/mechanics/interface.md</c>, section 2).
 	/// </summary>

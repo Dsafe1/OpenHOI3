@@ -111,10 +111,18 @@ A country screen also takes down the minimap, `minimap_bg` and `minimap_overlay`
 
 `reversing/findings/FINDINGS-minimap.md`, *The picture behind the country screens*.
 
+**The haze over it** is the screen's `topcolor_*` window, at its declared size and place, and its one picture
+`topcolor_icon`, a `tileSpriteType`: a quad of its sprite's declared `size`, the strip repeated across it
+(`interface.md`, section 5). The base game's strips, opaque at the top, stand under the top bar; BlackICE's are opaque
+at the foot and declared 1000 high at `LOWER_LEFT` y -195, so they rise from the screen's foot over its lower half, as
+the maintainer's screenshot of the original shows (2026-11-18). Until then the window was stretched over the screen
+and the strip spread across it, which put BlackICE's band below the screen and drew the Statistics' as a stripe at its
+left edge.
+
 ## What is not established, in one place
 
 1. **What the top bar's buttons do**, and whether opening one screen closes another.
-2. **How `topcolor_icon` is spread.**
+2. ~~**How `topcolor_icon` is spread.**~~ Settled 2026-11-18: above, and `interface.md` section 5.
 3. **What the mode arrows do**, there being no AI to hand a screen to.
 4. **The theatres screen.** Theatres shares the base and was not read; diplomacy was, on 2026-10-12, and is
    `diplomacyscreen.md`, politics on 2026-10-14 (`politics.md`, section 11), intelligence the same day (`espionagescreen.md`).

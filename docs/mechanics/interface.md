@@ -295,6 +295,15 @@ files, with nothing in it placed by hand.
 
 ## 5. Sprites, frames and flags
 
+- **A `tileSpriteType` is a quad of its declared `size`, the texture repeated across and down a whole number of
+  times** - the declared size over the file's, in integer division - each copy stretched to fill. `confirmed`
+  (`reversing/findings/FINDINGS-buttonstatefx.md`, section 7). The quad is built up from its foot (y up), and the foot
+  is placed by the file's own height, as a plain sprite's would be, so a quad declared taller than its file rises
+  above where the file would start: `measured` on the maintainer's screenshot of BlackICE's backdrop (2026-11-18), the
+  size the original places a tile sprite by not read. Only the `topcolor_*` backdrops use it (`countryviews.md`,
+  section 6): the base game's, 64 by 512 declared 2048 by 512, repeat 32 times across at their own scale;
+  BlackICE's, declared 2048 by 1000, 32 across and once down, 1000 over 512 being 1, stretched to 1000 high
+  (`CTileSprite`, `CGuiIcon`).
 - **A texture named `.tga` is its `.dds` wherever one exists, and the `.tga` only where
   none does.** `confirmed` (`reversing/findings/FINDINGS-textureload.md`). The original
   swaps the first `.tga` in the name for `.dds`, asks whether that file exists, and opens

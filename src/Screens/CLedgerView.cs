@@ -88,8 +88,8 @@ public sealed partial class CLedgerView : Control
 		_topColour = CGuiWindow.Create(_context, TopColourName);
 		if (_topColour is not null)
 		{
+			// At its declared size and place, as a country screen's: its tile sprite spreads itself (CTileSprite).
 			AddChild(_topColour);
-			_topColour.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
 			_topColour.Visible = false;
 		}
 		_window = CGuiWindow.Create(_context, WindowName);

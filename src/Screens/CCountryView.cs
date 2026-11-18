@@ -84,19 +84,10 @@ public abstract partial class CCountryView : Control
 		_topColour = CGuiWindow.Create(Context, TopColourName);
 		if (_topColour is not null)
 		{
+			// The window at its declared size and place: its one picture, a tileSpriteType, is a quad of the size its sprite
+			// declares, the strip repeated across it (CTileSprite) - the base game's under the top bar, BlackICE's standing up
+			// from the window's declared foot (docs/mechanics/countryviews.md, section 6).
 			AddChild(_topColour);
-
-			// Its one picture is a strip 64 wide that fades downwards: a haze of the
-			// screen's colour under the top bar. Drawn once it would be a stripe in the
-			// corner, so it is drawn across the whole screen. How the original spreads
-			// it was not read.
-			_topColour.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-			if (_topColour.TryFindIcon("topcolor_icon") is { } haze)
-			{
-				haze.AnchorRight = 1f;
-				haze.OffsetRight = 0f;
-				haze.MouseFilter = MouseFilterEnum.Ignore;
-			}
 		}
 		Window = CGuiWindow.Create(Context, WindowName);
 		if (Window is null)

@@ -310,6 +310,24 @@ public partial class CGuiIcon : CGuiObject
 			return;
 		}
 
+		if (sprite is { IsTileStrip: true })
+		{
+			// A quad of the declared size, the texture repeated its size over the file's in whole numbers each way, each copy
+			// stretched to fill (CTileSprite): drawn in _Draw with the texture repeating.
+			_texture = _context.Textures.Load(sprite);
+			// Placed by the file's own height, as a plain sprite is, and the quad - y up, from its foot - stands the declared
+			// height above that foot: the base game's, declared as tall as its file, where it always stood; BlackICE's, 1000
+			// over a file of 512, rises 488 above where its file would start (CTileSprite).
+			float fileHeight = (_texture?.GetHeight() ?? (int)sprite.TileSize.Y) * type.Scale;
+			Place(type, new Vector2(sprite.TileSize.X, 0f) * type.Scale + new Vector2(0f, fileHeight));
+			OffsetTop = OffsetBottom - sprite.TileSize.Y * type.Scale;
+			MouseFilter = MouseFilterEnum.Ignore;
+			TextureRepeat = TextureRepeatEnum.Enabled;
+			ShowTexture(null);
+			QueueRedraw();
+			return;
+		}
+
 		// A masked shield has no picture until it is given a country.
 		_texture = sprite is null || sprite.IsMaskedShield ? null : _context.Textures.Load(sprite);
 		Vector2 size = _texture is null ? Vector2.Zero : FrameSize(_texture, sprite!.FrameCount) * type.Scale;
@@ -472,6 +490,18 @@ public partial class CGuiIcon : CGuiObject
 		if (_sprite is { IsPieChart: true })
 		{
 			DrawPie();
+			return;
+		}
+		if (_sprite is { IsTileStrip: true })
+		{
+			if (_texture is not null)
+			{
+				// The far texture coordinate is the repeats; a source rectangle that many textures wide, the texture repeating.
+				(int repeatsAcross, int repeatsDown) = Interface.Text.CTileSprite.Repeats((int)_sprite.TileSize.X,
+					(int)_sprite.TileSize.Y, _texture.GetWidth(), _texture.GetHeight());
+				var source = new Rect2(0f, 0f, repeatsAcross * _texture.GetWidth(), repeatsDown * _texture.GetHeight());
+				DrawTextureRectRegion(_texture, new Rect2(Vector2.Zero, Size), source);
+			}
 			return;
 		}
 		if (_sprite is not { IsProgressBar: true })
