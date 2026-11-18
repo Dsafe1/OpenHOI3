@@ -91,8 +91,48 @@ public sealed class CNavalDistances
 		return _rows[index] ??= Measure(index);
 	}
 
+	/// <summary>
+	/// The steps between the places, made once: for each place, where its steps begin in <see cref="Steps.To"/> and
+	/// <see cref="Steps.Length"/>, in the order of its province's edges. The map does not change in a game, so neither do
+	/// they; a row is a walk over them alone.
+	/// </summary>
+	private sealed record Steps(int[] First, int[] To, long[] Length);
+
+	private Steps? _steps;
+
+	private Steps MakeSteps()
+	{
+		int count = _provinceOfIndex.Length;
+		var first = new int[count + 1];
+		var to = new List<int>();
+		var length = new List<long>();
+		for (int index = 0; index < count; index++)
+		{
+			first[index] = to.Count;
+			CProvince here = _provinces[_provinceOfIndex[index]];
+			foreach (CProvinceEdge edge in here.Edges)
+			{
+				if (edge.To <= 0 || edge.To >= _provinces.Count)
+				{
+					continue;
+				}
+				CProvince there = _provinces[edge.To];
+				if (there.SeaIndex < 0)
+				{
+					continue;
+				}
+				to.Add(there.SeaIndex);
+				length.Add(CMapDistance.Between(here, there, _mapWidth));
+			}
+		}
+		first[count] = to.Count;
+		return new Steps(first, to.ToArray(), length.ToArray());
+	}
+
 	private ushort[] Measure(int from)
 	{
+		// Made by whichever thread asks first; two making them at once make the same.
+		Steps steps = _steps ??= MakeSteps();
 		int count = _provinceOfIndex.Length;
 		var distance = new long[count];
 		System.Array.Fill(distance, long.MaxValue);
@@ -105,23 +145,14 @@ public sealed class CNavalDistances
 			{
 				continue;
 			}
-			CProvince here = _provinces[_provinceOfIndex[current]];
-			foreach (CProvinceEdge edge in here.Edges)
+			for (int k = steps.First[current]; k < steps.First[current + 1]; k++)
 			{
-				if (edge.To <= 0 || edge.To >= _provinces.Count)
+				int there = steps.To[k];
+				long further = reached + steps.Length[k];
+				if (further < distance[there])
 				{
-					continue;
-				}
-				CProvince there = _provinces[edge.To];
-				if (there.SeaIndex < 0)
-				{
-					continue;
-				}
-				long further = reached + CMapDistance.Between(here, there, _mapWidth);
-				if (further < distance[there.SeaIndex])
-				{
-					distance[there.SeaIndex] = further;
-					open.Enqueue(there.SeaIndex, further);
+					distance[there] = further;
+					open.Enqueue(there, further);
 				}
 			}
 		}

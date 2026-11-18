@@ -81,6 +81,14 @@ public sealed class CModifier
 	/// <summary>Adds every value of another modifier to this one, in its order.</summary>
 	public void Add(CModifier other)
 	{
+		// Room for all of them at once, where it would otherwise grow a doubling at a time.
+		if (_count + other._count > _ids.Length)
+		{
+			int size = Math.Max(_count + other._count, _ids.Length * 2);
+			Array.Resize(ref _ids, size);
+			Array.Resize(ref _keys, size);
+			Array.Resize(ref _values, size);
+		}
 		for (int i = 0; i < other._count; i++)
 		{
 			var key = new CModifierKey(other._ids[i]);
@@ -136,7 +144,7 @@ public sealed class CModifier
 		}
 		if (_count == _ids.Length)
 		{
-			int size = Math.Max(4, _count * 2);
+			int size = Math.Max(8, _count * 2);
 			Array.Resize(ref _ids, size);
 			Array.Resize(ref _keys, size);
 			Array.Resize(ref _values, size);

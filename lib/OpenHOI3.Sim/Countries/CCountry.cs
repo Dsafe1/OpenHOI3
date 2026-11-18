@@ -613,7 +613,8 @@ public sealed class CCountry
 	/// <summary>Every unit it has, at every level, each before the units under it.</summary>
 	public IEnumerable<CUnit> AllUnits()
 	{
-		var stack = new Stack<CUnit>(Units.Count + 16);
+		// Room for the top units and a few levels' children of the deepest way down, so a walk hardly ever grows it.
+		var stack = new Stack<CUnit>(Units.Count + 64);
 		for (int i = Units.Count - 1; i >= 0; i--)
 		{
 			stack.Push(Units[i]);

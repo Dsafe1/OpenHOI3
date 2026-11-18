@@ -373,7 +373,7 @@ public sealed class CUnit
 	/// <summary>This unit and every unit under it or aboard its ships, itself first.</summary>
 	public IEnumerable<CUnit> WithAllBelow()
 	{
-		var stack = new Stack<CUnit>();
+		var stack = new Stack<CUnit>(32);
 		stack.Push(this);
 		foreach (CUnit unit in Walk(stack))
 		{

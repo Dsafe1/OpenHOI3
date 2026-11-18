@@ -74,10 +74,27 @@ public static class CCountryLists
 	/// <summary>The countries at war with the country.</summary>
 	public static List<CCountry> Enemies(CGameState state, CCountry country)
 	{
+		// The other sides of its own wars, and then the countries in their order: the same as asking each country.
+		HashSet<CCountryTag>? opposed = null;
+		foreach (CWar war in state.Wars)
+		{
+			if (war.Attackers.Contains(country.Tag))
+			{
+				(opposed ??= new HashSet<CCountryTag>()).UnionWith(war.Defenders);
+			}
+			if (war.Defenders.Contains(country.Tag))
+			{
+				(opposed ??= new HashSet<CCountryTag>()).UnionWith(war.Attackers);
+			}
+		}
 		var enemies = new List<CCountry>();
+		if (opposed is null)
+		{
+			return enemies;
+		}
 		foreach (CCountry other in state.Countries)
 		{
-			if (AtWar(state, country.Tag, other.Tag))
+			if (opposed.Contains(other.Tag))
 			{
 				enemies.Add(other);
 			}
