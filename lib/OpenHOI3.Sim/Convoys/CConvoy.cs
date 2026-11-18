@@ -48,6 +48,13 @@ public sealed class CConvoy
 	/// <summary>The giver a lend-lease convoy serves.</summary>
 	public CCountryTag? LendLeaseFrom { get; init; }
 
+	/// <summary>
+	/// A lend-lease convoy's own efficiency, in thousandths: whole when made, lowered by its transports sunk and regained
+	/// a little each day, and multiplied into what it delivers (<c>docs/mechanics/aid.md</c>, section 3). The original
+	/// does not save it, so a loaded game's convoys are whole again (<c>docs/enhanced.md</c>, a whole game's replay).
+	/// </summary>
+	public long LendLeaseEfficiency { get; set; } = CFixedPoint.Scale;
+
 	/// <summary>The transports on it.</summary>
 	public int Transports { get; set; }
 

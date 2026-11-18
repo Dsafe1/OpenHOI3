@@ -134,13 +134,14 @@ public static class CConvoyRules
 	/// <summary>
 	/// How much of what it could carry a convoy carries, in thousandths: its transports
 	/// over those it would have. Not held to a whole - a convoy with ships to spare
-	/// carries more.
+	/// carries more. A lend-lease convoy's is then multiplied by its own efficiency.
 	/// </summary>
 	public static long Efficiency(CGameState state, CConvoy convoy)
 	{
 		int wanted = DesiredTransports(state, convoy);
-		return wanted == 0 ? CFixedPoint.Scale : convoy.Transports * CFixedPoint.Scale * CFixedPoint.Scale
+		long efficiency = wanted == 0 ? CFixedPoint.Scale : convoy.Transports * CFixedPoint.Scale * CFixedPoint.Scale
 			/ (wanted * CFixedPoint.Scale);
+		return convoy.IsLendLease ? efficiency * convoy.LendLeaseEfficiency / CFixedPoint.Scale : efficiency;
 	}
 
 	/// <summary>

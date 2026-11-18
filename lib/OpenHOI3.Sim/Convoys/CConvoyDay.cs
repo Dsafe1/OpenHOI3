@@ -12,6 +12,9 @@ namespace OpenHOI3.Sim.Convoys;
 /// </summary>
 public static class CConvoyDay
 {
+	/// <summary>What a lend-lease convoy regains of its own efficiency a day, in the <c>economy</c> defines.</summary>
+	public const string LendLeaseRegain = "LL_CONVOY_EFF_REGAIN";
+
 	/// <summary>Before the units draw: every convoy sails.</summary>
 	public static void Sail(CGameState state)
 	{
@@ -43,6 +46,12 @@ public static class CConvoyDay
 				{
 					CConvoyMaker.FindPath(state, convoy);
 				}
+			}
+			// A lend-lease convoy regains LL_CONVOY_EFF_REGAIN a day of its own efficiency, to a whole (aid.md, section 3).
+			if (convoy.IsLendLease && convoy.LendLeaseEfficiency < CFixedPoint.Scale)
+			{
+				convoy.LendLeaseEfficiency = System.Math.Min(CFixedPoint.Scale,
+					convoy.LendLeaseEfficiency + state.Defines[Economy.CResources.EconomySection, LendLeaseRegain].Raw);
 			}
 			if (convoy.IsTrade ? HasNoTrade(state, country, convoy)
 				: !convoy.IsLendLease && (convoy.Carries[(int)Economy.EGoods.Money] || HasLostAnEnd(state, country, convoy)))

@@ -148,6 +148,20 @@ capital area produces none of crude oil, metal, energy and rare materials. It wa
 naval base level / 10 x the path's length x CONVOY_PATH_LENGTH_MULT + 1)` transports, and its efficiency
 is the share of those it has. So a new sea route sends nothing on its first day.
 
+**That share is multiplied by the convoy's own lend-lease efficiency**, whole when the convoy is made: `confirmed`
+(`reversing/findings/FINDINGS-convoys.md`; `reversing/findings/FINDINGS-definesuse.md`, section 10).
+
+    a raid sinking transports:  own -= LL_CONVOY_EFF_IMPACT x (transports sunk x 1000 / transports it had) / 1000,
+                                not below nought - the sunk counted no more than it had, before they are taken off
+    each day, in its country's convoy pass before the removal tests:
+                                own += LL_CONVOY_EFF_REGAIN where below a whole, held to a whole
+    the convoy's efficiency = its share of transports x own / 1000
+
+In Their Finest Hour (0.4 and 0.01), a route that loses half its transports keeps 80% of what is left and is whole
+again twenty days on. **The original does not save it**, and a convoy read from a save is made whole, so a load gives
+every lend-lease route its full efficiency back (`docs/enhanced.md`, *A whole game's replay*). Built 2026-11-18
+(`CConvoy.LendLeaseEfficiency`).
+
 **The most a country may give**, `TotalIC * (LOW + (HIGH - LOW) * (1 - min(1, EffectiveNeutrality /
 LIMIT)))` - 0.90 at neutrality nought to 0.05 at 60 in Their Finest Hour - **is enforced by nothing**:
 it is the slider's marker, the top bar's tooltip and the AI's aim.
@@ -250,8 +264,6 @@ window is made again, which it is at every "Distribute" and whenever the receive
 - **While the lend-lease window is open, the production screen keeps its tooltips**; the original's lose
   theirs.
 - **`repaid_away` and `income_from_debt` are cleared each day** with the day's traded figures.
-- **A convoy's lend-lease efficiency, lowered by sinkings and regained a hundredth a day, is not built**:
-  every lend-lease convoy's efficiency is the share of its transports alone.
 
 ## Not established
 

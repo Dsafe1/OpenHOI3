@@ -35,6 +35,9 @@ What the enhanced engine's own save would have to hold, and what its load would 
 **The game's own state that the save leaves out**
 - **The event candidates**: a load leaves every country with none until its month turns, as the original's does (`events.md`, section 1; below, *Script, events and weather*), so no event with a mean time to happen fires where the saved game's would have.
 - **A relation's fraction**: `value` is written as a whole number.
+- **A lend-lease convoy's own efficiency**: the original neither writes nor reads it, and a convoy read from a save is
+  made whole again, so a route a raid has cut delivers in full from the load where the saved game's would have
+  regained a hundredth a day (`aid.md`, section 3; `reversing/findings/FINDINGS-definesuse.md`, section 10).
 - **A war's history**: a loaded war has no start, so the Lua's `GetCurrentRunningTimeInMonths` answers 0 (`reversing/findings/FINDINGS-war.md`, C.13).
 - **`last_war`** is stamped the hour of the load for every pair at war, so a peace in the next hundred days leaves a truce the saved game's would not (`war.md`, 4).
 - **The pacts' numbers and the order of their lists**, made again in the save's order - the order the hour's work goes through them in.
