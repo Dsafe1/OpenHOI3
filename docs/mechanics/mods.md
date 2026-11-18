@@ -74,6 +74,24 @@ provinces, the localisation. Then:
 - *likely*: a mod whose `path` is written with a backslash never matches its own place in the search path, so its
   `replace_path` lines do nothing.
 
+**The order a folder is listed in is the names', not the layers'**: PhysFS lists every name over the whole search path
+once, the frontmost copy's, **sorted by byte, case and all** - a binary search with `strcmp` in its listing callback - so
+a base game file whose name sorts first comes before a mod's (`reversing/findings/FINDINGS-localisation.md`, section 3).
+`confirmed`.
+
+**The localisation is read as one text in that order**, the tables joined end to end with a line break after any that
+lacks one, and **the first text a key is given stands**: a later line of a key that already has text in the language
+read is logged as a duplicate and dropped, while a line with no text in it is logged as an empty key and leaves the key
+to a later line. `confirmed` (`reversing/findings/FINDINGS-localisation.md`, sections 1 and 2). So BlackICE's `TECH_INVEST`, given twice in `zDD-tech.csv`, is its first line - "$TECH$
+$DIRECTION$ $VALUE$", which names the technology and the amount - where reading the last gave "Gain Tech." for every
+technology an event gives; 101 of its keys are given two different English texts, and none of the base game's.
+`CLocalisation` sorts its tables so and keeps the first text (2026-11-19). A line with fewer columns than the language's
+takes another of the line's fields in the original - very likely the English - where this takes nothing: not read, and
+English, the column read here, is never short.
+
+*Ours*: `ListFiles` itself still lists the base layer first, then by name without case, which the registries built from
+it were written against; which of them the original's order would change is in `docs/worklist.md`, *Loose ends*.
+
 *Ours*: `CDirectorySettings` is made with the selected mods (`Mods`, front first) and the Documents folder; a session is
 made with one, so the mods are a property of the game being made and nothing static. `Resolve`, `ResolveTexture`,
 `ListFiles` and `ListFilesRecursive` walk each mod's folder, then `tfh/`, then the install; the two listings apply

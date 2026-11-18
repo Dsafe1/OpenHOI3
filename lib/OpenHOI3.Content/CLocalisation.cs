@@ -27,12 +27,20 @@ public sealed class CLocalisation
 
 	public int Count => _entries.Count;
 
+	/// <summary>How many lines gave a key that already had text, and were dropped as the original drops them.</summary>
+	public int Duplicates { get; private set; }
+
 	public static CLocalisation Load(CDirectorySettings directories,
 		Language language = Language.English, Action<string>? warn = null)
 	{
 		warn ??= CDiagnostics.Warn;
 		var localisation = new CLocalisation();
-		foreach (string file in directories.ListFiles("localisation", "*.csv"))
+		// The original reads its tables in the order PhysFS lists them: every name over all the layers once, each its
+		// frontmost copy, sorted by byte with case - not the base layer first (reversing/findings/FINDINGS-localisation.md,
+		// section 3).
+		string[] files = directories.ListFiles("localisation", "*.csv");
+		Array.Sort(files, (a, b) => string.CompareOrdinal(Path.GetFileName(a), Path.GetFileName(b)));
+		foreach (string file in files)
 		{
 			localisation.LoadFile(file, (int)language, warn);
 		}
@@ -75,12 +83,18 @@ public sealed class CLocalisation
 				continue;
 			}
 			// A table writes a line break as a backslash and an n, and the original's text
-			// breaks there: RES_CHANGE ends in one, and its lines stack. Where the original
-			// turns it into one was not read.
+			// breaks there: RES_CHANGE ends in one, and its lines stack. The original turns it
+			// into one as it reads the line.
 			value = value.Replace("\\n", "\n");
 
-			// Later files patch earlier ones, matching the game's load order.
-			_entries[key] = value;
+			// The first text a key is given stands: the original reads every table as one text, the files in the order
+			// they are listed, and drops a later line of a key that already has text, logging it as a duplicate
+			// (reversing/findings/FINDINGS-localisation.md, section 2). A line with no text in the language gives none and
+			// leaves the key to a later one.
+			if (!_entries.TryAdd(key, value))
+			{
+				Duplicates++;
+			}
 		}
 	}
 

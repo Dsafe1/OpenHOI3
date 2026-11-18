@@ -101,14 +101,46 @@ public class LocalisationTests : IDisposable
 	}
 
 	[Fact]
-	public void ExpansionOnlyFileOverridesBaseOnlyFile()
+	public void OfTwoFilesTheOneSortingFirstGivesTheText()
 	{
-		// Different names, so both load; the expansion's must be applied last even
-		// though "aaa" sorts before "frontend".
+		// Different names, so both load, in the order of their names over all layers:
+		// "aaa" sorts before "frontend", and the first text a key is given stands.
 		Write("localisation/frontend.csv", "FE_EXIT;Base Exit;;;;;;;;;;;;;x\n");
 		Write("tfh/localisation/aaa_tfh.csv", "FE_EXIT;Expansion Exit;;;;;;;;;;;;;x\n");
 
 		Assert.Equal("Expansion Exit", Load().Localise("FE_EXIT"));
+	}
+
+	[Fact]
+	public void ABaseFileSortingFirstBeatsAnExpansionFileSortingLater()
+	{
+		// No layer comes first: a base game file before an expansion's by name gives the text.
+		Write("localisation/aaa_base.csv", "FE_EXIT;Base Exit;;;;;;;;;;;;;x\n");
+		Write("tfh/localisation/zzz_tfh.csv", "FE_EXIT;Expansion Exit;;;;;;;;;;;;;x\n");
+
+		Assert.Equal("Base Exit", Load().Localise("FE_EXIT"));
+	}
+
+	[Fact]
+	public void ALaterLineOfAKeyWithTextIsDroppedAsTheOriginalDropsItsDuplicates()
+	{
+		// BlackICE's zDD-tech.csv gives TECH_INVEST twice; the original shows the first.
+		Write("localisation/tech.csv",
+			"TECH_INVEST;$TECH$ $DIRECTION$ $VALUE$;;;;;;;;;;;;;x\nTECH_INVEST;Gain Tech.\\n;;;;;;;;;;;;;x\n");
+
+		CLocalisation localisation = Load();
+		Assert.Equal("$TECH$ $DIRECTION$ $VALUE$", localisation.Localise("TECH_INVEST"));
+		Assert.Equal(1, localisation.Duplicates);
+	}
+
+	[Fact]
+	public void ALineWithNoTextInTheLanguageLeavesTheKeyToALaterOne()
+	{
+		// A placeholder - BlackICE's naval technology names have them - does not hold the key.
+		Write("localisation/a.csv", "USA_smallwarship_asw_0;;;;;;;;;;;;;;x\n");
+		Write("localisation/b.csv", "USA_smallwarship_asw_0;Mk4 DC;;;;;;;;;;;;;x\n");
+
+		Assert.Equal("Mk4 DC", Load().Localise("USA_smallwarship_asw_0"));
 	}
 
 	[Fact]
