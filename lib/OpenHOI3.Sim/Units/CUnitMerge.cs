@@ -140,7 +140,10 @@ public static class CUnitMerge
 		{
 			CLeaders.SetLeader(state, into, leader, true, false);
 		}
-		state.ForgetPositions();
+		// Who stands where is left as it is: no unit has moved, been made or gone - brigades, ships and passengers change
+		// hands in one place, and the giver is taken out by the caller, which takes it off the positions itself. Made again
+		// it would come out the same, the units that stood in a province keeping their order; and it was, at the next look,
+		// two times in three that it was made again under BlackICE's AI.
 	}
 
 	/// <summary>
