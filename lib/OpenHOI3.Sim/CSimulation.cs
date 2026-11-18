@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using OpenHOI3.Sim.Commands;
 
 namespace OpenHOI3.Sim;
@@ -17,6 +19,18 @@ public sealed class CSimulation
 	private readonly Queue<CCommand> _queue = new();
 	private long _nextSerial;
 	private int _turn;
+
+	/// <summary>The hours being run beside the frame (<see cref="BeginAdvance"/>), until <see cref="Collect"/> takes them.</summary>
+	private Task<int>? _running;
+
+	/// <summary>The thread running them, which may drain the queue itself; nought when none runs.</summary>
+	private int _runningThread;
+
+	/// <summary>Commands posted from outside while the hours ran, queued in their order when they are collected.</summary>
+	private readonly List<CCommand> _held = new();
+
+	/// <summary>What was to be told while the hours ran - the clock's events and the state's - told in order when collected.</summary>
+	private readonly List<Action> _deferred = new();
 
 	/// <param name="state">The game.</param>
 	/// <param name="discardEntryOrders">For a tool setting an hour beside a save the original wrote after its own entering:
@@ -52,7 +66,7 @@ public sealed class CSimulation
 				Enqueue(posted);
 			}
 			State.Outbox.Clear();
-			Pump();
+			PumpCore();
 		}
 	}
 
@@ -88,9 +102,131 @@ public sealed class CSimulation
 		{
 			return false;
 		}
+		// While hours run beside the frame the queue is theirs: the command waits, and is posted as they are collected.
+		if (_beside)
+		{
+			_held.Add(command);
+			return true;
+		}
 		State.Replay?.Posted(_turn, command);
 		Enqueue(command);
 		return true;
+	}
+
+	/// <summary>Whether hours are being run beside the frame: nothing outside may read or change the state until collected.</summary>
+	public bool IsBusy => _beside;
+
+	/// <summary>How long the last hours run beside the frame took, on their thread: what a frame's log counts as the game's.</summary>
+	public double LastRunMilliseconds { get; private set; }
+
+	/// <summary>
+	/// Set before the hours beside the frame start and cleared as they are collected, before what they told is told: what
+	/// the worker raises before the task is even stored is deferred, and what is told after them happens at once.
+	/// </summary>
+	private volatile bool _beside;
+
+	/// <summary>
+	/// For a client running hours beside its frames, once a frame while nothing runs, with the real time since it last
+	/// started one: the hour the clock says is due - at most one, as <see cref="Advance"/> runs - started on a worker, or,
+	/// with none due, what is queued run here. <see cref="Collect"/> takes it when it is done.
+	/// </summary>
+	public void BeginAdvance(double realSeconds)
+	{
+		if (_running is not null)
+		{
+			throw new InvalidOperationException("an hour is already running beside the frame");
+		}
+		if (!Clock.HourDue(realSeconds))
+		{
+			if (State.Replay is not { IsReplaying: true })
+			{
+				PumpCore();
+			}
+			return;
+		}
+		_beside = true;
+		_running = Task.Run(() =>
+		{
+			_runningThread = Environment.CurrentManagedThreadId;
+			var spent = Stopwatch.StartNew();
+			RunOneHour();
+			LastRunMilliseconds = spent.Elapsed.TotalMilliseconds;
+			return 1;
+		});
+	}
+
+	/// <summary>
+	/// Once a frame: where the hours started beside the frame are done, what was told while they ran told in its order and
+	/// the commands posted meanwhile queued in theirs; the hours run, nought where none were or they still run. What the
+	/// hours threw is thrown here.
+	/// </summary>
+	public int Collect()
+	{
+		if (_running is not { IsCompleted: true } running)
+		{
+			return 0;
+		}
+		_running = null;
+		_runningThread = 0;
+		_beside = false;
+		try
+		{
+			return running.GetAwaiter().GetResult();
+		}
+		finally
+		{
+			List<Action> told;
+			lock (_deferred)
+			{
+				told = new List<Action>(_deferred);
+				_deferred.Clear();
+			}
+			foreach (Action tell in told)
+			{
+				tell();
+			}
+			List<CCommand> held = new(_held);
+			_held.Clear();
+			foreach (CCommand command in held)
+			{
+				Post(command);
+			}
+		}
+	}
+
+	/// <summary>Waits for hours running beside the frame and collects them: before anything that must have the state to itself.</summary>
+	public int Finish()
+	{
+		if (_running is not { } running)
+		{
+			return 0;
+		}
+		try
+		{
+			running.Wait();
+		}
+		catch (AggregateException)
+		{
+			// Thrown again, unwrapped, by the collecting.
+		}
+		return Collect();
+	}
+
+	/// <summary>
+	/// Runs what is to be told of the game now - or, while hours run beside the frame, once they are collected, in the
+	/// order it was told: what listens for the state's events from a screen wraps its handler in this.
+	/// </summary>
+	public void OnMain(Action tell)
+	{
+		if (_beside)
+		{
+			lock (_deferred)
+			{
+				_deferred.Add(tell);
+			}
+			return;
+		}
+		tell();
 	}
 
 	/// <summary>Whether commands from outside are taken: not while a recording is played back.</summary>
@@ -116,7 +252,7 @@ public sealed class CSimulation
 		}
 		while (_turn < turn)
 		{
-			Pump();
+			PumpCore();
 		}
 	}
 
@@ -140,6 +276,16 @@ public sealed class CSimulation
 	public long Executed { get; private set; }
 
 	public int Pump()
+	{
+		// From outside, hours running beside the frame are let finish first; the hours drain the queue themselves.
+		if (_running is not null && Environment.CurrentManagedThreadId != _runningThread)
+		{
+			Finish();
+		}
+		return PumpCore();
+	}
+
+	private int PumpCore()
 	{
 		// The turn moves on as the drain begins, so a command posted from inside one
 		// carries the next turn's number - it will run in the next drain.
@@ -176,6 +322,12 @@ public sealed class CSimulation
 
 	private void RaiseTimeEvents(CDate before, CDate now)
 	{
+		// What shows the game hears of it on its own thread, after hours run beside the frame.
+		OnMain(() => TellTime(before, now));
+	}
+
+	private void TellTime(CDate before, CDate now)
+	{
 		HourPassed?.Invoke();
 		if (now != before)
 		{
@@ -203,7 +355,7 @@ public sealed class CSimulation
 			// Orders given while paused still happen; a replay drains the queue only as its recording did, before each hour.
 			if (State.Replay is not { IsReplaying: true })
 			{
-				Pump();
+				PumpCore();
 			}
 			return 0;
 		}
@@ -215,6 +367,7 @@ public sealed class CSimulation
 	/// <summary>Runs hours with no regard to real time or to the pause: for tests and tools.</summary>
 	public void RunHours(int hours)
 	{
+		Finish();
 		for (int i = 0; i < hours; i++)
 		{
 			RunOneHour();
@@ -237,6 +390,6 @@ public sealed class CSimulation
 			}
 		}
 		Enqueue(new CHourlyTickCommand());
-		Pump();
+		PumpCore();
 	}
 }
