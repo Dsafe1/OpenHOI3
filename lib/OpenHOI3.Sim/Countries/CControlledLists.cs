@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Provinces;
 
@@ -9,10 +10,13 @@ namespace OpenHOI3.Sim.Countries;
 /// controller or a place in the list changes in play; a loaded save, which sets the places afresh, drops them
 /// (<c>CSaveLoader</c>). The scripts ask for a country's provinces a hundred and fifty times an hour under BlackICE, and
 /// each walk of the map and sort was a tenth of a millisecond.
+///
+/// The scripts ask side by side, on several Lua states at once (<c>CTradeWorkers</c>), so the lists are kept for being
+/// asked from several threads: two that make one country's list at once make the same list, and either is kept.
 /// </summary>
 public sealed class CControlledLists
 {
-	private readonly Dictionary<CCountryTag, List<CProvince>> _lists = new();
+	private readonly ConcurrentDictionary<CCountryTag, List<CProvince>> _lists = new();
 
 	private CControlledLists(int controlChanges, int provinceCount)
 	{
@@ -32,19 +36,20 @@ public sealed class CControlledLists
 		{
 			state.ControlledLists = lists = new CControlledLists(state.ControlChanges, state.Provinces.Count);
 		}
-		if (!lists._lists.TryGetValue(tag, out List<CProvince>? list))
+		return lists._lists.GetOrAdd(tag, Gather, state);
+	}
+
+	private static List<CProvince> Gather(CCountryTag tag, CGameState state)
+	{
+		var list = new List<CProvince>();
+		foreach (CProvince province in state.Provinces)
 		{
-			list = new List<CProvince>();
-			foreach (CProvince province in state.Provinces)
+			if (province.Controller == tag)
 			{
-				if (province.Controller == tag)
-				{
-					list.Add(province);
-				}
+				list.Add(province);
 			}
-			CCountryLists.SortByControlOrder(list);
-			lists._lists[tag] = list;
 		}
+		CCountryLists.SortByControlOrder(list);
 		return list;
 	}
 }

@@ -187,15 +187,12 @@ public static class CPlanWants
 	/// </summary>
 	public static CSubUnitType GroupOf(CGameState state, CSubUnitType type)
 	{
-		state.PlanGroups ??= new Dictionary<CSubUnitType, CSubUnitType>();
-		if (!state.PlanGroups.TryGetValue(type, out CSubUnitType? group))
-		{
-			state.PlanGroups[type] = group = FindGroup(state, type);
-		}
-		return group;
+		// Asked side by side from the AI's workers: two that find one type's group at once find the same.
+		state.PlanGroups ??= new System.Collections.Concurrent.ConcurrentDictionary<CSubUnitType, CSubUnitType>();
+		return state.PlanGroups.GetOrAdd(type, FindGroup, state);
 	}
 
-	private static CSubUnitType FindGroup(CGameState state, CSubUnitType type)
+	private static CSubUnitType FindGroup(CSubUnitType type, CGameState state)
 	{
 		CSubUnitType ByKey(string key) => state.SubUnitTypes.TryGetValue(key, out CSubUnitType? found) ? found : type;
 		if (type.Branch == EUnitBranch.Naval)

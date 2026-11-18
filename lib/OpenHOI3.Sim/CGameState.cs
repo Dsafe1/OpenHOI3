@@ -870,7 +870,7 @@ public sealed class CGameState
 	internal HashSet<string>? ContinentNames { get; set; }
 
 	/// <summary>Each unit type's group in the AI's plans, kept by <see cref="Agents.CPlanWants.GroupOf"/>. Derived, and never saved.</summary>
-	internal Dictionary<Units.CSubUnitType, Units.CSubUnitType>? PlanGroups { get; set; }
+	internal System.Collections.Concurrent.ConcurrentDictionary<Units.CSubUnitType, Units.CSubUnitType>? PlanGroups { get; set; }
 
 	/// <summary>The route finder's working arrays, kept from one search to the next by <see cref="Movement.CRouteScratch"/>.</summary>
 	internal Movement.CRouteScratch? RouteScratch { get; set; }
