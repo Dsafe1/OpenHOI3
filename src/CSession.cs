@@ -1545,10 +1545,11 @@ public partial class CSession : Node
 			_unitsMoved = true;
 		}
 		// The modes the original's refresh follows diplomacy for: again when a war, an alliance, a pact, military access or
-		// a faction changes.
+		// a faction changes. The supply mode among them - an alliance or a faction changes what the player knows of its
+		// friends' land, which its colours ask (supplymap.md, section 2).
 		if (mode is CMapView.MapMode.Political or CMapView.MapMode.Diplomatic or CMapView.MapMode.Intel
 			or CMapView.MapMode.Theatre or CMapView.MapMode.Infrastructure or CMapView.MapMode.VictoryPoints
-			or CMapView.MapMode.Strength)
+			or CMapView.MapMode.Strength or CMapView.MapMode.Supply)
 		{
 			long diplomacy = CMapModeTriggers.DiplomacyFigure(State);
 			if (diplomacy != _diplomacyColoured)

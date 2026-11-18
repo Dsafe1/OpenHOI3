@@ -10,8 +10,9 @@ read for this), and `reversing/findings/FINDINGS-mapmode.md` (how a map mode col
 at all).
 
 Code: `CSupplyMapColours` in `lib/OpenHOI3.Interface/Map` works the two colours out and
-`CSupplyMapText` in `lib/OpenHOI3.Interface/Screens` the lines; `src/Map/CMapView` paints the
-first and `src/CSession` shows the second.
+`CSupplyMapText` in `lib/OpenHOI3.Interface/Screens` the lines, both asking
+`CSupplyMapColours.Intelligence` - the player's level of the province, `CProvinceIntel`
+(`intelligence.md`); `src/Map/CMapView` paints the first and `src/CSession` shows the second.
 
 ---
 
@@ -51,9 +52,29 @@ pass in a day** (`supply.md`, section 7) is striped `0.7b, grey, grey`: red.
 So green is a province that is keeping up, yellow one that is being supplied but is behind, red
 one that is cut off, and red stripes a road that is full.
 
-*Ours:* there is no intelligence yet. The player knows everything of ground it holds and
-nothing of any other, so every other country's land is the dim grey - which is also what the
-original shows of land one has no intelligence on. The sea is drawn as in every other mode.
+**The intelligence is the player's, whoever holds the province** - the level of it the player's
+country has (`intelligence.md`, section 2); nothing asks the controller. `confirmed`: the
+original reads the byte of the province's intelligence for the map's player, once for `b` and
+once for the thresholds, and an id past the end of the province's list reads as nothing
+(`reversing/findings/FINDINGS-supplyconvoys.md`, section 9). So of the player's own land and its
+friends' it shows the figures (9); of the land beside them, 3, only the plain grey; of a
+foreign province with a unit of the player's on it, its figures; of land it knows nothing of,
+the dim grey. **With the fog of war off** (`intelligence.md`, section 3; the debug menu on
+Shift and 4) the player knows every province at 9, and every country's land is coloured by its
+supplies. Black is asked before anything the player knows. The original's `b` is nought for a
+province the session does not simulate - none, in a campaign. The sea is drawn as in every other
+mode.
+
+**When it is coloured again**: in the original, when the day turns, by the in-game screen's own
+daily update, which the tick calls after the day's pass (`reversing/findings/FINDINGS-tick.md`;
+`reversing/findings/FINDINGS-autosave.md`) - and the day's pass is where what each country knows is
+made again (`reversing/findings/FINDINGS-schedule.md`). So what an hour's raise of intelligence
+shows waits for the next day. `confirmed` as to the order, read for those findings and not for
+this. And on a change of hands or of the diplomatic statuses (`mapmodes.md`, section 1;
+`reversing/findings/FINDINGS-mapmodescountries.md`, section 5: the refresh the diplomatic routines
+ask for runs the supply mode's setter among others). Here at each of those - the diplomatic statuses
+only since 2026-11-18, when the session's list of modes that follow them was found to leave the
+supply mode out - and, *ours*, at once when the fog of war's switch is turned.
 
 ## 3. What it says of a province
 
@@ -61,7 +82,12 @@ The supply mode's part of the tooltip of the province under the mouse (`tooltips
 read line for line on 2026-10-11 (`reversing/findings/FINDINGS-provincetooltip.md`, section 6) and
 built so, `CSupplyMapText`. Every figure to two places; each line starts with a newline.
 
-**On land under two levels of infrastructure:** `TOOLOWINFRA`, and nothing else.
+**On land under two levels of infrastructure:** `TOOLOWINFRA`, and nothing else - whatever the
+player knows, the test coming before the intelligence is asked.
+
+What the player knows is its level of the province, as for the colours: the original reads the
+played country's byte of it (`reversing/findings/FINDINGS-provincetooltip.md`, section 6).
+`confirmed`.
 
 **Otherwise, of a province the player knows more than a little of** (more than 5):
 
@@ -86,8 +112,9 @@ built so, `CSupplyMapText`. Every figure to two places; each line starts with a 
 name of where it loads, `LOGTT_9`, the name of where it unloads, `LOGTT_10`; and under it, indented
 three spaces, `CONV_SHIP_IRO` for each good it shipped when it last sailed.
 
-*Ours:* what the player knows of a province is 9 where it holds it and nothing elsewhere - there is
-no intelligence - so of any other province only the name and the owner are told. The readout of the
+So of a province the player knows by 5 or less only the name and the owner are told (the
+tooltip's frame, `tooltips.md`, section 7); by 6 to 8 its roads and its depot - and the depot is
+the one the province itself draws on, whoever's it is; by 9 everything. The readout of the
 selected province no longer repeats any of it.
 
 ## 4. Turning it on
@@ -96,7 +123,10 @@ The button `mapmode_8` by the minimap turns it on (`minimap.md`, section 4), and
 
 ## Not built
 
-- **Intelligence**, and so what the map shows of anybody else's land.
+- ~~**Intelligence**, and so what the map shows of anybody else's land.~~ Built 2026-11-18: the
+  colours and the lines ask the player's level of each province (section 2), where until then the
+  player knew 9 of the land it held and nothing of any other - so with the fog of war off every
+  other country's land stayed grey, which is how it was found.
 - ~~**The map mode buttons.**~~ Built 2026-11-07 (`minimap.md`).
 
 ## Not established

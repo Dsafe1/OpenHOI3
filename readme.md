@@ -2658,10 +2658,13 @@ None of these blocks the list above.
   and the country's modifiers; here they are multiplied in turn. They agree with the save for
   78 countries of 78, and could part under a law and a local modifier at once.
   `reversing/findings/FINDINGS-supplyconvoys.md`, section 8.
-- **The supply map mode shows the player's own land only.** It takes what the player knows of a province as 9 where
+- ~~**The supply map mode shows the player's own land only.** It takes what the player knows of a province as 9 where
   he holds it and nothing elsewhere (`CSupplyMapColours`), though what a country knows of every province is worked out
   since 2026-10-14 (`intelligence.md`), so every other country's land is the grey the original gives land one knows
-  nothing of; and its tooltip says of anybody else's province only its name and owner. `docs/mechanics/supplymap.md`.
+  nothing of; and its tooltip says of anybody else's province only its name and owner.~~ Mended 2026-11-18, after the
+  maintainer found foreign land empty with the fog of war off: its colours and its tooltip ask the player's level of
+  each province, as the original's do, and it is coloured again on a change of the diplomatic statuses too.
+  `docs/mechanics/supplymap.md`, section 2.
 - ~~**A new game's laws are brought forward before its two days, and none is changed after them.**~~ Investigated as the
   maintainer asked on 2026-11-12, and answered on 2026-11-14: the engine's own pass brings the laws forward before the
   days, and **the install's Lua's changes of law go through the command queue and run after them**, which is what holds

@@ -45,6 +45,9 @@ thresholds its readers ask:
 
 The original's map draws a unit by it too - hidden under 2, a picture of the unknown under 3, its name `???` under
 5, its figures `?` under 7 - and shows a province's buildings from 6; **nothing draws a fog of war here yet**.
+The map modes ask the player's level of each province for their colours and their tooltip lines - the supply mode a
+half brightness under 2, grey under 6, a flat green at 6 and 7, its figures from 8, and in its tooltip the roads and
+the depot above 5 and the figures above 8 (`supplymap.md`); the others in `mapmodes.md`, `airmap.md` and `weather.md`.
 
 **A country's list**, which shares its 9s and its 3s: every country it holds an alliance with, its master and its
 puppets, and the members of its real faction. Worked out where it is asked, as it stands.

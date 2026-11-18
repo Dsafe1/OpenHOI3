@@ -22,11 +22,14 @@ public static class CSupplyMapText
 {
 	private const int Places = 2;
 
-	/// <summary>Above this much of what the player knows of a province, where it is supplied from is told.</summary>
-	private const int KnownSome = 5;
+	/// <summary>
+	/// Above this much of what the player knows of a province (<see cref="CSupplyMapColours.Intelligence"/>), what its
+	/// roads pass and where it is supplied from are told.
+	/// </summary>
+	public const int KnownSome = 5;
 
-	/// <summary>Above this much, its figures are told.</summary>
-	private const int KnownWell = 8;
+	/// <summary>Above this much, its figures are told: only at 9.</summary>
+	public const int KnownWell = 8;
 
 	private const long LeastInfrastructure = 200;
 
@@ -78,7 +81,7 @@ public static class CSupplyMapText
 			return "\n" + localise("TOOLOWINFRA");
 		}
 
-		int known = CSupplyMapColours.Intelligence(province, player);
+		int known = CSupplyMapColours.Intelligence(state, province, player);
 		CFixedPoint capacity = CSupplyFigures.Capacity(state, province);
 		if (known > KnownSome)
 		{

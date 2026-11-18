@@ -5,6 +5,7 @@ using OpenHOI3.Sim;
 using OpenHOI3.Sim.Convoys;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Intelligence;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Units;
@@ -86,8 +87,17 @@ public class SupplyMapTests
 			new CCountry { Tag = Ger, Name = "Germany", DefinitionFile = "", Capital = berlin },
 			new CCountry { Tag = Pol, Name = "Poland", DefinitionFile = "", Capital = warsaw },
 		};
-		return new CGameState(new CDate(1936, 1, 1), _provinces, countries, new[] { Infra, NavalBase, Industry },
+		var state = new CGameState(new CDate(1936, 1, 1), _provinces, countries, new[] { Infra, NavalBase, Industry },
 			defines: defines);
+		// What each country knows: 9 of its own land, 3 of the land beside it, nothing further.
+		CProvinceIntel.Rebuild(state);
+		return state;
+	}
+
+	/// <summary>Sets what a country knows of a province.</summary>
+	private static void Know(CGameState state, CProvince province, CCountryTag country, int level)
+	{
+		province.Intel[state.Country(country)!.Index] = (byte)level;
 	}
 
 	private static void Set(CProvince province, string lying, string asked, string layThere = "0", string passed = "0",
@@ -105,16 +115,97 @@ public class SupplyMapTests
 	// --- the colours ---
 
 	[Fact]
-	public void Land_the_player_does_not_hold_is_a_dim_grey_whatever_lies_there()
+	public void What_the_player_knows_is_asked_and_not_who_holds_the_province()
+	{
+		var world = World();
+		CProvince warsaw = world.State.Province(world.Warsaw);
+		CProvince berlin = world.State.Province(world.Berlin);
+
+		Assert.Equal(3, CSupplyMapColours.Intelligence(world.State, warsaw, Ger));   // beside Germany's land
+		Assert.Equal(9, CSupplyMapColours.Intelligence(world.State, berlin, Ger));
+		Assert.Equal(0, CSupplyMapColours.Intelligence(world.State, berlin, Pol));
+		Know(world.State, berlin, Ger, 4);
+		Assert.Equal(4, CSupplyMapColours.Intelligence(world.State, berlin, Ger));    // its own land too, as it is kept
+		Assert.Equal(0, CSupplyMapColours.Intelligence(world.State, berlin, null));
+	}
+
+	[Fact]
+	public void Under_2_a_province_is_drawn_at_half_brightness_and_under_6_it_is_grey_whatever_lies_there()
 	{
 		var world = World();
 		CProvince warsaw = world.State.Province(world.Warsaw);
 		Set(warsaw, lying: "10", asked: "5");
 
-		(CColor ground, CColor stripes) = CSupplyMapColours.Of(world.State, warsaw, Ger);
+		foreach (int known in new[] { 0, 1 })
+		{
+			Know(world.State, warsaw, Ger, known);
+			(CColor ground, CColor stripes) = CSupplyMapColours.Of(world.State, warsaw, Ger);
+			Assert.Equal(new CColor(0.2f, 0.2f, 0.2f), ground);
+			Assert.Equal(ground, stripes);
+		}
+		foreach (int known in new[] { 2, 3, 4, 5 })
+		{
+			Know(world.State, warsaw, Ger, known);
+			(CColor ground, CColor stripes) = CSupplyMapColours.Of(world.State, warsaw, Ger);
+			Assert.Equal(Grey, ground);
+			Assert.Equal(ground, stripes);
+		}
+	}
 
-		Assert.Equal(new CColor(0.2f, 0.2f, 0.2f), ground);
-		Assert.Equal(ground, stripes);
+	[Fact]
+	public void At_6_and_7_a_province_is_a_flat_green_whatever_lies_there_and_from_8_it_is_its_supplies_colour()
+	{
+		var world = World();
+		CProvince far = world.State.Province(world.Far);
+		// Germany's, as Poland sees it. Cut off: nothing there, nothing passing, its units wanting some - and more asked of
+		// it than its roads pass in a day.
+		Set(far, lying: "0", asked: "900", need: "1");
+
+		foreach (int known in new[] { 6, 7 })
+		{
+			Know(world.State, far, Pol, known);
+			(CColor ground, CColor stripes) = CSupplyMapColours.Of(world.State, far, Pol);
+			Assert.Equal(new CColor(0.4f, 0.8f, 0.4f), ground);
+			Assert.Equal(ground, stripes);
+		}
+		foreach (int known in new[] { 8, 9 })
+		{
+			Know(world.State, far, Pol, known);
+			(CColor ground, CColor stripes) = CSupplyMapColours.Of(world.State, far, Pol);
+			Assert.Equal(new CColor(0.6f, 0.4f, 0.4f), ground);
+			Assert.Equal(new CColor(0.7f, 0.4f, 0.4f), stripes);
+		}
+	}
+
+	[Fact]
+	public void Land_with_too_little_infrastructure_is_black_whatever_the_player_knows()
+	{
+		var world = World(farInfrastructure: 1);
+		CProvince far = world.State.Province(world.Far);
+
+		foreach (int known in new[] { 0, 1, 5, 9 })
+		{
+			Know(world.State, far, Pol, known);
+			(CColor ground, CColor stripes) = CSupplyMapColours.Of(world.State, far, Pol);
+			Assert.Equal(new CColor(0f, 0f, 0f), ground);
+			Assert.Equal(ground, stripes);
+		}
+	}
+
+	[Fact]
+	public void With_the_fog_of_war_off_another_countrys_land_is_coloured_by_its_supplies()
+	{
+		var world = World();
+		world.State.Played.Add(Ger);
+		CProvince warsaw = world.State.Province(world.Warsaw);
+		Set(warsaw, lying: "10", asked: "5");
+		Assert.Equal(Grey, CSupplyMapColours.Of(world.State, warsaw, Ger).Ground);
+
+		new OpenHOI3.Sim.Commands.CFogOfWarCommand(false).Execute(world.State);
+
+		Assert.Equal(new CColor(0.4f, 0.8f, 0.4f), CSupplyMapColours.Of(world.State, warsaw, Ger).Ground);
+		Assert.Contains("[LOGTT_3]", CSupplyMapText.Text(Localise, world.State, CSupplyNetworks.Refresh(world.State),
+			warsaw, Ger));
 	}
 
 	[Fact]
@@ -261,6 +352,41 @@ public class SupplyMapTests
 		var roadless = World(farInfrastructure: 1);
 		Assert.Equal("\n[TOOLOWINFRA]", CSupplyMapText.Text(Localise, roadless.State,
 			CSupplyNetworks.Refresh(roadless.State), roadless.State.Province(roadless.Far), Ger));
+	}
+
+	[Fact]
+	public void Above_5_its_roads_and_depot_are_told_and_only_above_8_its_figures()
+	{
+		var world = World();
+		CProvince far = world.State.Province(world.Far);
+		Set(far, lying: "2.5", asked: "5", passed: "1.25", need: "3");
+		CSupplyNetwork network = CSupplyNetworks.Refresh(world.State);
+		const string Roads = "\n[INFRA §G10.00§!/10.00 800]\n\n[LOGTT_1]§YBerlin§W (2 [LOGTT_2])";
+
+		foreach (int known in new[] { 0, 1, 2, 3, 4, 5 })
+		{
+			Know(world.State, far, Pol, known);
+			Assert.Equal("", CSupplyMapText.Text(Localise, world.State, network, far, Pol));
+		}
+		foreach (int known in new[] { 6, 7, 8 })
+		{
+			Know(world.State, far, Pol, known);
+			Assert.Equal(Roads, CSupplyMapText.Text(Localise, world.State, network, far, Pol));
+		}
+		Know(world.State, far, Pol, 9);
+		string text = CSupplyMapText.Text(Localise, world.State, network, far, Pol);
+		Assert.StartsWith(Roads + "\n[LOGTT_3]§R2.50§W", text);
+		Assert.Contains("\n[LOGTT_7]§Y1.25§W", text);
+
+		// Too little infrastructure is said whatever the player knows.
+		_provinces.Clear();
+		_provinces.Add(new CProvince(0, "", isSea: false));
+		_edges.Clear();
+		var roadless = World(farInfrastructure: 1);
+		CProvince roadlessFar = roadless.State.Province(roadless.Far);
+		Know(roadless.State, roadlessFar, Pol, 0);
+		Assert.Equal("\n[TOOLOWINFRA]", CSupplyMapText.Text(Localise, roadless.State,
+			CSupplyNetworks.Refresh(roadless.State), roadlessFar, Pol));
 	}
 
 	[Fact]
