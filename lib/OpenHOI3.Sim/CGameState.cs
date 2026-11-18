@@ -33,8 +33,12 @@ public sealed class CGameState
 	private readonly CHandChanges _handChanges = new();
 
 	/// <param name="provinces">Indexed by id, so entry 0 is the "no province" entry.</param>
+	/// <summary>
+	/// The static and event modifiers by name, matched case and all as the original's database matches a name on its bytes:
+	/// BlackICE's event modifier <c>VERY_EASY_PLAYER</c> is not the static <c>very_easy_player</c> (<c>effects.md</c>, section 6).
+	/// </summary>
 	private readonly Dictionary<string, CModifier> _staticModifiers =
-		new(StringComparer.OrdinalIgnoreCase);
+		new(StringComparer.Ordinal);
 
 	private readonly Dictionary<string, CTechnology> _technologies =
 		new(StringComparer.OrdinalIgnoreCase);

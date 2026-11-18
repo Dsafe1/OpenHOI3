@@ -147,7 +147,8 @@ public static class CGameStateLoader
 		ApplyProvinceHistory(directories, provinces, at, countries, map.Terrains, buildings, warn,
 			defines.Has(CNationalism.Section, CNationalism.Years) ? defines[CNationalism.Section, CNationalism.Years] : CFixedPoint.Zero,
 			definesStart: start, captures: captures);
-		// One table by name, as the original looks both files' names up in one; the first of a name wins.
+		// One table by name, as the original looks both files' names up in one; the first of a name wins, the name matched
+		// case and all - so an event modifier differing from a static one only in case is its own (effects.md, section 6).
 		List<CModifier> staticModifiers = CModifierReader.ReadStaticModifiers(directories, warn);
 		staticModifiers.AddRange(CModifierReader.ReadEventModifiers(directories, warn));
 		List<CModifier> strategicResources = CModifierReader.ReadStrategicResources(directories, warn);

@@ -582,7 +582,7 @@ public static class CPacts
 	private static void TakeOff(CGameState state, CCountry country, string faction)
 	{
 		string name = COfferRules.InfluenceModifier(state, faction);
-		country.EventModifiers.RemoveAll(m => string.Equals(m.Modifier.Name, name, StringComparison.OrdinalIgnoreCase));
+		country.EventModifiers.RemoveAll(m => m.Modifier.Name == name);
 	}
 
 	private static bool Played(CGameState state, CCountry a, CCountry b) => state.Played.Contains(a.Tag) || state.Played.Contains(b.Tag);

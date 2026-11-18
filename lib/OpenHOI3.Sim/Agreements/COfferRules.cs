@@ -450,7 +450,7 @@ public static class COfferRules
 		}
 		foreach (CTimedModifier given in country.EventModifiers)
 		{
-			if (string.Equals(given.Modifier.Name, name, StringComparison.OrdinalIgnoreCase) && !given.HasEnded(state))
+			if (given.Modifier.Name == name && !given.HasEnded(state))
 			{
 				return true;
 			}

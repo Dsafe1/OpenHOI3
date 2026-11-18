@@ -104,6 +104,27 @@ public class EffectTests
 	}
 
 	[Fact]
+	public void A_modifier_is_found_by_its_name_case_and_all()
+	{
+		// BlackICE's difficulty events give VERY_EASY_PLAYER from its event modifiers, where its static modifiers have the
+		// game's own very_easy_player: two modifiers, the static one first in the table.
+		var statics = new CModifier("very_easy_player");
+		statics.Add("ic", CFixedPoint.Parse("0.5"));
+		var events = new CModifier("VERY_EASY_PLAYER");
+		events.Add("ic", CFixedPoint.Parse("0.2"));
+		CGameState state = ScriptWorld.State(statics: new[] { statics, events });
+
+		Run(state, "add_country_modifier = { name = VERY_EASY_PLAYER duration = -1 } add_country_modifier = { name = Us_New_Deal duration = -1 }");
+		CCountry germany = Country(state, Ger);
+
+		Assert.Same(events, Assert.Single(germany.EventModifiers).Modifier);   // and Us_New_Deal is no modifier
+		Assert.True(Holds(state, "has_country_modifier = VERY_EASY_PLAYER"));
+		Assert.False(Holds(state, "has_country_modifier = very_easy_player"));
+		CCountryModifiers.Rebuild(state);
+		Assert.Equal(CFixedPoint.Parse("0.2"), germany.Modifier["ic"]);
+	}
+
+	[Fact]
 	public void A_modifier_for_some_days_goes_at_the_first_rebuild_after_them()
 	{
 		CGameState state = State();

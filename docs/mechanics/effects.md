@@ -161,7 +161,13 @@ the years of nationalism the original sets wait for nationalism.
 already has M, when nothing happens: no second copy, no longer time**. `add_province_modifier` is the
 same on the province. `remove_country_modifier = M` and `remove_province_modifier = M` take every
 copy away. M is a block of `common/event_modifiers.txt` or `common/static_modifiers.txt`; a name in
-neither does nothing.
+neither does nothing. **M is matched case and all**, as the database the effect looks it up in matches a
+name on its bytes - its length and each byte, after a hash of them (`reversing/findings/FINDINGS-effects.md`,
+`add_country_modifier`; the lookup's record, by the trait database's name, `reversing/findings/FINDINGS-leadertooltips.md`,
+section 5). *Inferred* that the static modifiers' database is the same lookup, from the effects reading naming it so and
+from BlackICE: its difficulty events give `VERY_EASY_PLAYER`, `EASY_AI` and the rest from its event modifiers, where its
+static modifiers have the game's own `very_easy_player` and `easy_ai` - two modifiers each. Until 2026-11-18 a name was
+matched here without case, and the static modifier, first in the table, was given in the event's place.
 
 **A modifier lasts to now plus 24 x D hours. A negative D lasts for ever**: the original keeps the
 day of the year and makes it year 1, which the rebuild never takes away. A country's are added at
