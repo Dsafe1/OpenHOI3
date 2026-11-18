@@ -39,13 +39,13 @@ public static class CProvinceHoldValue
 	}
 
 	/// <summary>What the value asks of the country alone, worked out once for a run of provinces.</summary>
-	public static (bool AtPeace, bool Full) Context(CGameState state, CCountry country)
+	public static CHoldContext Context(CGameState state, CCountry country)
 	{
-		return (CCountryLists.Enemies(state, country).Count == 0, IsFull(state, country));
+		return new CHoldContext(state, CCountryLists.Enemies(state, country).Count == 0, IsFull(state, country));
 	}
 
 	public static long Of(CGameState state, CCountry country, CAgent agent, CProvince province, bool hold,
-		(bool AtPeace, bool Full) context)
+		CHoldContext context)
 	{
 		if (CSupplyFigures.EffectiveInfrastructure(province) < LeastInfrastructure)
 		{
@@ -85,7 +85,7 @@ public static class CProvinceHoldValue
 			if (full && province.PortSea > 0 && CTheatreFigures.NavalBase(state) is { } naval
 				&& province.BuildingMaxLevel(naval).Raw > 0)
 			{
-				value += (30 + 2 * Ships(state, province)) * Whole;
+				value += (30 + 2 * context.ShipsBasedAt(province.Id)) * Whole;
 			}
 		}
 		foreach (CObjective objective in agent.Unit?.Plan.Objectives ?? new())
@@ -199,22 +199,5 @@ public static class CProvinceHoldValue
 			return plain;
 		}
 		return 0;
-	}
-
-	/// <summary>The ships of the fleets based at this port, at sea or not (FINDINGS-liveread.md, section 15).</summary>
-	private static int Ships(CGameState state, CProvince province)
-	{
-		int ships = 0;
-		foreach (CCountry country in state.Countries)
-		{
-			foreach (CUnit unit in country.AllUnits())
-			{
-				if (unit.Kind == EUnitKind.Navy && unit.Base == province.Id)
-				{
-					ships += unit.SubUnits.Count;
-				}
-			}
-		}
-		return ships;
 	}
 }

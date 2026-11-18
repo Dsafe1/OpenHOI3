@@ -85,7 +85,7 @@ public static class CHoldProvinces
 	/// is bound - province by province, not the area as a whole (FINDINGS-liveread.md, section 52).
 	/// </summary>
 	private static void Puppets(CGameState state, CCountry country, CAgent agent, HashSet<int> seen,
-		(bool AtPeace, bool Full) context)
+		CHoldContext context)
 	{
 		var guarded = new Dictionary<CCountryTag, HashSet<int>>();
 		foreach (CSupplyArea area in agent.FocusAreas)
@@ -129,7 +129,7 @@ public static class CHoldProvinces
 	}
 
 	private static void Consider(CGameState state, CCountry country, CAgent agent, int id, HashSet<int> seen,
-		(bool AtPeace, bool Full) context)
+		CHoldContext context)
 	{
 		if (seen.Contains(id))
 		{

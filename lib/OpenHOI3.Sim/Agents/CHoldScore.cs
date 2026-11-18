@@ -25,7 +25,7 @@ public static class CHoldScore
 	private const long LowCountries = 4000;
 
 	public static long Of(CGameState state, CCountry country, CAgent agent, CProvince province,
-		(bool AtPeace, bool Full) context)
+		CHoldContext context)
 	{
 		if (CSupplyFigures.EffectiveInfrastructure(province) < LeastInfrastructure)
 		{
