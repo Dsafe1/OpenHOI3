@@ -114,12 +114,14 @@ public static class CLandBlock
 				{
 					continue;
 				}
-				List<int>? ways = Ways(state, country, network, province, area);
+				List<int>? ways = Ways(state, country, network, province, area, out bool ending);
 				if (ways is null || ways.Count == 0)
 				{
 					continue;
 				}
-				// The defenders are taken from the back of the side's list (FINDINGS-liveread.md, section 24).
+				// The defenders are taken from the back of the side's list (FINDINGS-liveread.md, section 24), one to each way
+				// in turn and round the ways again - unless the walk came to a way in the area of operations with one outside
+				// it, which ends it (section 118).
 				int next = 0;
 				CUnit[] defenders = combat.Defender.Units.ToArray();
 				System.Array.Reverse(defenders);
@@ -128,6 +130,10 @@ public static class CLandBlock
 					if (unit.Owner != country.Tag || !CTheatres.IsLand(unit) || CCommandLadder.IsBlocked(unit))
 					{
 						continue;
+					}
+					if (ending && next >= ways.Count)
+					{
+						break;
 					}
 					if (CAiMoves.Move(state, country, unit, ways[next % ways.Count], safe: false))
 					{
@@ -139,10 +145,15 @@ public static class CLandBlock
 		}
 	}
 
-	/// <summary>The province's neighbours to fall back to, best first; null where a hostile one lies across a river.</summary>
+	/// <summary>
+	/// The province's neighbours to fall back to, best first; null where a hostile one lies across a river. With
+	/// <paramref name="ending"/> the list stops at a neighbour in the area of operations where one outside it exists - which
+	/// ends the walk, so the list is not gone round again.
+	/// </summary>
 	private static List<int>? Ways(CGameState state, CCountry country, CSupplyNetwork network, CProvince province,
-		HashSet<int> area)
+		HashSet<int> area, out bool ending)
 	{
+		ending = false;
 		var scored = new List<(int Province, long Score)>();
 		bool outside = false;
 		bool comingIn = false;
@@ -206,10 +217,12 @@ public static class CLandBlock
 			return null;
 		}
 		var ways = new List<int>();
+		ending = false;
 		foreach ((int id, long _) in scored)
 		{
 			if (outside && area.Contains(id))
 			{
+				ending = true;
 				break;
 			}
 			ways.Add(id);
