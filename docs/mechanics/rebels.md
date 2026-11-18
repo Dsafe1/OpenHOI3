@@ -48,7 +48,8 @@ factor of 1 against the others' 10). Their texts are `<type>_title`, `<type>_nam
 
 ## 3. The roll
 
-Once a day, **in each country's day** - after its spies and before its elections - for every country that owns a
+Once a day, **in each country's day** - after its spies and before its elections, the next country's spies coming
+after it (`reversing/findings/FINDINGS-liveread.md`, section 120) - for every country that owns a
 province, and only while a game is running (not in a new game's first two days):
 
     for each province the country holds, in a real area:

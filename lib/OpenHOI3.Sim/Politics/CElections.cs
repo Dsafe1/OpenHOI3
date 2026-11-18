@@ -28,10 +28,16 @@ public static class CElections
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			if (state.GovernmentOf(country) is { HasElections: true } && Due(state, country) <= state.Date)
-			{
-				Hold(state, country);
-			}
+			RunCountry(state, country);
+		}
+	}
+
+	/// <summary>One country's election, in its own day, where one is due.</summary>
+	public static void RunCountry(CGameState state, CCountry country)
+	{
+		if (state.GovernmentOf(country) is { HasElections: true } && Due(state, country) <= state.Date)
+		{
+			Hold(state, country);
 		}
 	}
 

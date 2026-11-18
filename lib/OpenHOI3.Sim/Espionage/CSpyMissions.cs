@@ -16,23 +16,29 @@ public static class CSpyMissions
 		CCountryFacts facts = CCountryFacts.Of(state);
 		foreach (CCountry country in state.Countries)
 		{
-			foreach (CCountry target in state.Countries)
+			RunCountry(state, facts, country);
+		}
+	}
+
+	/// <summary>One country's spies at work, in its own day.</summary>
+	public static void RunCountry(CGameState state, CCountryFacts facts, CCountry country)
+	{
+		foreach (CCountry target in state.Countries)
+		{
+			if (facts.OwnedCount(target.Tag) <= 0)
 			{
-				if (facts.OwnedCount(target.Tag) <= 0)
-				{
-					continue;
-				}
-				CSpyPresence presence = CGameState.Presence(country, target);
-				if (presence.Level > 0)
-				{
-					Run(state, presence, country, target);
-				}
+				continue;
 			}
-			CSpyPresence home = CGameState.Presence(country, country);
-			if (home.Weight(ESpyMission.CounterEspionage) != 0)
+			CSpyPresence presence = CGameState.Presence(country, target);
+			if (presence.Level > 0)
 			{
-				CCounterEspionage.Run(state, home, country, country);
+				Run(state, presence, country, target);
 			}
+		}
+		CSpyPresence home = CGameState.Presence(country, country);
+		if (home.Weight(ESpyMission.CounterEspionage) != 0)
+		{
+			CCounterEspionage.Run(state, home, country, country);
 		}
 	}
 

@@ -64,10 +64,16 @@ public static class CCabinet
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			if (state.Ideology(country.RulingIdeology) is { } ruling && Seats(country, ruling.Index) == 0)
-			{
-				Allot(state, country);
-			}
+			RunCountry(state, country);
+		}
+	}
+
+	/// <summary>One country's seats allotted again, in its own day, where the ruling party holds none.</summary>
+	public static void RunCountry(CGameState state, CCountry country)
+	{
+		if (state.Ideology(country.RulingIdeology) is { } ruling && Seats(country, ruling.Index) == 0)
+		{
+			Allot(state, country);
 		}
 	}
 

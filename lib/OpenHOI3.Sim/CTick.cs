@@ -193,11 +193,11 @@ public static class CTick
 		Step(state, Wars.CExile.HoldPoolsDaily);                  // an exile's own pool held within bounds (war.md, 14;
 		                                                           // ours: before its shares of leadership, which take none)
 		Step(state, CLeadership.RunDaily);                        // spies placed with the espionage share,
-		Step(state, Espionage.CSpyMissions.RunDaily);             // and at work after the alignment's step (espionage.md, 5)
-		Step(state, Revolts.CUndergrounds.RunDaily);              // its undergrounds (undergrounds.md, 3),
-		Step(state, Revolts.CRevoltRoll.RunDaily);                // then the roll for a rising, before the elections (rebels.md, 3)
-		Step(state, Politics.CElections.RunDaily);               // an election where one is due, then the seats
-		Step(state, Politics.CCabinet.RunDaily);                 // where the ruling party holds none (politics.md, 4-5)
+		// Then, a country at a time, its spies at work after the alignment's step (espionage.md, 5), its undergrounds
+		// (undergrounds.md, 3), the roll for a rising (rebels.md, 3), an election where one is due and the seats where the
+		// ruling party holds none (politics.md, 4-5) - one country's whole stretch before the next's, as the original's
+		// day runs, so each draws on the game's generator where the original's does (FINDINGS-liveread.md, section 120).
+		Step(state, RunSpiesToSeats, "CSpyMissions to CCabinet, country by country");
 		// Late in a country's day: the surrender. Each country's alignment step is taken just before its own surrender,
 		// country by country, so that it sees the surrenders and the IC of the countries before it and not those after.
 		Step(state, s => RunAlignmentAndSurrender(s, icAtDayStart), "CAlignment.RunDaily and CSurrender.RunDaily");
@@ -444,6 +444,30 @@ public static class CTick
 			}
 			CAlignment.RunDaily(state, country, icAtDayStart);
 			surrendered |= Wars.CSurrender.RunDaily(state, country);
+		}
+	}
+
+	/// <summary>
+	/// The stretch of a country's day from its spies to its seats, a country at a time in the game's order: the spies'
+	/// missions and counter-espionage, the undergrounds, the roll for a rising, an election and the seats.
+	/// </summary>
+	private static void RunSpiesToSeats(CGameState state)
+	{
+		Countries.CCountryFacts facts = Countries.CCountryFacts.Of(state);
+		bool undergrounds = Revolts.CUndergrounds.Building(state) is not null;
+		foreach (Countries.CCountry country in state.Countries)
+		{
+			Espionage.CSpyMissions.RunCountry(state, facts, country);
+			if (undergrounds)
+			{
+				Revolts.CUndergrounds.Run(state, country);
+			}
+			if (!state.IsBeingMade)
+			{
+				Revolts.CRevoltRoll.Roll(state, country);
+			}
+			Politics.CElections.RunCountry(state, country);
+			Politics.CCabinet.RunCountry(state, country);
 		}
 	}
 

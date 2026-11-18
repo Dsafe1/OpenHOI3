@@ -338,7 +338,11 @@ abroad 10045 of 10100, **1794 spies abroad to the save's 1783**: 22 catches to i
 gives the neutral countries 1.8 times the chance. The rest is the rolls: a model of the two days from the save's own
 spies expects 24.9 catches, sd 5.0, as read, and the save's 33 is 1.6 sd above it (section 6). **On 2026-11-02**, with
 every country's laws brought forward as a new game is made, the player's too (`politics.md`, section 13; entry 6
-struck): free spies 101 of 101, the levels abroad 10052 of 10100 and 1798 spies abroad.
+struck): free spies 101 of 101, the levels abroad 10052 of 10100 and 1798 spies abroad. **On 2026-11-18**, the stretch of
+the day from the spies to the seats run a country at a time - each country's spies, then its undergrounds, its roll for
+a rising, its election and its seats, before the next country's spies - as a recording of the original's draws shows it
+(`reversing/findings/FINDINGS-liveread.md`, section 120): the levels abroad 10053 of 10100, the catches falling on
+other rolls.
 
 Played on as Germany to the saves of 4 January 12:00 and 8 January 07:00 of the maintainer's other game: **the home
 at 7 and every priority and mission weight agree**, and the pool is short by that 0.089 a day and nothing else. The
