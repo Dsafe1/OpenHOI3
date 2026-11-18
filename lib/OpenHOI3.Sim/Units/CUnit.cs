@@ -396,6 +396,12 @@ public sealed class CUnit
 			{
 				stack.Push(unit.Children[i]);
 			}
+			// Only a fleet's ships carry anything - a carrier's air groups (transport.md, section 13.1) - so another unit's
+			// brigades are not looked through.
+			if (unit.Kind != EUnitKind.Navy)
+			{
+				continue;
+			}
 			for (int s = unit.SubUnits.Count - 1; s >= 0; s--)
 			{
 				List<CUnit> carried = unit.SubUnits[s].Carried;
