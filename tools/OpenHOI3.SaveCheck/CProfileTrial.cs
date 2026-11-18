@@ -25,7 +25,7 @@ internal static class CProfileTrial
 	{
 		if (args.Length < 2)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck profile <install folder> [days] [tag] [from=DATE]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck profile <install folder> [days] [tag] [from=DATE] [lua]");
 			return 2;
 		}
 		int days = args.Length > 2 && int.TryParse(args[2], out int given) ? given : 30;
@@ -49,6 +49,12 @@ internal static class CProfileTrial
 		Console.WriteLine($"a new game as {tag}, {state.Date}, loaded in {loading.ElapsedMilliseconds} ms");
 
 		state.Profile = new CTickProfile();
+		// With `lua`, the time the scripts spend in each method of ours they call, on the game's own state.
+		bool lua = args.Skip(2).Contains("lua");
+		if (lua)
+		{
+			scripts.Lua.Profile = new Dictionary<string, (long Ticks, int Calls)>();
+		}
 		var plain = new List<double>();
 		var turning = new List<double>();
 		var slowest = new List<(double Ms, CDate Date)>();
@@ -75,6 +81,14 @@ internal static class CProfileTrial
 		foreach (var (name, (ticks, calls)) in state.Profile.Steps.OrderByDescending(s => s.Value.Ticks))
 		{
 			Console.WriteLine($"   {name,-44} {ticks / ticksPerMs,7} ms {calls,7} runs {(double)ticks / ticksPerMs / calls,9:0.000} ms a run");
+		}
+		if (scripts.Lua.Profile is { } methods)
+		{
+			Console.WriteLine($"the methods the scripts called most expensively, {methods.Values.Sum(m => m.Ticks) / ticksPerMs} ms in all:");
+			foreach (var (name, (ticks, calls)) in methods.OrderByDescending(m => m.Value.Ticks).Take(25))
+			{
+				Console.WriteLine($"   {name,-44} {ticks / ticksPerMs,7} ms {calls,9} calls {(double)ticks * 1000 / ticksPerMs / calls,9:0.0} us a call");
+			}
 		}
 		return 0;
 	}
