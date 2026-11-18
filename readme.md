@@ -78,12 +78,13 @@ Editor*. Set the path of the Godot executable in the `godotTools.editorPath.godo
 `.vscode/settings.json` (git-ignored) or your user settings. The developer switches are listed above
 `RunDeveloperArguments` in [`src/CSession.cs`](src/CSession.cs).
 
-**A standalone build** is made by [`tools/export.ps1`](tools/export.ps1) into `export/OpenHOI3/`. It
+**A standalone build** is made by [`tools/build_engine.ps1`](tools/build_engine.ps1) into `export/OpenHOI3/`. It
 needs the Godot 4.7.1 .NET export templates. An exported build plays the install it is placed in:
 copy the folder's contents beside `hoi3_tfh.exe`.
 
-**The launcher** is built by [`launcher/publish.ps1`](launcher/publish.ps1) into `export/Launcher/` -
-with `-WithEngine`, the standalone build goes into its `engine` folder. Put that folder anywhere: it
+**The launcher** is built by [`tools/build_launcher.ps1`](tools/build_launcher.ps1) into
+`export/Launcher/`, and [`tools/build_both.ps1`](tools/build_both.ps1) builds both and puts the
+standalone build in the launcher's `engine` folder. Put that folder anywhere: it
 finds the install, or asks for it, lists the mods to tick and starts the engine each choice is played
 on, a mod's own where it ships one. [`docs/launcher.md`](docs/launcher.md) has the details.
 

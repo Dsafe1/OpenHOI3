@@ -5,13 +5,13 @@
 
   The build plays the install it is placed in - the folder holding the exe - so it is used by copying the whole of
   export/OpenHOI3/ beside hoi3_tfh.exe. That copy is the player's step; this script never writes to an install.
-  Started by the launcher, it plays the install the launcher names wherever it stands: launcher/publish.ps1 puts it
+  Started by the launcher, it plays the install the launcher names wherever it stands: tools/build_both.ps1 puts it
   in the launcher's engine folder. Its engine.txt says what it is (docs/launcher.md, section 2).
 
   It needs the Godot 4.7.1 .NET export templates (the editor's Editor > Manage Export Templates). The Godot
   executable is taken from -Godot, else from the "godotTools.editorPath.godot4" setting in .vscode/settings.json.
 
-  Usage: tools/export.ps1 [-Godot <path to the Godot .NET editor>] [-Debug]
+  Usage: tools/build_engine.ps1 [-Godot <path to the Godot .NET editor>] [-Debug]
 #>
 param(
     [string] $Godot,

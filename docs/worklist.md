@@ -1995,7 +1995,7 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 
 - **The launcher - built 2026-11-18, what is left** (`docs/launcher.md`). Built: the Avalonia window
   (`launcher/OpenHOI3.Launcher`), its logic under test (`lib/OpenHOI3.Content/Launch`), `--install=` in the engine, the
-  `engine` key of a descriptor, `engine.txt` from `tools/export.ps1` and `launcher/publish.ps1`; run end to end on
+  `engine` key of a descriptor, `engine.txt` from `tools/build_engine.ps1`, and the three builds in `tools/`; run end to end on
   BlackICE GitHub. Left, each waiting on something: a save recording the engine it was made with and the check between
   players covering the engine, for the enhanced engine (section 8); a mod's release putting its engine in its
   folder, for the first mod that names one (section 9); fetching missing engines and updating itself, if wanted later; trying it

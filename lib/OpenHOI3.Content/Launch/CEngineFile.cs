@@ -8,7 +8,7 @@ namespace OpenHOI3.Content.Launch;
 /// <summary>
 /// The <c>engine.txt</c> beside an engine, which says what it is without its being started (<c>docs/launcher.md</c>,
 /// section 2): <c>version</c>, <c>executable</c> - relative to the folder - and <c>contract</c>. Written by
-/// <c>tools/export.ps1</c>; ours, so UTF-8.
+/// <c>tools/build_engine.ps1</c>; ours, so UTF-8.
 /// </summary>
 public static class CEngineFile
 {
@@ -66,7 +66,7 @@ public static class CEngineFile
 		return new CEngine(Path.GetFullPath(folder), version, program, contract.Value);
 	}
 
-	/// <summary>The file's text for an engine: what <c>tools/export.ps1</c> writes, and what a test writes.</summary>
+	/// <summary>The file's text for an engine: what <c>tools/build_engine.ps1</c> writes, and what a test writes.</summary>
 	public static string Text(string version, string executable, int contract)
 	{
 		return "# The engine in this folder, as the launcher reads it (docs/launcher.md).\n"

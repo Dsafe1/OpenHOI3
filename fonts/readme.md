@@ -39,7 +39,7 @@ names it) - only its licence and its `.import`. To have the Axis names in Fraktu
 3. open the project in the editor once, or run its import, so that Godot imports it.
 
 Without it the game runs as before and draws the Axis names in Liberation Sans, saying so
-once in the log; `tools/export.ps1` warns that its export lacks it and leaves its licence
+once in the log; `tools/build_engine.ps1` warns that its export lacks it and leaves its licence
 out. Which typeface stands for which, and that this one is fetched, is the table in
 `src/Gfx/CShippedTypefaces.cs`.
 | `CodeRedOctober.ttf` | Code Red October 1.0, by Heaven Castro Studios, after ParaType's PT Mono | KyrillaSansSerif (`Kyril`, `comintern_country`: the Comintern names on the map) | `CodeRedOctober-info.txt`, `OFL-PTMono.txt` |

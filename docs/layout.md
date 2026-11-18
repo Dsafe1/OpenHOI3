@@ -173,8 +173,9 @@ lib/OpenHOI3.Lua/       the install's Lua, run on the simulation: the state the 
 native/lua/             Lua 5.1.4's source, its licence, our trampoline and the build of
                         openhoi3_lua.dll, which the Lua project runs
 tools/OpenHOI3.SaveCheck/   checks the libraries against a savegame the original wrote
-launcher/OpenHOI3.Launcher/ the launcher, in Avalonia: the window that lists the mods and starts an engine;
-                        launcher/publish.ps1 builds it, with the normal engine in its engine folder
+tools/build_*.ps1       the builds: build_engine the standalone engine, build_launcher the launcher, build_both
+                        the launcher with the engine in its engine folder (docs/launcher.md, section 7)
+launcher/OpenHOI3.Launcher/ the launcher, in Avalonia: the window that lists the mods and starts an engine
 docs/mechanics/         one spec per system: what the original computes, and how sure that is
 docs/compatibility.md   where a valid file of the original's is treated differently on purpose
 docs/launcher.md        the launcher: choosing the mods and the engine each one runs on

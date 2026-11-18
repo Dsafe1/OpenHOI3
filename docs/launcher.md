@@ -3,7 +3,7 @@
 How a player starts this game and chooses what to play: a launcher of its own, outside the engine, that lists the mods,
 picks the engine each choice is to run on and starts it. **Decided 2026-11-18, and built the same day**:
 `launcher/OpenHOI3.Launcher` (the window, in Avalonia), `lib/OpenHOI3.Content/Launch` (everything it decides, under
-test), `launcher/publish.ps1` (the build). What the engine does with a mod once it is started is `mechanics/mods.md`;
+test), `tools/build_launcher.ps1` and `tools/build_both.ps1` (the build, section 7). What the engine does with a mod once it is started is `mechanics/mods.md`;
 this is what happens before.
 
 ## 1. Why a launcher of its own
@@ -51,7 +51,7 @@ starting it - ours, so UTF-8:
     contract = 1
 
 `version` is what a mod's descriptor names, compared case and all; `executable` is relative to the folder; `contract` is
-the version of the command line the engine understands (section 5). `tools/export.ps1` writes it for the normal engine:
+the version of the command line the engine understands (section 5). `tools/build_engine.ps1` writes it for the normal engine:
 `normal-`, the date and the commit, a `+` where the tree had changes not committed. An engine folder with no
 `engine.txt`, or one whose program is not there, is no engine.
 
@@ -126,10 +126,16 @@ pressed. A remembered mod whose descriptor is gone is dropped, and the dependenc
 
 ## 7. Building it
 
-`launcher/publish.ps1` publishes `export/Launcher/`: the launcher as one self-contained, trimmed file for Windows, and
-`licences/` with this project's GPL, Liberation's OFL and a note of the MIT terms of .NET, Avalonia, SkiaSharp and
-HarfBuzzSharp. **`-WithEngine`** runs `tools/export.ps1` and copies the engine into `export/Launcher/engine/` (about 245
-MB in all). The launcher run by hand takes **`--engine=<folder>`** in place of its own `engine` folder.
+Three scripts in `tools/`, since 2026-11-19 (the user's: "Just make it 3"):
+
+- **`build_engine.ps1`** exports the engine into `export/OpenHOI3/`, with its `engine.txt`;
+- **`build_launcher.ps1`** publishes `export/Launcher/`: the launcher as one self-contained, trimmed file for Windows,
+  and `licences/` with this project's GPL, Liberation's OFL and a note of the MIT terms of .NET, Avalonia, SkiaSharp and
+  HarfBuzzSharp - with no engine of its own;
+- **`build_both.ps1`** runs the two and copies the engine into `export/Launcher/engine/`, about 245 MB in all: what a
+  player is given.
+
+The launcher run by hand takes **`--engine=<folder>`** in place of its own `engine` folder.
 
 **Checked on 2026-11-18**: the logic's 30 tests (`EngineChoiceTests`, `ModPicksTests`, `LaunchContractTests`,
 `LauncherSettingsTests`), the engine's reading of the command line among them; and the published launcher with its

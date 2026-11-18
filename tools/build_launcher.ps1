@@ -1,16 +1,15 @@
 <#
   Builds the launcher (docs/launcher.md): export/Launcher/, which holds OpenHOI3.Launcher.exe - self-contained, one
-  file, .NET and Avalonia inside it - and licences/ with the licences of what it ships. With -WithEngine it also
-  exports the normal engine (tools/export.ps1) into export/Launcher/engine/, which is the launcher's own engine: the
-  one the base game and every mod naming no engine is played on.
+  file, .NET and Avalonia inside it - and licences/ with the licences of what it ships. It has no engine of its own:
+  tools/build_both.ps1 builds the engine as well and puts it in export/Launcher/engine/, the launcher's own engine -
+  the one the base game and every mod naming no engine is played on. Without it, start the launcher with
+  --engine=<folder of an exported engine>.
 
   The folder may go anywhere: the launcher finds the install itself, or asks for it. Nothing is written to an install.
 
-  Usage: launcher/publish.ps1 [-WithEngine] [-Godot <path to the Godot .NET editor>] [-Runtime win-x64]
+  Usage: tools/build_launcher.ps1 [-Runtime win-x64]
 #>
 param(
-    [switch] $WithEngine,
-    [string] $Godot,
     [string] $Runtime = 'win-x64'
 )
 $ErrorActionPreference = 'Stop'
@@ -51,15 +50,4 @@ OpenHOI3 itself is under the GNU General Public License, version 3 - OpenHOI3-GP
 is at https://github.com/Dsafe1/OpenHOI3.
 '@
 
-if ($WithEngine) {
-    $exportArguments = @{}
-    if ($Godot) { $exportArguments['Godot'] = $Godot }
-    & (Join-Path $root 'tools\export.ps1') @exportArguments
-    $engine = Join-Path $out 'engine'
-    Copy-Item -Recurse (Join-Path $exportRoot 'OpenHOI3') $engine
-}
-
-Write-Host "Published $out"
-if (-not $WithEngine) {
-    Write-Host 'No engine of its own: run with -WithEngine, or start it with --engine=<folder of an exported engine>.'
-}
+Write-Host "Built the launcher in $out"
