@@ -33,23 +33,24 @@ public static class CNavalSpotting
 	private const int AirRoll = 1000;
 
 	/// <summary>
-	/// Whether a fleet found in a province may be made the defender of a battle, by its
-	/// order: one on patrol always when it is aggressive, never when passive, and
-	/// otherwise only by a fleet weaker than itself; a raider and a transport never
-	/// (<c>transport.md</c>, section 5); anything else, yes.
+	/// Whether a unit starts a battle or a bombing with one it has found, by its own order: on
+	/// patrol always when aggressive, never when passive, and otherwise only against a fleet
+	/// weaker than itself; raiding or carrying troops never (<c>transport.md</c>, section 5);
+	/// anything else, a bomber's mission among them, yes. The found unit's order asks nothing,
+	/// so a raider or a transport may be found and fought (FINDINGS-liveread.md, section 126).
 	/// </summary>
-	public static bool DefenderAccepts(CUnit found, CUnit asker)
+	public static bool MayStartAgainst(CUnit asker, CUnit found)
 	{
-		switch (found.Order)
+		switch (asker.Order)
 		{
 			case EUnitOrder.Transport:
 				return false;
 			case EUnitOrder.Patrol:
-				return found.Mission.Stance switch
+				return asker.Mission.Stance switch
 				{
 					CMission.Aggressive => true,
 					CMission.Passive => false,
-					_ => CEnemyFleets.Power(asker) < CEnemyFleets.Power(found),
+					_ => CEnemyFleets.Power(found) < CEnemyFleets.Power(asker),
 				};
 			case EUnitOrder.ConvoyRaid:
 				return false;

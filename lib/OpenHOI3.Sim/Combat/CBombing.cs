@@ -333,7 +333,7 @@ public static class CBombing
 		{
 			return false;
 		}
-		return MayBomb(state, unit, other) && CNavalSpotting.DefenderAccepts(other, unit);
+		return MayBomb(state, unit, other) && CNavalSpotting.MayStartAgainst(unit, other);
 	}
 
 	/// <summary>

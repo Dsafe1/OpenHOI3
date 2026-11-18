@@ -170,8 +170,10 @@ reading's**; the record had the call under the raid order until this reading.
 
 **In a battle** a patrol's stance decides two things (`navalcombat.md`, section 1): one that is
 not aggressive starts no battle with a fleet that has more than five thirds of its own carriers
-and capital ships; and found by somebody, an aggressive patrol can be made the defender by
-anyone, a passive one by nobody, and a defensive one only by a fleet weaker than itself.
+and capital ships; and of a fleet it has found, an aggressive patrol goes for any, a passive one
+for none, and a defensive one only for a fleet weaker than itself. Found by somebody, a patrol
+is fought like any fleet (`reversing/findings/FINDINGS-liveread.md`, section 126; until
+2026-11-18 ours had the stance decide who might bring the patrol to battle).
 
 ### 3.1 What a new shadow tells the player
 
@@ -205,8 +207,10 @@ $OTHERS$ fleet in $PROV$.`" puts the fleet's own name where it reads like a coun
 with two differences in the move: the round is taken **without a thought for the range**, and
 not while the fleet lies at its own base - from there it first makes for its province.
 
-**A raider starts no battle between fleets and is never made the defender of one.** It can
-still be taken into a battle being fought where it is, on the side whose enemies are its own.
+**A raider starts no battle between fleets, but one found by an enemy fleet is fought** like
+any other (`reversing/findings/FINDINGS-liveread.md`, section 126; until 2026-11-18 ours held
+it the defender of none). It can also be taken into a battle being fought where it is, on the
+side whose enemies are its own. A bomber after ships goes for it too.
 
 ## 5. Intercept
 

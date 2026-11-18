@@ -100,8 +100,8 @@ public static class CNavalBattle
 		CUnit? found = null;
 		foreach (CUnit other in state.UnitsIn(province.Id))
 		{
-			// The first that may be fought and whose order lets it be made the defender.
-			if (MayEngage(state, fleet, other) && CNavalSpotting.DefenderAccepts(other, fleet))
+			// The first that may be fought and that the fleet's own order lets it go for.
+			if (MayEngage(state, fleet, other) && CNavalSpotting.MayStartAgainst(fleet, other))
 			{
 				found = other;
 				break;

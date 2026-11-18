@@ -109,7 +109,8 @@ fleet's base is (`supply.md`). It burns no fuel, going nowhere.
 
 - **may not be ordered to move while any passenger has a path**;
 - may be given any order; only the invasion's asks what it carries;
-- under a transport order, is never made the defender of a sea battle, and if nobody plays its country, starts none;
+- under a transport order, starts no sea battle, and is fought like any fleet when an enemy finds it
+  (`reversing/findings/FINDINGS-liveread.md`, section 126 - until 2026-11-18 ours held it the defender of none);
 - is found without a roll by an enemy fleet while any passenger is moving or fighting (`navalcombat.md`).
 
 ## 6. Too much aboard, a sea battle, and the fleet's end

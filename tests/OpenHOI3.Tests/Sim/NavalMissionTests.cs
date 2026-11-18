@@ -417,31 +417,37 @@ public class NavalMissionTests
 		patrol.Mission.Stance = CMission.Aggressive;
 		Assert.True(CNavalSpotting.ShouldStart(state, patrol, heavy));
 
-		// Found on patrol: aggressive, anybody's defender; passive, nobody's; else a weaker fleet's alone.
-		Assert.True(CNavalSpotting.DefenderAccepts(patrol, heavy));
+		// Going for a fleet it found: aggressive, any; passive, none; else only one weaker than itself.
+		Assert.True(CNavalSpotting.MayStartAgainst(patrol, heavy));
 		patrol.Mission.Stance = CMission.Passive;
-		Assert.False(CNavalSpotting.DefenderAccepts(patrol, light));
+		Assert.False(CNavalSpotting.MayStartAgainst(patrol, light));
 		patrol.Mission.Stance = CMission.Defensive;
-		Assert.True(CNavalSpotting.DefenderAccepts(patrol, light));
-		Assert.False(CNavalSpotting.DefenderAccepts(patrol, heavy));
+		Assert.True(CNavalSpotting.MayStartAgainst(patrol, light));
+		Assert.False(CNavalSpotting.MayStartAgainst(patrol, heavy));
+		// What the found fleet is doing asks nothing: a patrol found is anybody's to fight.
+		Assert.True(CNavalSpotting.MayStartAgainst(heavy, patrol));
 	}
 
 	// --- the raid ---
 
 	[Fact]
-	public void ARaiderStartsNoBattleBetweenFleetsAndIsNobodysDefender()
+	public void ARaiderStartsNoBattleBetweenFleetsButMayBeFoundAndFought()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);
 		state.Played.Add(Ger);
 		state.Played.Add(Pol);
+		state.FogOfWar = false;
 		CUnit raider = Fleet(state, germany, Bight, Destroyer);
 		CUnit other = Fleet(state, poland, Bight, Destroyer);
 		raider.Order = EUnitOrder.ConvoyRaid;
 
 		Assert.False(CNavalSpotting.ShouldStart(state, raider, other));
-		Assert.False(CNavalSpotting.DefenderAccepts(raider, other));
-		Assert.Null(CNavalBattle.Start(state, state.Province(Bight), other));
+		Assert.False(CNavalSpotting.MayStartAgainst(raider, other));
+		Assert.Null(CNavalBattle.Start(state, state.Province(Bight), raider));
 		Assert.Empty(state.Combats);
+		// Found by a fleet that goes for it, it is fought (FINDINGS-liveread.md, section 126).
+		Assert.True(CNavalSpotting.MayStartAgainst(other, raider));
+		Assert.NotNull(CNavalBattle.Start(state, state.Province(Bight), other));
 	}
 
 	[Fact]

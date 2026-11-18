@@ -98,8 +98,11 @@ strike in July 1941 rolled once a ship where the original's rolled nothing.
   aggressive leaves alone a fleet with many more heavy ships, an escort and a patrol find a
   raider by their efficiency against its own, a shadowed fleet is twice as easily seen, and
   water a convoy was attacked in is watched the harder. And **the first enemy fleet** above is
-  the first whose order lets it be made the defender: a raider never is, and a patrol by its
-  stance. All of it is `navalmissions.md`, sections 3, 4 and 9.
+  the first the looking fleet's own order lets it go for: a patrol by its stance, and a raider
+  or a transport none - the found fleet's order asks nothing, so a raider found is fought
+  [exe; `reversing/findings/FINDINGS-liveread.md`, section 126]. Until 2026-11-18 ours asked
+  the found fleet's order, which no fleet ever took a raider into a battle by. All of it is
+  `navalmissions.md`, sections 3, 4 and 9.
 
 **The looking fleet's leaders' `spotting_chance`** multiplies each pair's figure, as one and
 the trait, down the fleet's chain of command (`leaders.md`, section 10).
