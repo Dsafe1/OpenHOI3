@@ -372,7 +372,12 @@ the United States' 43rd and 1st Cavalry Divisions re-aimed at 11:00 on 1 January
 **Where a unit is bound** is asked two ways, by two readers of the original's. **The pending destination**
 (`CUnit_GetPendingDestinationProvince`, `CAgentUnits.Destination`): where the AI sent it this pass, or its way's end;
 **with neither, the province of an order still under way** - anything but none or a plain move, a support attack's
-among them. A stand-down clears the first at once and posts its "no order" as a command, so a division the AI halts on a
+among them. **Every order the AI gives binds its unit at once but a support attack**, which binds nothing until its
+command runs: so a unit the attack (11) has just told to support one target is still free for a later target of the same
+pass, and is sent there if it joins - the Soviet 3. Gvardejskaya Strelk. Volnovakhskaya Div. at 1750 joins the attack on
+1689 at the load of July 1941 as a unit that must stay and support, and is then sent to 1749, where the original's own
+run sends it (its support order itself is not in the recording) (`confirmed` on the
+listing, `reversing/findings/FINDINGS-liveread.md`, section 124). A stand-down clears the first at once and posts its "no order" as a command, so a division the AI halts on a
 strategic redeployment answers the redeployment's province for the rest of the pass: the second ring "halts" the Soviet
 99. Strelkovaya Diviziya where it stands at 144 at 06:00 on 17 July 1941, and the pull, seeing it bound for 1589 and so
 for no position, takes it to 619 without the fullness test, in all three runs (`confirmed` on the listing and the

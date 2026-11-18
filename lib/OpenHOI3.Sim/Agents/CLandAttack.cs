@@ -434,9 +434,10 @@ public static class CLandAttack
 				}
 				if (mustStay.Contains(unit))
 				{
+					// A support attack is a posted order and binds the unit to nothing for the rest of the pass, so a later
+					// target may still take it (FINDINGS-liveread.md, section 124).
 					if (unit.Order != EUnitOrder.SupportAttack)
 					{
-						unit.AiBound = p.Id;
 						state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, unit.Id, EUnitOrder.SupportAttack, p.Id));
 					}
 				}
