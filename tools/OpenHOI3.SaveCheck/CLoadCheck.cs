@@ -474,6 +474,8 @@ public static class CLoadCheck
 			CAiOrderCheck.Report(state, save, later, "  ", ExampleCountry, ordersFile);
 			Console.WriteLine("the wars, pacts and convoys, beside the later save:");
 			CompareDiplomacy(state, later, "  ");
+			Console.WriteLine("the practicals battles teach, beside the later save:");
+			CPracticalCheck.Report(state, save, later, "  ");
 		}
 		if (series is not null)
 		{

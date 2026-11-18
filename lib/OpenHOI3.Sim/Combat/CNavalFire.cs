@@ -49,6 +49,7 @@ public static class CNavalFire
 		}
 		CCombatSide other = combat.Other(side);
 		CTraitGain.BankHour(state, side);
+		CCombatPractical.Naval(state, side);
 		Creep(state, side);
 		long theirPenalty = CNavalBattle.StackingPenalty(state, other);
 		long ourSpeed = AverageSpeed(side);

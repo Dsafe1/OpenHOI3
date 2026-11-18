@@ -45,7 +45,7 @@ public static class CDefinesReader
 		(CManpower.MilitarySection, CBaseCrowding.NavalBaseEfficiency),
 	};
 
-	/// <summary>Every numeric value, by section and name.</summary>
+	/// <summary>Every numeric value in a section, by section and name, and every value at all as it is written.</summary>
 	public static CDefines Read(CDirectorySettings directories, Action<string>? warn = null)
 	{
 		warn ??= CDiagnostics.Warn;
@@ -53,6 +53,7 @@ public static class CDefinesReader
 		var defines = new CDefines();
 		foreach (((string section, string name), string text) in ReadText(path))
 		{
+			defines.SetText(section, name, text);
 			if (section.Length != 0 && CFixedPoint.TryParse(text, out CFixedPoint value))
 			{
 				defines.Set(section, name, value);

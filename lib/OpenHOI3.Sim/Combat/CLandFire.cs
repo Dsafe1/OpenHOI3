@@ -32,13 +32,14 @@ public static class CLandFire
 	private const long DamagePerTenthOfStrength = 100;
 
 	/// <summary>
-	/// One side's hour: its front is seen to, one draw of the game's generator starts
-	/// its own rolls, and every unit on its front fires.
+	/// One side's hour: its front is seen to, its countries gain the land practical, one
+	/// draw of the game's generator starts its own rolls, and every unit on its front fires.
 	/// </summary>
 	public static void Attack(CGameState state, CCombat combat, CCombatSide side)
 	{
 		CTraitGain.BankHour(state, side);
 		CFrontLine.Update(state, combat, side);
+		CCombatPractical.Land(state, side);
 		var rolls = new CCombatStream(state.Random.Next());
 		CCombatSide enemy = combat.Other(side);
 		foreach (CUnit unit in new List<CUnit>(side.Front))

@@ -338,6 +338,41 @@ original does both and reads the order of battle country by country; a technolog
 country's units would see them later here. The start year is the game's own, one start being all there is
 (`docs/compatibility.md`, entry 1); the original takes `start_date` from `defines.lua`.
 
+## 10. What a battle teaches
+
+Every hour of a battle, at the head of each side's shooting, every country still fighting on the side gains a
+practical, by the same diminishing gain a finished level gives (section 4): `confirmed`
+
+| battle | the practical, named by the defines' top level | the gain, `military` |
+| --- | --- | --- |
+| on land | `land_combat` - `land_doctrine_practical` in Their Finest Hour | `LAND_DOCTRINE_INCREASE`, 0.001 |
+| at sea | `naval_combat` - `naval_doctrine_practical` | `NAVAL_DOCTRINE_INCREASE`, 0.01 |
+| in the air | `air_combat` - `air_doctrine_practical` | `AIR_DOCTRINE_INCREASE`, 0.01 |
+| a bombing, the bombers alone | `bombing` - `air_doctrine_practical` | `BOMBING_DOCTRINE_INCREASE`, 0.01 |
+
+- **Both sides of a land, sea or air battle gain**, each at the head of its own hour: on land after its front is seen
+  to and before the side's draw of the generator, at sea and in the air after the leaders' hours are banked. A
+  bombing's bombers gain; the side bombed has no shooting of its own of this kind and gains nothing.
+- **The countries are the side's countries still in the fight** - those whose units are left on it - so a beaten
+  side's gain stops with its last unit.
+- **A raid on a convoy gains too**: its five rounds are hours of the sea battle (`navalmissions.md`, section 8), so the
+  raider's country gains the naval practical five times, and the convoy's owner with it.
+- **The name is looked up among the technology categories, case and all**, and a name that is none gives nothing.
+- The gain is the define as it stands, in thousandths: 0.001 an hour on land is 0.024 a day of battle. Above the
+  divisor it truncates: a country with 20 in the practical gains nothing an hour on land, 0.001 x 10 / 20 being under a
+  thousandth.
+
+(measured, 2026-11-18) `OpenHOI3.SaveCheck load` with a later save now sets these practicals beside it.
+`Ireland1940_05_23_15.hoi3` played one hour to `_16`: the land practical moved for the same two countries in the save
+and in ours, 100 of 101 countries the save's, France 6.456 to the save's 6.459 and ours 6.458 - a battle fewer of its
+in ours that hour. Five hours to `_20`: France 6.479 saved and 6.472 ours, Germany's air practical 20.763 to 20.771 in
+the save, which fought air battles ours did not. Every move on either side is a whole number of hours' gain; where they
+part, the battles fought did.
+
+Sources: `reversing/findings/FINDINGS-landbattle.md`, `FINDINGS-seabattle.md`, `FINDINGS-airbattle.md`,
+`FINDINGS-bombing.md`; the shared gain and the defines' names read 2026-11-18. Built 2026-11-18 (`CCombatPractical`).
+Nothing new is kept: the practicals are a country's abilities, saved and loaded already.
+
 ## What is not established, in one place
 
 - how abilities are **recomputed when a game starts**;

@@ -59,6 +59,7 @@ public static class CAirFire
 			trace($"AIRSIDE atk={(side.IsAttacker ? 1 : 0)} draws={state.Random.Draws} wings={string.Join(" ", wings)}");
 		}
 		CTraitGain.BankHour(state, side);
+		CCombatPractical.Air(state, side);
 		CCombatSide other = combat.Other(side);
 		CDefines defines = state.Defines;
 		string military = CManpower.MilitarySection;
