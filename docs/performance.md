@@ -58,6 +58,17 @@ As measured, with `OpenHOI3.SaveCheck profile` and the headless run, both in Rel
   beside province's encryption only where a unit stands to be weighed against it, and a province's repair works out
   its rate only where something is short. The midnight hour's median about 215 ms to 201 under BlackICE, against an
   ordinary hour's 30; what is left in it is spread over many steps of a few milliseconds each, and the AI's.
+- **The AI's scripts are the interpreter's time, not the crossing's** (measured the same day): of the ministers' time
+  four fifths is native - the original's Lua running the install's scripts - and our side of the crossing, the pushes
+  and the calls, about a twentieth. The collector is not it either: its pause at 1000 in place of 200 gave about 4 per
+  cent, so it was left. A userdata a push stays, as luabind's: two pushes of one object are two values to a script.
+- **The walk of a country's units made one enumerator** (`CUnitWalk`) where it was two nested ones and a new stack a
+  walk - the same units in the same order, as live as before: a unit's units are read only as the walk is asked for the
+  next, so what a caller does to a unit as it meets it is what the walk then finds. Every walk gains, the AI's among them
+  without its code touched: the unit agents about 7 per cent, the research minister 25, the officers 15, the hour's check
+  of who stands where 20. A list of each country's units kept between walks was weighed and not built: the tree's lists
+  are changed in some hundreds of places, and a kept list would be exact only for callers that change nothing as they
+  walk.
 - **Drawing is already C++** - it is Godot's renderer. The client's C# builds and sets nodes.
 
 ## 3. What C++ would buy, part by part

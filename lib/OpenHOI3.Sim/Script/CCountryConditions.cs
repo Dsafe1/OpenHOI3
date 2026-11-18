@@ -216,7 +216,7 @@ public static class CCountryConditions
 	public static int Divisions(CCountry? country)
 	{
 		int count = 0;
-		foreach (CUnit unit in country?.AllUnits() ?? Array.Empty<CUnit>())
+		foreach (CUnit unit in country?.AllUnits() ?? default)
 		{
 			if (IsLand(unit) && unit.SubUnits.Count > 1)
 			{
@@ -230,7 +230,7 @@ public static class CCountryConditions
 	public static int Brigades(CCountry? country)
 	{
 		int count = 0;
-		foreach (CUnit unit in country?.AllUnits() ?? Array.Empty<CUnit>())
+		foreach (CUnit unit in country?.AllUnits() ?? default)
 		{
 			if (!IsLand(unit))
 			{
@@ -251,7 +251,7 @@ public static class CCountryConditions
 	public static int SubUnitsOf(CCountry? country, EUnitKind kind)
 	{
 		int count = 0;
-		foreach (CUnit unit in country?.AllUnits() ?? Array.Empty<CUnit>())
+		foreach (CUnit unit in country?.AllUnits() ?? default)
 		{
 			if (unit.Kind == kind)
 			{

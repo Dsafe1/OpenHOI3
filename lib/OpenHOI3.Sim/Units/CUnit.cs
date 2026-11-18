@@ -370,51 +370,8 @@ public sealed class CUnit
 		SubUnits.Insert(at, subUnit);
 	}
 
-	/// <summary>This unit and every unit under it or aboard its ships, itself first.</summary>
-	public IEnumerable<CUnit> WithAllBelow()
-	{
-		var stack = new Stack<CUnit>(32);
-		stack.Push(this);
-		foreach (CUnit unit in Walk(stack))
-		{
-			yield return unit;
-		}
-	}
-
-	/// <summary>
-	/// Every unit from those on the stack down, each before what it carries and then the units under it - in one walk
-	/// and not an enumerator a level, which every unit would otherwise pass up through. An air group aboard a carrier is
-	/// one of its fleet's units and is met as that; only one with no unit above it is met through its ship.
-	/// </summary>
-	internal static IEnumerable<CUnit> Walk(Stack<CUnit> stack)
-	{
-		while (stack.Count > 0)
-		{
-			CUnit unit = stack.Pop();
-			yield return unit;
-			for (int i = unit.Children.Count - 1; i >= 0; i--)
-			{
-				stack.Push(unit.Children[i]);
-			}
-			// Only a fleet's ships carry anything - a carrier's air groups (transport.md, section 13.1) - so another unit's
-			// brigades are not looked through.
-			if (unit.Kind != EUnitKind.Navy)
-			{
-				continue;
-			}
-			for (int s = unit.SubUnits.Count - 1; s >= 0; s--)
-			{
-				List<CUnit> carried = unit.SubUnits[s].Carried;
-				for (int i = carried.Count - 1; i >= 0; i--)
-				{
-					if (carried[i].Parent is null)
-					{
-						stack.Push(carried[i]);
-					}
-				}
-			}
-		}
-	}
+	/// <summary>This unit and every unit under it or aboard its ships, itself first (<see cref="CUnitWalk"/>).</summary>
+	public CUnitWalk WithAllBelow() => new(this);
 
 	public override string ToString()
 	{

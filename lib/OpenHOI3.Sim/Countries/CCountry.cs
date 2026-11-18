@@ -610,20 +610,8 @@ public sealed class CCountry
 		return groups;
 	}
 
-	/// <summary>Every unit it has, at every level, each before the units under it.</summary>
-	public IEnumerable<CUnit> AllUnits()
-	{
-		// Room for the top units and a few levels' children of the deepest way down, so a walk hardly ever grows it.
-		var stack = new Stack<CUnit>(Units.Count + 64);
-		for (int i = Units.Count - 1; i >= 0; i--)
-		{
-			stack.Push(Units[i]);
-		}
-		foreach (CUnit unit in CUnit.Walk(stack))
-		{
-			yield return unit;
-		}
-	}
+	/// <summary>Every unit it has, at every level, each before the units under it (<see cref="CUnitWalk"/>).</summary>
+	public CUnitWalk AllUnits() => new(Units);
 
 	/// <summary>
 	/// Every unit it has in the order the original keeps them, which is the order they
