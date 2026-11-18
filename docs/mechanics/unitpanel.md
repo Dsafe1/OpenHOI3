@@ -237,7 +237,10 @@ nothing for a mission.
 ## 6. The brigades
 
 The window `sup_subunits`: a heading, and a list of one row for each brigade in the unit's
-own order. `confirmed`
+own order. `confirmed` That is the order of their types' `priority`, highest first (`units.md`, section 3, *The order
+of a unit's sub units*): the original's list copies the unit's brigades into a list of its own through the same
+insertion by priority, which leaves the unit's order as it is, since it is already so. `confirmed`
+(`reversing/findings/FINDINGS-subunitorder.md`, section 3)
 
 - `header`: for a land unit `LAND_COUNT`, "$NUM$ Brigades". A fleet's is `NAVAL_COUNT` with
   its capital ships, screens and others, and an air unit's `AIR_COUNT` with its fighters and

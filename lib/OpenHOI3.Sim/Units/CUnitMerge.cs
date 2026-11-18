@@ -113,7 +113,7 @@ public static class CUnitMerge
 		foreach (CSubUnit subUnit in from.SubUnits.ToArray())
 		{
 			from.SubUnits.Remove(subUnit);
-			into.SubUnits.Add(subUnit);
+			into.AddSubUnit(subUnit);
 			subUnit.Unit = into;
 		}
 		if (from.Kind == EUnitKind.Navy && into.Kind == EUnitKind.Navy)

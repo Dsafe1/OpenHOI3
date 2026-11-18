@@ -121,8 +121,8 @@ public static class CReserve
 			}
 			reserve.SubUnits.Remove(sound);
 			other.SubUnits.Remove(worn);
-			other.SubUnits.Add(sound);
-			reserve.SubUnits.Add(worn);
+			other.AddSubUnit(sound);
+			reserve.AddSubUnit(worn);
 			sound.Unit = other;
 			worn.Unit = reserve;
 		}

@@ -542,7 +542,7 @@ public static class CBuildQueue
 			subUnit.Organisation = CFixedPoint.Max(CFixedPoint.Zero,
 				COrganisation.Ceiling(state, country, subUnit, penaltyAtWar: true, penaltyAlways: true));
 			subUnit.Unit = unit;
-			unit.SubUnits.Add(subUnit);
+			unit.AddSubUnit(subUnit);
 		}
 		unit.Name = name;
 		// Its deployment takes the number after the unit's, which the line passed over for it (buildqueue.md, section 4).

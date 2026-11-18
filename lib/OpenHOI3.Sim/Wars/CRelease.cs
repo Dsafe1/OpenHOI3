@@ -113,7 +113,7 @@ public static class CRelease
 				brigade.Name = CUnitNames.ForSubUnit(state, country, type);
 				CUnitNames.Register(country, brigade.Name);
 				Revolts.CRebelArmies.SetFull(state, country, brigade);
-				army.SubUnits.Add(brigade);
+				army.AddSubUnit(brigade);
 			}
 			army.Name = CUnitNames.ForDivision(state, country, type);
 			CUnitNames.Register(country, army.Name);

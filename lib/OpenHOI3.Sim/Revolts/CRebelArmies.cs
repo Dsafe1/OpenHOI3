@@ -80,7 +80,7 @@ public static class CRebelArmies
 				brigade.TechnologyLevels[technology.Name] = level > 0 ? state.Random.Next() % level : 0;
 			}
 			SetFull(state, ownerCountry, brigade);
-			army.SubUnits.Add(brigade);
+			army.AddSubUnit(brigade);
 		}
 		// Put in its province from nowhere, it brings its days of supplies and fuel - out of its owner's stockpile, which
 		// the rebels have none of (supply.md, section 14).

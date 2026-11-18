@@ -460,6 +460,29 @@ public class OrderOfBattleTests : IDisposable
 	}
 
 	[Fact]
+	public void AUnitsBrigadesAreInTheOrderOfTheirPriorityAndNotTheFiles()
+	{
+		// BlackICE's division headquarters first in the file and of priority 1, its infantry 83: the original's start save
+		// has the infantry first, and so does its counter.
+		Write("units/ranked.txt", """
+			hq_division = { type = land max_strength = 10 default_organisation = 30 officers = 100 priority = 1 }
+			rifle_brigade = { type = land max_strength = 30 default_organisation = 30 officers = 100 priority = 83 }
+			""");
+		(CCountry country, _, _) = Read("""
+			division = {
+				name = "1. Division"
+				location = 12
+				regiment = { type = hq_division name = "Stab" historical_model = 0 }
+				regiment = { type = foot_brigade name = "Unranked" historical_model = 0 }
+				regiment = { type = rifle_brigade name = "IR 1" historical_model = 0 }
+				regiment = { type = rifle_brigade name = "IR 2" historical_model = 0 }
+			}
+			""");
+
+		Assert.Equal(new[] { "IR 1", "IR 2", "Stab", "Unranked" }, country.Units[0].SubUnits.Select(brigade => brigade.Name));
+	}
+
+	[Fact]
 	public void EachBlockTakesTheNextNumberAsItCloses()
 	{
 		(CCountry country, _, int last) = Read("""

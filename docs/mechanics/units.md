@@ -176,6 +176,39 @@ unit type for each brigade, with `name`, `historical_model`, `experience` and - 
 savegame writes it - `model`. What a new game makes of one is `buildqueue.md`, section 5:
 its `duration` is the days it still has to go, and its `cost` and `progress` are not used.
 
+### The order of a unit's sub units
+
+**A unit's brigades, ships or wings are kept in order of their type's `priority`, highest first**, whatever order the
+file lists them in. Every one is put in the same way, by the one routine every join goes through: walking back from the
+unit's last, it goes in after the first whose `priority` is no lower than its own, and first where every one is lower.
+So **equals keep the order they came in**, and a new one of the highest priority goes in front of all. `confirmed`
+(`reversing/findings/FINDINGS-subunitorder.md`, section 1)
+
+- `priority` is read as a whole number with the C library's `atoi`: `2.9` is 2, `-1.5` is -1, and a type without the
+  key is 0. It is the brigade's own figure that is compared, its technologies in it - which is its type's, since no
+  technology of the base game or of BlackICE gives one.
+- **Every way a sub unit joins a unit sorts it so** (the findings, section 2): an order of battle and a save read, a
+  finished line of the build queue, a unit placed from the deploy menu into another, a merge, the reorganise window and
+  the split, the exchange of ships a reserve fleet makes, a convoy raid's throwaway fleet, the rebels' armies, a released
+  country's divisions, a new headquarters and `add_subunit`/`add_division`. Nothing reorders a unit afterwards.
+- So **its first sub unit is one of its highest priority**, and everything that asks for a unit's first sub unit gets
+  that one: the counter's picture (`mapunits.md`), the unit panel's `counter_type` and its list of brigades, a
+  headquarters' brigade (`reorganise.md`, section 4), the name of a unit the reorganise window makes. Combat,
+  reinforcement, upgrades and the save walk a unit's sub units in this order too, and need nothing of their own.
+- **The base game's start save bears it out unit for unit** (**measured**, 2026-11-18): Their Finest Hour's
+  `ENG_1936.txt` lists the 5th Indian Infantry as two `infantry_brigade` (7) and then a `gurkha_brigade` (9), and
+  `Germany1936_01_01_00.hoi3` has the Gurkhas first; the Home Fleet's `carrier` (10) leads its six battleships (9).
+  Across the 50 saves of the base game in the maintainer's folder that the original wrote, and the 19 of BlackICE, not
+  one unit of more than one priority is out of this order (in BlackICE's, leaving aside four types older saves hold
+  that today's files no longer declare). The folder's three others have units out of it exactly as the history files
+  list them, and are this project's own: `Germany1936_01_01_08.hoi3` among them, eight hours after a start save that is
+  in order. **BlackICE** gives its `division_hq_standard` priority 1 and its `infantry_brigade` 83, and its files
+  list the headquarters first: in its start save the infantry leads, and so does the counter.
+- A new game here is the start save's in this since 2026-11-18, every one of the base game's 1,665 units and of
+  BlackICE's 2,813 in the save's order; 39 and 1,133 were not before, 35 and 781 of them with another sub unit first.
+
+*Mod-able*: `priority` in `units/*.txt`. *Hardcoded*: the order and the tie rule.
+
 ### Reserves
 
 `is_reserve = yes` on a unit is copied onto each `regiment` **read after it**. Nothing goes

@@ -16,6 +16,12 @@ public sealed class CSubUnitType
 	public const string CombatWidth = "combat_width";
 	public const string TransportWeight = "transport_weight";
 
+	/// <summary>
+	/// The file's <c>priority</c>, which keeps a unit's sub units in order, highest first (<c>docs/mechanics/units.md</c>,
+	/// section 3).
+	/// </summary>
+	public const string Priority = "priority";
+
 	public CSubUnitType(string key, EUnitBranch branch)
 	{
 		Key = key;

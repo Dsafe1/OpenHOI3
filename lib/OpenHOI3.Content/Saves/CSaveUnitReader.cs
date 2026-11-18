@@ -275,7 +275,7 @@ public sealed class CSaveUnitReader
 		{
 			return;
 		}
-		unit.SubUnits.Add(subUnit);
+		unit.AddSubUnit(subUnit);
 		if (subUnit.Name.Length == 0 && regiment)
 		{
 			subUnit.Name = $"{unit.SubUnits.Count.ToString(CultureInfo.InvariantCulture)}. {unit.Name}";

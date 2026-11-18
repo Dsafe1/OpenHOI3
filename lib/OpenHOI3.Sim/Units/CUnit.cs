@@ -345,8 +345,30 @@ public sealed class CUnit
 	/// <summary>The units it commands.</summary>
 	public List<CUnit> Children { get; } = new();
 
-	/// <summary>Its own brigades, ships or wings. A headquarters has one of its own.</summary>
+	/// <summary>
+	/// Its own brigades, ships or wings. A headquarters has one of its own. Kept in order of their priority, highest
+	/// first: one is put in with <see cref="AddSubUnit"/>.
+	/// </summary>
 	public List<CSubUnit> SubUnits { get; } = new();
+
+	/// <summary>
+	/// Puts a brigade, a ship or a wing among its own, as the original does every time one joins a unit - read from an
+	/// order of battle or a save, built, placed, merged, moved by the reorganise window, split off, exchanged by a
+	/// reserve or given by script: walking back from the last, it goes in after the first whose priority is no lower
+	/// than its own, and first where every one is lower. So a unit's sub units are in order of their priority, highest
+	/// first, and equals in the order they came; its first, which its counter shows, is of the highest. The caller says
+	/// which unit it belongs to. See <c>docs/mechanics/units.md</c>, section 3.
+	/// </summary>
+	public void AddSubUnit(CSubUnit subUnit)
+	{
+		long priority = subUnit.Priority;
+		int at = SubUnits.Count;
+		while (at > 0 && SubUnits[at - 1].Priority < priority)
+		{
+			at--;
+		}
+		SubUnits.Insert(at, subUnit);
+	}
 
 	/// <summary>This unit and every unit under it or aboard its ships, itself first.</summary>
 	public IEnumerable<CUnit> WithAllBelow()

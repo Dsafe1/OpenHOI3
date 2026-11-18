@@ -706,7 +706,7 @@ public static class COrderOfBattleReader
 			}
 			subUnit.Id = ++LastId;
 
-			unit.SubUnits.Add(subUnit);
+			unit.AddSubUnit(subUnit);
 			if (subUnit.Name.Length == 0 && fromUnit)
 			{
 				// A regiment nobody named is its place in its unit, and the unit's name.

@@ -138,7 +138,11 @@ has it.
 
 - **The unit type's picture** is the sprite `GFX_small_counter_<key>` on the far counter
   and `GFX_map_counter_<key>` on the near one, `<key>` being **the type of the unit's first
-  brigade, ship or wing**. `confirmed`
+  brigade, ship or wing**. `confirmed` A unit's sub units are kept in order of their types' `priority`, highest
+  first and equals as they came, however the file lists them (`units.md`, section 3, *The order of a unit's sub
+  units*) - so the picture is of a brigade of the highest priority: BlackICE's infantry (83) and not the division
+  headquarters (1) its files list first. That was missing here until 2026-11-18, when the counter showed the
+  headquarters. `confirmed`
 - **The size mark** is the frame of the strip for the unit's rank: `confirmed`
 
   | unit | mark |

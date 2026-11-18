@@ -192,7 +192,7 @@ public static class CDeployment
 			CSubUnit subUnit = unit.SubUnits[0];
 			unit.SubUnits.Clear();
 			subUnit.Unit = target;
-			target.SubUnits.Add(subUnit);
+			target.AddSubUnit(subUnit);
 			if (state.Played.Contains(country.Tag))
 			{
 				state.RaisePactMessage(new Agreements.CPactMessage("TRANSFEREDSUBUNIT", "", "", country.Tag, country.Tag)

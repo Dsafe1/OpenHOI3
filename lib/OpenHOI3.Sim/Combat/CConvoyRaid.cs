@@ -197,7 +197,7 @@ public static class CConvoyRaid
 				}
 			}
 			CUnits.RebuildStats(ship);
-			fleet.SubUnits.Add(ship);
+			fleet.AddSubUnit(ship);
 		}
 		return fleet;
 	}

@@ -70,7 +70,7 @@ public static class CSubUnitTransfer
 	{
 		CUnit? source = subUnit.Unit;
 		source?.SubUnits.Remove(subUnit);
-		unit.SubUnits.Add(subUnit);
+		unit.AddSubUnit(subUnit);
 		subUnit.Unit = unit;
 		if (unit.Name.Length < 2)
 		{

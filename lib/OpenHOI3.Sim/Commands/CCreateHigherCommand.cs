@@ -103,7 +103,7 @@ public sealed class CCreateHigherCommand : CCommand
 		brigade.Organisation = CFixedPoint.Min(brigade.Organisation, COrganisation.Ceiling(state, country, brigade));
 		long men = CBuildQueue.ManpowerOf(country, brigade, isReserve: false).Raw * Twentieth / CFixedPoint.Scale;
 		country.Manpower = CFixedPoint.Max(CFixedPoint.Zero, country.Manpower - new CFixedPoint(men));
-		unit.SubUnits.Add(brigade);
+		unit.AddSubUnit(brigade);
 		brigade.Name = CUnitNames.ForSubUnit(state, country, type);
 		CUnitNames.Register(country, brigade.Name);
 		// Put in its province from nowhere, it brings its days of supplies and fuel (supply.md, section 14). The original

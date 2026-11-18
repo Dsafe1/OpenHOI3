@@ -99,6 +99,12 @@ public sealed class CSubUnit
 	/// </summary>
 	public CSubUnitStats Stats { get; } = new();
 
+	/// <summary>
+	/// Its <c>priority</c>, the place it takes among its unit's sub units: a whole number, as the original reads the key
+	/// with <c>atoi</c>, so a fraction is cut off towards nought. See <see cref="CUnit.AddSubUnit"/>.
+	/// </summary>
+	public long Priority => Stats[CSubUnitType.Priority].Raw / CFixedPoint.Scale;
+
 	/// <summary>The air units a carrier has aboard.</summary>
 	public List<CUnit> Carried { get; } = new();
 

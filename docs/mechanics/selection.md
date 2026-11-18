@@ -194,7 +194,9 @@ The owner is not asked. Where the rule holds, the button is enabled **unless an 
 unit above one**, and then it is left as it was. A press does nothing in that case either; otherwise it posts **one
 merge of every selected unit**, in selection order.
 
-**The merge asks nothing again** - the greying is the only gate - and passes over a unit gone since. It:
+**The merge asks nothing again** - the greying is the only gate - and passes over a unit gone since. Each brigade, ship
+or wing it moves goes in among the taker's by its type's `priority`, as every one joining a unit does (`units.md`,
+section 3, *The order of a unit's sub units*). It:
 
 1. **chooses the unit the rest go into**: the highest of `brigades x 10 + share x 10 / 1000 + skill x 2`, where `share`
    is the unit's strength over its brigades' summed `max_strength` in thousandths (cut toward nought, so 95% gives 9;

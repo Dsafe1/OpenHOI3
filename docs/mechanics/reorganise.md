@@ -28,6 +28,8 @@ panel's new-unit button opens it too, with the unit and an empty one made beside
 - **`unitname_1` and `unitname_2`**: the left and the right unit's names, written again every frame.
 - **`left_list`**: a `reorg_entry` row for each of the left unit's brigades, **in the order the unit holds them**, each
   with an arrow to the right; **`right_list`** the same for the right unit from `reorg_entry_right`, arrows to the left.
+  A brigade sent across goes in among the other unit's by its type's `priority`, not at the end, as every brigade
+  joining a unit does (`units.md`, section 3, *The order of a unit's sub units*). `confirmed`
 - **A row**, made once and never brought up to date:
   - `subunit_name` the brigade's name; `subunit_type` its type's name; `subunit_level` its model as a Roman numeral, I
     for none (as the unit panel's, `unitpanel.md`);

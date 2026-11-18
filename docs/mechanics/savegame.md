@@ -154,6 +154,11 @@ with everything under it:
 
 - **A unit with no `location` is thrown away**, as the original deletes one - but the unit of a `unit_deployment`,
   which never has one.
+- **A brigade goes in among its unit's by its type's `priority`**, as every brigade joining a unit does, and not
+  simply after the last read (`units.md`, section 3, *The order of a unit's sub units*): the original's reading of a
+  `regiment`, `ship` or `wing` adds it so. A save the original wrote is in that order already, so it is written back as
+  it was - `write` on `Germany1936_01_07_22.hoi3` gives a file byte for byte the same before and after the rule was
+  built (2026-11-18); a save whose blocks are in another order is put in this one as it is loaded. `confirmed`
 - **A carrier's air group is read inside its ship**, the only place it is written, and based where the fleet is.
 - **A land unit aboard a fleet or an aeroplane is read inside its carrier**, and once every unit is read it is put back
   under its land superior by `parent` - at the end of its children - or at the top of its country's units where it has

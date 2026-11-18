@@ -93,7 +93,7 @@ public static class CScriptedBrigades
 		brigade.Strength = CFixedPoint.Max(CFixedPoint.Zero, CUnits.MaxStrength(state, owner, brigade) / 2);
 		brigade.Highest = brigade.Strength;
 		brigade.Organisation = CFixedPoint.Max(CFixedPoint.Zero, COrganisation.Ceiling(state, owner, brigade) / 2);
-		into.SubUnits.Add(brigade);
+		into.AddSubUnit(brigade);
 
 		if (made)
 		{
