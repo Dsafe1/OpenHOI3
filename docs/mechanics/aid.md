@@ -47,7 +47,11 @@ and one under 18.250 gives a figure of nought and is never repaid.
 licence's, where neither is in exile and the player is no puppet: **revoking where the recipient may
 run a debt with the player, else allowing**. It may be pressed where - allowing - the player may not
 yet run one with them, or - revoking - they may with him; where his influence is at least **both**
-costs; and at peace. Its tooltip: `ACT_NO_SELF`, `WEWAR`, `ENROUTE`, `DIP_NO_INFL` (the cost whole),
+costs; and at peace - and, as for the AI's offers, where no diplomat is on his way to them, neither is in
+exile, **the actor is no puppet and the recipient no puppet but the actor's own** (`CDebtAction::IsSelectable`,
+`reversing/findings/FINDINGS-agreements.md`, B.8). So **a puppet never revokes its master's leave to run a debt with
+it**: Yemen and Nepal, Britain's, at 1941.7.16, whose foreign ministers' `HandlePeace` asks it of them with 100
+(`FINDINGS-liveread.md`, section 133). Its tooltip: `ACT_NO_SELF`, `WEWAR`, `ENROUTE`, `DIP_NO_INFL` (the cost whole),
 then `ALLOWDEBTDESC` or `REVOKEDEBTDESC`. **The dialog's text**: allowing, `ALLOWDEBTNEWDESC` "...when
 trading with the $NAME$? ... repaid over $YEAR$ years ... cost us $COST$ influence points." - **NAME
 the recipient's faction's name**, YEAR `YEARS_TO_REPAY_DEBT` and COST the allowing cost, both whole;

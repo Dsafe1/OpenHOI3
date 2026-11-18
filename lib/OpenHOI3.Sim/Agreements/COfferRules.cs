@@ -209,8 +209,9 @@ public static class COfferRules
 					&& Embargo(state, actor.Tag, recipient.Tag) is null;
 			case EOfferKind.Debt:
 				// Allowing asks whether the actor may not yet run a debt with them; revoking whether they may
-				// with the actor. Both costs are asked of the actor's influence whichever it is.
-				return !actor.InExile && !recipient.InExile
+				// with the actor. Both costs are asked of the actor's influence whichever it is. A puppet does neither, and
+				// the recipient is no puppet but the actor's own, so a puppet never revokes its master's leave.
+				return !enRoute && !actor.InExile && !recipient.InExile && !IsPuppet(actor) && RecipientFree(actor, recipient)
 					&& (offer.Value ? !CGameState.Status(actor, recipient).AllowDebts : CGameState.Status(recipient, actor).AllowDebts)
 					&& actor.DiplomaticInfluence >= Define(state, "ALLOW_DEBT_INFLUENCE_COST")
 					&& actor.DiplomaticInfluence >= Define(state, "REVOKE_DEBT_INFLUENCE_COST")

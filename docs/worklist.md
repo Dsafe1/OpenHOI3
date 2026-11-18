@@ -257,9 +257,12 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    original keeping the 3. Infanterie-Division off to 38) and fleets 162 of 164, `wr14` 466 of 484 and 159 of 163, `wr11`
    453 of 488 and 146 of 167. **Every hour of `wr19` agrees draw for draw before its first battle, and no battle's dice
    part in its 47 hours**, so what is left of it is orders no draw shows - and the AI's own draws, which the playback
-   counts by country: (a) Cuba's and Haiti's Lua at hours 27 and 31, two `math.random` draws each beyond the original's,
-   and New Zealand's and France's patrol centres at hours 6 and 29 - a hook naming each `math.random` caller is in the
-   session scratchpad as `dbg7-luarand.patch` (`OHDBG_LUARAND=TAG`); (b) the fleets and air units ours orders otherwise -
+   counts by country. **Every `math.random` draw of `wr19` is the original's since 2026-11-19**: Cuba's and Haiti's two
+   beyond at hours 27 and 31 were a puppet's debt revoke ours let through, which cost Britain the influence that pays
+   its upkeep on the Dominican Republic, whose influence modifier then went and with it the friend Cuba's and Haiti's
+   intelligence ministers saw (`aid.md`, section 1). Open: (a) New Zealand's and France's patrol centres at hours 6 and
+   29, and the Soviet one left at 34 - a hook naming each `math.random` caller is in the session scratchpad as
+   `dbg7-luarand.patch` (`OHDBG_LUARAND=TAG`); (b) the fleets and air units ours orders otherwise -
    the British 31st and 41st Navies, the German 33. Unterseebootsflottille, 5th and 6th Navy, the Soviet Cernoje Flote,
    the German 26th Air wing and the Omani dive bombers; (c) `wr14`, whose dice part at hour 13, and `wr11`.
 

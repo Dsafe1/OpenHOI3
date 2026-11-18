@@ -63,6 +63,29 @@ public class AidTests
 	}
 
 	[Fact]
+	public void A_puppet_neither_allows_nor_revokes_a_debt_and_another_countrys_puppet_is_not_asked()
+	{
+		CGameState state = World();
+		CCountry germany = C(state, Ger);
+		CCountry poland = C(state, Pol);
+		CGameState.Status(poland, germany).AllowDebts = true;           // Poland may run a debt with Germany
+		Assert.True(COfferRules.IsSelectable(state, Debt(state, Ger, Pol, false, EOfferStage.Proposed)));
+
+		// Germany a puppet - of Italy: it may revoke nothing, nor ask anything.
+		germany.Overlord = ScriptWorld.Ita;
+		Assert.False(COfferRules.IsSelectable(state, Debt(state, Ger, Pol, false, EOfferStage.Proposed)));
+		Assert.False(COfferRules.IsSelectable(state, Debt(state, Ger, Pol, true, EOfferStage.Proposed)));
+		// Nor is Italy's puppet asked by Poland; Italy, its master, may ask it.
+		Assert.False(COfferRules.IsSelectable(state, Debt(state, Pol, Ger, true, EOfferStage.Proposed)));
+		Assert.True(COfferRules.IsSelectable(state, Debt(state, ScriptWorld.Ita, Ger, true, EOfferStage.Proposed)));
+
+		// A diplomat on his way stops it as well.
+		germany.Overlord = null;
+		CGameState.Status(germany, poland).DiplomatUntil = state.TotalHours + 24;
+		Assert.False(COfferRules.IsSelectable(state, Debt(state, Ger, Pol, false, EOfferStage.Proposed)));
+	}
+
+	[Fact]
 	public void A_debt_is_repaid_an_18250th_a_peaceful_day_for_ever_and_nothing_at_war_or_without_the_money()
 	{
 		CGameState state = World();
