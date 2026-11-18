@@ -833,6 +833,12 @@ public sealed class CGameState
 	/// </summary>
 	public int ControlChanges => _handChanges.Count;
 
+	/// <summary>
+	/// How many times a building's built level has been set in a province of this game, counted by the provinces
+	/// themselves as <see cref="ControlChanges"/> is: what is kept from what is built watches it.
+	/// </summary>
+	public int BuiltChanges => _handChanges.BuiltCount;
+
 	private readonly Dictionary<CCountryTag, int> _controlledCounts = new();
 	private int _controlledCountsAt = -1;
 
@@ -857,7 +863,7 @@ public sealed class CGameState
 		return _controlledCounts.GetValueOrDefault(tag);
 	}
 
-	/// <summary>What the map says of each country this hour, kept by <see cref="Countries.CCountryFacts"/>.</summary>
+	/// <summary>What the map says of each country, kept by <see cref="Countries.CCountryFacts"/> until the map moves on.</summary>
 	public Countries.CCountryFacts? CountryFacts { get; set; }
 
 	/// <summary>
@@ -934,10 +940,93 @@ public sealed class CGameState
 	public Weather.CWeatherManager Weather { get; } = new();
 
 	/// <summary>
-	/// Who stands where. Made when first asked for and thrown away at the start of each
-	/// hour and whenever a unit is put somewhere outside the march.
+	/// Who stands where. Made when first asked for and thrown away whenever a unit is put somewhere outside the march; a
+	/// unit just made is added to it when it is next asked for (<see cref="AddToPositions"/>), and at the start of each
+	/// hour it is checked when it is next asked for (<see cref="RecheckPositions"/>).
 	/// </summary>
-	public CUnitPositions Positions => _positions ??= MakePositions();
+	public CUnitPositions Positions
+	{
+		get
+		{
+			if (_positions is null)
+			{
+				_positions = MakePositions();
+				return _positions;
+			}
+			if (_positionsToCheck || _positionsToAdd is not null)
+			{
+				BringPositionsUpToDate();
+			}
+			return _positions;
+		}
+	}
+
+	/// <summary>Whether the table is to be checked against where every unit stands when it is next asked for.</summary>
+	private bool _positionsToCheck;
+
+	/// <summary>Units made since the table was, which it does not hold yet: added when it is next asked for.</summary>
+	private List<CUnit>? _positionsToAdd;
+
+	/// <summary>
+	/// The start of an hour's look at the table, which was its making again. Made again from the table it had, it would
+	/// come out the same wherever that table holds every unit standing on the map, each where it stands, and nothing more
+	/// - each province's units are those it held, in the order it held them. So when it is next asked for, it is checked
+	/// for that, which is a walk of the units and no more, and made again only where it fails.
+	/// </summary>
+	public void RecheckPositions()
+	{
+		if (_positions is not null)
+		{
+			_positionsToCheck = true;
+		}
+	}
+
+	/// <summary>
+	/// To be called when a unit has just been made and put on the map: the table is kept and the unit added to it when it
+	/// is next asked for, with the check of <see cref="RecheckPositions"/> - at the end of its province's list, which is
+	/// where making the table again would put it, since that table did not hold it; several there in the order the units
+	/// are walked in, as the making does.
+	/// </summary>
+	public void AddToPositions(CUnit unit)
+	{
+		if (_positions is null)
+		{
+			return;
+		}
+		(_positionsToAdd ??= new List<CUnit>()).Add(unit);
+	}
+
+	/// <summary>
+	/// The table brought up to date as it is asked for, with the units waiting: one walk of the units as the table is made
+	/// says whether the table and they hold every unit on the map where it stands and nothing more, and in what order
+	/// they come. Where they do, the table made again from itself would be itself with them at the ends of their
+	/// provinces in that order, so that is what it becomes; where they do not, it is made again from itself, as throwing
+	/// it away would have made it.
+	/// </summary>
+	private void BringPositionsUpToDate()
+	{
+		CUnitPositions table = _positions!;
+		List<CUnit>? waiting = _positionsToAdd;
+		_positionsToAdd = null;
+		_positionsToCheck = false;
+		List<CUnit>? walked = waiting is null ? null : new List<CUnit>(waiting.Count);
+		long start = Profile is null ? 0 : System.Diagnostics.Stopwatch.GetTimestamp();
+		bool holds = table.HoldsExactly(this, waiting, walked);
+		Profile?.Add("     of which who stands where, checked", System.Diagnostics.Stopwatch.GetTimestamp() - start);
+		if (!holds)
+		{
+			_lastPositions = table;
+			_positions = MakePositions();
+			return;
+		}
+		if (walked is not null)
+		{
+			foreach (CUnit unit in walked)
+			{
+				table.Move(unit, 0, unit.Location);
+			}
+		}
+	}
 
 	private CUnitPositions MakePositions()
 	{
@@ -957,11 +1046,16 @@ public sealed class CGameState
 		return Positions.Of(province);
 	}
 
-	/// <summary>To be called when a unit has been put, made or removed other than by its march.</summary>
+	/// <summary>
+	/// To be called when a unit has been put, made or removed other than by its march: the table is made again when it is
+	/// next asked for.
+	/// </summary>
 	public void ForgetPositions()
 	{
 		_lastPositions = _positions ?? _lastPositions;
 		_positions = null;
+		_positionsToAdd = null;
+		_positionsToCheck = false;
 	}
 
 	/// <summary>

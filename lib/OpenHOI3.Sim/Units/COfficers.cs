@@ -11,9 +11,6 @@ namespace OpenHOI3.Sim.Units;
 /// </summary>
 public static class COfficers
 {
-	/// <summary>The key of <c>CSubUnitType.Officers</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
-	private static readonly CModifierKey OfficersKey = CModifierKey.Of(CSubUnitType.Officers);
-
 	/// <summary>The define the ratio is never above.</summary>
 	public const string MostRatio = "MAX_OFFICERS";
 
@@ -29,14 +26,14 @@ public static class COfficers
 		{
 			foreach (CSubUnit subUnit in unit.SubUnits)
 			{
-				needed += subUnit.Stats[OfficersKey];
+				needed += subUnit.Stats.Officers;
 			}
 		}
 		foreach (CUnit unit in country.Deployments)
 		{
 			foreach (CSubUnit subUnit in unit.SubUnits)
 			{
-				needed += subUnit.Stats[OfficersKey];
+				needed += subUnit.Stats.Officers;
 			}
 		}
 		return needed;

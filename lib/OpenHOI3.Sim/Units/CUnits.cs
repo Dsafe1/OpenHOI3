@@ -25,6 +25,9 @@ public static class CUnits
 	/// <summary>Under this much strength, a brigade that holds no frontage adds nothing to its unit.</summary>
 	private static readonly CFixedPoint LeastStrengthToCount = new(100);
 
+	/// <summary>The key of <c>CSubUnitType.CombatWidth</c>, asked every hour (<see cref="Modifiers.CModifierKey"/>).</summary>
+	private static readonly Modifiers.CModifierKey CombatWidthKey = Modifiers.CModifierKey.Of(CSubUnitType.CombatWidth);
+
 	/// <summary>
 	/// What a new game does with the units its orders of battle made, country by
 	/// country: each brigade takes its model's equipment and is held to what it may
@@ -132,7 +135,7 @@ public static class CUnits
 	public static CFixedPoint MaxStrength(CGameState state, CCountry owner, CSubUnit subUnit,
 		bool penaltyAtWar = false, bool penaltyAlways = false)
 	{
-		CFixedPoint most = subUnit.Stats[CSubUnitType.MaxStrength];
+		CFixedPoint most = subUnit.Stats.MaxStrength;
 		if (subUnit.IsReserve && ReservePenaltyApplies(state, owner, penaltyAtWar, penaltyAlways))
 		{
 			most = new CFixedPoint(most.Raw * (CFixedPoint.Scale + owner.Modifier[ReservesPenaltySize].Raw) / CFixedPoint.Scale);
@@ -239,7 +242,7 @@ public static class CUnits
 	{
 		bool isLand = unit.Kind != EUnitKind.Navy && unit.Kind != EUnitKind.Air;
 		return !isLand
-			|| subUnit.Stats[CSubUnitType.CombatWidth] > CFixedPoint.Zero
+			|| subUnit.Stats[CombatWidthKey] > CFixedPoint.Zero
 			|| (subUnit.Strength >= LeastStrengthToCount && subUnit.Organisation >= CFixedPoint.One);
 	}
 }

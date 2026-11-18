@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using OpenHOI3.Sim.Modifiers;
 
 namespace OpenHOI3.Sim.Units;
@@ -30,12 +31,92 @@ public sealed class CSubUnitStats
 	/// What each named circumstance does - a terrain, <c>river</c>, <c>fort</c>,
 	/// <c>night</c>, <c>amphibious</c> - as its attack, defence, movement and attrition.
 	/// </summary>
-	public Dictionary<string, CModifier> Adjusters { get; } = new(StringComparer.OrdinalIgnoreCase);
+	public CAdjusters Adjusters { get; } = new();
 
-	public CFixedPoint this[string statistic] => Values[statistic];
+	/// <summary>
+	/// A statistic by its name. Asked by the very constant one of the four figures below is held under - as most
+	/// callers ask - it is answered from that figure, the name neither hashed nor compared.
+	/// </summary>
+	public CFixedPoint this[string statistic] =>
+		ReferenceEquals(statistic, CSubUnitType.MaxStrength) ? MaxStrength
+		: ReferenceEquals(statistic, CSubUnitType.DefaultOrganisation) ? DefaultOrganisation
+		: ReferenceEquals(statistic, CSubUnitType.Officers) ? Officers
+		: Values[statistic];
 
 	/// <summary>A statistic by its key, for what asks it every hour (<see cref="CModifierKey"/>).</summary>
 	public CFixedPoint this[CModifierKey statistic] => Values[statistic];
+
+	private static readonly CModifierKey DefaultOrganisationKey = CModifierKey.Of(CSubUnitType.DefaultOrganisation);
+	private static readonly CModifierKey MoraleKey = CModifierKey.Of(COrganisation.Morale);
+	private static readonly CModifierKey OfficersKey = CModifierKey.Of(CSubUnitType.Officers);
+	private static readonly CModifierKey MaxStrengthKey = CModifierKey.Of(CSubUnitType.MaxStrength);
+
+	/// <summary>The <see cref="CModifier.Version"/> of <see cref="Values"/> the four figures below were taken at.</summary>
+	private int _takenAt = -1;
+
+	private CFixedPoint _defaultOrganisation;
+	private CFixedPoint _morale;
+	private CFixedPoint _officers;
+	private CFixedPoint _maxStrength;
+
+	/// <summary><c>default_organisation</c>, which every brigade's hour asks, held as a field of its own.</summary>
+	public CFixedPoint DefaultOrganisation
+	{
+		get
+		{
+			Take();
+			return _defaultOrganisation;
+		}
+	}
+
+	/// <summary><c>default_morale</c>, held so.</summary>
+	public CFixedPoint Morale
+	{
+		get
+		{
+			Take();
+			return _morale;
+		}
+	}
+
+	/// <summary><c>officers</c>, held so.</summary>
+	public CFixedPoint Officers
+	{
+		get
+		{
+			Take();
+			return _officers;
+		}
+	}
+
+	/// <summary><c>max_strength</c>, held so.</summary>
+	public CFixedPoint MaxStrength
+	{
+		get
+		{
+			Take();
+			return _maxStrength;
+		}
+	}
+
+	/// <summary>
+	/// The four figures taken again from <see cref="Values"/> where they have changed since. The AI's workers read
+	/// figures side by side while nothing changes them, so two may take them at once: each writes the same, and the
+	/// mark goes last.
+	/// </summary>
+	private void Take()
+	{
+		int version = Values.Version;
+		if (Volatile.Read(ref _takenAt) == version)
+		{
+			return;
+		}
+		_defaultOrganisation = Values[DefaultOrganisationKey];
+		_morale = Values[MoraleKey];
+		_officers = Values[OfficersKey];
+		_maxStrength = Values[MaxStrengthKey];
+		Volatile.Write(ref _takenAt, version);
+	}
 
 	/// <summary>Makes this a copy of another.</summary>
 	public void CopyFrom(CSubUnitStats other)

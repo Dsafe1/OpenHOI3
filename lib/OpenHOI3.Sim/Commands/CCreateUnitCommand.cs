@@ -44,7 +44,7 @@ public sealed class CCreateUnitCommand : CCommand
 		int id = _id > 0 ? _id : ++state.LastUnitId;
 		var unit = new CUnit(_kind, country.Tag) { Id = id, Location = _province, Base = _base, IsAllowedEmpty = _isAllowedEmpty };
 		country.Units.Add(unit);
-		state.ForgetPositions();
+		state.AddToPositions(unit);
 		if (CUnitFinder.Find(state, _owner, _headquarters) is { } headquarters)
 		{
 			CAgentUnits.Attach(state, unit, headquarters);

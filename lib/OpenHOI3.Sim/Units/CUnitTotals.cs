@@ -1,5 +1,6 @@
 using System;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Modifiers;
 
 namespace OpenHOI3.Sim.Units;
 
@@ -35,12 +36,17 @@ public static class CUnitTotals
 	/// </summary>
 	public static CFixedPoint Sum(CUnit unit, string statistic)
 	{
+		// A name nothing was ever given holds nought in every brigade; else it is found by its key, once.
+		if (!CModifierKey.TryFind(statistic, out CModifierKey key))
+		{
+			return CFixedPoint.Zero;
+		}
 		long sum = 0;
 		foreach (CSubUnit subUnit in unit.SubUnits)
 		{
 			if (CUnits.CountsTowardsItsUnit(unit, subUnit))
 			{
-				sum += subUnit.Stats[statistic].Raw;
+				sum += subUnit.Stats[key].Raw;
 			}
 		}
 		bool twice = statistic.Equals(CSubUnitStats.Toughness, StringComparison.OrdinalIgnoreCase);
@@ -54,7 +60,7 @@ public static class CUnitTotals
 	/// </summary>
 	public static CFixedPoint Mean(CUnit unit, string statistic)
 	{
-		if (unit.SubUnits.Count == 0)
+		if (unit.SubUnits.Count == 0 || !CModifierKey.TryFind(statistic, out CModifierKey key))
 		{
 			return CFixedPoint.Zero;
 		}
@@ -63,7 +69,7 @@ public static class CUnitTotals
 		{
 			if (CUnits.CountsTowardsItsUnit(unit, subUnit))
 			{
-				sum += subUnit.Stats[statistic].Raw;
+				sum += subUnit.Stats[key].Raw;
 			}
 		}
 		return new CFixedPoint(sum * CFixedPoint.Scale / (unit.SubUnits.Count * (long)CFixedPoint.Scale));
@@ -180,16 +186,18 @@ public static class CUnitTotals
 	/// </summary>
 	public static long Adjuster(CUnit unit, string name, string kind)
 	{
-		if (unit.SubUnits.Count == 0)
+		// A name or a kind nothing was ever given is held by no brigade; else each is found by its key, once.
+		if (unit.SubUnits.Count == 0 || !CModifierKey.TryFind(name, out CModifierKey nameKey)
+			|| !CModifierKey.TryFind(kind, out CModifierKey kindKey))
 		{
 			return 0;
 		}
 		long sum = 0;
 		foreach (CSubUnit subUnit in unit.SubUnits)
 		{
-			if (CUnits.CountsTowardsItsUnit(unit, subUnit) && subUnit.Stats.Adjusters.TryGetValue(name, out Modifiers.CModifier? adjuster))
+			if (CUnits.CountsTowardsItsUnit(unit, subUnit) && subUnit.Stats.Adjusters.TryGetValue(nameKey, out CModifier adjuster))
 			{
-				sum += adjuster[kind].Raw;
+				sum += adjuster[kindKey].Raw;
 			}
 		}
 		return sum / unit.SubUnits.Count;

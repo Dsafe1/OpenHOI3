@@ -88,7 +88,36 @@ public sealed class CSubUnit
 	/// The level it holds of each technology that improves its type. Its own, and not
 	/// its country's: it keeps what it was raised with until it is upgraded.
 	/// </summary>
-	public Dictionary<string, int> TechnologyLevels { get; } = new(StringComparer.OrdinalIgnoreCase);
+	public CSubUnitLevels TechnologyLevels { get; } = new();
+
+	/// <summary>The <see cref="CSubUnitLevels.Version"/> <see cref="LevelsHeld"/> was last added up at.</summary>
+	private int _levelsAddedAt = -1;
+
+	private long _levelsHeld;
+
+	/// <summary>
+	/// The levels it holds, of all its type's technologies added together - which what a unit uses every day asks for
+	/// each brigade - added up again only when a level has changed. The AI's workers may ask side by side while nothing
+	/// changes the levels: each adds up the same, and the mark goes last.
+	/// </summary>
+	public long LevelsHeld
+	{
+		get
+		{
+			int version = TechnologyLevels.Version;
+			if (System.Threading.Volatile.Read(ref _levelsAddedAt) != version)
+			{
+				long levels = 0;
+				foreach (CTechnology technology in Type.Technologies)
+				{
+					levels += TechnologyLevels.GetValueOrDefault(technology.Name);
+				}
+				_levelsHeld = levels;
+				System.Threading.Volatile.Write(ref _levelsAddedAt, version);
+			}
+			return _levelsHeld;
+		}
+	}
 
 	/// <summary>How far it has got towards the next level of each, where 1 is the whole of it.</summary>
 	public Dictionary<string, CFixedPoint> TechnologyProgress { get; } = new(StringComparer.OrdinalIgnoreCase);

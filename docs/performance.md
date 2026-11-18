@@ -26,6 +26,19 @@ As measured, with `OpenHOI3.SaveCheck profile` and the headless run, both in Rel
 - **The runtime was tried on 2026-11-04 and is not the lever**: .NET 9 and 10, Server GC, the GC's budgets and the JIT's
   tiering all came out within the noise. **Allocation was**: the route finder's scratch arrays kept (`CRouteScratch`) and
   `CProvince.Edges` made an array took thirty days from 24.5 s to 18.9 s, the state's hash the same every midnight.
+- **Measured on 2026-11-18, thirty days from 1 January 1936 with Germany played**: the base game about 500 to 540 ms a
+  day, BlackICE about 1,300 - its ordinary hour 34 ms on the median and the hour that turns a day 275. Of BlackICE's
+  day the unit agents take about 230 ms and the ministers' Lua about 220.
+- **Then the same day, what the hours ask over and over was kept instead of found again**, each the state's hash the
+  same every midnight, base game and BlackICE: a brigade's organisation, morale, officers and strength held as fields
+  of its figures (`CSubUnitStats`), worked out again only when the figures change; the levels it holds added up only
+  when one changes (`CSubUnitLevels`); its terrain adjusters found by key (`CAdjusters`); a name asked of a unit's
+  brigades looked up once for the unit and not once a brigade; a country's facts kept until a province changes hands or
+  a building is set, not for the hour (`CCountryFacts`); and the table of who stands where kept - a unit just made
+  added to it, and the start of the hour's making it again turned into a check that it still agrees, made again only
+  where it does not (`CGameState.Positions`), so it is made 32 times in ten days where it was 741. BlackICE's day came
+  to about 1,215 ms, the base game's to about 485: the hourly organisation 30 per cent less, the march 22, the trading
+  22, the daily upkeep 44.
 - **Drawing is already C++** - it is Godot's renderer. The client's C# builds and sets nodes.
 
 ## 3. What C++ would buy, part by part

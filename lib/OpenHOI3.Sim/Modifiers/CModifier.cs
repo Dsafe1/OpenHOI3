@@ -40,6 +40,12 @@ public sealed class CModifier
 	/// <summary>What it is called in the files, when it came from one.</summary>
 	public string Name { get; }
 
+	/// <summary>
+	/// A count that moves on with every change to the values, so that what keeps figures worked out of them
+	/// (<see cref="Units.CSubUnitStats"/>) can tell they are still the same.
+	/// </summary>
+	public int Version { get; private set; }
+
 	/// <summary>The kinds this holds a value for, and the values, in the order the kinds were first given.</summary>
 	public IReadOnlyDictionary<string, CFixedPoint> Values => _view ??= new CValues(this);
 
@@ -109,6 +115,7 @@ public sealed class CModifier
 		Array.Clear(_keys, 0, _count);
 		Array.Clear(_values, 0, _count);
 		_count = 0;
+		Version++;
 	}
 
 	public override string ToString()
@@ -136,6 +143,7 @@ public sealed class CModifier
 	/// <summary>A kind's value set: where it is held, in its place and spelling; else at the end, spelt as given.</summary>
 	private void Set(CModifierKey key, string? spelling, CFixedPoint value)
 	{
+		Version++;
 		int slot = Find(key.Id);
 		if (slot >= 0)
 		{

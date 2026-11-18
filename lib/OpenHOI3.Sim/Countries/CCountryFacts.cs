@@ -5,8 +5,8 @@ using OpenHOI3.Sim.Provinces;
 namespace OpenHOI3.Sim.Countries;
 
 /// <summary>
-/// What the map says of each country, worked out in one walk of the provinces and kept for the hour while
-/// no province changes hands: how many provinces it owns, which countries are its land neighbours - as
+/// What the map says of each country, worked out in one walk of the provinces and kept while no province
+/// changes hands and nothing is built or lost: how many provinces it owns, which countries are its land neighbours - as
 /// <see cref="CCountryLists.Neighbours"/> has them - and whether it has a harbour of its own. The AI's
 /// trading asks these thousands of times an hour (<c>docs/mechanics/trade.md</c>, section 9).
 /// </summary>
@@ -17,28 +17,31 @@ public sealed class CCountryFacts
 	private readonly HashSet<CCountryTag> _harbours = new();
 	private readonly Dictionary<CCountryTag, HashSet<CCountryTag>> _controllerNeighbours = new();
 
-	private CCountryFacts(long hour, int controlChanges, int provinceCount)
+	private CCountryFacts(int controlChanges, int builtChanges, int provinceCount)
 	{
-		Hour = hour;
 		ControlChanges = controlChanges;
+		BuiltChanges = builtChanges;
 		ProvinceCount = provinceCount;
 	}
 
-	private long Hour { get; }
-
 	private int ControlChanges { get; }
+
+	private int BuiltChanges { get; }
 
 	private int ProvinceCount { get; }
 
-	/// <summary>The facts for the state as it stands, worked out again where the hour or the map has moved on.</summary>
+	/// <summary>
+	/// The facts for the state as it stands, worked out again where the map has moved on: a province changed hands or
+	/// had a building's built level set - its naval base, which makes a harbour. Nothing else they are made of moves.
+	/// </summary>
 	public static CCountryFacts Of(CGameState state)
 	{
-		if (state.CountryFacts is { } facts && facts.Hour == state.TotalHours && facts.ControlChanges == state.ControlChanges
-			&& facts.ProvinceCount == state.Provinces.Count)
+		if (state.CountryFacts is { } facts && facts.ControlChanges == state.ControlChanges
+			&& facts.BuiltChanges == state.BuiltChanges && facts.ProvinceCount == state.Provinces.Count)
 		{
 			return facts;
 		}
-		facts = new CCountryFacts(state.TotalHours, state.ControlChanges, state.Provinces.Count);
+		facts = new CCountryFacts(state.ControlChanges, state.BuiltChanges, state.Provinces.Count);
 		foreach (CProvince province in state.Provinces)
 		{
 			if (province.Controller is { } holder)

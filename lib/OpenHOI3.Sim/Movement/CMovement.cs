@@ -170,7 +170,7 @@ public static class CMovement
 	/// </summary>
 	public static void RunHourly(CGameState state, System.Action<CCountry>? afterCountry)
 	{
-		state.ForgetPositions();
+		state.RecheckPositions();
 		foreach (CCountry country in state.Countries)
 		{
 			RunCountryUnits(state, country);

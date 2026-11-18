@@ -25,9 +25,6 @@ public static class CUnitSupply
 	/// <summary>The key of <c>FuelStatistic</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
 	private static readonly CModifierKey FuelStatisticKey = CModifierKey.Of(FuelStatistic);
 
-	/// <summary>The key of <c>CSubUnitType.MaxStrength</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
-	private static readonly CModifierKey MaxStrengthKey = CModifierKey.Of(CSubUnitType.MaxStrength);
-
 	/// <summary>The modifier a law or a minister sets: more or less of everything a unit uses.</summary>
 	public const string Consumption = "supply_consumption";
 
@@ -101,20 +98,14 @@ public static class CUnitSupply
 	/// <summary>A brigade's strength over its most, in thousandths; -1 where its type has no most.</summary>
 	private static long Share(CSubUnit subUnit)
 	{
-		long full = subUnit.Stats[MaxStrengthKey].Raw;
+		long full = subUnit.Stats.MaxStrength.Raw;
 		return full == 0 ? -1 : subUnit.Strength.Raw * CFixedPoint.Scale / full;
 	}
 
-	/// <summary>The levels a brigade holds, of all its technologies added together.</summary>
-	public static long LevelsHeld(CSubUnit subUnit)
-	{
-		long levels = 0;
-		foreach (CTechnology technology in subUnit.Type.Technologies)
-		{
-			levels += subUnit.TechnologyLevels.GetValueOrDefault(technology.Name);
-		}
-		return levels;
-	}
+	/// <summary>
+	/// The levels a brigade holds, of all its technologies added together (<see cref="CSubUnit.LevelsHeld"/>).
+	/// </summary>
+	public static long LevelsHeld(CSubUnit subUnit) => subUnit.LevelsHeld;
 
 	/// <summary>
 	/// The supplies a unit's own brigades use in a day. A brigade under strength uses
@@ -130,7 +121,7 @@ public static class CUnitSupply
 			long used = subUnit.Stats[SupplyStatisticKey].Raw * (potency + LevelsHeld(subUnit) * PerLevel) / CFixedPoint.Scale;
 			if (unit.Kind != EUnitKind.Navy)
 			{
-				long full = subUnit.Stats[MaxStrengthKey].Raw;
+				long full = subUnit.Stats.MaxStrength.Raw;
 				long share = full == 0 ? -1 : subUnit.Strength.Raw * CFixedPoint.Scale / full;
 				used = used * share / CFixedPoint.Scale;
 			}

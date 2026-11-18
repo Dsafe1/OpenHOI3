@@ -90,7 +90,9 @@ public static class CSubUnitTransfer
 		{
 			CTransport.CheckOverload(state, source);
 		}
-		state.ForgetPositions();
+		// A brigade moved between units moves no unit, so the table is checked rather than thrown away: made again only
+		// where it no longer agrees with where the units stand.
+		state.RecheckPositions();
 	}
 
 	/// <summary>A brigade into a land unit, a ship into a fleet, a wing into an air unit.</summary>

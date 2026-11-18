@@ -143,7 +143,7 @@ public sealed class CCreateHigherCommand : CCommand
 			unit.Name = CUnitNames.ForKind(state, country, unit.Kind, type);
 		}
 		CUnitNames.Register(country, unit.Name);
-		state.ForgetPositions();
+		state.AddToPositions(unit);
 		if (country.AutoAssignLeaders)
 		{
 			CLeaders.AssignBest(state, country, unit);

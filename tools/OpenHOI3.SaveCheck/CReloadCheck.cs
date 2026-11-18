@@ -114,7 +114,8 @@ internal static class CReloadCheck
 	/// began, with the stamps of the caches that watch it, which counts events and not state - each game's caches agree
 	/// with its own count; and a unit's and a brigade's figures of a battle's hour - its circumstances and the defences it
 	/// has used - which each battle hour makes again before anything reads them, and which stay on a unit, read by
-	/// nothing, once its battle is over.
+	/// nothing, once its battle is over; and what is worked out of a brigade's figures and levels to be asked every hour,
+	/// with the counts of changes that say when to work it out again, and a country's facts' count of buildings set.
 	/// </summary>
 	private static readonly string[] Skipped =
 	{
@@ -123,6 +124,9 @@ internal static class CReloadCheck
 		"CGameState._handChanges", "CProvince._handChanges", "CGameState._controlledCounts", "CGameState._controlledCountsAt",
 		"CGameState.IntelFingerprint", "CCountryFacts.ControlChanges", "COwnedCounts.ControlChanges", "CGameState.PlanTypeOrder", "CGameState.ContinentNames", "CGameState.PlanGroups", "CGameState.ControlledLists", "CModifier._slots", "CModifier._view",
 		"CSupplyNetwork.ControlChanges",
+		"CModifier.Version", "CSubUnitLevels.Version", "CSubUnitStats._takenAt", "CSubUnitStats._defaultOrganisation",
+		"CSubUnitStats._morale", "CSubUnitStats._officers", "CSubUnitStats._maxStrength", "CSubUnit._levelsAddedAt",
+		"CSubUnit._levelsHeld", "CAdjusters._byKey", "CCountryFacts.BuiltChanges",
 		"CUnit.CombatAttack", "CUnit.CombatModifiers", "CUnit.DefencesUsed",
 		"CSubUnit.CombatAttack", "CSubUnit.CombatDefence", "CSubUnit.CombatModifiers",
 	};

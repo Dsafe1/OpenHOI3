@@ -292,14 +292,15 @@ public static class CMovementSpeed
 	/// </summary>
 	public static long Adjuster(CUnit unit, string name)
 	{
-		if (unit.SubUnits.Count == 0)
+		// A name nothing was ever given is held by no brigade; else it is found by its key, once.
+		if (unit.SubUnits.Count == 0 || !Modifiers.CModifierKey.TryFind(name, out Modifiers.CModifierKey key))
 		{
 			return 0;
 		}
 		long sum = 0;
 		foreach (CSubUnit subUnit in unit.SubUnits)
 		{
-			if (CUnits.CountsTowardsItsUnit(unit, subUnit) && subUnit.Stats.Adjusters.TryGetValue(name, out Modifiers.CModifier? adjuster))
+			if (CUnits.CountsTowardsItsUnit(unit, subUnit) && subUnit.Stats.Adjusters.TryGetValue(key, out Modifiers.CModifier adjuster))
 			{
 				sum += adjuster[MovementAdjusterKey].Raw;
 			}

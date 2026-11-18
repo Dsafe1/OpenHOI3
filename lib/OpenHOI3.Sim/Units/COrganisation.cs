@@ -18,9 +18,6 @@ namespace OpenHOI3.Sim.Units;
 /// </summary>
 public static class COrganisation
 {
-	/// <summary>The key of <c>CSubUnitType.DefaultOrganisation</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
-	private static readonly CModifierKey DefaultOrganisationKey = CModifierKey.Of(CSubUnitType.DefaultOrganisation);
-
 	/// <summary>The key of <c>CUnits.ReservesPenaltySize</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
 	private static readonly CModifierKey ReservesPenaltySizeKey = CModifierKey.Of(CUnits.ReservesPenaltySize);
 
@@ -36,14 +33,13 @@ public static class COrganisation
 	/// <summary>The key of <c>GlobalInfrastructure</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
 	private static readonly CModifierKey GlobalInfrastructureKey = CModifierKey.Of(GlobalInfrastructure);
 
-	/// <summary>The key of <c>Morale</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
-	private static readonly CModifierKey MoraleKey = CModifierKey.Of(Morale);
-
-	/// <summary>The key of <c>CSubUnitType.MaxStrength</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
-	private static readonly CModifierKey MaxStrengthKey = CModifierKey.Of(CSubUnitType.MaxStrength);
-
 	/// <summary>The key of <c>CSubUnitStats.BuildCostManpower</c>, asked every hour (<see cref="CModifierKey"/>).</summary>
 	private static readonly CModifierKey BuildCostManpowerKey = CModifierKey.Of(CSubUnitStats.BuildCostManpower);
+
+	/// <summary>The keys of the three branches' organisation modifiers, asked every hour (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey LandOrganisationKey = CModifierKey.Of(LandOrganisation);
+	private static readonly CModifierKey NavalOrganisationKey = CModifierKey.Of(NavalOrganisation);
+	private static readonly CModifierKey AirOrganisationKey = CModifierKey.Of(AirOrganisation);
 
 	public const string LandOrganisation = "land_organisation";
 	public const string NavalOrganisation = "naval_organisation";
@@ -111,10 +107,20 @@ public static class COrganisation
 		bool penaltyAtWar = false, bool penaltyAlways = false)
 	{
 		owner = (subUnit.Unit is { } lent ? state.Country(lent.FiguresOwner) : null) ?? owner;
-		long most = subUnit.Stats[DefaultOrganisationKey].Raw;
+		return new CFixedPoint(CeilingOf(state, owner, subUnit, bonus, penaltyAtWar, penaltyAlways));
+	}
+
+	/// <summary>
+	/// The ceiling with the country whose figures the brigade's unit goes by already found - its lender's for a unit
+	/// lent - which the hour finds once a unit and not once a brigade.
+	/// </summary>
+	private static long CeilingOf(CGameState state, CCountry owner, CSubUnit subUnit, long bonus,
+		bool penaltyAtWar = false, bool penaltyAlways = false)
+	{
+		long most = subUnit.Stats.DefaultOrganisation.Raw;
 		if (state.IsBeingMade)
 		{
-			return new CFixedPoint(most);
+			return most;
 		}
 		if (subUnit.Unit is not null)
 		{
@@ -126,14 +132,13 @@ public static class COrganisation
 			most = most * owner.OfficerRatio.Raw / CFixedPoint.Scale;
 		}
 
-		string branch = subUnit.Type.Branch switch
+		CModifierKey branch = subUnit.Type.Branch switch
 		{
-			EUnitBranch.Land => LandOrganisation,
-			EUnitBranch.Naval => NavalOrganisation,
-			_ => AirOrganisation,
+			EUnitBranch.Land => LandOrganisationKey,
+			EUnitBranch.Naval => NavalOrganisationKey,
+			_ => AirOrganisationKey,
 		};
-		most = most * (CFixedPoint.Scale + owner.Modifier[branch].Raw) / CFixedPoint.Scale;
-		return new CFixedPoint(most);
+		return most * (CFixedPoint.Scale + owner.Modifier[branch].Raw) / CFixedPoint.Scale;
 	}
 
 	/// <summary>
@@ -263,7 +268,7 @@ public static class COrganisation
 			factor = (CFixedPoint.Scale - lowBonus) * factor / CFixedPoint.Scale;
 		}
 
-		long gain = subUnit.Stats[MoraleKey].Raw * factor / CFixedPoint.Scale;
+		long gain = subUnit.Stats.Morale.Raw * factor / CFixedPoint.Scale;
 		gain = gain * ShareOfAnHour / CFixedPoint.Scale;
 		if (redeploymentLoss is { } loss)
 		{
@@ -308,9 +313,14 @@ public static class COrganisation
 					long? loss = unit.Order == EUnitOrder.StrategicRedeployment && Movement.CMovementRules.IsLandUnit(unit)
 						? redeploymentLoss ?? 0
 						: null;
+					// The country the unit's figures go by, found once for all its brigades.
+					CCountry figures = state.Country(unit.FiguresOwner) ?? country;
 					foreach (CSubUnit subUnit in unit.SubUnits)
 					{
-						Regain(subUnit, factor, CeilingWithBonus(state, country, subUnit, bonus).Raw, lowBonus, loss);
+						long ceiling = subUnit.Unit == unit
+							? CeilingOf(state, figures, subUnit, bonus)
+							: CeilingWithBonus(state, country, subUnit, bonus).Raw;
+						Regain(subUnit, factor, ceiling, lowBonus, loss);
 					}
 				}
 				// Then a dropped unit's first hour out of a battle (transport.md, section 13.4).
@@ -334,7 +344,7 @@ public static class COrganisation
 				long over = subUnit.Strength.Raw - most;
 				if (over > 0)
 				{
-					long full = subUnit.Stats[MaxStrengthKey].Raw;
+					long full = subUnit.Stats.MaxStrength.Raw;
 					long share = full == 0 ? -1 : over * CFixedPoint.Scale / full;
 					long men = share * subUnit.Stats[BuildCostManpowerKey].Raw / CFixedPoint.Scale;
 					country.Manpower = new CFixedPoint(Math.Max(0, country.Manpower.Raw + men));

@@ -322,6 +322,8 @@ public sealed class CProvince
 		}
 		_buildingLevels[building.Index] = level;
 		_buildingMaxLevels[building.Index] = level;
+		// What is built here counts in the game's changes (CCountryFacts asks whether a country has a harbour).
+		_handChanges?.AddBuilt();
 	}
 
 	/// <summary>

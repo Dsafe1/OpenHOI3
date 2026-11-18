@@ -108,6 +108,8 @@ public static class CUpgrades
 		long cost = 0;
 		int upgrading = 0;
 		CCountry? exileLeader = ExileLeader(state, country);
+		// The country's levels do not move in its upgrades, so each technology's is looked up once by name.
+		var reachedLevels = new Dictionary<CTechnology, int>(ReferenceEqualityComparer.Instance);
 
 		foreach (CUnit unit in CUnits.InWorkingOrder(country, unit => unit.MayUpgrade, lentFirst: true))
 		{
@@ -123,7 +125,10 @@ public static class CUpgrades
 						continue;
 					}
 					int held = subUnit.TechnologyLevels.GetValueOrDefault(technology.Name);
-					int reached = EquipmentLevel(country, exileLeader, technology.Name);
+					if (!reachedLevels.TryGetValue(technology, out int reached))
+					{
+						reachedLevels[technology] = reached = EquipmentLevel(country, exileLeader, technology.Name);
+					}
 					if (reached <= held)
 					{
 						continue;
