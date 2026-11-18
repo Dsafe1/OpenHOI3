@@ -937,7 +937,19 @@ public sealed class CGameState
 	/// Who stands where. Made when first asked for and thrown away at the start of each
 	/// hour and whenever a unit is put somewhere outside the march.
 	/// </summary>
-	public CUnitPositions Positions => _positions ??= new CUnitPositions(this, _lastPositions);
+	public CUnitPositions Positions => _positions ??= MakePositions();
+
+	private CUnitPositions MakePositions()
+	{
+		if (Profile is null)
+		{
+			return new CUnitPositions(this, _lastPositions);
+		}
+		long start = System.Diagnostics.Stopwatch.GetTimestamp();
+		var made = new CUnitPositions(this, _lastPositions);
+		Profile.Add("     of which who stands where, made again", System.Diagnostics.Stopwatch.GetTimestamp() - start);
+		return made;
+	}
 
 	/// <summary>The units in a province, in the order they came.</summary>
 	public IReadOnlyList<CUnit> UnitsIn(int province)
