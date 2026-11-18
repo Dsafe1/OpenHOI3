@@ -480,12 +480,24 @@ public sealed unsafe class CLuaState : IDisposable
 		return 0;
 	}
 
+	/// <summary>
+	/// Calls the function under its arguments on the top of the stack, its results left where it stood. An error is
+	/// thrown as a <see cref="CLuaException"/> whose message has the Lua stack it was raised in under it, a call a line,
+	/// so that a report says where in the scripts it came from. A script's own <c>pcall</c> sees the plain message.
+	/// </summary>
 	private void Protected(int arguments, int results)
 	{
-		if (CLuaNative.lua_pcall(_state, arguments, results, 0) != CLuaNative.LUA_OK)
+		int handler = CLuaNative.lua_gettop(_state) - arguments;
+		CLuaNative.ohoi_pushtraceback(_state);
+		CLuaNative.lua_insert(_state, handler);
+		int status = CLuaNative.lua_pcall(_state, arguments, results, handler);
+		if (status != CLuaNative.LUA_OK)
 		{
-			throw new CLuaException(PopError(_state));
+			string message = PopError(_state);
+			CLuaNative.lua_remove(_state, handler);
+			throw new CLuaException(message);
 		}
+		CLuaNative.lua_remove(_state, handler);
 	}
 
 	private static string PopError(IntPtr L)

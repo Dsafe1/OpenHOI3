@@ -157,4 +157,8 @@ internal static unsafe class CLuaNative
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
 	public static extern void ohoi_pushiterator(IntPtr L);
+
+	/// <summary>Pushes the message handler that writes a Lua error's stack under it, for <see cref="lua_pcall"/>.</summary>
+	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	public static extern void ohoi_pushtraceback(IntPtr L);
 }

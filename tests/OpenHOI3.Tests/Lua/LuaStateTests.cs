@@ -107,6 +107,29 @@ public class LuaStateTests
 	}
 
 	[Fact]
+	public void An_error_raised_in_CSharp_says_where_in_the_scripts_it_was_called_and_the_stack_under_it()
+	{
+		using CLuaState lua = Open();
+		lua.SetGlobal("fails", (CLuaFunction)(_ => throw new CLuaError("bad argument #2 (CThing expected, got nil)")));
+		lua.Run(Encoding.Latin1.GetBytes("function inner()\n  local x = 1\n  fails(x, nil)\nend\nfunction outer()\n  inner()\nend"),
+			"@script/ai_test.lua");
+
+		var thrown = Assert.Throws<CLuaException>(() => lua.Call("outer", 0));
+
+		string[] lines = thrown.Message.Split('\n');
+		Assert.Equal("script/ai_test.lua:3: bad argument #2 (CThing expected, got nil)", lines[0]);
+		Assert.Equal("stack traceback:", lines[1]);
+		Assert.Contains(lines, line => line == "\t[C]: in function 'fails'");
+		Assert.Contains(lines, line => line == "\tscript/ai_test.lua:3: in function 'inner'");
+		// Called from C#, the outermost function has no name: it is named by where it was defined, as Lua's own traceback does.
+		Assert.Contains(lines, line => line == "\tscript/ai_test.lua:6: in function <script/ai_test.lua:5>");
+		// A script's own pcall still sees the message alone, and the state is still usable after.
+		Assert.Equal("script/ai_test.lua:3: bad argument #2 (CThing expected, got nil)",
+			Ask(lua, "select(2, pcall(inner))"));
+		Assert.Equal(2.0, Ask(lua, "1 + 1"));
+	}
+
+	[Fact]
 	public void Any_other_exception_in_CSharp_is_a_Lua_error_too()
 	{
 		using CLuaState lua = Open();

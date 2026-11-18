@@ -284,10 +284,14 @@ internal static class CModSurvey
 		return quoted.Success ? quoted.Groups[1].Value : "";
 	}
 
-	/// <summary>A message with its names and figures taken out, so that problems of one kind group together.</summary>
+	/// <summary>
+	/// A message's first line with its names and figures taken out, so that problems of one kind group together - a Lua
+	/// error's stack traceback under it left out.
+	/// </summary>
 	private static string ShapeOf(string message)
 	{
-		string shape = LeadingFile.Replace(message, "FILE");
+		int end = message.IndexOf('\n');
+		string shape = LeadingFile.Replace(end < 0 ? message : message[..end], "FILE");
 		shape = Quoted.Replace(shape, "'*'");
 		shape = Number.Replace(shape, "#");
 		return shape;
