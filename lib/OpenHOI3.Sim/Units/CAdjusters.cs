@@ -18,6 +18,9 @@ public sealed class CAdjusters : IEnumerable<KeyValuePair<string, CModifier>>
 	/// <summary>Each name's adjuster by its key's number, null where it has none.</summary>
 	private CModifier?[] _byKey = Array.Empty<CModifier?>();
 
+	/// <summary>The adjusters in the order their names were first given, as the names are walked.</summary>
+	private readonly List<CModifier> _inOrder = new();
+
 	/// <summary>How many names are held.</summary>
 	public int Count => _byName.Count;
 
@@ -27,6 +30,14 @@ public sealed class CAdjusters : IEnumerable<KeyValuePair<string, CModifier>>
 		get => _byName[name];
 		set
 		{
+			if (_byName.TryGetValue(name, out CModifier? had))
+			{
+				_inOrder[_inOrder.IndexOf(had)] = value;
+			}
+			else
+			{
+				_inOrder.Add(value);
+			}
 			_byName[name] = value;
 			int id = CModifierKey.Of(name).Id;
 			if (id >= _byKey.Length)
@@ -53,7 +64,36 @@ public sealed class CAdjusters : IEnumerable<KeyValuePair<string, CModifier>>
 	public void Clear()
 	{
 		_byName.Clear();
+		_inOrder.Clear();
 		Array.Clear(_byKey);
+	}
+
+	/// <summary>
+	/// Made a copy of another's, name for name in its order, each adjuster a copy of the other's. What a brigade's figures
+	/// are made again from many times a day, so an adjuster this already had in the same place under the same name is
+	/// emptied and filled again rather than made anew - the same names, values and order as copies made anew.
+	/// </summary>
+	internal void CopyOf(CAdjusters other)
+	{
+		List<CModifier> had = new(_inOrder);
+		Clear();
+		int place = 0;
+		foreach ((string name, CModifier adjuster) in other._byName)
+		{
+			CModifier copy;
+			if (place < had.Count && string.Equals(had[place].Name, name, StringComparison.Ordinal))
+			{
+				copy = had[place];
+				copy.Clear();
+			}
+			else
+			{
+				copy = new CModifier(name);
+			}
+			copy.Add(adjuster);
+			this[name] = copy;
+			place++;
+		}
 	}
 
 	public Dictionary<string, CModifier>.Enumerator GetEnumerator() => _byName.GetEnumerator();

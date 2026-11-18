@@ -84,6 +84,33 @@ public sealed class CModifier
 		Set(key, null, this[key] + value);
 	}
 
+	/// <summary>
+	/// What <see cref="Add(string, CFixedPoint)"/> does, with the name's key already found: a kind not held yet takes the
+	/// spelling given.
+	/// </summary>
+	internal void AddSpelt(CModifierKey key, string spelling, CFixedPoint value)
+	{
+		Set(key, spelling, this[key] + value);
+	}
+
+	/// <summary>What <see cref="Set(string, CFixedPoint)"/> does, with the name's key already found.</summary>
+	internal void SetSpelt(CModifierKey key, string spelling, CFixedPoint value)
+	{
+		Set(key, spelling, value);
+	}
+
+	/// <summary>How many kinds it holds: what <see cref="KeyAt"/>, <see cref="SpellingAt"/> and <see cref="ValueAt"/> go up to.</summary>
+	internal int Count => _count;
+
+	/// <summary>The key of the kind held in a place, in the order the kinds were first given.</summary>
+	internal CModifierKey KeyAt(int place) => new(_ids[place]);
+
+	/// <summary>The spelling the kind in a place was first given.</summary>
+	internal string SpellingAt(int place) => _keys[place];
+
+	/// <summary>The value held in a place.</summary>
+	internal CFixedPoint ValueAt(int place) => _values[place];
+
 	/// <summary>Adds every value of another modifier to this one, in its order.</summary>
 	public void Add(CModifier other)
 	{

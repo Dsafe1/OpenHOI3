@@ -123,14 +123,14 @@ public sealed class CSubUnitStats
 	{
 		Values.Clear();
 		Values.Add(other.Values);
-		Adjusters.Clear();
-		foreach ((string name, CModifier adjuster) in other.Adjusters)
-		{
-			var copy = new CModifier(name);
-			copy.Add(adjuster);
-			Adjusters[name] = copy;
-		}
+		Adjusters.CopyOf(other.Adjusters);
 	}
+
+	private static readonly CModifierKey RepairCostMultiplierKey = CModifierKey.Of(RepairCostMultiplier);
+	private static readonly CModifierKey ToughnessKey = CModifierKey.Of(Toughness);
+	private static readonly CModifierKey BuildCostIcKey = CModifierKey.Of(BuildCostIc);
+	private static readonly CModifierKey BuildCostManpowerKey = CModifierKey.Of(BuildCostManpower);
+	private static readonly CModifierKey BuildTimeKey = CModifierKey.Of(BuildTime);
 
 	/// <summary>
 	/// Adds another's figures to these, <paramref name="times"/> over. Two things about
@@ -140,14 +140,17 @@ public sealed class CSubUnitStats
 	/// </summary>
 	public void Add(CSubUnitStats other, int times)
 	{
-		foreach ((string statistic, CFixedPoint value) in other.Values.Values)
+		// Each figure by its key, spelt as the other spells it; a name matched without case is the same key.
+		CModifier figures = other.Values;
+		for (int i = 0; i < figures.Count; i++)
 		{
-			if (statistic.Equals(RepairCostMultiplier, StringComparison.OrdinalIgnoreCase))
+			CModifierKey statistic = figures.KeyAt(i);
+			if (statistic == RepairCostMultiplierKey)
 			{
 				continue;
 			}
-			int count = statistic.Equals(Toughness, StringComparison.OrdinalIgnoreCase) ? 2 : 1;
-			Values.Add(statistic, value * ((long)times * count));
+			int count = statistic == ToughnessKey ? 2 : 1;
+			Values.AddSpelt(statistic, figures.SpellingAt(i), figures.ValueAt(i) * ((long)times * count));
 		}
 		foreach ((string name, CModifier adjuster) in other.Adjusters)
 		{
@@ -155,14 +158,14 @@ public sealed class CSubUnitStats
 			{
 				Adjusters[name] = mine = new CModifier(name);
 			}
-			foreach ((string kind, CFixedPoint value) in adjuster.Values)
+			for (int i = 0; i < adjuster.Count; i++)
 			{
-				mine.Add(kind, value * times);
+				mine.AddSpelt(adjuster.KeyAt(i), adjuster.SpellingAt(i), adjuster.ValueAt(i) * times);
 			}
 		}
 
-		Values.Set(BuildCostIc, CFixedPoint.Max(Values[BuildCostIc], LeastCost));
-		Values.Set(BuildCostManpower, CFixedPoint.Max(Values[BuildCostManpower], LeastCost));
-		Values.Set(BuildTime, CFixedPoint.Max(Values[BuildTime], CFixedPoint.One));
+		Values.SetSpelt(BuildCostIcKey, BuildCostIc, CFixedPoint.Max(Values[BuildCostIcKey], LeastCost));
+		Values.SetSpelt(BuildCostManpowerKey, BuildCostManpower, CFixedPoint.Max(Values[BuildCostManpowerKey], LeastCost));
+		Values.SetSpelt(BuildTimeKey, BuildTime, CFixedPoint.Max(Values[BuildTimeKey], CFixedPoint.One));
 	}
 }

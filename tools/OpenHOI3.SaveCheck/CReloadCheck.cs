@@ -115,7 +115,8 @@ internal static class CReloadCheck
 	/// with its own count; and a unit's and a brigade's figures of a battle's hour - its circumstances and the defences it
 	/// has used - which each battle hour makes again before anything reads them, and which stay on a unit, read by
 	/// nothing, once its battle is over; and what is worked out of a brigade's figures and levels to be asked every hour,
-	/// with the counts of changes that say when to work it out again, and a country's facts' count of buildings set.
+	/// with the counts of changes that say when to work it out again, a country's facts' count of buildings set, and
+	/// which class answers a condition, found the first time it is asked, and its keyword, which is its key lowered.
 	/// </summary>
 	private static readonly string[] Skipped =
 	{
@@ -126,7 +127,8 @@ internal static class CReloadCheck
 		"CSupplyNetwork.ControlChanges",
 		"CModifier.Version", "CSubUnitLevels.Version", "CSubUnitStats._takenAt", "CSubUnitStats._defaultOrganisation",
 		"CSubUnitStats._morale", "CSubUnitStats._officers", "CSubUnitStats._maxStrength", "CSubUnit._levelsAddedAt",
-		"CSubUnit._levelsHeld", "CAdjusters._byKey", "CCountryFacts.BuiltChanges",
+		"CSubUnit._levelsHeld", "CAdjusters._byKey", "CCountryFacts.BuiltChanges", "CTrigger.Answerer",
+		"CTrigger.Keyword",
 		"CUnit.CombatAttack", "CUnit.CombatModifiers", "CUnit.DefencesUsed",
 		"CSubUnit.CombatAttack", "CSubUnit.CombatDefence", "CSubUnit.CombatModifiers",
 	};

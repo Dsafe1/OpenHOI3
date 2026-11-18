@@ -47,62 +47,133 @@ public static class CConditions
 		return true;
 	}
 
+	/// <summary>What answers a keyword: the blocks and scope sets here, none for one not built, else a class beside this.</summary>
+	private const int Unknown = 0, And = 1, Or = 2, Not = 3, OwnedProvince = 4, NeighbourProvince = 5, NeighbourCountry = 6,
+		Core = 7, Enemy = 8, Unanswered = 9, Clock = 10, Mark = 11, Country = 12, Politics = 13, Espionage = 14,
+		Relation = 15, Province = 16, Revolt = 17, Battle = 18;
+
 	private static bool Keyword(CGameState state, CTrigger trigger, CEventScope scope, CScriptReport? report)
 	{
-		string keyword = trigger.Keyword;
-		switch (keyword)
+		// Which answers it is found the first time it is asked and kept on it (CTrigger.Answerer): the classes beside this
+		// take a keyword or leave it by the keyword alone, so the chain gives the same one every time.
+		int answerer = trigger.Answerer;
+		if (answerer == Unknown)
 		{
-			case "and":
+			return FirstTime(state, trigger, scope, report);
+		}
+		bool answer;
+		switch (answerer)
+		{
+			case And:
 				return All(state, trigger, scope, report);
-			case "or":
-				foreach (CTrigger child in trigger.Children)
-				{
-					if (Holds(state, child, scope, report))
-					{
-						return true;
-					}
-				}
-				return false;
-			case "not":
-				// A NOR: false at the first that holds.
-				foreach (CTrigger child in trigger.Children)
-				{
-					if (Holds(state, child, scope, report))
-					{
-						return false;
-					}
-				}
-				return true;
-			case "any_owned_province":
+			case Or:
+				return AnyHolds(state, trigger, scope, report);
+			case Not:
+				return !AnyHolds(state, trigger, scope, report);
+			case OwnedProvince:
 				return CScopeSets.OwnedProvince(state, trigger, scope, report);
-			case "any_neighbor_province":
+			case NeighbourProvince:
 				return CScopeSets.NeighbourProvince(state, trigger, scope, report);
-			case "any_neighbor_country":
+			case NeighbourCountry:
 				return CScopeSets.NeighbourCountry(state, trigger, scope, report);
-			case "any_core":
+			case Core:
 				return CScopeSets.Core(state, trigger, scope, report);
-			case "enemy":
+			case Enemy:
 				// The other side of a battle, and there is none.
 				return false;
+			case Unanswered:
+				report?.Add(trigger.Key, CUnansweredConditions.Reason(trigger.Keyword)!.Value);
+				return false;
+			case Clock:
+				CClockConditions.TryAnswer(state, trigger, scope, out answer);
+				return answer;
+			case Mark:
+				CMarkConditions.TryAnswer(state, trigger, scope, out answer);
+				return answer;
+			case Country:
+				CCountryConditions.TryAnswer(state, trigger, scope, out answer);
+				return answer;
+			case Politics:
+				CPoliticsConditions.TryAnswer(state, trigger, scope, out answer);
+				return answer;
+			case Espionage:
+				CEspionageConditions.TryAnswer(state, trigger, scope, out answer);
+				return answer;
+			case Relation:
+				CRelationConditions.TryAnswer(state, trigger, scope, out answer);
+				return answer;
+			case Province:
+				CProvinceConditions.TryAnswer(state, trigger, scope, out answer);
+				return answer;
+			case Revolt:
+				CRevoltConditions.TryAnswer(state, trigger, scope, out answer);
+				return answer;
+			default:
+				// The last battle's figures: whether they answer hangs on whether there has been one, so they are asked
+				// each time.
+				if (CBattleConditions.TryAnswer(state, trigger, out answer))
+				{
+					return answer;
+				}
+				throw new InvalidOperationException($"'{trigger.Key}' is no condition anything answers");
 		}
-		if (CUnansweredConditions.Reason(keyword) is { } why)
+	}
+
+	/// <summary>A keyword asked for the first time: the whole chain walked, and what answered it kept on it.</summary>
+	private static bool FirstTime(CGameState state, CTrigger trigger, CEventScope scope, CScriptReport? report)
+	{
+		string keyword = trigger.Keyword;
+		int block = keyword switch
 		{
-			report?.Add(trigger.Key, why);
-			return false;
+			"and" => And,
+			"or" => Or,
+			"not" => Not,
+			"any_owned_province" => OwnedProvince,
+			"any_neighbor_province" => NeighbourProvince,
+			"any_neighbor_country" => NeighbourCountry,
+			"any_core" => Core,
+			"enemy" => Enemy,
+			_ => CUnansweredConditions.Reason(keyword) is not null ? Unanswered : Unknown,
+		};
+		if (block != Unknown)
+		{
+			trigger.Answerer = block;
+			return Keyword(state, trigger, scope, report);
 		}
-		if (CClockConditions.TryAnswer(state, trigger, scope, out bool answer)
-			|| CMarkConditions.TryAnswer(state, trigger, scope, out answer)
-			|| CCountryConditions.TryAnswer(state, trigger, scope, out answer)
-			|| CPoliticsConditions.TryAnswer(state, trigger, scope, out answer)
-			|| CEspionageConditions.TryAnswer(state, trigger, scope, out answer)
-			|| CRelationConditions.TryAnswer(state, trigger, scope, out answer)
-			|| CProvinceConditions.TryAnswer(state, trigger, scope, out answer)
-			|| CRevoltConditions.TryAnswer(state, trigger, scope, out answer)
-			|| CBattleConditions.TryAnswer(state, trigger, out answer))
+		bool answer;
+		int found =
+			CClockConditions.TryAnswer(state, trigger, scope, out answer) ? Clock
+			: CMarkConditions.TryAnswer(state, trigger, scope, out answer) ? Mark
+			: CCountryConditions.TryAnswer(state, trigger, scope, out answer) ? Country
+			: CPoliticsConditions.TryAnswer(state, trigger, scope, out answer) ? Politics
+			: CEspionageConditions.TryAnswer(state, trigger, scope, out answer) ? Espionage
+			: CRelationConditions.TryAnswer(state, trigger, scope, out answer) ? Relation
+			: CProvinceConditions.TryAnswer(state, trigger, scope, out answer) ? Province
+			: CRevoltConditions.TryAnswer(state, trigger, scope, out answer) ? Revolt
+			: Battle;
+		trigger.Answerer = found;
+		if (found != Battle)
+		{
+			return answer;
+		}
+		if (CBattleConditions.TryAnswer(state, trigger, out answer))
 		{
 			return answer;
 		}
 		throw new InvalidOperationException($"'{trigger.Key}' is no condition anything answers");
+	}
+
+	/// <summary>Whether any condition of the block holds, the first that does ending the walk: an <c>or</c>, and a <c>not</c> turned round.</summary>
+	private static bool AnyHolds(CGameState state, CTrigger block, CEventScope scope, CScriptReport? report)
+	{
+		foreach (CTrigger child in block.Children)
+		{
+			if (Holds(state, child, scope, report))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/// <summary>

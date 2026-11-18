@@ -39,6 +39,17 @@ As measured, with `OpenHOI3.SaveCheck profile` and the headless run, both in Rel
   where it does not (`CGameState.Positions`), so it is made 32 times in ten days where it was 741. BlackICE's day came
   to about 1,215 ms, the base game's to about 485: the hourly organisation 30 per cent less, the march 22, the trading
   22, the daily upkeep 44.
+- **And then the conditions of script**, which the triggered modifiers' daily test, the events, the decisions and the
+  foreign minister all ask: a condition's keyword lowered once as it is read and not at every asking, and which class
+  answers it found the first time and kept on it (`CTrigger.Answerer`), the chain of nine not walked again - the classes
+  take a keyword or leave it by the keyword alone. The triggered modifiers' test, BlackICE's 1,798 entries for every
+  country each day, took half its time; the day's rebuild of every country's modifier 45 per cent less. **It was not run
+  side by side**, as was proposed: one country's test reads others' modifiers - a province's revolt risk reads its
+  holder's - after their rebuild, and a condition writes the state (`check_variable` makes the variable it asks for), so
+  side by side would need every read watched, for less than was had this way. A brigade's figures made again - every
+  level an upgrade gives - copy their figures by key and reuse the brigade's own adjusters: the day's production 12 per
+  cent less. Each the state's hash the same every midnight, base game and BlackICE, and the `conditions` and
+  `scripttext` looks line for line.
 - **Drawing is already C++** - it is Godot's renderer. The client's C# builds and sets nodes.
 
 ## 3. What C++ would buy, part by part

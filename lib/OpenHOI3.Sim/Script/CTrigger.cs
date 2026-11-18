@@ -15,6 +15,7 @@ public sealed class CTrigger
 		Kind = kind;
 		Key = key;
 		Argument = argument;
+		Keyword = kind == ETriggerKind.Keyword ? key.ToLowerInvariant() : "";
 	}
 
 	/// <summary>An empty <c>and</c>, which holds.</summary>
@@ -28,8 +29,15 @@ public sealed class CTrigger
 	/// <summary>The key as written.</summary>
 	public string Key { get; }
 
-	/// <summary>The keyword, in lower case, where <see cref="Kind"/> is a keyword; otherwise empty.</summary>
-	public string Keyword => Kind == ETriggerKind.Keyword ? Key.ToLowerInvariant() : "";
+	/// <summary>The keyword, in lower case, where <see cref="Kind"/> is a keyword; otherwise empty. Made once, as it is read.</summary>
+	public string Keyword { get; }
+
+	/// <summary>
+	/// What answers it, as <see cref="CConditions"/> found the first time it was asked - nought until then. Which of them
+	/// takes a keyword hangs on the keyword alone, so it is the same every time it is asked, and the chain of them is not
+	/// walked again. Two threads asking at once each write the same.
+	/// </summary>
+	internal int Answerer { get; set; }
 
 	/// <summary>The value, where the key takes one; for a scope, what it names.</summary>
 	public CScriptArgument Argument { get; }
