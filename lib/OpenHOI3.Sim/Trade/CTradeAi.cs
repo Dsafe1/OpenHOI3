@@ -85,12 +85,7 @@ public static class CTradeAi
 		// What the scripts read that is otherwise made on first use is made now, before they read it side by
 		// side: each is made again only where the state has moved on, which a script cannot do.
 		long started = System.Diagnostics.Stopwatch.GetTimestamp();
-		COwnedCounts.Of(state);
-		CCountryFacts.Of(state);
-		Supply.CSupplyNetworks.Refresh(state);
-		_ = state.NavalDistances;
-		_ = state.Positions;
-		_ = state.ControlledCount(default);
+		Ai.CReadFirst.Make(state);
 		long made = System.Diagnostics.Stopwatch.GetTimestamp();
 		scripts.RunTrades(state, runs);
 		if (state.Profile is { } profile)

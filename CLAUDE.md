@@ -1112,7 +1112,7 @@ beside the repository.
   standing, with no Lua error, under half a second a day; on 2026-11-07 142, 138 and 71 - 145, 142 and 76 under the
   generator's old seeding, so the fall came before it - and the trial asks each command `MayExecute` before it runs it,
   as the simulation does, where it had crashed on a unit gone (`docs/mechanics/trade.md`). **The trading runs
-  side by side on eight Lua states of its own** (`CTradeWorkers`; `trade.md`, *Ours*), and comes out the same
+  side by side on eight Lua states of its own** (`CAiWorkers`; `trade.md`, *Ours*), and comes out the same
   as one state running the countries in turn: compare this trial's output before and after touching
   anything the scripts read, since a script may only read the state and post - something it reads that is
   made on first use has to be made before they run (`CTradeAi`), and nothing it calls may change the

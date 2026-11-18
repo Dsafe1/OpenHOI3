@@ -22,7 +22,9 @@ public static class CForeignMinisterClass
 			// A decision that failed ends the pass and the script that called it, as the original's error does.
 			.Method("ExecuteDiploDecisions", call =>
 			{
-				if (CForeignAi.ExecuteDiploDecisions(api.State, Of(call)) is { } error)
+				// On the scripts this one runs on, a worker's among them: their draw, their posts, their Lua.
+				if ((api.Scripts is { } scripts ? CForeignAi.ExecuteDiploDecisions(api.State, Of(call), scripts)
+					: CForeignAi.ExecuteDiploDecisions(api.State, Of(call))) is { } error)
 				{
 					throw new CLuaError(error);
 				}

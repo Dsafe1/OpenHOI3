@@ -31,6 +31,7 @@ public static class CEspionageAi
 			return;
 		}
 		int hour = (int)(state.TotalHours % CGameState.HoursPerDay);
+		var due = new System.Collections.Generic.List<CCountry>();
 		foreach (CCountry country in state.Countries)
 		{
 			if (country.AiPaused || country.IntelligenceCountdown <= 0 || !Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Intelligence)
@@ -45,10 +46,15 @@ public static class CEspionageAi
 			country.IntelligenceCountdown = 1;
 			if (Hour(country) == hour)
 			{
-				state.AiScripts?.RunIntelligence(state, country);
+				due.Add(country);
 			}
 		}
+		// Side by side, as the original's AI pass runs them (ministers.md, *Ours*).
+		state.AiScripts?.RunSideBySide(state, due, Salt, (scripts, country) => scripts.RunIntelligence(state, country));
 	}
+
+	/// <summary>Which minister a run of the intelligence minister is, for the seed of its own generator on a worker.</summary>
+	private const uint Salt = 2;
 
 	/// <summary>
 	/// The hour of the day a country's minister works in: its number in the original's list - which counts its

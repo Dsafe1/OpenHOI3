@@ -11,7 +11,7 @@ namespace OpenHOI3.Sim.Countries;
 /// (<c>CSaveLoader</c>). The scripts ask for a country's provinces a hundred and fifty times an hour under BlackICE, and
 /// each walk of the map and sort was a tenth of a millisecond.
 ///
-/// The scripts ask side by side, on several Lua states at once (<c>CTradeWorkers</c>), so the lists are kept for being
+/// The scripts ask side by side, on several Lua states at once (<c>CAiWorkers</c>), so the lists are kept for being
 /// asked from several threads: two that make one country's list at once make the same list, and either is kept.
 /// </summary>
 public sealed class CControlledLists

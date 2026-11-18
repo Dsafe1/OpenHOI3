@@ -42,7 +42,7 @@ As measured, with `OpenHOI3.SaveCheck profile` and the headless run, both in Rel
 usually gains, not a measurement. Most of it is to be had without changing language:
 
 - the simulation on a thread of its own, which every screen reading the state would have to allow for;
-- the day's pass spread over the hours, or run side by side as the hour's trading already is (`CTradeWorkers`);
+- the day's pass spread over the hours, or run side by side as the hour's trading and the ministers' scripts already are (`CAiWorkers`);
 - structs, spans and kept scratch arrays in the hot loops, as `CRouteScratch` began;
 - NativeAOT for the headless tools, which start and run without the JIT.
 

@@ -272,6 +272,20 @@ Do not tidy:
   trading's states already have one (`lua.md`). The original's is the thread's, and which thread runs which country is
   its worker pool's choice, so its draws are not the same from one run to the next; here a game is replayable from its
   seed and its commands.
+- **The ministers' scripts run side by side** (2026-11-18), the tech, production, foreign, politics and intelligence
+  ministers' alike, on the eight Lua states the trading runs on (`trade.md`, section 9; `CAiWorkers`), as the original's
+  AI pass runs its agents on worker threads. An hour's countries of one minister go each to a state of its own - the
+  country's number over 24, of eight (`CAiWorkers.ByDay`), since a minister's countries of one hour are 24 apart in
+  number - and in the countries' order there. A run's draws on the game's generator are on one of its own, seeded from
+  the game's seed, the hour, the country and which minister (`IAiScripts.Draw`); what each run posts reaches the outbox,
+  and what follows it on the game's own state - the foreign minister's proposal, its pruning and its walk of prepared
+  wars - runs, in the countries' order once all have run. **This changed every AI country's draws once**, where until
+  then each minister ran its countries in turn on the one state and drew on the AI's generator. Two runs of a game still
+  agree hour for hour, which is what is kept: the original's threads take countries as they come free, so its
+  `lbInfra` above holds for whichever country its thread runs next, and here for the next on that state. In turn on
+  the one state, as before, while a feed of the original's draws is set (`docs/replay.md`, section 9). Under BlackICE,
+  ten days of 1936 took the five ministers 296 ms a day where they took 435; what is left is, hour by hour, the one
+  heaviest country's run.
 - **A country's number** for the hours is its place among the countries plus one, as the other ministers'.
 - **The counts by type are made as the minister's hour begins**, from the queue and the units as they stand - the
   original's are made in the same place and kept until the next day, which comes to the same since nothing the script

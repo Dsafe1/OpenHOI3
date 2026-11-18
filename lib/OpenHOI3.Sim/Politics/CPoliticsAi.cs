@@ -124,6 +124,7 @@ public static class CPoliticsAi
 			return;
 		}
 		int hour = (int)(state.TotalHours % CGameState.HoursPerDay);
+		var due = new List<CCountry>();
 		foreach (CCountry country in state.Countries)
 		{
 			if (country.AiPaused || country.PoliticsCountdown <= 0 || !Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Politics)
@@ -145,9 +146,15 @@ public static class CPoliticsAi
 			{
 				CMinisterPosts.FillVacant(state, country);
 			}
-			state.AiScripts?.RunPolitics(state, country);
+			due.Add(country);
 		}
+		// The scripts of the hour's countries side by side, as the original's AI pass runs them on its workers (ministers.md,
+		// *Ours*): each country's posts are the outbox's in the countries' order.
+		state.AiScripts?.RunSideBySide(state, due, Salt, (scripts, country) => scripts.RunPolitics(state, country));
 	}
+
+	/// <summary>Which minister a run of the politics minister is, for the seed of its own generator on a worker.</summary>
+	private const uint Salt = 1;
 
 	/// <summary>
 	/// The hour of the day a country's minister works in: its number plus 17, of 24. *Ours*: the number is its place

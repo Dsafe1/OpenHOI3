@@ -41,6 +41,7 @@ public static class CProductionAi
 		}
 		BalanceDue(state);
 		int hour = (int)(state.TotalHours % CGameState.HoursPerDay);
+		var due = new List<CCountry>();
 		foreach (CCountry country in state.Countries)
 		{
 			if (!CResearchAi.Works(state, country, country.ProductionCountdown, Settings.EAutomation.Production))
@@ -54,19 +55,31 @@ public static class CProductionAi
 			country.ProductionCountdown = 1;
 			if (CResearchAi.Hour(country, HourOffset) == hour)
 			{
-				Work(state, country);
+				Prepare(state, country);
+				due.Add(country);
 			}
 		}
+		// The hour's countries' scripts side by side, as the original's AI pass runs them (ministers.md, *Ours*).
+		state.AiScripts?.RunSideBySide(state, due, Salt, (scripts, country) => scripts.RunProduction(state, country));
 	}
+
+	/// <summary>Which minister a run of the production minister is, for the seed of its own generator on a worker.</summary>
+	private const uint Salt = 4;
 
 	/// <summary>The minister's day: its desperation where due, then the script.</summary>
 	public static void Work(CGameState state, CCountry country)
+	{
+		Prepare(state, country);
+		state.AiScripts?.RunProduction(state, country);
+	}
+
+	/// <summary>Its desperation, where due, before the script.</summary>
+	private static void Prepare(CGameState state, CCountry country)
 	{
 		if (country.MinisterDesperation < 0 || (state.Date.Day - 1) % DesperationEvery == 0)
 		{
 			country.MinisterDesperation = (int)CDesperation.Of(state, country);
 		}
-		state.AiScripts?.RunProduction(state, country);
 	}
 
 	/// <summary>

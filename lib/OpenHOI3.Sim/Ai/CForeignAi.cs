@@ -69,6 +69,7 @@ public static class CForeignAi
 			return;
 		}
 		int hour = (int)(state.TotalHours % CGameState.HoursPerDay);
+		var due = new System.Collections.Generic.List<CCountry>();
 		foreach (CCountry country in state.Countries)
 		{
 			if (!Research.CResearchAi.Works(state, country, country.ForeignCountdown, Settings.EAutomation.Diplomacy))
@@ -87,10 +88,24 @@ public static class CForeignAi
 			}
 			if (Research.CResearchAi.Hour(country, HourOffset) == hour)
 			{
-				RunDay(state, country);
+				due.Add(country);
 			}
 		}
+		// The hour's countries' scripts side by side, as the original's AI pass runs them; then for each in turn what it
+		// posted, and what the day does after the script (ministers.md, *Ours*).
+		if (state.AiScripts is { } scripts)
+		{
+			scripts.RunSideBySide(state, due, Salt, (on, country) => on.RunForeign(state, country), country => AfterTick(state, country));
+			return;
+		}
+		foreach (CCountry country in due)
+		{
+			AfterTick(state, country);
+		}
 	}
+
+	/// <summary>Which minister a run of the foreign minister is, for the seed of its own generator on a worker.</summary>
+	private const uint Salt = 3;
 
 	/// <summary>
 	/// The minister's day: the Lua's <c>ForeignMinister_Tick</c>, then the best offer it proposed where it scored above
@@ -99,6 +114,12 @@ public static class CForeignAi
 	public static void RunDay(CGameState state, CCountry country)
 	{
 		state.AiScripts?.RunForeign(state, country);
+		AfterTick(state, country);
+	}
+
+	/// <summary>What the day does after the script: the proposal kept, the pruning and the walk of the prepared wars.</summary>
+	private static void AfterTick(CGameState state, CCountry country)
+	{
 		PostProposal(state, country);
 		if (CWarTargets.Prunes(country))
 		{
@@ -115,11 +136,16 @@ public static class CForeignAi
 	/// </summary>
 	public static string? ExecuteDiploDecisions(CGameState state, CCountry country)
 	{
-		if (state.AiScripts is not { } scripts)
-		{
-			return null;
-		}
-		CEventScope scope = CEventScope.Start(country.Tag, randomState: (uint)state.AiRandom.Next(country.Tag));
+		return state.AiScripts is { } scripts ? ExecuteDiploDecisions(state, country, scripts) : null;
+	}
+
+	/// <summary>
+	/// The decisions pass on the scripts the calling script runs on - a worker's while ministers run side by side - its
+	/// draw and its posts theirs (<see cref="IAiScripts.Draw"/>, <see cref="IAiScripts.Post"/>).
+	/// </summary>
+	public static string? ExecuteDiploDecisions(CGameState state, CCountry country, IAiScripts scripts)
+	{
+		CEventScope scope = CEventScope.Start(country.Tag, randomState: (uint)scripts.Draw(state, country.Tag));
 		foreach (CDecision decision in state.Decisions)
 		{
 			if (decision.Group != EDecisionGroup.Diplomatic
@@ -133,7 +159,7 @@ public static class CForeignAi
 			}
 			if (score > 0)
 			{
-				state.Outbox.Add(new CExecuteDecisionCommand(decision.Name, scope.Detached()));
+				scripts.Post(state, new CExecuteDecisionCommand(decision.Name, scope.Detached()));
 			}
 		}
 		return null;

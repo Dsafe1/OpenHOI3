@@ -42,7 +42,10 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	private readonly CLuaRandom _random = new();
 	private CGameState? _state;
 	private int _failures;
-	private CTradeWorkers? _workers;
+	private CAiWorkers? _workers;
+
+	/// <summary>Whether this is one of the workers' states, which runs what it is given in turn and hands nothing on.</summary>
+	private readonly bool _worker;
 
 	public CAiScripts(CDirectorySettings directories, Action<string>? report = null)
 		: this(directories, report, worker: false)
@@ -51,6 +54,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 
 	private CAiScripts(CDirectorySettings directories, Action<string>? report, bool worker)
 	{
+		_worker = worker;
 		_directories = directories;
 		_report = report ?? CDiagnostics.Warn;
 		_api = new CGameApi(() => _state ?? throw new CLuaError("no game is being asked"), _report) { Scripts = this };
@@ -69,7 +73,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		RunFile(Autoexec);
 	}
 
-	/// <summary>A state of the hour's trading's own, with a <c>math.random</c> of its own (<see cref="CTradeWorkers"/>).</summary>
+	/// <summary>A state of the hour's trading's own, with a <c>math.random</c> of its own (<see cref="CAiWorkers"/>).</summary>
 	internal static CAiScripts Worker(CDirectorySettings directories, Action<string> report) =>
 		new(directories, report, worker: true);
 
@@ -466,30 +470,82 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	private const string ReinforcementBonus = "reinforcement_bonus";
 
 	/// <summary>
-	/// The hour's trading, side by side on states of its own, made the first time (<see cref="CTradeWorkers"/>).
+	/// The hour's trading, side by side on states of its own, made the first time (<see cref="CAiWorkers"/>).
 	/// What the runs post reaches the state's outbox, and what they report is reported, in the order of the
 	/// runs - an unbuilt thing once, whichever state met it.
 	/// </summary>
 	public void RunTrades(CGameState state, IReadOnlyList<(CCountry Country, bool Propose)> runs)
 	{
-		_workers ??= new CTradeWorkers(_directories);
+		_workers ??= new CAiWorkers(_directories);
 		foreach ((List<Sim.Commands.CCommand> posted, List<string> reports) in _workers.Run(state, runs))
 		{
-			state.Outbox.AddRange(posted);
-			foreach (string line in reports)
+			HandOn(state, posted, reports);
+		}
+	}
+
+	/// <summary>
+	/// A minister's work for several countries, side by side on the workers' states (<see cref="CAiWorkers"/>), and then in
+	/// the countries' order what each posted reaches the outbox, what it reported is reported, and <paramref name="after"/>
+	/// runs for it. In turn, here, while a feed of the original's draws is set (<see cref="RandFeed"/>, the game's
+	/// generator's): the workers' states are not fed (<c>docs/replay.md</c>, section 9). Nothing on a worker is a worker
+	/// itself, so a worker runs its own in turn.
+	/// </summary>
+	public void RunSideBySide(CGameState state, IReadOnlyList<CCountry> countries, uint salt, Action<IAiScripts, CCountry> run,
+		Action<CCountry>? after = null)
+	{
+		if (countries.Count == 0)
+		{
+			return;
+		}
+		if (_worker || RandFeed is not null || state.AiRandom.Feed is not null)
+		{
+			foreach (CCountry country in countries)
 			{
-				if (line.StartsWith(UnbuiltPrefix, StringComparison.Ordinal))
+				run(this, country);
+				after?.Invoke(country);
+			}
+			return;
+		}
+		Sim.Ai.CReadFirst.Make(state);
+		_workers ??= new CAiWorkers(_directories);
+		(List<Sim.Commands.CCommand> Posted, List<string> Reports)[] results =
+			_workers.Run(state, countries, salt, CAiWorkers.ByDay, (scripts, i) => run(scripts, countries[i]));
+		for (int i = 0; i < countries.Count; i++)
+		{
+			HandOn(state, results[i].Posted, results[i].Reports);
+			after?.Invoke(countries[i]);
+		}
+	}
+
+	/// <summary>A command a run posts: the worker run's own list, else the outbox.</summary>
+	public void Post(CGameState state, Sim.Commands.CCommand command)
+	{
+		(_api.Posted ?? state.Outbox).Add(command);
+	}
+
+	/// <summary>A draw a run makes for a country: on the worker run's own generator, else on the AI's.</summary>
+	public int Draw(CGameState state, CCountryTag who)
+	{
+		return _api.WorkerRandom?.Next() ?? state.AiRandom.Next(who);
+	}
+
+	/// <summary>What a run on a worker posted put on the outbox, and what it reported reported - an unbuilt thing once.</summary>
+	private void HandOn(CGameState state, List<Sim.Commands.CCommand> posted, List<string> reports)
+	{
+		state.Outbox.AddRange(posted);
+		foreach (string line in reports)
+		{
+			if (line.StartsWith(UnbuiltPrefix, StringComparison.Ordinal))
+			{
+				_api.ReportUnbuilt(line[UnbuiltPrefix.Length..]);
+			}
+			else
+			{
+				if (line.StartsWith(ErrorPrefix, StringComparison.Ordinal))
 				{
-					_api.ReportUnbuilt(line[UnbuiltPrefix.Length..]);
+					_failures++;
 				}
-				else
-				{
-					if (line.StartsWith(ErrorPrefix, StringComparison.Ordinal))
-					{
-						_failures++;
-					}
-					_report(line);
-				}
+				_report(line);
 			}
 		}
 	}

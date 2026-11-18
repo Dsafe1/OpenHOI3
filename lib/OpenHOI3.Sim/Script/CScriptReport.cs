@@ -12,9 +12,13 @@ public sealed class CScriptReport
 {
 	public SortedDictionary<string, (EScriptGap Why, int Times)> Gaps { get; } = new(StringComparer.Ordinal);
 
+	/// <summary>A gap met: from several threads at once while the AI's scripts run side by side, so one at a time.</summary>
 	public void Add(string key, EScriptGap why)
 	{
 		string known = key.ToLowerInvariant();
-		Gaps[known] = (why, Gaps.GetValueOrDefault(known).Times + 1);
+		lock (Gaps)
+		{
+			Gaps[known] = (why, Gaps.GetValueOrDefault(known).Times + 1);
+		}
 	}
 }

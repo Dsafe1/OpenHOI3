@@ -228,8 +228,10 @@ makes, Britain's influence on South Africa on the very day (8 March).
   precision numbers by their bits, so that nothing in the game state is a float.
 - **The byte the original sets** when a neighbour's war target changes, read by its theatre layer (by its look), is not
   kept.
-- **The Lua runs on one state**, its `math.random` the state's own (`ministers.md`, *Ours*); the original's is the
-  worker thread's.
+- **The Lua runs side by side on eight states**, a country always on the same one, each state's `math.random` its own
+  and a run's draws on a generator of its own; the proposal, the pruning and the walk follow in the countries' order
+  once every country of the hour has run (`ministers.md`, *Ours*). The original's threads take countries as they come
+  free, each with the thread's `math.random`.
 
 ## 11. Kept as the original does them
 

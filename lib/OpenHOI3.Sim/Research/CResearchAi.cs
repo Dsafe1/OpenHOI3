@@ -43,6 +43,7 @@ public static class CResearchAi
 			return;
 		}
 		int hour = (int)(state.TotalHours % CGameState.HoursPerDay);
+		var due = new List<CCountry>();
 		foreach (CCountry country in state.Countries)
 		{
 			if (!Works(state, country, country.TechCountdown, Settings.EAutomation.Technology))
@@ -56,11 +57,19 @@ public static class CResearchAi
 			country.TechCountdown = 1;
 			if (Hour(country, HourOffset) == hour)
 			{
-				(bool sliders, bool research) = Settings.CAutomation.TechHalves(state, country);
-				state.AiScripts?.RunTech(state, country, sliders, research);
+				due.Add(country);
 			}
 		}
+		// The hour's countries' scripts side by side, as the original's AI pass runs them (ministers.md, *Ours*).
+		state.AiScripts?.RunSideBySide(state, due, Salt, (scripts, country) =>
+		{
+			(bool sliders, bool research) = Settings.CAutomation.TechHalves(state, country);
+			scripts.RunTech(state, country, sliders, research);
+		});
 	}
+
+	/// <summary>Which minister a run of the tech minister is, for the seed of its own generator on a worker.</summary>
+	private const uint Salt = 5;
 
 	/// <summary>
 	/// What a tech minister does on hearing that a level of a technology of several levels was researched: it posts the

@@ -246,7 +246,7 @@ naval sighting roll out of the wrong figure (`mechanics/navalcombat.md`, section
 first battle and every battle's dice are the original's for eight hours of July 1941, after which one battle fires two
 shots fewer in ours, not yet followed.
 
-**What it does not do**: the trading's states (`CTradeWorkers`) keep their own generators and are not fed; and only one run
+**What it does not do**: the trading's states (`CAiWorkers`) keep their own generators and are not fed; and only one run
 is followed, so whether the original agrees with itself still wants its other runs.
 
 ## Not established

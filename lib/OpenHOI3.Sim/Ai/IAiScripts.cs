@@ -146,4 +146,35 @@ public interface IAiScripts
 			RunTrade(state, country, propose);
 		}
 	}
+
+	/// <summary>
+	/// A minister's work for several countries at once, as the original runs its AI pass on its worker threads
+	/// (<c>reversing/findings/FINDINGS-aisched.md</c>): <paramref name="run"/> for each country, handed the scripts it is
+	/// to use - this, or a worker's own - each in turn unless the scripts can run them side by side; then, in the
+	/// countries' order, what each posted reaches the outbox and <paramref name="after"/> runs for it. A run only reads
+	/// the state but for its own country's figures, posting through <see cref="Post"/> and drawing through
+	/// <see cref="Draw"/>. See <c>docs/mechanics/ministers.md</c>, *Ours*.
+	/// </summary>
+	/// <param name="salt">Which minister: what a run's own generator is seeded with beside the game, the hour and the country.</param>
+	void RunSideBySide(CGameState state, IReadOnlyList<CCountry> countries, uint salt, System.Action<IAiScripts, CCountry> run,
+		System.Action<CCountry>? after = null)
+	{
+		foreach (CCountry country in countries)
+		{
+			run(this, country);
+			after?.Invoke(country);
+		}
+	}
+
+	/// <summary>A command a run of these scripts posts: the outbox, or where a worker gathers what its run posts.</summary>
+	void Post(CGameState state, Commands.CCommand command)
+	{
+		state.Outbox.Add(command);
+	}
+
+	/// <summary>A draw a run of these scripts makes for a country: on the AI's generator, or on a worker run's own.</summary>
+	int Draw(CGameState state, CCountryTag who)
+	{
+		return state.AiRandom.Next(who);
+	}
 }

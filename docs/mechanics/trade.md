@@ -349,7 +349,7 @@ months from the offer while the two are not at war**, and declines when it close
 - **The countries trade side by side, as the original's do, but always the same way.** The original runs
   the hour's trading on its worker threads, each with a Lua state of its own (`FINDINGS-tick.md`, the TBB
   section; `FINDINGS-luahost.md`), taking countries as threads come free - so which state runs a country,
-  and in what order offers are posted, varies from run to run. Here (2026-10-13, `CTradeWorkers`): the
+  and in what order offers are posted, varies from run to run. Here (2026-10-13, `CAiWorkers`): the
   hour's draws are made first, in the countries' order; the scripts then run on **eight states of their own**
   whatever the machine, a country always on the same one - its number modulo eight - and in the countries'
   order there; what they post reaches the outbox, and what they report the log, **in the countries' order**.
