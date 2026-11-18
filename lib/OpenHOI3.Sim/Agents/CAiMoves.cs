@@ -63,7 +63,7 @@ public static class CAiMoves
 		}
 		if (safe && ShouldRedeploy(state, country, unit, province))
 		{
-			state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, unit.Id, EUnitOrder.StrategicRedeployment, province));
+			state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, unit.Id, EUnitOrder.StrategicRedeployment, province, ai: true));
 		}
 		else
 		{

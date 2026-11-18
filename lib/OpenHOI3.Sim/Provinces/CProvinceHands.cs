@@ -73,6 +73,17 @@ public static class CProvinceHands
 		{
 			CActingCapital.Update(state, former);
 		}
+		// The old holder's agents are told at once, and one beside a small area answers (moving.md, section 7.7). The AI's
+		// decision, made inside the game's own pass: recorded and played back as a step (docs/replay.md, section 3).
+		if (state.Replay is { } replay)
+		{
+			replay.RunCalledStep(state, "CProvinceLost.ControllerChanged #" + province.Id,
+				s => Agents.CProvinceLost.ControllerChanged(s, province, old));
+		}
+		else
+		{
+			Agents.CProvinceLost.ControllerChanged(state, province, old);
+		}
 	}
 
 	/// <summary>

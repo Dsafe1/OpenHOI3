@@ -68,7 +68,9 @@ so a tool that reads them in a replay reads them as they stood at the first hour
 **A decision of the AI's that the game's own pass calls** reads them all the same, and so is kept as a step is, through
 `CReplay.RunCalledStep`: the sealift's look as a land unit enters a province in the march (`CSealiftArrival.OnEntered`;
 `mechanics/moving.md`, section 15), which boards it onto a waiting transport and sails the fleet, reading the agent's
-transports, its plan's embark and debark and the unit's sealift target. It is kept **only where it posted, drew or numbered
+transports, its plan's embark and debark and the unit's sealift target; and since 2026-11-18 the agents told of a province
+their country lost (`CProvinceLost.ControllerChanged`, named by the province's number; `mechanics/moving.md`, section
+7.7), which reads the agents' land units. It is kept **only where it posted, drew or numbered
 anything**, under a name that carries the unit's number; replaying, the march calls it in the same order, and it takes the
 next entry where that is this hour's of its name and does nothing where it is not - so it looks at the next entry without
 taking it, one entry read ahead, since a recording on disk is read an entry at a time. *Found 2026-11-15*: from 2026-11-14

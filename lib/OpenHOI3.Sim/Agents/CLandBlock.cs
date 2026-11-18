@@ -250,7 +250,7 @@ public static class CLandBlock
 				&& CAiMoves.ShouldRedeploy(state, country, unit, destination))
 			{
 				state.Outbox.Add(new Commands.CSetUnitOrderCommand(country.Tag, unit.Id, EUnitOrder.StrategicRedeployment,
-					destination));
+					destination, ai: true));
 				continue;
 			}
 			if (unit.Path.Count > 1 && unit.IsFighting && IsEnemyHeld(state, country, unit.Path[0]))

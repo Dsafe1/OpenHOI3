@@ -292,7 +292,7 @@ idle divisions there than half of those; otherwise goes to the ring province, ne
 ### 7.6 May it leave (`CAIUnit_UnitMayLeave`, `FINDINGS-moving.md` A.4e)
 
 Asked by the line (step 6 and the pull, 7.3), the garrisons (7.4), the sealift (section 15), the division picker
-(`agents.md`, 10.2) and the province lost (`OnProvinceControllerChanged`, not built: section 20) before a unit is taken
+(`agents.md`, 10.2) and the province lost (7.7) before a unit is taken
 away from where it stands. **Not where it is falling back.** In a battle: not while landing from the sea on enemy ground
 with its landing under way, nor in a sea battle's first four hours; and, where the caller asks, not from a battle it
 defends - a land battle holds nobody else. Then **the border**: over its province's edges that may be passed, to land
@@ -305,6 +305,30 @@ the count less the enemies is under 1; else yes.
 So a division of an agent below a theatre facing enemy units across a border stays unless more idle divisions stay in
 its province than there are enemy units beside it - **a lone defender facing an attacker is not sent elsewhere**, though
 the battle itself never holds it. *Hardcoded*: the 1000, the four hours, every rule.
+
+### 7.7 A province lost (`CAIUnit::OnProvinceControllerChanged`, `FINDINGS-moving.md` A.4e)
+
+**At the moment a province changes hands**, every agent of the country that held it is told - inside the game's own
+pass, a battle's capture or a rising at midnight - and one answers where the province is beside its theatre (an edge
+that may be passed to a land province stamped with its theatre) and **its area now has three provinces or fewer**:
+
+    enemy = the brigades of land units in the area's provinces whose owners are its enemies there
+    ours  = the brigades of the agent's land units bound for, or standing in, the area or a province beside it - listed
+    while 2 x enemy - ours > 0:
+        of the agent's land units not listed, that may leave (7.6, not strict, not from a battle it defends), not
+        reserved for a transport, at a third of their strength or more and with a speed of a whole unit or more:
+            idle  = the idle divisions beside it (7.6), the listed left out;  under 1: passed over
+            score = map distance to the province / speed,  x 10 for a headquarters,  x max(10 - idle, 1),  x 2 fighting
+        the lowest under 10,000,000 that can reach the province and may leave strictly is listed, its brigades taken
+        off, and sent by the plain way (section 10); none: done
+
+So a counter-attack into a small area - an island, an enclave, a province risen in revolt - and never a defender taken
+from its battle. Seen on a recording of July 1941 (`reversing/findings/FINDINGS-liveread.md`, section 122): the rebels
+take 6151 in Indochina at midnight on 18 July and Saigon HQ sends the 77th, 81st and 86th Hoheishidan in at once, as
+ours now does; the march check makes them strategic redeployments the next hour, an enemy's province at their end
+notwithstanding - the AI's redeployment is refused only where the unit is not a land unit (`CSetUnitOrderCommand`, the
+original's `CSetOrderCommand::IsValid`). *Hardcoded*: the three provinces, the third, the 10, the 10,000,000. **Ours**:
+the agents of a country the AI does not run answer only where the player has handed their headquarters to it.
 
 ## 8. Falling back (`CAIUnit_FallBackFromLosingDefences`, `FINDINGS-moving.md` A.6)
 
@@ -1017,11 +1041,7 @@ months on) - at least three hours left, and the order ends then.
 - A strategic redeployment's cost in supplies (`STRAT_REDEP_SUPPLY_MOD`): not read. Its cost in organisation,
   `STRAT_REDEP_ORG_LOSS`, is built since 2026-11-18 (`organisation.md`, section 3).
 - The human's delegated AI: the objectives' areas (11.1), the agentless divisions of the played country (7.4).
-- **A province lost** (`CAIUnit::OnProvinceControllerChanged`, `FINDINGS-moving.md` A.4e, read 2026-11-03): an agent
-  told that a province its country held, in an area of three provinces or fewer beside its theatre, has changed
-  hands sends its land units in by the plain way until it has twice the enemy's brigades there - the fittest by distance
-  over speed, a headquarters ten times further, a third of strength at least, never one defending a battle. A
-  counter-attack into small areas: islands, enclaves.
+- ~~**A province lost**~~: built since 2026-11-18 (section 7.7).
 
 ## 21. Checked against the saves
 

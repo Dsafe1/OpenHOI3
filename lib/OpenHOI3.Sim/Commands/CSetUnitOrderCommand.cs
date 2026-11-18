@@ -79,6 +79,13 @@ public sealed class CSetUnitOrderCommand : CCommand
 		{
 			return false;
 		}
+		// The AI's strategic redeployment is asked what the original's command asks and no more: a land unit and a
+		// province. An enemy's province at its end is no refusal, as the click's test makes it (FINDINGS-liveread.md,
+		// section 122).
+		if (_ai && _order == EUnitOrder.StrategicRedeployment)
+		{
+			return Movement.CMovementRules.IsLandUnit(unit);
+		}
 		return CUnitOrders.MayGive(state, country, unit, _order, state.Province(_province), _convoy, anyRange: _ai);
 	}
 
