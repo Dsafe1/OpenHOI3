@@ -57,9 +57,20 @@ public static class CDeployment
 	/// <summary>
 	/// Takes a unit off the waiting list and puts it in a province, as a unit nothing
 	/// commands; a country that chooses its own leaders gives it the best it has free
-	/// (<c>docs/mechanics/leaders.md</c>, section 5).
+	/// (<c>docs/mechanics/leaders.md</c>, section 5). It stands among the province's units from then on, so a unit
+	/// walking in finds it there (<see cref="CGameState.AddToPositions"/>).
 	/// </summary>
 	public static void Place(CGameState state, CCountry country, CUnit unit, int provinceId)
+	{
+		PutOnMap(state, country, unit, provinceId);
+		state.AddToPositions(unit);
+	}
+
+	/// <summary>
+	/// What placing a unit does but tell the table of who stands where - which a unit joining another is told only once
+	/// it is known to stand on the map as a unit of its own, and not where its brigade goes into the other.
+	/// </summary>
+	private static void PutOnMap(CGameState state, CCountry country, CUnit unit, int provinceId)
 	{
 		country.Deployments.Remove(unit);
 		unit.DeploymentId = 0;
@@ -185,7 +196,7 @@ public static class CDeployment
 	/// </summary>
 	public static void Join(CGameState state, CCountry country, CUnit unit, CUnit target, int province = 0)
 	{
-		Place(state, country, unit, province != 0 ? province : target.Location);
+		PutOnMap(state, country, unit, province != 0 ? province : target.Location);
 		country.Units.Remove(unit);
 		if (unit.SubUnits.Count == 1 && Service(unit) == Service(target))
 		{
@@ -211,6 +222,7 @@ public static class CDeployment
 		}
 		unit.Parent = target;
 		target.Children.Add(unit);
+		state.AddToPositions(unit);
 	}
 
 	/// <summary>

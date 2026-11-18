@@ -347,6 +347,12 @@ Infanterie-Division, waiting at 50 in the July 1941 save, is at nought at 10:00 
 it and 0.186 an hour later, in every run - and so is held back at noon, where ours, placing it at
 50, had committed it and sent it to 1306 (`reversing/findings/FINDINGS-liveread.md`, section 99).
 
+**A unit placed stands among its province's units at once**, last of them, so a unit walking in
+that hour finds it there - and so does one put under a unit in the field; one whose only brigade
+goes into the other never stands anywhere. *Ours, inferred:* that the original's list of a
+province's units takes it as it is placed was not read. Until 2026-11-18 it stood there only
+once the table of who stands where was next made again, at the latest the next hour.
+
 **Or it joins a unit already in the field**, by the same command given that unit as its
 target. `confirmed`, from `reversing/findings/FINDINGS-deploymenu.md`:
 
