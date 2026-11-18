@@ -13,4 +13,10 @@ public sealed class CSupplyGroup
 
 	/// <summary>The province its areas draw on, or 0 for a group that was given none.</summary>
 	public int Depot { get; set; }
+
+	/// <summary>
+	/// A region group's place among the region groups, in the order they were made: what stands in for the order of their
+	/// addresses, by which the original's AI keeps its maps of them (<c>docs/mechanics/moving.md</c>, section 19).
+	/// </summary>
+	public int Order { get; set; }
 }

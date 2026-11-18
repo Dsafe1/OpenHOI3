@@ -207,15 +207,21 @@ public static class CLandSplit
 		{
 			wanted[largest] = wanted.GetValueOrDefault(largest) + garrisons - targets.Count;
 		}
-		foreach ((CSupplyGroup group, int count) in wanted)
+		// The blocks in the order their groups were made, standing in for the original's map ordered by the groups' addresses
+		// (FINDINGS-liveread.md, section 130).
+		var blocks = new List<CSupplyGroup>(wanted.Keys);
+		blocks.Sort((a, b) => a.Order.CompareTo(b.Order));
+		foreach (CSupplyGroup group in blocks)
 		{
+			int count = wanted[group];
 			var there = new List<CUnit>();
-			foreach (CUnit unit in agent.CommittedAtFirst)
+			// Over the garrisons as the vector has them: standing in the block, or else heading there by where it moves
+			// (FINDINGS-moving.md, section A.3; FINDINGS-liveread.md, section 130).
+			foreach (CUnit unit in ordered)
 			{
-				// Standing in the block or heading there: one standing in one block and bound for another counts in both
-				// (FINDINGS-moving.md, section A.3: "standing or heading there").
-				if (unit.IsGarrison && (ReferenceEquals(network.AreaOf(unit.Location)?.RegionGroup, group)
-					|| (CAgentUnits.Destination(unit) > 0 && ReferenceEquals(network.AreaOf(CAgentUnits.Destination(unit))?.RegionGroup, group))))
+				int heading = CAgentUnits.MovementDestination(unit);
+				if (ReferenceEquals(network.AreaOf(unit.Location)?.RegionGroup, group)
+					|| (heading > 0 && ReferenceEquals(network.AreaOf(heading)?.RegionGroup, group)))
 				{
 					there.Add(unit);
 				}

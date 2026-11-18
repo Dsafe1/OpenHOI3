@@ -246,14 +246,16 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    army staged at its target's air base and a plane's passenger free to walk (`moving.md`, section 9.1), and a fleet the
    naval body rebases free for nothing else that pass, its orders refused for no range (section 14). Hour 41's weather was
    a name the comparison had not mapped, and is mapped in the kit's `runcmp.py`. **And section 129**: the AI's naval strike
-   covers every sea in reach (`moving.md`, section 17.4).
-   **Open, in order**, measured against `wr19` (48 hours from `Ireland1941_07_16_07`, every probe): 467 of 469 land orders
-   the same, none of ours alone, fleets 159 of 165, air units 25 of 26; `wr15` 467 of 467, `wr14` 466 of 484, `wr11` 452 of
-   488. **Every hour of `wr19` agrees draw for draw before its first battle, and no battle's dice part in its 47 hours**, so
-   what is left of it is orders no draw shows: (a) the German 3. Infanterie-Division at hour 36, which the original's
-   garrison step sends from 23 to Oslo (812) and ours leaves bound for 38; (b) the fleets ours sends that the original
-   leaves - the Soviet 4th Navy and Cernoje Flote, the British 31st and 41st Navies, the German 33.
-   Unterseebootsflottille and 6th Navy - and the Omani dive bombers; (c) `wr14`, whose dice part at hour 13, and `wr11`.
+   covers every sea in reach (`moving.md`, section 17.4). **And section 130**: the split's blocks taken in the order their
+   region groups were made, standing in for the original's, which follows the heap and differs from run to run
+   (`moving.md`, sections 7.2 and 19).
+   **Open, in order**, measured against `wr19` (48 hours from `Ireland1941_07_16_07`, every probe): 468 of 469 land orders
+   the same, none of ours alone, fleets 159 of 165, air units 25 of 26; `wr15` 467 of 467 (one of ours alone, that run's
+   original keeping the 3. Infanterie-Division off to 38), `wr14` 466 of 484, `wr11` 453 of 488. **Every hour of `wr19`
+   agrees draw for draw before its first battle, and no battle's dice part in its 47 hours**, so what is left of it is
+   orders no draw shows: (a) the fleets ours sends that the original leaves - the Soviet 4th Navy and Cernoje Flote, the
+   British 31st and 41st Navies, the German 33. Unterseebootsflottille and 6th Navy - and the Omani dive bombers; (b)
+   `wr14`, whose dice part at hour 13, and `wr11`.
 
 **Noticed in testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces

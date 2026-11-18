@@ -71,7 +71,7 @@ public static class CLandBlock
 		bool moved = false;
 		var trace = state.AiTrace is { } t && t.Country == country.Tag ? t.Write : null;
 		trace?.Invoke($"{state.Date}.{state.Hour} {agent.Unit.Name}: committed {n}, held back {agent.HeldBack.Count}, " +
-			$"budget {budget}, line {line}, garrisons {garrisons}, targets {targets.Count}, positions {agent.Positions.Count}");
+			$"budget {budget}, line {line}, garrisons {garrisons}, targets {targets.Count} [{string.Join(",", targets)}], positions {agent.Positions.Count}");
 		trace?.Invoke("  committed: " + string.Join(" ", agent.Committed.ConvertAll(u =>
 			$"{u.Name}@{u.Location}{(u.IsGarrison ? "g" : "")}{(u.IsRetreating ? $"r({u.Order},{u.AttackDelay.Raw},{u.Combats.Count})" : "")}{(u.IsFighting ? "f" : "")}{(u.IsMoving ? ">" + u.Path[^1] : "")}{(CAgentUnits.Destination(u) is var d && d > 0 && d != u.Location ? "~" + d : "")}")));
 		if (line > 0 && agent.Positions.Count > 0)

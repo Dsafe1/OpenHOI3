@@ -351,6 +351,7 @@ public static class CSupplyNetworks
 		/// </summary>
 		public void MakeRegionGroups()
 		{
+			int made = 0;
 			foreach (CCountry country in _state.Countries)
 			{
 				foreach (CSupplyArea start in _areasOf[country.Tag])
@@ -359,7 +360,7 @@ public static class CSupplyNetworks
 					{
 						continue;
 					}
-					var group = new CSupplyGroup();
+					var group = new CSupplyGroup { Order = made++ };
 					var waiting = new Stack<(CSupplyArea Area, int Neighbour)>();
 					start.RegionGroup = group;
 					group.Areas.Add(start);

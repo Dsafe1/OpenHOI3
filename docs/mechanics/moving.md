@@ -172,8 +172,11 @@ is cleared.
    added here stands in its place by score, of equals the earlier first (`FINDINGS-liveread.md`, section 21). A **record** already
    taken is skipped, not a province already listed: the hold list can name a province twice, and both records then become targets,
    each wanting its garrison (section 36). Bulgaria's list on entering the save of July 1941 names 4368, 4555 and 4870 twice.
-5. **Per block of land** of **the first g targets** (the shortfall to the theatre's largest area's), the garrisons standing or bound
-   there - one standing in one block and bound for another counted in both: Poland's 55. reserve division, at 2447 for
+5. **Per block of land** of **the first g targets** (the shortfall to the theatre's largest area's) - **the blocks in the
+   order their region groups were made**, standing in for the original's, which is that of the groups' addresses and
+   differs from run to run (*Ours*; `reversing/findings/FINDINGS-liveread.md`, section 130) - the garrisons, as the
+   garrison list has them, standing in the block or else moving there (the movement reader, section 10) - one standing in
+   one block and bound for another counted in both: Poland's 55. reserve division, at 2447 for
    2701, is Warszawa's garrison on 6 September 1939 - are matched to its count: too many - the non-garrison-brigade one with the lowest score is unmarked, the score
    being **that of the last garrison target on the province where it stands or is bound, 1 where no target is** (+1000
    for militia, +500 for police), the first of equals going - Poland's Warszawa HQ at 10:00 on 1 January, its 9th and
@@ -1014,6 +1017,11 @@ months on) - at least three hours left, and the order ends then.
 
 ## 19. Ours
 
+- **The split's blocks go in the order their region groups were made** (7.2, step 5): the original keeps them in a map
+  ordered by the groups' addresses, which the heap decides - on one run 132 of 216 neighbouring groups of its list lie in
+  rising order - and two of its runs of one save differ on Trondheim HQ's blocks of 17 July 1941, one sending the
+  3. Infanterie-Division to Oslo and one not (`reversing/findings/FINDINGS-liveread.md`, section 130). The order of making
+  agrees with the running game's addresses on that pair; nothing here can repeat them in general (`enhanced.md`).
 - **The ways** (section 10): the safe and very safe finders weigh a fleet or an air unit otherwise, which is not built:
   neither holds them back.
 - **The target areas' two steps** (section 4) are taken through the areas' neighbours, enemy-held after the first; the
