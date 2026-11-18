@@ -160,7 +160,8 @@ Added 2026-11-03, after the maintainer asked whether every command could be caug
 AI: it can be told apart there, and must be, because a command the game posts itself comes out again by itself in a
 replay, and one given twice would run twice. So **`CSimulation.Post` is the way in from outside the game** - a player's
 screens, the developer switches, a tool - and only what comes that way is recorded as a player's; what the game posts as
-a command runs (the outbox) and the hour's tick are queued another way and not recorded.
+a command runs (the outbox) and the hour's tick are queued another way and not recorded. A command posted while the
+client's hours run beside the frame (`tick.md`, section 2) is held, and posted - and recorded - as they are collected.
 
 **When a command from outside runs** depends on how often the queue has been drained since it was posted: a paused client
 drains it every frame, and what a command posts runs in the next drain. So a recorded post keeps the drains before it

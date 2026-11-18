@@ -15,6 +15,11 @@ namespace OpenHOI3.Map;
 /// </summary>
 public partial class CPlanMarkerLayer : Node2D
 {
+	/// <summary>Its redraws, put off while the game's hours run beside the frame (<see cref="CHeldRedraw"/>).</summary>
+	public CHeldRedraw Redraw => _redraw ??= new CHeldRedraw(this);
+
+	private CHeldRedraw? _redraw;
+
 	private const string FontName = "MaptextFont";
 
 	/// <summary>The name's offset from the picture and the height it is drawn at [mod: core.gfx], the original's three-times scale.</summary>
@@ -41,7 +46,7 @@ public partial class CPlanMarkerLayer : Node2D
 		if (!objectives.SequenceEqual(_objectives))
 		{
 			_objectives = objectives;
-			QueueRedraw();
+			Redraw.Request();
 		}
 	}
 

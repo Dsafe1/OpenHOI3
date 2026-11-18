@@ -1528,7 +1528,7 @@ public partial class CMapView : Node2D
 				{
 					_box?.ShowBox(start, here, _camera.Zoom.X);
 					// The editor gathers the box again each time the pointer has moved more than two map units.
-					if (_theatreEditor is { } gathering && Player is { } painter
+					if (!GameBusy && _theatreEditor is { } gathering && Player is { } painter
 						&& CTheatreEditor.TheatreOf(_state, gathering.Headquarters) is { } theatre)
 					{
 						Vector2 a = PositionsFrame(start);
@@ -1759,6 +1759,38 @@ public partial class CMapView : Node2D
 	/// <summary>The lobby's map stays at the height it opens at, and nothing else moves it while the wheel is held.</summary>
 	private bool WheelStill => IsLobby || WheelHeld?.Invoke() == true;
 
+	/// <summary>
+	/// Whether the game's hours run beside the frame (<c>CSimulation.BeginAdvance</c>): the camera still moves and the
+	/// surface follows it, but nothing reads the game - the layers that draw from it keep what they last drew, and what
+	/// asks the game waits for the hours to be collected.
+	/// </summary>
+	public bool GameBusy
+	{
+		get => _gameBusy;
+		set
+		{
+			if (_gameBusy == value)
+			{
+				return;
+			}
+			_gameBusy = value;
+			if (_counters is not null)
+			{
+				_counters.Held = value;
+			}
+			if (_names is not null)
+			{
+				_names.Redraw.Held = value;
+			}
+			if (_planMarkers is not null)
+			{
+				_planMarkers.Redraw.Held = value;
+			}
+		}
+	}
+
+	private bool _gameBusy;
+
 	public override void _Process(double delta)
 	{
 		Vector2 direction = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down");
@@ -1776,6 +1808,16 @@ public partial class CMapView : Node2D
 		}
 		EaseCamera();
 		_notched = false;
+		// The surface follows the 2D camera wherever it was moved from; nothing is made again where it has not.
+		_surface?.SetView(_camera.Position, _camera.Zoom.X, GetViewportRect().Size);
+		_provinceNames?.SetView(_camera.Position, _camera.Zoom.X, GetViewportRect().Size, delta);
+		_sinceBorders += delta;
+		// While the game's hours run beside the frame the camera moves and nothing of the game is read: what follows
+		// reads it, and waits for them.
+		if (GameBusy)
+		{
+			return;
+		}
 		UpdateFrontLines();
 		if (_planMarkers is not null && _counters is not null)
 		{
@@ -1783,14 +1825,10 @@ public partial class CMapView : Node2D
 			_planMarkers.SetObjectives(markers.Objectives);
 			_counters.PlanArrows = markers.Arrows;
 		}
-		// The surface follows the 2D camera wherever it was moved from; nothing is made again where it has not.
-		_surface?.SetView(_camera.Position, _camera.Zoom.X, GetViewportRect().Size);
 		if (_names is not null)
 		{
 			_names.Visible = NamesShown() && TextShown;
 		}
-		_provinceNames?.SetView(_camera.Position, _camera.Zoom.X, GetViewportRect().Size, delta);
-		_sinceBorders += delta;
 		if (_bordersDirty && (_sinceBorders >= BordersInterval || _bordersAt < 0))
 		{
 			_bordersDirty = false;

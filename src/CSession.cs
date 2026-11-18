@@ -202,6 +202,8 @@ public partial class CSession : Node
 		_mapCache = prepared.Cache;
 		_quadTiles = prepared.Tiles;
 		ShowGame(prepared.Gui);
+		// The game's hours are started after each frame is drawn, and run beside the next (StartHours).
+		RenderingServer.FramePostDraw += StartHours;
 	}
 
 	/// <summary>
@@ -310,6 +312,8 @@ public partial class CSession : Node
 			return;
 		}
 		_handedOver = true;
+		// Hours running beside the frame finish before the game is handed to the session made around it.
+		CollectHours(finish: true);
 		State.ForgetListeners();
 		CGuiContext gui = _readInterfaceAgain ? CGuiContext.Load(_directories, _localisation) : _gui;
 		(Vector2 centre, float zoom) = _mapView.View;
@@ -698,6 +702,8 @@ public partial class CSession : Node
 			layer.AddChild(popups);
 			layer.MoveChild(popups, _production.GetIndex());
 			CCountryTag player = Player.Tag;
+			// A message is made from the game where the game raises it - on the hours' thread while they run beside the
+			// frame - and shown on this one once they are collected.
 			void Tell(CMessage message)
 			{
 				// The console's debug nopopup: nothing at all, the log too.
@@ -705,6 +711,10 @@ public partial class CSession : Node
 				{
 					return;
 				}
+				_simulation.OnMain(() => Show(message));
+			}
+			void Show(CMessage message)
+			{
 				if (message.Type.Log)
 				{
 					messageLog.Add(message);
@@ -762,7 +772,8 @@ public partial class CSession : Node
 				{
 					Tell(message);
 					// An answer to an offer and a revolt sound for the side told the first key (sound.md, section 7).
-					Sounds?.PlayUnlessPlaying(CMessages.PactSound(pact, player));
+					string sound = CMessages.PactSound(pact, player);
+					_simulation.OnMain(() => Sounds?.PlayUnlessPlaying(sound));
 				}
 			};
 			// The simulation's other sounds, each for one country's player (sound.md, section 7).
@@ -770,7 +781,7 @@ public partial class CSession : Node
 			{
 				if (heardBy == player)
 				{
-					Sounds?.PlayUnlessPlaying(sound);
+					_simulation.OnMain(() => Sounds?.PlayUnlessPlaying(sound));
 				}
 			};
 		}
@@ -1336,6 +1347,9 @@ public partial class CSession : Node
 	/// </summary>
 	public override void _ExitTree()
 	{
+		RenderingServer.FramePostDraw -= StartHours;
+		// Hours still running beside the frame finish before the game is let go or handed on.
+		CollectHours(finish: true);
 		Content.Settings.CUserSettingsWriter.WriteFile(Settings, Settings.Path ?? Content.Settings.CUserSettingsReader.DefaultPath(_directories));
 		if (_handedOver)
 		{
@@ -1354,30 +1368,36 @@ public partial class CSession : Node
 	public override void _Process(double delta)
 	{
 		long frameStart = Stopwatch.GetTimestamp();
+		_owedSeconds += delta;
+		// The hours run beside the last frames, where they are done: what they told is told now, on this thread.
+		int hours = CollectHours(finish: false);
+		double simulation = hours > 0 ? _simulation.LastRunMilliseconds : 0;
+		bool busy = _simulation.IsBusy;
+		HoldInterface(busy);
+		if (busy)
+		{
+			// The game is the hours' until they are collected: the map's camera moves and nothing else reads it.
+			_frameLog?.Frame(delta, 0, Stopwatch.GetElapsedTime(frameStart).TotalMilliseconds, 0);
+			return;
+		}
+		ReplayHeldInput();
 		DisbandEmptyUnits();
 		UpdateMenuBackground();
-		double simulation = 0;
-		int hours = 0;
 		// The readout is refreshed once a frame and not once an hour: at the top speed a
 		// frame holds thousands of hours. A replay that has run out of its recording goes no further.
 		if (_replayEnded)
 		{
 			_simulation.Clock.Paused = true;
 		}
-		else
+		else if (hours > 0)
 		{
-			hours = AdvanceUnlessTheReplayEnds(delta);
-			simulation = Stopwatch.GetElapsedTime(frameStart).TotalMilliseconds;
-			if (hours > 0)
-			{
-				ShowProvince(_shownProvince);                       // its figures move with the days
-			}
+			ShowProvince(_shownProvince);                       // its figures move with the days
 		}
 		ProcessAfterHours();
 		CheckTheGamesEnd();
 		if (_frameLog is { } log)
 		{
-			log.Frame(delta, simulation, Stopwatch.GetElapsedTime(frameStart).TotalMilliseconds - simulation, hours);
+			log.Frame(delta, simulation, Stopwatch.GetElapsedTime(frameStart).TotalMilliseconds, hours);
 			if (log.IsDone)
 			{
 				log.WriteSummary();
@@ -1955,11 +1975,115 @@ public partial class CSession : Node
 	/// The frame's hours, but where a replay reaches the end of its recording: the clock is stopped there for good and
 	/// that is said, the hour it ended in being left part run (docs/replay.md, section 6).
 	/// </summary>
-	private int AdvanceUnlessTheReplayEnds(double delta)
+	/// <summary>Real time owed to the clock since hours were last started: a frame's, or every frame's an hour ran beside.</summary>
+	private double _owedSeconds;
+
+	/// <summary>
+	/// After a frame is drawn, with nothing running and the replay not run out: the hours the time owed makes due started
+	/// beside the frames that follow (<see cref="CSimulation.BeginAdvance"/>) - drawn first, so that nothing drawing this
+	/// frame reads the game while they run - or, with none due, the orders given run here.
+	/// </summary>
+	private void StartHours()
 	{
-		int hours = 1;
-		UnlessTheReplayEnds(() => hours = _simulation.Advance(delta));
-		return hours;
+		if (_simulation.IsBusy || _replayEnded || !IsInsideTree())
+		{
+			return;
+		}
+		double owed = _owedSeconds;
+		_owedSeconds = 0;
+		UnlessTheReplayEnds(() => _simulation.BeginAdvance(owed));
+	}
+
+	/// <summary>
+	/// The hours run beside the frame collected where they are done - with <paramref name="finish"/>, waited for - and how
+	/// many there were. Collected always, a run-out replay's last ones among them: until it is, nothing reads the game.
+	/// </summary>
+	private int CollectHours(bool finish)
+	{
+		try
+		{
+			return finish ? _simulation.Finish() : _simulation.Collect();
+		}
+		catch (CReplayEndedException ended)
+		{
+			if (!_replayEnded)
+			{
+				_replayEnded = true;
+				_simulation.Clock.Paused = true;
+				GD.Print($"--replay: {ended.Message}; the clock stops here.");
+			}
+			return 0;
+		}
+	}
+
+	/// <summary>Whether the game is the hours' running beside the frame: nothing may read it until they are collected.</summary>
+	public bool GameBusy => _simulation?.IsBusy == true;
+
+	/// <summary>
+	/// The interface held while hours run beside the frame: the screens, the HUD and the tooltips keep what they last
+	/// showed and do nothing, and the map moves its camera and reads nothing of the game. Let go once they are collected.
+	/// </summary>
+	private void HoldInterface(bool held)
+	{
+		if (held == _interfaceHeld)
+		{
+			return;
+		}
+		_interfaceHeld = held;
+		ProcessModeEnum mode = held ? ProcessModeEnum.Disabled : ProcessModeEnum.Inherit;
+		if (_hud is not null)
+		{
+			_hud.ProcessMode = mode;
+		}
+		if (_tooltips is not null)
+		{
+			_tooltips.ProcessMode = mode;
+		}
+		_mapView.GameBusy = held;
+	}
+
+	private bool _interfaceHeld;
+
+	/// <summary>What was pressed or typed while hours ran beside the frame, in its order: given to the interface once they are collected.</summary>
+	private readonly List<InputEvent> _heldInput = new();
+
+	/// <summary>
+	/// While hours run beside the frame, every event but those that only move the camera - the pointer moving, the wheel
+	/// over the map, the middle button - is held, and given out again in its order once they are collected: what it
+	/// would do asks the game.
+	/// </summary>
+	public override void _Input(InputEvent @event)
+	{
+		if (!GameBusy || MovesOnlyTheCamera(@event))
+		{
+			return;
+		}
+		_heldInput.Add(@event);
+		GetViewport().SetInputAsHandled();
+	}
+
+	private bool MovesOnlyTheCamera(InputEvent @event) => @event switch
+	{
+		InputEventMouseMotion => true,
+		InputEventMouseButton { ButtonIndex: MouseButton.Middle } => true,
+		// The wheel over the interface scrolls what it is over, which waits; over the map it zooms.
+		InputEventMouseButton { ButtonIndex: MouseButton.WheelUp or MouseButton.WheelDown } => GetViewport().GuiGetHoveredControl() is null,
+		_ => false,
+	};
+
+	/// <summary>The held events given out, in their order, now that nothing runs beside the frame.</summary>
+	private void ReplayHeldInput()
+	{
+		if (_heldInput.Count == 0)
+		{
+			return;
+		}
+		List<InputEvent> held = new(_heldInput);
+		_heldInput.Clear();
+		foreach (InputEvent @event in held)
+		{
+			GetViewport().PushInput(@event, true);
+		}
 	}
 
 	/// <summary>

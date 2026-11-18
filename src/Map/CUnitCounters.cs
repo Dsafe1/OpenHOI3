@@ -22,6 +22,21 @@ namespace OpenHOI3.Map;
 /// </summary>
 public partial class CUnitCounters : Node2D
 {
+	/// <summary>Its redraws, put off while the game's hours run beside the frame (<see cref="CHeldRedraw"/>).</summary>
+	public CHeldRedraw Redraw => _redraw ??= new CHeldRedraw(this);
+
+	private CHeldRedraw? _redraw;
+
+	/// <summary>Whether the game's hours run beside the frame: its redraws wait, and its hierarchy's lines with them.</summary>
+	public bool Held
+	{
+		set
+		{
+			Redraw.Held = value;
+			_hierarchy.Redraw.Held = value;
+		}
+	}
+
 	/// <summary>Under this many pixels of the screen a counter is not drawn, nor a text written.</summary>
 	private const float LeastCounterOnScreen = 6f;
 	private const float LeastTextOnScreen = 5f;
@@ -257,7 +272,7 @@ public partial class CUnitCounters : Node2D
 			{
 				Refresh();
 			}
-			QueueRedraw();
+			Redraw.Request();
 		}
 	}
 
@@ -273,7 +288,7 @@ public partial class CUnitCounters : Node2D
 		set
 		{
 			_counterScale = value;
-			QueueRedraw();
+			Redraw.Request();
 		}
 	}
 
@@ -308,7 +323,7 @@ public partial class CUnitCounters : Node2D
 		{
 			_airMap.RefreshCircles(_selected);
 		}
-		QueueRedraw();
+		Redraw.Request();
 	}
 
 	/// <summary>
@@ -367,7 +382,7 @@ public partial class CUnitCounters : Node2D
 		}
 		_buildings.Refresh();
 		_markers.Refresh();
-		QueueRedraw();
+		Redraw.Request();
 	}
 
 	/// <summary>Told by the map view whenever what is on screen changes.</summary>
@@ -387,7 +402,7 @@ public partial class CUnitCounters : Node2D
 		_resourceMap.ViewChanged(view);
 		_markers.ViewChanged(zoom, view);
 		_weather.ViewChanged(view);
-		QueueRedraw();
+		Redraw.Request();
 	}
 
 	public override void _Process(double delta)
@@ -527,7 +542,7 @@ public partial class CUnitCounters : Node2D
 			if (value.Count != _planArrows.Count || !value.Zip(_planArrows).All(pair => pair.First.Own == pair.Second.Own && pair.First.Path.SequenceEqual(pair.Second.Path)))
 			{
 				_planArrows = value;
-				QueueRedraw();
+				Redraw.Request();
 			}
 		}
 	}

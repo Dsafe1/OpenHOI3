@@ -48,6 +48,23 @@ carried over under a cap - which played eight to twelve times the original's pac
 *Ours:* pause is a separate switch rather than a speed, and time that passes while paused is
 not owed when it ends.
 
+*Ours, decided 2026-11-18 by the maintainer: the client runs its hours beside the frame*
+(`CSimulation.BeginAdvance`, `Collect`). After a frame is drawn, the hour the clock says is due - one at
+most, as above, the real time of every frame since the last added up - is started on a worker thread. The
+frames go on drawing meanwhile, their time owed to the clock: the map's camera pans and zooms and its
+surface follows, while the screens, the HUD and the tooltips keep what they last showed and the map's
+layers what they last drew - **nothing reads the game until the hour is collected**, at the start of the
+first frame after it is done. Then what it told is told, in the order it told it, on the main thread -
+the clock's events and the state's, the messages and popups among them - and every event the player gave
+meanwhile, held as it came, is handed to the interface in its order: a click waits at most one hour's
+running. A command posted meanwhile waits too, and joins the queue as the hour is collected
+(`CSimulation.Post`). The interface then has at least that frame with the game to itself before the next
+hour starts, so at the top speed an hour is run for every frame the interface has the game - the
+original's hour a frame. Tools and tests run hours in line (`Advance`, `RunHours`), and both ways run the
+same hours in the same order. Measured 2026-11-18 at the top speed, Germany, with the original's clock:
+Their Finest Hour 83 frames a second and 55 days a minute, BlackICE 80 and 23 - where with every hour run
+in the frame, under the clock of before, BlackICE drew 8 frames a second.
+
 ## 3. What an hour does
 
 One hour, in this order. `confirmed` throughout unless marked.

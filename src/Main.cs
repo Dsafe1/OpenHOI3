@@ -118,6 +118,7 @@ public partial class Main : Control
 		_startSettings = Content.Settings.CUserSettingsReader.Read(Content.Settings.CUserSettingsReader.DefaultPath(directories));
 		_music = new Audio.CMusic { Name = "Music" };
 		_music.Setup(directories, () => _session?.Settings ?? _frontEnd?.Settings ?? _startSettings);
+		_music.GameBusy = () => _session?.GameBusy == true;
 		AddChild(_music);
 		// The sound effects, by the same settings (docs/mechanics/sound.md); every screen's files are given them.
 		_sounds = new Audio.CSoundEffects { Name = "SoundEffects" };

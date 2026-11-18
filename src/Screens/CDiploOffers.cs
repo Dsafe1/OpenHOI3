@@ -67,16 +67,26 @@ public sealed partial class CDiploOffers : Control
 		CGuiPoint offset = _context.Types.FindPosition(OffsetName)?.Position ?? default;
 		var iconType = _context.Types.FindWindow(IconWindowName);
 		_step = (iconType?.Size.X ?? 20) + offset.X;
-		_simulation.State.OfferAsked += Asked;
+		_simulation.State.OfferAsked += Heard;
 	}
 
 	public override void _ExitTree()
 	{
-		_simulation.State.OfferAsked -= Asked;
+		_simulation.State.OfferAsked -= Heard;
+	}
+
+	/// <summary>
+	/// An offer made, heard where the game makes it - on the hours' thread while they run beside the frame - and put on
+	/// the bar on this one once they are collected, the hour it was made at kept: it lapses a week after that.
+	/// </summary>
+	private void Heard(COffer offer)
+	{
+		long madeAt = _simulation.State.TotalHours;
+		_simulation.OnMain(() => Asked(offer, madeAt));
 	}
 
 	/// <summary>An offer made to the player: a new icon at the end of the bar.</summary>
-	private void Asked(COffer offer)
+	private void Asked(COffer offer, long shownAt)
 	{
 		if (_bar is null || offer.Recipient != _player || COfferAskText.Kind(offer) == 0
 			|| CGuiWindow.CreateEntry(_context, IconWindowName) is not { } window)
@@ -84,7 +94,6 @@ public sealed partial class CDiploOffers : Control
 			return;
 		}
 		Func<string, string> localise = _context.Localisation.Localise;
-		long shownAt = _simulation.State.TotalHours;
 		var icon = new COfferIcon { Offer = offer, ShownAt = shownAt, Window = window, Button = window.FindButton("diplomessageicon_button") };
 		CTooltip Tooltip()
 		{

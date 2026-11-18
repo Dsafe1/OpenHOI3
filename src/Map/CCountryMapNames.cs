@@ -22,6 +22,11 @@ namespace OpenHOI3.Map;
 /// </summary>
 public partial class CCountryMapNames : Node2D
 {
+	/// <summary>Its redraws, put off while the game's hours run beside the frame (<see cref="CHeldRedraw"/>).</summary>
+	public CHeldRedraw Redraw => _redraw ??= new CHeldRedraw(this);
+
+	private CHeldRedraw? _redraw;
+
 	/// <summary>The fonts the names are written in, by the faction's icon: none, then the three of TFH [exe the names].</summary>
 	private static readonly string[] FontNames = { "neutral_country", "comintern_country", "axis_country", "allies_country" };
 
@@ -96,7 +101,7 @@ public partial class CCountryMapNames : Node2D
 		{
 			_names.Remove(gone);
 		}
-		QueueRedraw();
+		Redraw.Request();
 	}
 
 	private (CGuiFont? Font, CFontDescriptor? Descriptor, Color Ink) Font(int index)

@@ -135,6 +135,9 @@ public partial class CMusic : Node
 		}
 	}
 
+	/// <summary>Whether the game's hours run beside the frame, when nothing may read the game; null where none does.</summary>
+	public Func<bool>? GameBusy { get; set; }
+
 	public override void _Process(double delta)
 	{
 		ApplyVolume();
@@ -146,6 +149,12 @@ public partial class CMusic : Node
 		_ended = false;
 		if (_player.Playing && !ended)
 		{
+			return;
+		}
+		// A song's chance asks the game, which is the hours' while they run beside the frame: picked once they are collected.
+		if (GameBusy?.Invoke() == true)
+		{
+			_ended = ended;
 			return;
 		}
 		if (PickSong() is { } path)

@@ -20,6 +20,11 @@ namespace OpenHOI3.Map;
 /// </summary>
 public partial class CHierarchyLayer : Node2D
 {
+	/// <summary>Its redraws, put off while the game's hours run beside the frame (<see cref="CHeldRedraw"/>).</summary>
+	public CHeldRedraw Redraw => _redraw ??= new CHeldRedraw(this);
+
+	private CHeldRedraw? _redraw;
+
 	/// <summary>The picture: arrowheads in its left half, a broken line in its right.</summary>
 	private const string TextureFile = "gfx/mapitems/hierarchy_line.tga";
 
@@ -54,7 +59,7 @@ public partial class CHierarchyLayer : Node2D
 		set
 		{
 			_shown = value;
-			QueueRedraw();
+			Redraw.Request();
 		}
 	}
 
@@ -65,7 +70,7 @@ public partial class CHierarchyLayer : Node2D
 		set
 		{
 			_unit = value;
-			QueueRedraw();
+			Redraw.Request();
 		}
 	}
 
@@ -77,6 +82,11 @@ public partial class CHierarchyLayer : Node2D
 
 	public override void _Process(double delta)
 	{
+		// The lines are made from the unit's tree, which is the hours' while they run beside the frame: the last stay.
+		if (Redraw.Held)
+		{
+			return;
+		}
 		bool drawn = _unit is not null && _shown && _texture is not null && IsVisibleInTree();
 		if (Surface is { } surface)
 		{
@@ -99,7 +109,7 @@ public partial class CHierarchyLayer : Node2D
 			shown.SetHierarchyPhase((float)_phase);
 			return;
 		}
-		QueueRedraw();                                       // the arrowheads run
+		Redraw.Request();                                       // the arrowheads run
 	}
 
 	private System.Numerics.Vector2 MapPointOf(int province)

@@ -174,6 +174,16 @@ Nothing should be designed around these coming back.
   and it is cheap now and a rewrite later. Start-up goes through a boot scene, which brings up the
   front end - the main menu and the lobby - since 2026-11-06, takes the game Play makes from it as a
   session, and brings a new front end back when the game is resigned (`docs/mechanics/frontend.md`).
+- **The client's hours run beside the frame, and nothing reads the game while they do.** The maintainer's
+  word, 2026-11-18, for a map that stays smooth under BlackICE's hours (`docs/mechanics/tick.md`, section 2):
+  after a frame is drawn the hours due start on a worker (`CSimulation.BeginAdvance`), and until the first
+  frame after they are done (`Collect`) the HUD and the tooltips are not processed, the map's layers keep
+  what they drew (`CHeldRedraw`), the map moves only its camera (`CMapView.GameBusy`), every event but the
+  camera's is held and handed out afterwards (`CSession._Input`), and the state's events reach the screens
+  through `CSimulation.OnMain`. So **a new node that reads the game goes under the HUD, or asks
+  `CSession.GameBusy`; a handler of a state event shows what it made through `OnMain`; and a map layer that
+  reads the game as it draws asks for redraws through its `CHeldRedraw`** - anything else reads the game as
+  the worker changes it, which is a crash that comes and goes.
 - **A mechanics spec before each system.** The findings mix formulas with addresses, so
   coding straight from one leaks offsets into this repository. Write the spec first -
   formulas, ordering, rounding, caps, no addresses - citing the findings file it came from.
