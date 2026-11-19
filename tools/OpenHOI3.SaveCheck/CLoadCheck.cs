@@ -214,6 +214,11 @@ public static class CLoadCheck
 		// resources a day of the IC needs, none of which a save keeps - and stop (upkeep.md, section 8; buildqueue.md, section 4).
 		string? needs = args.FirstOrDefault(arg => arg.StartsWith("needs=", StringComparison.Ordinal))?["needs=".Length..];
 		args = args.Where(arg => !arg.StartsWith("needs=", StringComparison.Ordinal)).ToArray();
+		// follow=ID,ID: in a series, those units by number after each hour - where they stand, their progress, attack delay and
+		// way - beside the original's save of that hour.
+		int[] follow = args.FirstOrDefault(arg => arg.StartsWith("follow=", StringComparison.Ordinal))?["follow=".Length..]
+			.Split(',').Select(int.Parse).ToArray() ?? [];
+		args = args.Where(arg => !arg.StartsWith("follow=", StringComparison.Ordinal)).ToArray();
 		args = args.Where(arg => !arg.StartsWith("examples=", StringComparison.Ordinal) && !arg.StartsWith("trace=", StringComparison.Ordinal)
 			&& !arg.StartsWith("generator=", StringComparison.Ordinal) && !arg.StartsWith("battles=", StringComparison.Ordinal)
 			&& !arg.StartsWith("watch=", StringComparison.Ordinal)).ToArray();
@@ -504,6 +509,10 @@ public static class CLoadCheck
 					.Where(change => change.Holder != change.Was).Select(change => $"{change.Id}:{change.Was?.Trim('"')}>{change.Holder?.Trim('"')}").ToList();
 				Console.WriteLine($"  hands: ours {string.Join(' ', changes)} | the original {string.Join(' ', theirs)}");
 				CAiOrderCheck.Report(state, earlier, next, "  ", ExampleCountry, ordersFile is null ? null : $"{ordersFile}.h{step}", before);
+				foreach (int id in follow)
+				{
+					Console.WriteLine("  " + CAiOrderCheck.Follow(state, next, id));
+				}
 				if (battleLog is not null)
 				{
 					battleLog.WriteLine($"HOUR {step} {state.Date} {state.Hour}:00");

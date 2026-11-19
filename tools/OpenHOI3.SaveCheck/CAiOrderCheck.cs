@@ -109,6 +109,43 @@ public static class CAiOrderCheck
 		return snapshot;
 	}
 
+	/// <summary>
+	/// One unit by the save's number for it, there and here: where it stands, its progress, its attack delay and its way.
+	/// </summary>
+	public static string Follow(CGameState state, ClausewitzNode save, int id)
+	{
+		ClausewitzNode? Find(ClausewitzNode node)
+		{
+			foreach (ClausewitzNode child in node.Children)
+			{
+				if (!child.IsBlock)
+				{
+					continue;
+				}
+				if (child.Get("id") is { IsBlock: true } number && number.GetInt("id") == id && child.Get("name") is not null
+					&& child.Get("location") is not null)
+				{
+					return child;
+				}
+				if (Find(child) is { } found)
+				{
+					return found;
+				}
+			}
+			return null;
+		}
+		ClausewitzNode? theirs = Find(save);
+		// The game here numbers units afresh, so its unit is found by the save's name.
+		string? name = theirs?.Get("name")?.Value.Trim('"');
+		CUnit? ours = name is null ? null : state.Countries.SelectMany(country => country.AllUnits()).FirstOrDefault(unit => unit.Name == name);
+		string Way(IEnumerable<int> path) => string.Join(" ", path);
+		string oursText = ours is null ? "none" : $"{ours.Location} progress {ours.MovementProgress} delay {ours.AttackDelay} " +
+			$"way [{Way(ours.Path)}] combats {ours.Combats.Count}";
+		string theirsText = theirs is null ? "none" : $"{theirs.GetInt("location")} progress {theirs.Get("movement_progress")?.Value ?? "0"} " +
+			$"delay {theirs.Get("attack_delay")?.Value ?? "0"} way [{Way(theirs.Get("path")?.Children.Select(step => (int)CSaveValues.Whole(step.Value)) ?? [])}]";
+		return $"follow {id} {ours?.Name}: ours {oursText} | the original {theirsText}";
+	}
+
 	/// <param name="oursBefore">
 	/// Where the game here stood at the stretch's start, where it has played on from the earlier save and so differs from it.
 	/// </param>
