@@ -37,21 +37,26 @@ public static class CReservePlacing
 		CPositionCount.Count(state, country, agent.HeldBack, agent.SecondRing, province => have[province] = have.GetValueOrDefault(province) + 1,
 			_ => { }, divisionsOnly: false);
 		bool moved = false;
+		var trace = state.AiTrace is { } t && t.Country == country.Tag ? t.Write : null;
 		foreach (CUnit unit in agent.HeldBack)
 		{
 			// A division on its way is looked at: the busy test here is the order's alone, not the moving one's (FINDINGS-liveread.md, section 23).
 			if (unit.IsRetreating || CCombats.IsHoldingGround(unit) || unit.Order is not (EUnitOrder.None or EUnitOrder.Move) || unit.IsGarrison
 				|| unit.Location <= 0)
 			{
+				trace?.Invoke($"    held {unit.Name} at {unit.Location}: busy");
 				continue;
 			}
 			int bound = CAgentUnits.DestinationOrPlace(unit);
 			if (room.TryGetValue(bound, out int roomHere) && have.GetValueOrDefault(bound) <= roomHere)
 			{
+				trace?.Invoke($"    held {unit.Name} at {unit.Location}: bound for {bound}, {have.GetValueOrDefault(bound)} of room {roomHere}");
 				continue;
 			}
 			if (HoldsStrongPlace(state, country, unit) || Outnumbered(state, country, unit))
 			{
+				trace?.Invoke($"    held {unit.Name} at {unit.Location}: strong place {HoldsStrongPlace(state, country, unit)}, " +
+					$"outnumbered {Outnumbered(state, country, unit, out int theirs, out int ours)} ({ours} of ours against {theirs})");
 				continue;
 			}
 			int hops = network.HopsOf(unit.Location);
@@ -106,11 +111,17 @@ public static class CReservePlacing
 		return false;
 	}
 
-	/// <summary>Beside a war candidate's units, fit, with fewer of the country's idle divisions there than half of those.</summary>
-	private static bool Outnumbered(CGameState state, CCountry country, CUnit unit)
+	/// <summary>
+	/// Beside a war candidate's units, fit, with none of the country's idle divisions there or fewer than half of those - the
+	/// half in whole numbers, so two are enough against five (FINDINGS-liveread.md, section 144).
+	/// </summary>
+	private static bool Outnumbered(CGameState state, CCountry country, CUnit unit) => Outnumbered(state, country, unit, out _, out _);
+
+	private static bool Outnumbered(CGameState state, CCountry country, CUnit unit, out int theirs, out int ours)
 	{
 		CProvince here = state.Province(unit.Location);
-		int theirs = 0;
+		theirs = 0;
+		ours = 0;
 		foreach (CProvinceEdge edge in here.Edges)
 		{
 			CProvince beside = state.Province(edge.To);
@@ -135,7 +146,6 @@ public static class CReservePlacing
 		{
 			return false;
 		}
-		int ours = 0;
 		foreach (CUnit other in state.Positions.Of(unit.Location))
 		{
 			if (!ReferenceEquals(other, unit) && CApproaches.MayOperateIn(state, country, other.Owner) && other.Kind == EUnitKind.Division
@@ -144,6 +154,12 @@ public static class CReservePlacing
 				ours++;
 			}
 		}
-		return ours * 2 < theirs;
+		return IsOutnumbered(ours, theirs);
 	}
+
+	/// <summary>
+	/// Whether a held-back division stays for want of company: none of the country's idle divisions beside it, or fewer than
+	/// the war candidate's units over two in whole numbers (<c>docs/mechanics/moving.md</c>, section 7.5).
+	/// </summary>
+	public static bool IsOutnumbered(int idle, int enemies) => idle == 0 || idle < enemies / 2;
 }

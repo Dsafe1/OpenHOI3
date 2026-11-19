@@ -299,8 +299,11 @@ The second ring's provinces, each with room for round(10 x its infrastructure). 
 **not holding ground in a battle** (2026-11-03: ours had left both out, and moved held-back defenders out of their
 battles to the rear), with no order but a plain move, not a garrison, not already in such a province within its room
 (counted as a position's units are, 7.3, so one standing in a ring province and bound for another counts in neither): **stays** beside a war candidate across a river
-or in a fort with strength and organisation over 0.3, or beside a war candidate's units, fit, with fewer of the country's
-idle divisions there than half of those; otherwise goes to the ring province, never the one it is bound for, with the lowest distance + 20 x those there
+or in a fort with strength and organisation over 0.3, or beside a war candidate's units, fit, with none of the country's
+idle divisions there or fewer than half of those - **the half in whole numbers**, the units over two truncated, so two
+idle divisions are enough against five (`reversing/findings/FINDINGS-liveread.md`, section 144; ours had kept it while
+twice the idle were fewer, and held the German 206. Infanterie-Division in 1808 against five Soviet units where the
+original sent it to the ring); otherwise goes to the ring province, never the one it is bound for, with the lowest distance + 20 x those there
 - 30 x (its depot's distance in steps - that province's).
 
 ### 7.6 May it leave (`CAIUnit_UnitMayLeave`, `FINDINGS-moving.md` A.4e)

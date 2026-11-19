@@ -255,8 +255,9 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    **Open, in order**, measured against `wr19` (48 hours from `Ireland1941_07_16_07`, every probe) on 2026-11-19: 468 of
    469 land orders the same, none of ours alone, fleets 165 of 165 (none of ours alone), air units 26 of 26; `wr15` 467 of
    467 (one of ours alone, that run's original keeping the 3. Infanterie-Division off to 38), fleets 164 of 164 and air 28
-   of 28, `wr14` 476 of 484 (4 of ours alone), 160 of 163 and 27 of 27, `wr11` 463 of 488 (27 alone), 147 of 167 and 26
-   of 26 - `wr14` 466 and `wr11` 453 until Germany's orders of the hour were read as given (below). **Every hour of `wr19` agrees draw for draw before its first battle, and no battle's dice
+   of 28, `wr14` 477 of 484 (4 of ours alone), 160 of 163 and 27 of 27, `wr11` 464 of 488 (27 alone), 147 of 167 and 26
+   of 26 - `wr14` 466 and `wr11` 453 until Germany's orders of the hour were read as given and the reserve's half
+   whole (below). **Every hour of `wr19` agrees draw for draw before its first battle, and no battle's dice
    part in its 47 hours**, so what is left of it is orders no draw shows - and the AI's own draws, which the playback
    counts by country. **Every `math.random` draw of `wr19` is the original's since 2026-11-19**: Cuba's and Haiti's two
    beyond at hours 27 and 31 were a puppet's debt revoke ours let through, which cost Britain the influence that pays
@@ -287,9 +288,11 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    143, from the recordings' logs): `wr14` and `wr11` part at hour 5 because the Slovak 2. Pesi divize's count at hour 2
    saw Germany's three pulls to 1306 in both runs, which ours read as the hour began; the 6. SS 'Nord' was then pulled
    again from an over-full 1306 and the reserves Germany places at hour 5 waited three hours. `wr14` 476 of 484 (466),
-   `wr11` 463 of 488 (453), `wr19` and `wr15` unchanged, every draw as before.
-   Open: (a) the orders the draws leave: `wr14`'s from hour 17 - the 206. Infanterie-Division, then Soviet divisions from
-   hour 32 - and `wr11`'s, which part on entering: the Soviet attacks on 1576 and 1440 ours makes at odds 1.278 and 1.259
+   `wr11` 463 of 488 (453), `wr19` and `wr15` unchanged, every draw as before. **And a held-back division's test for
+   company halves the enemy's units in whole numbers** (`moving.md`, section 7.5; section 144, on the listing): the
+   German 206. Infanterie-Division in 1808 had two idle divisions beside it against five Soviet units, which ours took
+   as outnumbered and the original as enough, sending it to the ring at `wr14`'s hour 17. `wr14` 477, `wr11` 464.
+   Open: (a) the orders the draws leave: `wr14`'s from hour 32 - Soviet divisions - and `wr11`'s, which part on entering: the Soviet attacks on 1576 and 1440 ours makes at odds 1.278 and 1.259
    against a bar of 1.1 and the original does not, every German defender's cached half nought in that run's memory where
    ours, given the same, takes the attacks on 1749 and 2508 the original made at odds 50 - asking the running game for
    the original's odds with defenders' halves nought; `wr11`'s twenty fleets are its recording's, which has no patrol
