@@ -43,7 +43,7 @@ public static class CEventFiring
 		CEffects.Run(state, fired.Immediate.Effects, scope, report);
 		if (fired.FireOnlyOnce)
 		{
-			state.FiredOnce.Add(fired);
+			state.MarkFiredOnce(fired);
 		}
 	}
 

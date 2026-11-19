@@ -32,6 +32,41 @@ public readonly record struct CFixedPoint(long Raw) : IComparable<CFixedPoint>
 	}
 
 	/// <summary>
+	/// A number as the original reads a unit type's figures - a unit file's and a technology's block for a unit type: the
+	/// whole part in thousandths and <b>every digit after the point read as one number</b>, padded with zeros to three where
+	/// there are fewer and never cut where there are more, so <c>0.3375</c> is 3.375 and <c>1.0001</c> 1.001; the fraction
+	/// negated where the text begins with <c>-</c>. A figure of three places or fewer reads as <see cref="TryParse"/> does.
+	/// See <c>docs/mechanics/units.md</c>, section 2.
+	/// </summary>
+	public static bool TryParseAsUnitFigure(string? text, out CFixedPoint value)
+	{
+		if (!TryParse(text, out value))
+		{
+			return false;
+		}
+		ReadOnlySpan<char> span = text!.AsSpan().Trim();
+		int point = span.IndexOf('.');
+		if (point < 0 || span.Length - point - 1 <= 3)
+		{
+			return true;
+		}
+		bool negative = span[0] == '-';
+		ReadOnlySpan<char> digits = span[(span[0] is '-' or '+' ? 1 : 0)..point];
+		int whole = 0;
+		foreach (char c in digits)
+		{
+			whole = unchecked(whole * 10 + (c - '0'));
+		}
+		int fraction = 0;
+		foreach (char c in span[(point + 1)..])
+		{
+			fraction = unchecked(fraction * 10 + (c - '0'));
+		}
+		value = new CFixedPoint(negative ? -(whole * 1000L + fraction) : whole * 1000L + fraction);
+		return true;
+	}
+
+	/// <summary>
 	/// Reads a decimal number as the data files write one. The first three fractional
 	/// digits are kept and any further ones dropped; a sign applies to the whole
 	/// number, so <c>-0.5</c> is minus a half.

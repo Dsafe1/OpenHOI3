@@ -21,6 +21,19 @@ public class FixedPointTests
 		Assert.Equal(raw, value.Raw);
 	}
 
+	[Theory]
+	[InlineData("0.3375", 3375)]      // BlackICE's division-size technologies: 3.375, not 0.337
+	[InlineData("-0.3375", -3375)]
+	[InlineData("1.0001", 1001)]
+	[InlineData("-1.25", -1250)]
+	[InlineData("0.5", 500)]
+	[InlineData("2", 2000)]
+	public void A_unit_figure_keeps_every_digit_after_the_point_as_the_originals_unit_loader(string text, long raw)
+	{
+		Assert.True(CFixedPoint.TryParseAsUnitFigure(text, out CFixedPoint value));
+		Assert.Equal(raw, value.Raw);
+	}
+
 	[Fact]
 	public void ANegativeNumberIsNegativeWhateverItsWholePart()
 	{

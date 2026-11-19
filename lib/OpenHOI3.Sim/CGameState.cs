@@ -652,6 +652,29 @@ public sealed class CGameState
 	public HashSet<Script.CEvent> FiredOnce { get; } = new();
 
 	/// <summary>
+	/// The events of <see cref="FiredOnce"/> in the order they went in - fired, or read back from a save in its order - which
+	/// the original's table keeps as each bucket's chain, newest first, and a save is written in (<c>savegame.md</c>,
+	/// section 14). Added to through <see cref="MarkFiredOnce"/> alone.
+	/// </summary>
+	public List<Script.CEvent> FiredOnceOrder { get; } = new();
+
+	/// <summary>An event that fires once put on the list of those that have, where it is not on it yet.</summary>
+	public void MarkFiredOnce(Script.CEvent fired)
+	{
+		if (FiredOnce.Add(fired))
+		{
+			FiredOnceOrder.Add(fired);
+		}
+	}
+
+	/// <summary>The list of events that have fired once emptied.</summary>
+	public void ClearFiredOnce()
+	{
+		FiredOnce.Clear();
+		FiredOnceOrder.Clear();
+	}
+
+	/// <summary>
 	/// The events waiting for a person's answer, in the order they were opened:
 	/// <c>docs/mechanics/events.md</c>, section 7.
 	/// </summary>

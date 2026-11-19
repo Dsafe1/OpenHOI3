@@ -73,8 +73,8 @@ public class SaveTopTests
 		axis[2].Chosen = true;
 		Assert.True(CSaveValues.TryHours("1940.8.11.0", out long taken));
 		axis[2].Date = taken;
-		state.FiredOnce.Add(state.Events[0]);
-		state.FiredOnce.Add(state.Events[1]);
+		state.MarkFiredOnce(state.Events[0]);
+		state.MarkFiredOnce(state.Events[1]);
 		var front = new CWeatherFront(13779, 15, 0) { MoveCountdown = 1 };
 		front.Provinces.Add(13626);
 		state.Weather.Fronts.Add(front);
@@ -95,6 +95,30 @@ public class SaveTopTests
 			"weather=\r\n{\r\n\tfront=\r\n\t{\r\n\t\tdirection=0.015\r\n\t\trotation=0.000\r\n\t\tspeed=1\r\n\t\thome=13779\r\n" +
 			"\t\tprovinces=\r\n\t\t{\r\n13779 13626 \t\t}\r\n\t}\r\n}\r\n",
 			writer.Text);
+	}
+
+	[Fact]
+	public void The_fired_events_are_written_by_the_originals_511_buckets_the_latest_of_a_bucket_first()
+	{
+		// The first four of BlackICE's save of 16 March 1936, fired here in another order; and two sharing a bucket.
+		int[] ids = { 4220, 95584, 88911, 95071, 1000, 1511 };
+		var germany = new CCountry { Tag = new CCountryTag("GER"), Name = "Germany", DefinitionFile = "" };
+		var state = new CGameState(new CDate(1936, 1, 7), new[] { new CProvince(0, "", isSea: false) }, new[] { germany })
+		{
+			Events = ids.Select(id => new CEvent(isProvinceEvent: false, "events/test.txt", id) { Id = id }).ToArray(),
+		};
+		foreach (CEvent fired in state.Events)
+		{
+			state.MarkFiredOnce(fired);
+		}
+		var writer = new CSaveTextWriter();
+		writer.OpenRoot();
+
+		CSaveTop.WriteFiredEvents(writer, state);
+
+		List<int> written = ClausewitzParser.Parse(writer.Text).Get("fired_events")!.All("id").Select(CSaveValues.Id).ToList();
+		Assert.Equal(new[] { 1511, 1000 }, written.Where(id => id is 1000 or 1511));
+		Assert.Equal(new[] { 88911, 95071, 95584, 4220 }, written.Where(id => id > 1511 || id == 4220));
 	}
 
 	[Fact]

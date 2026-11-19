@@ -180,13 +180,13 @@ public static class CSaveTop
 	/// <summary>Each <c>id = { id = N type = 40 }</c>: an event that fires once and has fired, found by its number.</summary>
 	private static void ReadFiredEvents(CGameState state, ClausewitzNode node, CSaveReport report)
 	{
-		state.FiredOnce.Clear();
+		state.ClearFiredOnce();
 		foreach (ClausewitzNode id in node.All("id"))
 		{
 			int number = CSaveValues.Id(id);
 			if (state.Events.FirstOrDefault(candidate => candidate.Id == number) is { } fired)
 			{
-				state.FiredOnce.Add(fired);
+				state.MarkFiredOnce(fired);
 			}
 			else
 			{
@@ -255,12 +255,31 @@ public static class CSaveTop
 	/// </summary>
 	public static void WriteFiredEvents(CSaveTextWriter writer, CGameState state)
 	{
+		// The original's table walked as its save walks it: 511 buckets in turn, an event in bucket
+		// ((type << 16) + id) % 511, and each bucket's chain from its head - the latest in first (reversing/findings/
+		// FINDINGS-bicereadings.md, section 1).
 		writer.Begin("fired_events");
-		foreach (CEvent fired in state.FiredOnce.OrderBy(fired => fired.Id))
+		var place = new Dictionary<CEvent, int>();
+		for (int i = 0; i < state.FiredOnceOrder.Count; i++)
+		{
+			place[state.FiredOnceOrder[i]] = i;
+		}
+		foreach (CEvent fired in state.FiredOnceOrder
+			.OrderBy(fired => FiredEventBucket(fired.Id))
+			.ThenByDescending(fired => place[fired]))
 		{
 			writer.IdPair("id", fired.Id, EventIdType);
 		}
 		writer.End();
+	}
+
+	/// <summary>The fire-once table's bucket count, set as the game state is made.</summary>
+	public const int FiredEventBuckets = 511;
+
+	/// <summary>The bucket of the fire-once table an event goes in.</summary>
+	public static long FiredEventBucket(int id)
+	{
+		return (((long)EventIdType << 16) + (uint)id) % FiredEventBuckets;
 	}
 
 	/// <summary>

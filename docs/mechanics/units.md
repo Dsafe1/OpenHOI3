@@ -30,7 +30,13 @@ The folder below, `units/models`, is not types (section 5). `confirmed`
 
 - `type` says which service it belongs to: `land`, `naval` or `air`.
 - A line whose key is one of the loader's 47 statistics is a number: `max_strength`,
-  `default_organisation`, `officers`, `supply_consumption`, `soft_attack` and the rest.
+  `default_organisation`, `officers`, `supply_consumption`, `soft_attack` and the rest. **Every digit after the point is
+  read as one number of thousandths** [exe] - padded with zeros where there are fewer than three, never cut where there
+  are more: `0.5` is 0.500, but `0.3375` is 3.375 and `1.0001` 1.001 (`reversing/findings/FINDINGS-bicereadings.md`,
+  section 2; all 44 numeric stores of the unit loader). The same reading is a technology's block for a unit type, read
+  through the unit files' lookup (`likely`). Only BlackICE writes such a figure, three `build_cost_ic = ±0.3375` of its
+  division-size technologies; the modifier loader cuts to three places, as ours always did. A fault of the original's,
+  kept (`docs/enhanced.md`).
 - A line whose key is one of twelve flags is a yes or a no: `active`, `capital`,
   `is_armor`, `is_mobile`, `can_paradrop` and the rest.
 - `sprite`, `unit_group` and `on_completion` are names.

@@ -38,7 +38,8 @@ public static class CSubUnitStatsReader
 			}
 			if (!entry.IsBlock && isStatistic(entry.Key))
 			{
-				if (CFixedPoint.TryParse(entry.Value, out CFixedPoint value))
+				// Every digit after the point, as the original's unit loader reads a figure (units.md, section 2).
+				if (CFixedPoint.TryParseAsUnitFigure(entry.Value, out CFixedPoint value))
 				{
 					// Two lines for one statistic: the later one stands.
 					stats.Values.Set(entry.Key, value);

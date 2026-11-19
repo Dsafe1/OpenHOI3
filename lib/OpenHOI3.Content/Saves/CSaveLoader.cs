@@ -305,7 +305,7 @@ public static class CSaveLoader
 			province.TheatreId = 0;
 		}
 		state.AutomateTrade.Clear();
-		state.FiredOnce.Clear();
+		state.ClearFiredOnce();
 		state.Weather.Fronts.Clear();
 		state.GameFinished = false;
 	}
