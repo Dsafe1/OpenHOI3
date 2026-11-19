@@ -47,8 +47,9 @@ BiceLib's 42 functions and the original's country variables in Lua. **Stage 2 - 
 7): a BlackICE new game set beside a BlackICE start save the original made with BiceLib's infrastructure fix alone, by the
 base game's checks given `mod=`. Two rules the base game cannot show were mended - a new game's look at the laws comes
 before its manpower, and its most manpower reads the provinces without any country's revolt risk - and laws, theatres,
-relations, threat and neutrality are the save's whole, manpower 77 of 79. Next in it: Ethiopia's manpower, the stockpiles,
-the keys a load leaves, and the ten later saves of the same game. **Stage 3**, playing it, waits for the user's word and
+relations, threat and neutrality are the save's whole, manpower 77 of 79. The later saves load whole, and the checks that
+play forward are run from the save as loaded under BlackICE (`march`, `research ... loaded`), what is left of them the
+AI's. Next in it: Ethiopia's manpower, the stockpiles, `cag_design_hidden` and the keys a load leaves. **Stage 3**, playing it, waits for the user's word and
 the AI work.
 
 **Next, set 2026-11-09: checking the original's running game against ours, through Cheat Engine.** The balancing was settled this

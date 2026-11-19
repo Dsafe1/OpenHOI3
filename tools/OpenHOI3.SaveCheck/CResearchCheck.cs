@@ -7,6 +7,10 @@
 // researching. That, times the days between the two saves, is set against how far the
 // later save says the technology got. The month's decay of abilities is checked the same way,
 // and so is the build queue: see CBuildQueueBetweenSaves.
+//
+// With `loaded` the earlier save is loaded as a game (CSaveLoader) and taken as it stands - its flags, variables, event
+// modifiers and the hidden technologies an AI's decision gave among it, which a mod's triggered modifiers and unit
+// figures hang on (docs/mechanics/mods.md, section 7) - in place of a new game given the save's laws and levels.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -25,9 +29,11 @@ internal static class CResearchCheck
 {
 	public static int Run(string[] args)
 	{
+		bool loaded = args.Contains("loaded", StringComparer.Ordinal);
+		args = args.Where(arg => arg != "loaded").ToArray();
 		if (args.Length < 4)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck research <install folder> <earlier save> <later save> [examples]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck research <install folder> <earlier save> <later save> [examples] [loaded]");
 			return 2;
 		}
 		int examples = args.Length > 4 && int.TryParse(args[4], out int wanted) ? wanted : 5;
@@ -37,7 +43,9 @@ internal static class CResearchCheck
 		CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
 		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 		CMap map = CMap.Load(directories, warnings.Add);
-		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, firstDays: false);
+		CGameState state = loaded
+			? OpenHOI3.Content.Saves.CSaveLoader.Load(directories, map, localisation, countries, args[2], warn: warnings.Add).State
+			: CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, firstDays: false);
 
 		ClausewitzNode earlier = ClausewitzParser.ParseFile(args[2]);
 		ClausewitzNode later = ClausewitzParser.ParseFile(args[3]);
@@ -85,6 +93,10 @@ internal static class CResearchCheck
 				continue;
 			}
 			pairs.Add((country, node, laterNode));
+			if (loaded)
+			{
+				continue;
+			}
 
 			foreach ((string group, Dictionary<string, CLaw> laws) in lawBook)
 			{
@@ -170,6 +182,12 @@ internal static class CResearchCheck
 		int notResearched = 0;
 		foreach ((CCountry country, ClausewitzNode before, ClausewitzNode after) in pairs)
 		{
+			// The rebels divide no leadership (leadership.md, section 2): a save may give their projects some, which makes
+			// nothing - BlackICE's do.
+			if (OpenHOI3.Sim.Revolts.CRebelFactions.IsRebels(country.Tag))
+			{
+				continue;
+			}
 			ClausewitzNode? laterTechnology = after.Get("technology");
 			foreach (ClausewitzNode entry in before.Get("technology")?.Children ?? new List<ClausewitzNode>())
 			{

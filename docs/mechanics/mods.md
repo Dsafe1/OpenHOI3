@@ -285,9 +285,34 @@ the mod's Lua writes nothing into the install (section 6).
 | theatres | 115 of 115 in every figure, the headquarters' brigades 66 of 66 |
 | the supply pass | 199 of 262 networks the save's in every province and figure |
 
+**The later saves** (2026-11-19). **Every one loads whole**: the units, brigades, leaders and lines, the wars, pacts,
+trade routes, convoys and battles of the 16 January, 17 January and 16 March saves all the save's, their battles'
+modifiers as entered too; the keys not loaded are the start save's and a province's `history`, three `rebel_faction`
+blocks and six ships' `home`.
+
+**A check that plays forward is taken from the save as loaded, under BlackICE**: `march ... loaded` and `research ...
+loaded` (since 2026-11-19). Their plain run makes a new game and gives it the save's laws, levels and units, which is
+enough for the base game; under BlackICE it leaves out what play has given - its AI's decisions give hidden
+technologies (`AI_Transport_Ship_Amphib_Unlock` gives every AI country's transports 4 more speed), its Lua keeps country
+variables the triggered modifiers read (the training and resource balances), events give modifiers. So, 17 to 18
+January:
+
+| | plain | `loaded` |
+| --- | --- | --- |
+| a fleet's progress along its edge | 4 of 12 | 17 of 18 |
+| a division's progress, weather and fuel the same | 234 of 256 | 252 of 257 |
+| research over the fortnight to 2 February | 630 of 1,081 | 895 of 1,059 |
+| a building line's days | 37 of 77 | 56 of 77 |
+
+What is left in them is the AI's - projects started and orders given in between - or the original's own figures moving
+in between: a building line's price is set when it is made and again only on a day a line finishes, and a training
+modifier comes on as BlackICE's variable passes its day mid-way (Latvia's `basic_training_days_active` 18 to 34, its
++3 starting experience from 30), both of which a check that holds the earlier save's figures for the whole stretch
+counts as misses. The research check now leaves the rebels out, who divide no leadership (`leadership.md`, section 2)
+and to whose projects a BlackICE save gives some.
+
 **Next**: the manpower of Ethiopia and China Yunnan (`manpower.md`, *not established*); the stockpiles and supplies; the
-technology `cag_design_hidden`; the keys a load leaves; and then the later saves, by the base game's checks that play
-forward (`load` with a later save, `research`, `march`).
+technology `cag_design_hidden`; the keys a load leaves.
 
 ## Not established
 

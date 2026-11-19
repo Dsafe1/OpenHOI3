@@ -897,7 +897,8 @@ beside the repository.
   which agrees given another terrain - the map's terrain rule, which the check lists (`weather.md`, section 7); since
   2026-11-13, the terrain counted round the default text point two pixels south of the centre, all of them; with only
   a start save it is a look at a new game's weather beside it. Run it after touching `Sim/Weather` or the map's
-  terrain. `OpenHOI3.SaveCheck research <install> <earlier save> <later save>` does it for research,
+  terrain. `OpenHOI3.SaveCheck research <install> <earlier save> <later save> [loaded]` does it for research - `loaded`, as
+  `march`'s, taking the earlier save as loaded, which a mod's play needs (`mods.md`, section 7) -
   the monthly decay and the build queue - a building line's price among it, 21 of 21 in January (`buildinglines.md`, section 8), and every convoy line's, 107 of 107 on 1 April, with the lines paid in full worked forward where the two saves are of one session - 69 of 70 to 20 April (`convoylines.md`, section 6) -
   and the same folder has four later saves of that game - the three
   autosaves and `Germany1936_04_20_03.hoi3`. An autosave is overwritten as the game goes
