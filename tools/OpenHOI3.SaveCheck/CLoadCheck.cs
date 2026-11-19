@@ -339,7 +339,9 @@ public static class CLoadCheck
 						lawsSame++;
 					}
 				}
-				foreach (ClausewitzNode entry in node.Get("technology")?.Children ?? new List<ClausewitzNode>())
+				// A technology declared twice is saved twice under its name, and its name finds the later (research.md, section 1).
+				foreach (ClausewitzNode entry in (node.Get("technology")?.Children ?? new List<ClausewitzNode>())
+					.GroupBy(entry => entry.Key ?? "").Select(group => group.Last()))
 				{
 					if (entry.Key is { } key && entry.IsBlock && state.Technologies.ContainsKey(key))
 					{

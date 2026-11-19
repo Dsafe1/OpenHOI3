@@ -37,6 +37,19 @@ one line a category for every country.)
 
 `confirmed` for what each does. `change`, `can_upgrade` and `folder` are for the interface.
 
+**A technology declared twice is two technologies under one name**, each in its place in the files' order: a save
+writes both, each country's and each brigade's, and a unit type's levels listed by position count the one that names
+it - but **every look by name finds the later**: a history line, a condition, an effect, a save's entry read back. So
+the earlier is reached only through the unit types it names, and stays at its first level. *Measured* on a BlackICE
+start save (2026-11-19), whose one technology declared twice is `cag_design_hidden` - BlackICE's named carrier air
+groups in `00_unique_unit_techs.txt`, its carriers in `unique_ships_techs.txt`: the save holds Britain's at 0 and then
+at 1, the hidden-technology event having given the later its level, and the carriers' lines are the save's price only
+with the later in its own place in their lists. *Ours*: the earlier is kept for its unit types alone
+(`CTechnologyReader`), and a brigade's level of it is asked by the name, so a type naming the earlier and a country with
+the later would read the later's level - BlackICE's named carrier air groups with the United States' `cag_design_hidden`,
+where the original's would read the earlier's nought; whether any is in play was not looked at. The writer writes the
+later only. Their Finest Hour declares none twice.
+
 **A country's history file** sets its ability in a category with the category's name -
 `infantry_theory = 10` - and its level of a technology with the technology's.
 

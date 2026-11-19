@@ -276,8 +276,8 @@ the mod's Lua writes nothing into the install (section 6).
 
 | | |
 | --- | --- |
-| loaded as a game here | every unit, brigade, leader and line, 2,815, 10,933, 8,819 and 154; the wars, pacts and convoys; technology levels 125,828 of 125,832. Not loaded yet: a province's `capital` (403), the country keys `nocategory`, `last_mission_cancel`, `prov_vp`, `offmap_vp` and `human`, 8 ships' technology not of their type, 69 brigades' `home` |
-| a new game's two days | abilities, officers, influence, money and crude oil whole; strength 10,916 of 10,918 (New Zealand's two Samoa garrisons, by thousandths); organisation 10,486 of 10,918 (the Royal Navy's battleships 100.160 to 100.159 and the like); technology 92,900 of 92,904 (`cag_design_hidden` at 1 for four countries, 0 in the save); energy, metal and rare materials 77 of 79 (Germany's a few, Spain's hundredths); fuel 68 and supplies 43 of 79 |
+| loaded as a game here | every unit, brigade, leader and line, 2,815, 10,933, 8,819 and 154; the wars, pacts and convoys; technology levels 125,725 of 125,725. Not loaded yet: a province's `capital` (403), the country keys `nocategory`, `last_mission_cancel`, `prov_vp`, `offmap_vp` and `human`, 8 ships' technology not of their type, 69 brigades' `home` |
+| a new game's two days | abilities, officers, influence, money and crude oil whole; strength 10,916 of 10,918 (New Zealand's two Samoa garrisons, by thousandths); organisation 10,486 of 10,918 (the Royal Navy's battleships 100.160 to 100.159 and the like); technology 92,825 of 92,825; energy, metal and rare materials 77 of 79 (Germany's a few, Spain's hundredths); fuel 68 and supplies 43 of 79 |
 | politics | laws, government, ruling party, elections, unity and organisation whole; posts 1,167 of 1,177 and dissent 106 of 107 (the Russian rebels, `RUR`); the cabinet and popularity the rebels' (`REB`) |
 | diplomacy | relation and threat 8,560 of 8,560 pairs, neutrality 107 of 107, alignment 105 of 107 |
 | spies | everything but the level abroad, 11,252 of 11,342 |
@@ -311,8 +311,13 @@ modifier comes on as BlackICE's variable passes its day mid-way (Latvia's `basic
 counts as misses. The research check now leaves the rebels out, who divide no leadership (`leadership.md`, section 2)
 and to whose projects a BlackICE save gives some.
 
+**A technology declared twice** (2026-11-19, `research.md`, section 1): BlackICE's `cag_design_hidden` is two technologies
+under one name in the original, a look by name finding the later, and is so here; it had been the earlier alone, and the
+checks had set ours beside the save's first entry of the two.
+
 **Next**: the manpower of Ethiopia and China Yunnan (`manpower.md`, *not established*); the stockpiles and supplies; the
-technology `cag_design_hidden`; the keys a load leaves.
+keys a load leaves; and the writer, which a BlackICE save shows short - each brigade's `home`, a duplicated technology's
+second entry, the variables it writes that the save leaves out (`OpenHOI3.SaveCheck write`).
 
 ## Not established
 

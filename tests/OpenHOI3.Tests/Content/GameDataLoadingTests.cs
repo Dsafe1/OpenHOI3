@@ -181,6 +181,29 @@ public class GameDataLoadingTests : IDisposable
 	}
 
 	[Fact]
+	public void A_technology_declared_twice_is_found_by_name_as_the_later_and_the_earlier_stays_its_unit_types()
+	{
+		// BlackICE's cag_design_hidden, in 00_unique_unit_techs.txt and again in unique_ships_techs.txt.
+		Write("technologies/00_first.txt", """
+			cag_design_hidden = { start_year = 1918 cag_wing = { air_attack = 0.3 } }
+			first_after = { start_year = 1930 }
+			""");
+		Write("technologies/unique_second.txt", "cag_design_hidden = { start_year = 1960 carrier = { sea_attack = 0.7 } }\n");
+		var wing = new OpenHOI3.Sim.Units.CSubUnitType("cag_wing", OpenHOI3.Sim.Units.EUnitBranch.Air);
+		var carrier = new OpenHOI3.Sim.Units.CSubUnitType("carrier", OpenHOI3.Sim.Units.EUnitBranch.Naval);
+		var types = new Dictionary<string, OpenHOI3.Sim.Units.CSubUnitType> { ["cag_wing"] = wing, ["carrier"] = carrier };
+
+		List<OpenHOI3.Sim.Research.CTechnology> technologies = CTechnologyReader.Read(Directories, _warnings.Add, unitTypes: types);
+
+		Assert.Equal(new[] { "first_after", "cag_design_hidden" }, technologies.Select(technology => technology.Name));
+		Assert.Equal(1960, technologies[1].StartYear);
+		// Each declaration is in its own unit types' lists, the earlier only there.
+		Assert.Equal(1918, wing.Technologies.Single().StartYear);
+		Assert.Same(technologies[1], carrier.Technologies.Single());
+		Assert.Contains(_warnings, warning => warning.Contains("the last is the one a name finds"));
+	}
+
+	[Fact]
 	public void ATechnologysBlockNamedAfterAMissionIsThatMissionsFigures()
 	{
 		Write("technologies/naval.txt", """

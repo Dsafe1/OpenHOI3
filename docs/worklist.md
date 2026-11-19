@@ -49,7 +49,8 @@ base game's checks given `mod=`. Two rules the base game cannot show were mended
 before its manpower, and its most manpower reads the provinces without any country's revolt risk - and laws, theatres,
 relations, threat and neutrality are the save's whole, manpower 77 of 79. The later saves load whole, and the checks that
 play forward are run from the save as loaded under BlackICE (`march`, `research ... loaded`), what is left of them the
-AI's. Next in it: Ethiopia's manpower, the stockpiles, `cag_design_hidden` and the keys a load leaves. **Stage 3**, playing it, waits for the user's word and
+AI's; a technology declared twice is two under one name, as the original's. Next in it: Ethiopia's manpower, the
+stockpiles, the keys a load leaves and what the writer leaves out of a BlackICE save. **Stage 3**, playing it, waits for the user's word and
 the AI work.
 
 **Next, set 2026-11-09: checking the original's running game against ours, through Cheat Engine.** The balancing was settled this

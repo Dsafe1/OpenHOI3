@@ -144,9 +144,13 @@ public static class CTechnologyReader
 		var technologies = new List<CTechnology>();
 		int duplicates = 0;
 
-		// Every block first, the first of a name standing.
+		// Every block first, in the files' order. A name declared twice is two technologies in the original, each in its
+		// place: a save lists both under the one name, and each unit type's levels by position count both, while every look
+		// by name finds the later. So the earlier is kept for its unit types alone and only the later is listed (measured
+		// on a BlackICE start save, whose one technology declared twice is cag_design_hidden; research.md, section 1).
 		var blocks = new List<ClausewitzNode>();
-		var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		var shadowed = new HashSet<ClausewitzNode>();
+		var names = new Dictionary<string, ClausewitzNode>(StringComparer.OrdinalIgnoreCase);
 		foreach (string file in directories.ListFiles(TechnologyDirectory, "*.txt"))
 		{
 			ClausewitzNode root;
@@ -166,11 +170,12 @@ public static class CTechnologyReader
 				{
 					continue;
 				}
-				if (!names.Add(block.Key))
+				if (names.TryGetValue(block.Key, out ClausewitzNode? earlier))
 				{
 					duplicates++;
-					continue;
+					shadowed.Add(earlier);
 				}
+				names[block.Key] = block;
 				blocks.Add(block);
 			}
 		}
@@ -232,7 +237,10 @@ public static class CTechnologyReader
 				CanUpgrade = !block.GetString("can_upgrade").Equals("no", StringComparison.OrdinalIgnoreCase),
 				Stealable = !block.GetString("stealable").Equals("no", StringComparison.OrdinalIgnoreCase),
 			};
-			technologies.Add(technology);
+			if (!shadowed.Contains(block))
+			{
+				technologies.Add(technology);
+			}
 
 			// A block named after a mission is what a level adds to how well it is carried out.
 			foreach (ClausewitzNode entry in block.Children)
@@ -339,7 +347,7 @@ public static class CTechnologyReader
 		}
 		if (duplicates > 0)
 		{
-			warn($"{duplicates} technologies are declared more than once; the first declaration stands");
+			warn($"{duplicates} technologies are declared more than once; the last is the one a name finds, the earlier kept for its unit types");
 		}
 		if (unknownCategories.Count > 0)
 		{
