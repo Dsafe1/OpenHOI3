@@ -511,7 +511,8 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 
 	/// <summary>
 	/// The build queue: made again when the lines are not the ones shown, or not in the
-	/// order shown, and otherwise each line filled.
+	/// order shown, and otherwise each line filled. Made again, it stays scrolled where it was - a line moved, ordered or
+	/// cancelled does not send the list back to its top.
 	/// </summary>
 	private void ShowQueue(CGameState state, CCountry country)
 	{
@@ -521,6 +522,7 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 		}
 		if (!_queue.Select(line => line.Construction).SequenceEqual(country.Constructions))
 		{
+			int first = _queueList.First;
 			_queueList.Clear();
 			_queue.Clear();
 			foreach (CConstruction construction in country.Constructions)
@@ -536,6 +538,7 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 				_queueList.Add(line.Window);
 				_queue.Add(line);
 			}
+			_queueList.ScrollTo(first);
 		}
 		foreach (CBuildQueueEntry line in _queue)
 		{
