@@ -200,4 +200,62 @@ public class ClausewitzParserTests
 		Assert.Equal(1, root.GetInt("after"));
 		Assert.Null(root.Get("location"));
 	}
+
+	[Fact]
+	public void AKeyWithNoEqualsAmongPairsTakesTheValueThePairBeforeItRead()
+	{
+		// BlackICE's Kiskunhalas: the original's key reader loses 0.66 and keeps the value it read last, infra's 5.
+		ClausewitzNode root = ClausewitzParser.Parse("""
+			owner = HUN
+			infra = 5
+			manpower 0.66
+			terrain = plains
+			""");
+
+		Assert.Equal("5", root.GetString("manpower"));
+		Assert.Equal("plains", root.GetString("terrain"));
+		Assert.Equal(4, root.Children.Count);
+		Assert.DoesNotContain(root.Children, child => child.Value == "0.66");
+	}
+
+	[Fact]
+	public void AKeyWithNoEqualsInsideABlockTakesItsLastPairsValueAndAfterABlockThatPairs()
+	{
+		// Their Finest Hour's SOV_1938: a brigade's name is its type, the value read before it.
+		ClausewitzNode root = ClausewitzParser.Parse("""
+			regiment = { type = hq_brigade name "17th Mechanised Corps HQ" historical_model = 0 }
+			other = { a = 1 }
+			stray "x"
+			""");
+
+		Assert.Equal("hq_brigade", root.Get("regiment")!.GetString("name"));
+		Assert.Equal("0", root.Get("regiment")!.GetString("historical_model"));
+		Assert.Equal("1", root.GetString("stray"));
+	}
+
+	[Fact]
+	public void AKeyWithNoEqualsBeforeABraceIsTheBlocksKey()
+	{
+		// Their Finest Hour's JAP_DayOfInfamy: the brace taken where the `=` should be, and the theatre read whole.
+		ClausewitzNode root = ClausewitzParser.Parse("""
+			last_election = 1936.9.15
+			theatre {
+				name = "Southern Expeditionary Theater"
+				location = 5809
+			}
+			""");
+
+		ClausewitzNode theatre = root.Get("theatre")!;
+		Assert.Equal("Southern Expeditionary Theater", theatre.GetString("name"));
+		Assert.Equal(2, root.Children.Count);
+	}
+
+	[Fact]
+	public void BareWordsInAListAreItsValues()
+	{
+		ClausewitzNode root = ClausewitzParser.Parse("color = { 1 2 3 } add = { GER ITA }");
+
+		Assert.Equal(new[] { "1", "2", "3" }, root.Get("color")!.Children.Select(child => child.Value));
+		Assert.Equal(new[] { "GER", "ITA" }, root.Get("add")!.Children.Select(child => child.Value));
+	}
 }

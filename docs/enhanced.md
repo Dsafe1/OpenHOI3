@@ -86,6 +86,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - **`create_alliance` checks nothing.** A second one makes a second alliance on the list. `agreements.md`. *Oversight.* Risk: small.
 - **Tribute landing in a harbour is counted nowhere.** The overlord's ledgers leave it out. `stockpile.md`, 7. *Display.* Risk: none.
 - **A unit loaded by `load_oob` keeps experience the file does not give at "none",** and gets no leader. `units.md`. *Oversight.* Risk: small.
+- **A key with no `=` takes the value before it.** `manpower 0.66` in a block of pairs is read as `manpower` with the value the pair before it read, and 0.66 is lost: BlackICE's Kiskunhalas gets manpower 5 from the `infra = 5` above it, and Their Finest Hour's Soviet HQ brigades of 1938 and 1939 are named `hq_brigade`. Reading the word after the key as its value would give the line what it plainly says. `clausewitz.md`, 2. *Bug.* Risk: small - eight BlackICE provinces' manpower and four brigades' names change.
 
 ## The nuclear bomb
 
