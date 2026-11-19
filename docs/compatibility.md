@@ -379,7 +379,9 @@ panel is `docs/mechanics/frontend.md`, section 4.
 
 **Decided** 2026-11-06, on seeing the screens greyed under Ai Control: the original greys out
 nothing when switching to AI control, but greying it out is better and is kept - with the
-sliders greyed too, and the intelligence screen's Production and Ministers buttons left usable. Read in
+sliders greyed too, and the intelligence screen's Production and Ministers buttons left usable. A list's own scrollbar is
+neither greyed nor stopped (2026-11-19), as in the original, whose list never hands the setting to its bar
+(`interface.md`, section 2). Read in
 `reversing/findings/FINDINGS-frontend.md`, C.4; the screens are `docs/mechanics/frontend.md`, section 4.4.
 
 | | |

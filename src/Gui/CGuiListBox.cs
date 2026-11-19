@@ -91,6 +91,9 @@ public partial class CGuiListBox : CGuiObject
 		_scrollbar.Initialise(scrollbarType, _context, length);
 		_scrollbar.Position = new Vector2(_type.Size.X, 0f);
 		_scrollbar.Visible = false;
+		// Never greyed by what holds the list: the original's list hands whether to take the mouse to its rows alone, so
+		// its bar - and the wheel - still move it where a screen's automation stops the rest (interface.md, section 2).
+		_scrollbar.Greying = EGreying.Enabled;
 		// A bar that runs up and down has its greatest value at the top, so the top
 		// of the list is the bar's whole and the bottom its nothing.
 		_scrollbar.Moved += value =>

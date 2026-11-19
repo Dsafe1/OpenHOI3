@@ -171,6 +171,12 @@ does neither.
   - **A box shows a whole number of lines.** One with no row is not drawn at all.
     Nothing is cut off at the box's edge, top, bottom or side, and there is never half
     a line at the bottom.
+  - **A list's scrollbar is never stopped by what holds the list.** A list told whether to take
+    the mouse hands it to its rows and keeps it in a byte of its own, which none of its own methods
+    reads; its scrollbar is not told. So where a screen's automation stops a window taking the
+    mouse, a list's bar and the wheel still move it. `confirmed` (the record's
+    `GuiListbox_SetTakesMouse`; `reversing/findings/FINDINGS-frontend.md`, C.4). Here the bar is
+    never greyed through the list (compatibility.md, entry 19).
   - **A line wider than the box is drawn whole, past its edge** - and past its window's: nothing in the original's
     interface clips one object to another (read 2026-11-15, `reversing/findings/FINDINGS-listbox.md`, section 4).
     Its draw list can scissor an object, but the rectangle it would cut to is only ever zeroed and no object is
