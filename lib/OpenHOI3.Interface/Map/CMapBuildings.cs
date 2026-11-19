@@ -24,15 +24,14 @@ public static class CMapBuildings
 	/// <summary>What a building's name is put after to name its picture.</summary>
 	public const string PicturePrefix = "building_";
 
-	public static EMapBuilding KindOf(string building)
+	/// <summary>A port or an airfield by the building's role, which BlackICE gives its `fake_air_base` (CBuildingRoles).</summary>
+	public static EMapBuilding KindOf(CGameState state, CBuilding building)
 	{
-		if (building.Equals(CMovementRules.NavalBase, StringComparison.OrdinalIgnoreCase))
+		if (CBuildingRoles.Is(state, building, CMovementRules.NavalBase))
 		{
 			return EMapBuilding.Port;
 		}
-		return building.Equals(CMovementRules.AirBase, StringComparison.OrdinalIgnoreCase)
-			? EMapBuilding.Airfield
-			: EMapBuilding.Other;
+		return CBuildingRoles.Is(state, building, CMovementRules.AirBase) ? EMapBuilding.Airfield : EMapBuilding.Other;
 	}
 
 	/// <summary>Every building picture of the map, in the order of the provinces and of the buildings' file.</summary>
@@ -87,7 +86,7 @@ public static class CMapBuildings
 				{
 					continue;
 				}
-				EMapBuilding kind = KindOf(building.Key);
+				EMapBuilding kind = KindOf(state, building);
 				(float x, float y) = PlaceOf(placed, labels, id, building.Key);
 				int frame = known > 1 && ((kind == EMapBuilding.Port && ports.Contains(id))
 					|| (kind == EMapBuilding.Airfield && airfields.Contains(id))) ? 1 : 0;

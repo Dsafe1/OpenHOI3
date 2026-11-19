@@ -16,21 +16,11 @@ public static class CTheatreFigures
 
 	public const string AirBaseKey = "air_base";
 
-	public static CBuilding? NavalBase(CGameState state) => Building(state, NavalBaseKey);
+	/// <summary>The building with the naval base's role (<see cref="CBuildingRoles"/>).</summary>
+	public static CBuilding? NavalBase(CGameState state) => CBuildingRoles.Find(state, NavalBaseKey);
 
-	public static CBuilding? AirBase(CGameState state) => Building(state, AirBaseKey);
-
-	private static CBuilding? Building(CGameState state, string key)
-	{
-		foreach (CBuilding building in state.Buildings)
-		{
-			if (building.Key.Equals(key, StringComparison.OrdinalIgnoreCase))
-			{
-				return building;
-			}
-		}
-		return null;
-	}
+	/// <summary>The building with the air base's role (<see cref="CBuildingRoles"/>).</summary>
+	public static CBuilding? AirBase(CGameState state) => CBuildingRoles.Find(state, AirBaseKey);
 
 	/// <summary>A building's built level in whole levels, cut.</summary>
 	public static long WholeLevel(CProvince province, CBuilding? building)

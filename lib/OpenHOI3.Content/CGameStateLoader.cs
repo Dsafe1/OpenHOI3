@@ -294,6 +294,10 @@ public static class CGameStateLoader
 		IReadOnlyDictionary<string, CSubUnitType> unitTypes, Action<string> warn, bool fill, bool firstDays,
 		IEnumerable<CCountryTag>? played, Action<CGameState>? beforeFirstDays, bool chooseVictoryConditions = true)
 	{
+		// Making the game's screen first gives every country that does not own its history's capital a capital of its own,
+		// as each day's head does - BlackICE's Shanxi, whose history names China's Beiping, gets Taiyuan; the government stays
+		// where it was until the hour moves it (war.md, section 14).
+		Sim.Countries.CActingCapital.EnsureCapitals(state);
 		// A new game's victory conditions: each faction's primaries (factions.md, section 8).
 		IEnumerable<string> shortOf = chooseVictoryConditions ? Sim.Wars.CVictoryConditions.ChooseAtStart(state) : Array.Empty<string>();
 		foreach (string faction in shortOf)

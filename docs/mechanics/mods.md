@@ -282,7 +282,7 @@ the mod's Lua writes nothing into the install (section 6).
 | politics | laws, government, ruling party, elections, unity and organisation whole; posts 1,167 of 1,177 and dissent 106 of 107 (the Russian rebels, `RUR`); the cabinet and popularity the rebels' (`REB`) |
 | diplomacy | relation and threat 8,560 of 8,560 pairs, neutrality 107 of 107, alignment 105 of 107 |
 | spies | everything but the level abroad, 11,252 of 11,342 |
-| the AI's strategy | 79 of 79 in all but `defend_prov` 74 and three lists 78, Shanxi's (`CSX`) |
+| the AI's strategy | 79 of 79 in every list, since 2026-11-19 (below, *Capitals and air bases*) |
 | theatres | 115 of 115 in every figure, the headquarters' brigades 66 of 66 |
 | the supply pass | 199 of 262 networks the save's in every province and figure |
 
@@ -315,6 +315,14 @@ modifier comes on as BlackICE's variable passes its day mid-way (Latvia's `basic
 counts as misses. The research check works each day's gain again after a month's decay since 2026-11-19 (`research.md`,
 section 8) - it was 895 of 1,059 before, one project in twelve a unit ahead for 2 February - and leaves the rebels out, who divide no leadership (`leadership.md`, section 2)
 and to whose projects a BlackICE save gives some.
+
+**Capitals and air bases** (2026-11-19). Two rules the base game cannot show, both of the AI's strategy at the start, which
+was 74 of 79 on `defend_prov` and 78 on three lists. **A capital the country does not own is moved before anything else of
+a new game** - the original's in-game screen is made before its entry's set-up and moves it then, as each day's head does
+(`war.md`, section 14): BlackICE's Shanxi, whose history names China's Beiping, has Taiyuan when its strategy is made,
+where ours moved it only at its first day's head; its threat, antagonism and friends are the save's since. **The air base
+is the building that carries `air_capacity`**, which BlackICE gives `fake_air_base` and not `air_base` (`buildinglines.md`,
+section 1.1): the four countries' provinces with an `air_base` and no `fake_air_base` are on no list of the save's.
 
 **A technology declared twice** (2026-11-19, `research.md`, section 1): BlackICE's `cag_design_hidden` is two technologies
 under one name in the original, a look by name finding the later, and is so here; it had been the earlier alone, and the

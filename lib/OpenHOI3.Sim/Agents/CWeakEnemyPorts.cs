@@ -69,15 +69,7 @@ public static class CWeakEnemyPorts
 	public static float Score(CGameState state, CSupplyNetwork network, CProvince province)
 	{
 		long naval = CMovementRules.BuildingLevel(state, province, CMovementRules.NavalBase).Raw / CFixedPoint.Scale;
-		long air = 0;
-		foreach (CBuilding building in state.Buildings)
-		{
-			if (building.Key.Equals(CMovementRules.AirBase, System.StringComparison.OrdinalIgnoreCase))
-			{
-				air = province.BuildingLevel(building).Raw;
-				break;
-			}
-		}
+		long air = CBuildingRoles.Find(state, CMovementRules.AirBase) is { } airBase ? province.BuildingLevel(airBase).Raw : 0;
 		float score = (float)((float)(naval * 100.0) + (float)(air / 1000.0) * 10.0);
 		if (network.DepotOf(province.Id) == province.Id)
 		{

@@ -153,17 +153,7 @@ public static class CUndergrounds
 		return new CFixedPoint((1000 - share) * initial.Raw / 1000);
 	}
 
-	private static CBuilding? AirBase(CGameState state)
-	{
-		foreach (CBuilding building in state.Buildings)
-		{
-			if (building.Key.Equals(CBaseCrowding.AirBase, StringComparison.OrdinalIgnoreCase))
-			{
-				return building;
-			}
-		}
-		return null;
-	}
+	private static CBuilding? AirBase(CGameState state) => CBuildingRoles.Find(state, CBaseCrowding.AirBase);
 
 	/// <summary>
 	/// A finished underground, as a building line in the province finishes one: one more level of it built, its strength

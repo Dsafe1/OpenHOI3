@@ -261,17 +261,8 @@ public static class CCountryEconomyMethods
 		return candidates[^1].Province;
 	}
 
-	private static CBuilding? Find(CGameApi api, string key)
-	{
-		foreach (CBuilding building in api.State.Buildings)
-		{
-			if (string.Equals(building.Key, key, StringComparison.Ordinal))
-			{
-				return building;
-			}
-		}
-		return null;
-	}
+	/// <summary>The building with the role the name stands for - the air base the one with `air_capacity` (CBuildingRoles).</summary>
+	private static CBuilding? Find(CGameApi api, string key) => CBuildingRoles.Find(api.State, key);
 
 	private static CCountry Of(CLuaCall call) => call.Object<CCountry>(1, Name);
 }

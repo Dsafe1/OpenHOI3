@@ -120,11 +120,11 @@ public static class CBuildingLines
 		{
 			return false;
 		}
-		if (building.Key.Equals(CBaseCrowding.NavalBase, StringComparison.OrdinalIgnoreCase))
+		if (CBuildingRoles.Is(state, building, CBaseCrowding.NavalBase))
 		{
 			return province.BuildingMaxLevel(building) <= CFixedPoint.Zero;
 		}
-		if (building.Key.Equals(CBaseCrowding.AirBase, StringComparison.OrdinalIgnoreCase))
+		if (CBuildingRoles.Is(state, building, CBaseCrowding.AirBase))
 		{
 			return province.BuildingMaxLevel(building) < CFixedPoint.One;
 		}

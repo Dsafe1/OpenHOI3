@@ -32,7 +32,7 @@ public static class CBaseTooltip
 			return (units.Count > 0 ? first : localise("PORT") + "\n") + "\n"
 				+ Info(localise, amount, new CFixedPoint(CConvoyRules.PortCapacity(state, province)));
 		}
-		CBuilding? airBase = state.Buildings.FirstOrDefault(building => building.Key == CMovementRules.AirBase);
+		CBuilding? airBase = CBuildingRoles.Find(state, CMovementRules.AirBase);
 		return (units.Count > 0 ? first + "\n" : "")
 			+ Info(localise, amount, airBase is null ? CFixedPoint.One : province.BuildingLevel(airBase));
 	}

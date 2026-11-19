@@ -27,6 +27,21 @@ convoy, is `convoylines.md`.
 `air_base`, `naval_base`, `industry`, `anti_air`, `radar_station`, `nuclear_reactor`, `rocket_test` and `underground`.
 Forts and infrastructure are built from the province view (`provinceview.md`, section 4).
 
+### 1.1 The five roles
+
+`confirmed`. **Five buildings are known by the modifier they carry and not by their name** (`CBuildingRoles`;
+`reversing/findings/FINDINGS-aifields.md`, section 4): the **air base** is the building with `air_capacity`, the **naval
+base** the one with `naval_capacity`, **anti-aircraft** `local_anti_air`, **industry** `ic` and **the underground**
+`local_underground` - of two that carry one, the later in the file. Everything that asks whether a province has an air base
+or a port asks the building with the role: where a unit may be based, how much room a base has, the AI's air bases and
+its provinces to defend, an airfield on the map, a line placed. What is ordered by name - the Lua's, an event's, a
+button's - is the building of that name. In Their Finest Hour each role is the building of its name. **In BlackICE GitHub
+the air base is `fake_air_base`**, which carries `air_capacity`, and its `air_base` carries nothing at all: a province with
+`air_base` alone has no air base, as its start shows - the AI's strategy, made before a new game's days, defends none of
+Britain's, France's, the Netherlands' and Spain's provinces that the history gives an `air_base` and no `fake_air_base`
+(**measured**, `aistrategy`, `defend_prov` 79 of 79 where it was 75). *Ours*: where no building carries a role's modifier
+the building of the role's name has it; the original's would be its built-in building of nothing.
+
 ## 2. Ordering
 
 **The production screen.** A building's button - enabled where the country may build it: its technology has made it

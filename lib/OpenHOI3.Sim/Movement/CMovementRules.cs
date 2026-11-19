@@ -108,14 +108,8 @@ public static class CMovementRules
 	/// </summary>
 	public static CFixedPoint BuildingLevel(CGameState state, CProvince province, string key)
 	{
-		foreach (CBuilding building in state.Buildings)
-		{
-			if (building.Key.Equals(key, StringComparison.OrdinalIgnoreCase))
-			{
-				return province.BuildingMaxLevel(building);
-			}
-		}
-		return CFixedPoint.Zero;
+		// An air base, a naval base and the other roles are the buildings that carry the role's modifier (CBuildingRoles).
+		return CBuildingRoles.Find(state, key) is { } building ? province.BuildingMaxLevel(building) : CFixedPoint.Zero;
 	}
 
 	/// <summary>

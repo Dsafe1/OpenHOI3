@@ -775,6 +775,9 @@ public static class CSaveLoader
 		}
 		// Every province's season and night for the saved hour, as entering a loaded game makes them (weather.md, section 4).
 		Sim.Weather.CWeatherPass.AtLoad(state);
+		// The game's screen made and entered gives a country that does not own its capital one it owns, as each day's head
+		// does (war.md, section 14).
+		Sim.Countries.CActingCapital.EnsureCapitals(state);
 		// A fresh AI for every country, as the original makes one: the ministers' first hours, in its order.
 		Sim.Settings.CAutomation.MakeMinistersOfLoad(state);
 		CForeignAi.TellOfWars(state);

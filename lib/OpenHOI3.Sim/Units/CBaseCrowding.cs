@@ -38,17 +38,9 @@ public sealed class CBaseCrowding
 	public CBaseCrowding(CGameState state)
 	{
 		_state = state;
-		foreach (CBuilding building in state.Buildings)
-		{
-			if (building.Key.Equals(NavalBase, StringComparison.OrdinalIgnoreCase))
-			{
-				_navalBase = building;
-			}
-			else if (building.Key.Equals(AirBase, StringComparison.OrdinalIgnoreCase))
-			{
-				_airBase = building;
-			}
-		}
+		// The buildings with the two roles, by the modifier they carry (CBuildingRoles).
+		_navalBase = CBuildingRoles.Find(state, NavalBase);
+		_airBase = CBuildingRoles.Find(state, AirBase);
 
 		// A base is a province's, and whoever is based there shares it.
 		foreach (CCountry country in state.Countries)

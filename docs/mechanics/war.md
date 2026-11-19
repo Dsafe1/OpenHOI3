@@ -664,6 +664,10 @@ Read in `FINDINGS-surrender.md` C and D.5, and `FINDINGS-capitalreaders.md`.
 **Two capitals.** The **declared** capital is the history's, and moves only when the country stops owning it: at
 the head of its day, the province of its own scoring highest - its manpower in whole men plus one, a hundred times
 over for one of its cores - the first of equals; occupation never moves it, and a country owning nothing keeps it.
+**The same test runs for every country as the game's screen is made**, before a new game's set-up and as a loaded
+game is entered (`confirmed`, the loop in the in-game screen's constructor; since 2026-11-19 here): so a country whose
+history names a capital it does not own has its own by the time its AI strategy is made - BlackICE's Shanxi, whose
+history gives China's Beiping, has Taiyuan (`mods.md`, section 7). Its government stays in Beiping until the hour.
 The **acting** capital is where the government sits, and so **whose pool is the country's stockpile**. It is the
 declared one until that province is held by somebody else; then, **at once** where it changes hands with
 consequences, and otherwise within the hour:

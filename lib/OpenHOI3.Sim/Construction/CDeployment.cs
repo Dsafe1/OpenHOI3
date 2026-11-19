@@ -311,13 +311,6 @@ public static class CDeployment
 
 	private static bool HasBase(CGameState state, CProvince province, string key)
 	{
-		foreach (CBuilding building in state.Buildings)
-		{
-			if (building.Key.Equals(key, StringComparison.OrdinalIgnoreCase))
-			{
-				return province.BuildingLevel(building) > CFixedPoint.Zero;
-			}
-		}
-		return false;
+		return CBuildingRoles.Find(state, key) is { } building && province.BuildingLevel(building) > CFixedPoint.Zero;
 	}
 }
