@@ -157,9 +157,12 @@ public static class CNavalBody
 				case EUnitOrder.Move:
 					continue;
 				default:
+					// A raid at war comes here too: one lying at its own base with no way - a submarine flotilla that found none to
+					// its waters - is taken away in the next pass, and the fleet is free for a raid again in the pass after
+					// (FINDINGS-liveread.md, section 142).
 					if (!fleet.IsMoving && (fleet.Location == fleet.Base || fleet.Order == EUnitOrder.Intercept))
 					{
-						if (fleet.Order is not (EUnitOrder.Reserve or EUnitOrder.Rebase or EUnitOrder.ConvoyRaid
+						if (fleet.Order is not (EUnitOrder.Reserve or EUnitOrder.Rebase
 							or EUnitOrder.ConvoyEscort or EUnitOrder.Patrol or EUnitOrder.Invasion or EUnitOrder.Transport))
 						{
 							Cancel(state, country, fleet);

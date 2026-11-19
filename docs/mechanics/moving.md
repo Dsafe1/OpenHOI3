@@ -675,6 +675,13 @@ makes nobody at war (`war.md`, section 1).
    - a raid or an escort at peace, a
    patrol at peace (a war nobody declared counting as war), and any other order of a fleet standing still at its base or an intercept standing still, are
    cancelled - the order taken away and the fleet sent to its base by a plain move, so it sails on with no order.
+   **A raid at war is one of those "any other" orders** - only a patrol at war and an escort whose convoy is still there
+   are kept before that test - so a submarine flotilla given a raid from its own base that found no way to its waters is
+   cancelled at the next pass, still standing in port. The cancel is a command, so phase 7 of that same pass finds it
+   still raiding and draws nothing for it; the pass after, it is free and drawn for again (`confirmed`, the Soviet 4th
+   Navy at 782 on 17 July 1941, `reversing/findings/FINDINGS-liveread.md`, section 142). *Ours:* a reserve, a rebase, an
+   invasion and a transport standing still at their base are still kept out of the test; whether the original's is
+   reached by them was not looked at.
 5. *(the regrouping's split and merge, whose joins - the fleet and the one it joins - are handled too)*. **On the
    handled list the fleet joined goes first and the joiner after it**, in phase 4 and in the merge alike, which the removal
    below follows: Britain's eight light cruisers split off the Home Fleet are then sent to the original's ports, 27th,
