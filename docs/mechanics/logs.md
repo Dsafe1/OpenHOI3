@@ -61,9 +61,18 @@ typefaces, the shader translator's own limits, a `-mod=` that names no mod, and 
   given no text in the language read, which shows as the key itself unless a later line gives it - the two the
   original logs as `Duplicate text-key` and `Empty key` into a log of its own it never writes to disk
   (`reversing/findings/FINDINGS-localisation.md`, section 2).
-- **The other loaders' faults keep their own wording**, each one line: most name their file, quoted, and none a line,
-  the Clausewitz reader keeping no line numbers; and several gather a kind of fault into one line with a count and the
-  first names. *Loose end* (`docs/worklist.md`): a line for every fault, and line numbers from the Clausewitz reader.
+- **Every other loader's fault is a line of its own at its file and line too** since 2026-11-20: the Clausewitz reader
+  keeps the line each entry begins on (`ClausewitzNode.Line`), a CSV row its row, and each report is
+  `CDiagnostics.Located` at the entry the fault is about - the key, or the block where the fault is the block's - in the
+  copy of the file that was read, a mod's where it was a mod's. What a loader gathered into one line with a count and the
+  first names ("12 keys not understood: a, b, c, ...") is a line for each place. A missing texture, sprite, font, effect
+  or sound is said where a file names it - the sprite's `texturefile`, the element's line in its `.gui` - since the
+  interface's records keep their file and line. A fault of a whole file - missing, unreadable, a bitmap's - is
+  `file: message`, and one about a name our code asks for, which no file writes, has no place.
+  *Left*: a missing texture asked for by a map layer that passes no place (the air map, the battle markers, the
+  buildings, the map pictures, the counters' plates) is said without one; the effect translator's own reports count
+  lines of the preprocessed text and stay warnings; the save loader's keys not loaded yet stay gathered, being the
+  program's.
 
 (measured, 2026-11-19) A start of the base game, the main menu and a new game as Germany: 29 lines, among them the
 script's 13 problems, three localisation keys given twice - `Tag`, `CHAT_ALLIES` and `desert_fox` - and four `xxxx` header

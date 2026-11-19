@@ -2095,11 +2095,9 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   (`interface.md`, section 6), the order that puts `chatfonts.gfx` first confirmed by a live read of the shared table in
   BlackICE the same day.
 
-- **The validation log's lines** (2026-11-19, `logs.md`, section 4): the script's problems and the localisation's each
-  have a line of their own at file and line; the other loaders keep their old wording, most naming their file and no
-  line, and several gather a kind of fault into one line with a count and the first few names ("12 keys not understood:
-  a, b, c, ..."). Still to do: a line for every fault, and the line it is at - which wants the Clausewitz reader to keep
-  each node's line number.
+- ~~**The validation log's lines**~~ - every loader's fault is a line of its own at its file and line since 2026-11-20
+  (`logs.md`, section 4). Left: the map layers that load a texture without saying where it is named, and the effect
+  translator's lines, which count the preprocessed text.
 
 - ~~**The order a folder is listed in**~~ - every folder read whole is listed as the original's lister lists it since
   2026-11-20, the history's provinces a subfolder at a time (`mods.md`, section 2). Left: the saved battle plans' folder
