@@ -230,19 +230,33 @@ public static class CManpower
 	/// </summary>
 	/// <param name="setUpBefore">
 	/// A new game only: what <see cref="BeforeSetUp"/> gave before the laws were brought forward, so that each country's
-	/// most is worked out in its turn, with a later country's land weighed by its law as its history left it.
+	/// most is worked out in its turn, with a later country's land weighed by its law as its history left it. And its
+	/// provinces are weighed by their modifiers as the entry first made them, before any country's modifier was - so with
+	/// no country's <c>global_revolt_risk</c> in the revolt risk their <c>revolt_risk</c> static is scaled by (measured on
+	/// a BlackICE start save, whose <c>free_press</c> gives 4). They are made again whole once the most is worked out.
 	/// </param>
 	public static void SetAtStart(CGameState state, IReadOnlyDictionary<string, CFixedPoint>? setUpBefore = null)
 	{
-		CProvinceModifiers.Rebuild(state);
+		if (setUpBefore is not null)
+		{
+			CProvinceModifiers.RebuildAsEntered(state);
+		}
+		else
+		{
+			CProvinceModifiers.Rebuild(state);
+		}
 		CCountryModifiers.Rebuild(state);
 		UpdateMost(state, setUpBefore);
-		Update(state);
 
 		HashSet<string> owners = Landowners(state);
 		foreach (CCountry country in state.Countries)
 		{
 			country.Manpower = AtStart(state, country, owners.Contains(country.Tag.Value));
 		}
+		if (setUpBefore is not null)
+		{
+			CProvinceModifiers.Rebuild(state);
+		}
+		Update(state);
 	}
 }

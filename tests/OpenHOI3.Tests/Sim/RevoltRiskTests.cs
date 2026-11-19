@@ -149,6 +149,22 @@ public class RevoltRiskTests
 	}
 
 	[Fact]
+	public void As_a_new_game_is_entered_the_revolt_risk_static_has_no_countrys_global_figure_in_it()
+	{
+		var revoltRisk = new CModifier(CProvinceModifiers.RevoltRisk);
+		revoltRisk.Set("local_manpower_modifier", CFixedPoint.Parse("-0.07"));
+		CGameState state = World(true, revoltRisk);
+		CProvince posen = state.Province(3);
+		state.Country(posen.Controller!.Value)!.Modifier.Set(CRevoltRisk.GlobalRevoltRisk, CFixedPoint.FromInt(4));
+
+		// BlackICE's free_press gives 4: four points of -0.07 once a game runs, and none in what its first manpower reads.
+		CProvinceModifiers.Rebuild(state);
+		Assert.Equal(CFixedPoint.Parse("-0.28"), posen.Modifier["local_manpower_modifier"]);
+		CProvinceModifiers.RebuildAsEntered(state);
+		Assert.Equal(CFixedPoint.Zero, posen.Modifier["local_manpower_modifier"]);
+	}
+
+	[Fact]
 	public void The_conditions_are_strict_on_a_province_and_count_the_rebels_land_on_a_country()
 	{
 		CGameState state = World();

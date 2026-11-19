@@ -139,6 +139,18 @@ years of what it gets.**
   exploitation, they would give it 39.9 a year before technology, and it would start with 773. Under the save's laws and occupation policies, every country's manpower at
   both 1941 starts is the save's this way, 72 of 72 - Germany's, Italy's, Hungary's and
   Bulgaria's among them.
+- **A province is weighed by its modifier as the entry first made it, before any country's modifier was made** - so the
+  revolt risk its `revolt_risk` static is scaled by (`revolt.md`, section 3) has no country's `global_revolt_risk` in it.
+  The most is read off the province's modifier (`reversing/findings/FINDINGS-manpowergain.md`), and the entry makes every
+  province's before its countries' turns (`reversing/findings/FINDINGS-laterstart.md`, section 2, steps 3 to 5); that a
+  country's modifier holds no revolt risk then is *measured*, not read. Their Finest Hour cannot show it - none of its
+  laws gives a global revolt risk, and its statics give less than nothing. BlackICE's `free_press` gives 4, the
+  Comintern's 4 and the Axis's 2, and its `revolt_risk` static is -0.07 manpower a point: (measured, 2026-11-19, on a
+  BlackICE GitHub start save made without BiceLib's patches but the infrastructure fix) Czechoslovakia, under
+  `free_press`, starts with the save's 749.136 this way and with 508.376 with the 4 counted, and so do 36 more countries,
+  Italy - at war under the Axis's 2 and `emergency_conscription`'s 5 - among them: 77 of 79 and the player's, where 42 of
+  79 were. **Ethiopia does not fit**: its 268.944 is what about 6 points would give, ours 332.638 with none (*not
+  established*, below).
 
 ## 5. Ours
 
@@ -192,4 +204,7 @@ above.
   and only then, it replaces the whole sum with a tenth of the manpower of a province the
   country is listed as controlling and does not control. Whether that can happen, and
   whether replacing rather than adding is a slip, were not settled;
-- two more places the original works out the most, which were not read.
+- two more places the original works out the most, which were not read;
+- what a country's modifier holds when the entry first makes the provinces' (section 4): that it holds no revolt risk is
+  measured on a BlackICE start save, and Ethiopia's start there, about 6 points' worth below ours, is not explained -
+  at war from the start and invaded - nor China Yunnan's 653.332 to our 655.752.

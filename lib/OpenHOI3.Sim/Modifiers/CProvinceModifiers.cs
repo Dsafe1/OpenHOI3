@@ -38,7 +38,22 @@ public static class CProvinceModifiers
 	/// <summary>Every province made again: the month's, and as a game is entered.</summary>
 	public static void Rebuild(CGameState state)
 	{
-		var context = new Context(state);
+		Rebuild(state, countriesMade: true);
+	}
+
+	/// <summary>
+	/// Every province made as a new game's entry first makes them, before any country's modifier is made: the revolt risk
+	/// its <c>revolt_risk</c> static is scaled by has no country's <c>global_revolt_risk</c> in it. What a new game's most
+	/// manpower is worked out from (<c>manpower.md</c>, section 4).
+	/// </summary>
+	public static void RebuildAsEntered(CGameState state)
+	{
+		Rebuild(state, countriesMade: false);
+	}
+
+	private static void Rebuild(CGameState state, bool countriesMade)
+	{
+		var context = new Context(state) { CountriesMade = countriesMade };
 		foreach (CProvince province in state.Provinces)
 		{
 			Make(context, province);
@@ -101,6 +116,9 @@ public static class CProvinceModifiers
 		}
 
 		public CGameState State { get; }
+
+		/// <summary>False for <see cref="RebuildAsEntered"/>: no country's modifier is in the revolt risk.</summary>
+		public bool CountriesMade { get; init; } = true;
 
 		public CModifier? Overseas { get; }
 		public CModifier? NonCore { get; }
@@ -215,7 +233,7 @@ public static class CProvinceModifiers
 		// 13. Its radar told to its controller's list where its radar_level has moved (intelligence.md, section 4).
 		Intelligence.CRadarProvinces.ProvinceMade(state, province);
 		// 14. The revolt risk shown, from what the province holds so far, times `revolt_risk`, where it is above nought.
-		long shown = Revolts.CRevoltRisk.Shown(state, province);
+		long shown = Revolts.CRevoltRisk.Shown(state, province, context.CountriesMade);
 		if (shown > 0 && context.RevoltRisk is { } revoltRisk)
 		{
 			Add(province, CCountryModifiers.Scaled(revoltRisk, new CFixedPoint(shown)));

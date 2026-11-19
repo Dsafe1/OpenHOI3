@@ -53,7 +53,11 @@ public static class CRevoltRisk
 	/// an enemy of the owner; the <c>global_revolt_risk</c> of the holder - of the owner where the rebels hold it; the
 	/// province's <c>local_revolt_risk</c>; less its suppression. The original's <c>pure_revolt_risk</c>.
 	/// </summary>
-	public static long Effective(CGameState state, CProvince province)
+	/// <param name="countriesMade">
+	/// False for the province modifiers a new game is entered with, made before any country's modifier is: the holder's
+	/// <c>global_revolt_risk</c> is not in them (<c>revolt.md</c>, section 3; <c>manpower.md</c>, section 4).
+	/// </param>
+	public static long Effective(CGameState state, CProvince province, bool countriesMade = true)
 	{
 		long risk = 0;
 		if (state.Country(province.Controller) is { } holder && province.Owner is { } owner
@@ -61,7 +65,7 @@ public static class CRevoltRisk
 		{
 			risk = province.RevoltRisk.Raw;
 		}
-		if (province.Controller is { } controller)
+		if (countriesMade && province.Controller is { } controller)
 		{
 			CCountryTag whose = controller.Value == Rebels && province.Owner is { } owned ? owned : controller;
 			if (state.Country(whose) is { } country)
@@ -74,9 +78,9 @@ public static class CRevoltRisk
 	}
 
 	/// <summary>The figure shown and asked by <c>revolt_risk</c>: the effective one, never below the province's <c>minimum_revolt_risk</c> nor nought.</summary>
-	public static long Shown(CGameState state, CProvince province)
+	public static long Shown(CGameState state, CProvince province, bool countriesMade = true)
 	{
-		return Math.Max(Effective(state, province), Math.Max(province.Modifier[MinimumRevoltRisk].Raw, 0));
+		return Math.Max(Effective(state, province, countriesMade), Math.Max(province.Modifier[MinimumRevoltRisk].Raw, 0));
 	}
 
 	/// <summary>The effect <c>revolt_risk = N</c>: N added to the accumulator, never below nought. A country's scope reaches province 0.</summary>
