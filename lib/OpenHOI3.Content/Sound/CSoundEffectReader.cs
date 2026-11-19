@@ -27,7 +27,7 @@ public static class CSoundEffectReader
 		string path = directories.Resolve(FilePath);
 		if (!System.IO.File.Exists(path))
 		{
-			warn($"sound: {FilePath} is missing; no sound effect plays");
+			warn(CDiagnostics.Located(FilePath, 0, "is missing; no sound effect plays"));
 			return new Dictionary<string, CSoundEffect>(StringComparer.OrdinalIgnoreCase);
 		}
 		return Read(ClausewitzParser.ParseFile(path), warn);
@@ -46,7 +46,7 @@ public static class CSoundEffectReader
 			{
 				if (key.Key is null || !Keys.Contains(key.Key))
 				{
-					warn($"sound: {FilePath}, {name}: unknown key '{key.Key}'");
+					warn(CDiagnostics.Located(FilePath, key.Line, $"sound {name}: unknown key '{key.Key ?? key.Value}'"));
 				}
 			}
 			int pitch = node.GetInt("pitch", -1);
@@ -59,7 +59,7 @@ public static class CSoundEffectReader
 				node.GetInt("volume", 100));
 			if (!sounds.TryAdd(name, sound))
 			{
-				warn($"sound: {FilePath}: duplicate sound '{name}', the first kept");
+				warn(CDiagnostics.Located(FilePath, node.Line, $"duplicate sound '{name}', the first kept"));
 			}
 		}
 		return sounds;

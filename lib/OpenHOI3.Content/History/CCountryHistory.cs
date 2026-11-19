@@ -41,7 +41,16 @@ public static class CCountryHistory
 	{
 		warn ??= CDiagnostics.Problem;
 		var goodsGiven = new Dictionary<string, Dictionary<EGoods, CFixedPoint>>(StringComparer.OrdinalIgnoreCase);
-		int badAmounts = 0;
+		// Each fault a line of its own at its place, once (logs.md, section 4).
+		var said = new HashSet<string>(StringComparer.Ordinal);
+		void Say(string file, int line, string message)
+		{
+			string located = CDiagnostics.Located(file, line, message);
+			if (said.Add(located))
+			{
+				warn(located);
+			}
+		}
 		var categoryNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		foreach (CTechnologyCategory category in categories ?? Array.Empty<CTechnologyCategory>())
 		{
@@ -58,21 +67,11 @@ public static class CCountryHistory
 		Dictionary<string, CMinisterType> ministerTypes = CModifierReader.ReadMinisterTypes(directories, warn, ministerTypeOrder);
 		HashSet<string> positions = CModifierReader.ReadGovernmentPositions(directories, warn);
 
-		var unknownTypes = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		foreach (CCountry country in countries.All)
 		{
-			ReadMinisters(directories, country, positions, ministerTypes, unknownTypes);
-		}
-		if (unknownTypes.Count > 0)
-		{
-			warn($"ministers are declared with {unknownTypes.Count} minister types that are not defined: " +
-				string.Join(", ", unknownTypes));
+			ReadMinisters(directories, country, positions, ministerTypes, Say);
 		}
 
-		var unknownLaws = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		var unknownKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		int unknownMinisters = 0;
-		int unseated = 0;
 		// Every country's ministers by id, made the first time a history names a minister its own file has not.
 		Dictionary<int, CMinister>? anyMinister = null;
 		foreach (string file in directories.ListFiles(HistoryDirectory, "*.txt"))
@@ -82,13 +81,13 @@ public static class CCountryHistory
 			if (name.Length < CCountryTag.Length
 				|| !CCountryTag.TryParse(name[..CCountryTag.Length], out CCountryTag tag))
 			{
-				warn($"'{file}': the name does not start with a country tag");
+				Say(file, 0, "the name does not start with a country tag");
 				continue;
 			}
 			CCountry? country = countries.Find(tag);
 			if (country is null)
 			{
-				warn($"'{file}': there is no country '{tag}'");
+				Say(file, 0, $"there is no country '{tag}'");
 				continue;
 			}
 
@@ -99,9 +98,10 @@ public static class CCountryHistory
 			}
 			catch (IOException e)
 			{
-				warn($"Could not read '{file}': {e.Message}");
+				Say(file, 0, $"could not read the file: {e.Message}");
 				continue;
 			}
+			void Bad(ClausewitzNode node) => Say(file, node.Line, $"'{node.Key} = {node.Value}' is not a number and was ignored");
 
 			// In the original's passes: the bookmark's own, past the defines' start date, after the rest - which a faction's
 			// order of members shows (war.md, section 13).
@@ -119,7 +119,7 @@ public static class CCountryHistory
 					}
 					else
 					{
-						badAmounts++;
+						Say(file, entry.Line, $"'{entry.Key}' is not two numbers, x and y, and was ignored");
 					}
 					continue;
 				}
@@ -136,7 +136,7 @@ public static class CCountryHistory
 					{
 						if (party.Key is null || !CFixedPoint.TryParse(party.Value, out CFixedPoint figure))
 						{
-							badAmounts++;
+							Bad(party);
 						}
 						else if (figure >= CFixedPoint.Zero)
 						{
@@ -152,7 +152,7 @@ public static class CCountryHistory
 				}
 				if (entry.Value is null)
 				{
-					unknownKeys.Add($"{entry.Key} = {{ }}");
+					Say(file, entry.Line, $"'{entry.Key} = {{ }}' names nothing a country's history sets; passed over");
 					continue;
 				}
 				if (entry.Key.Equals("dissent", StringComparison.OrdinalIgnoreCase))
@@ -164,7 +164,7 @@ public static class CCountryHistory
 					}
 					else
 					{
-						badAmounts++;
+						Bad(entry);
 					}
 					continue;
 				}
@@ -191,7 +191,7 @@ public static class CCountryHistory
 					}
 					else
 					{
-						unknownLaws.Add($"{entry.Key} = {entry.Value}");
+						Say(file, entry.Line, $"'{entry.Key} = {entry.Value}' is a law that is not defined");
 					}
 				}
 				else if (entry.Key.Equals("capital", StringComparison.OrdinalIgnoreCase))
@@ -206,7 +206,7 @@ public static class CCountryHistory
 					}
 					else
 					{
-						badAmounts++;
+						Bad(entry);
 					}
 				}
 				else if (entry.Key.Equals("national_unity", StringComparison.OrdinalIgnoreCase))
@@ -218,7 +218,7 @@ public static class CCountryHistory
 					}
 					else
 					{
-						badAmounts++;
+						Bad(entry);
 					}
 				}
 				else if (entry.Key.Equals("government", StringComparison.OrdinalIgnoreCase))
@@ -234,7 +234,7 @@ public static class CCountryHistory
 					}
 					else
 					{
-						badAmounts++;
+						Bad(entry);
 					}
 				}
 				else if (entry.Key.Equals("threat", StringComparison.OrdinalIgnoreCase))
@@ -245,7 +245,7 @@ public static class CCountryHistory
 					}
 					else
 					{
-						badAmounts++;
+						Bad(entry);
 					}
 				}
 				else if (entry.Key.Equals("set_country_flag", StringComparison.OrdinalIgnoreCase))
@@ -298,7 +298,7 @@ public static class CCountryHistory
 					}
 					else
 					{
-						badAmounts++;
+						Bad(entry);
 					}
 				}
 				else if (CGoodsPool.TryParseKey(entry.Key, out EGoods goods))
@@ -315,7 +315,7 @@ public static class CCountryHistory
 					}
 					else
 					{
-						badAmounts++;
+						Bad(entry);
 					}
 				}
 				else if (categoryNames.Contains(entry.Key))
@@ -327,7 +327,7 @@ public static class CCountryHistory
 					}
 					else
 					{
-						badAmounts++;
+						Bad(entry);
 					}
 				}
 				else if (technologyNames.Contains(entry.Key))
@@ -339,7 +339,7 @@ public static class CCountryHistory
 					}
 					else
 					{
-						badAmounts++;
+						Bad(entry);
 					}
 				}
 				else if (positions.Contains(entry.Key))
@@ -355,43 +355,22 @@ public static class CCountryHistory
 						country.Government[entry.Key] = minister;
 						if (minister.TypeIn(entry.Key) is null)
 						{
-							unseated++;
+							Say(file, entry.Line, $"'{entry.Key} = {entry.Value}': the minister holds a position he was declared with " +
+								"no type for, and adds nothing");
 						}
 					}
 					else
 					{
-						unknownMinisters++;
+						Say(file, entry.Line, $"'{entry.Key} = {entry.Value}' fills the position with a minister the country " +
+							"does not declare");
 					}
 				}
 				else
 				{
 					// Said, where nothing was: no law group, position, technology, category, good or key of a country's.
-					unknownKeys.Add(entry.Key);
+					Say(file, entry.Line, $"'{entry.Key}' names nothing a country's history sets; passed over");
 				}
 			}
-		}
-
-		if (unknownKeys.Count > 0)
-		{
-			warn($"country history has {unknownKeys.Count} keys that name nothing a country's history sets, passed over: " +
-				string.Join(", ", unknownKeys));
-		}
-		if (unknownLaws.Count > 0)
-		{
-			warn($"country history names {unknownLaws.Count} laws that are not defined: " +
-				string.Join(", ", unknownLaws));
-		}
-		if (unknownMinisters > 0)
-		{
-			warn($"country history fills {unknownMinisters} positions with ministers the country does not declare");
-		}
-		if (unseated > 0)
-		{
-			warn($"{unseated} ministers hold a position they were declared with no type for, and add nothing");
-		}
-		if (badAmounts > 0)
-		{
-			warn($"{badAmounts} amounts in country history are not numbers and were ignored");
 		}
 		return goodsGiven;
 	}
@@ -416,7 +395,7 @@ public static class CCountryHistory
 
 	private static void ReadMinisters(CDirectorySettings directories, CCountry country,
 		HashSet<string> positions, Dictionary<string, CMinisterType> ministerTypes,
-		SortedSet<string> unknownTypes)
+		Action<string, int, string> say)
 	{
 		string path = directories.Resolve("common/" + country.DefinitionFile);
 		ClausewitzNode definition;
@@ -447,8 +426,8 @@ public static class CCountryHistory
 				if (!entry.IsBlock
 					|| !int.TryParse(entry.Key, NumberStyles.Integer, CultureInfo.InvariantCulture, out int id))
 				{
-					CDiagnostics.Problem($"'{path}': ministers: '{entry.Key ?? entry.Value}' is no minister - a number and a " +
-						"block; passed over");
+					CDiagnostics.Problem(path, entry.Line, $"ministers: '{entry.Key ?? entry.Value}' is no minister - a number " +
+						"and a block; passed over");
 					continue;
 				}
 				var minister = new CMinister(id, entry.GetString("name"))
@@ -465,7 +444,7 @@ public static class CCountryHistory
 					{
 						if (line.Key is null || !MinisterKeys.Contains(line.Key))
 						{
-							CDiagnostics.Problem($"'{path}': minister {id}: '{line.Key ?? line.Value}' is no key of a " +
+							CDiagnostics.Problem(path, line.Line, $"minister {id}: '{line.Key ?? line.Value}' is no key of a " +
 								"minister's and no position; passed over");
 						}
 						continue;
@@ -476,7 +455,7 @@ public static class CCountryHistory
 					}
 					else
 					{
-						unknownTypes.Add(line.Value);
+						say(path, line.Line, $"minister {id}: '{line.Value}' is a minister type that is not defined");
 					}
 				}
 				country.Ministers[id] = minister;

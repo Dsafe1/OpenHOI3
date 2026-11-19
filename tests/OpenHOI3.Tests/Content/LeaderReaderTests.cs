@@ -143,4 +143,30 @@ public class LeaderReaderTests
 		Assert.Empty(leader.Traits);
 		Assert.Contains("no_such_trait", problems.UnknownTraits);
 	}
+
+	[Fact]
+	public void EachFaultIsALineOfItsOwnAtItsFileAndLine()
+	{
+		var problems = new CLeaderReader.Problems { File = "leaders.txt" };
+		Read("""
+			9 = {
+				country = GER
+				type = cavalry
+				add_trait = no_such_trait
+				mood = sour
+				history = { 1930.1.1 = { rank = 1 shout = yes } }
+			}
+			""", new CDate(1936, 1, 1), problems);
+		var warnings = new List<string>();
+		problems.Report(warnings.Add);
+
+		// One line each, in the order met, where it was a gathered line a kind (logs.md, section 4).
+		Assert.Equal(new[]
+		{
+			"leaders.txt:3: type 'cavalry' is not understood; read as land",
+			"leaders.txt:4: 'no_such_trait' is a trait that is not defined",
+			"leaders.txt:5: 'mood' is a key nothing reads",
+			"leaders.txt:6: history: 'shout' is a key nothing reads",
+		}, warnings);
+	}
 }

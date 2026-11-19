@@ -33,7 +33,8 @@ public class BookmarkReaderTests
 		Assert.Equal(("GFX_bg_startdate_1936", "ROAD_TO_WAR_DESC"), (first.Icon, first.Description));
 		// A country that is none is dropped and said, as the original says it; the bookmark is kept.
 		Assert.Equal(new[] { new CCountryTag("ENG"), new CCountryTag("GER") }, first.Countries);
-		Assert.Equal(new[] { "Bad tag XXX in bookmark ROAD_TO_WAR_NAME" }, warnings);
+		// At its file and line (logs.md, section 4).
+		Assert.Equal(new[] { "bookmarks.txt:2: Bad tag XXX in bookmark ROAD_TO_WAR_NAME" }, warnings);
 	}
 
 	[Fact]
@@ -56,6 +57,6 @@ public class BookmarkReaderTests
 		IReadOnlyList<CBookmark> bookmarks = Parse(text, warnings);
 
 		Assert.Equal(new[] { "A" }, bookmarks.Select(bookmark => bookmark.Name));
-		Assert.Equal(new[] { "Failed to read bookmark in bookmarks.txt" }, warnings);
+		Assert.Equal(new[] { "bookmarks.txt:2: Failed to read bookmark" }, warnings);
 	}
 }

@@ -78,7 +78,7 @@ public sealed class CMessageTypes
 		}
 		if (_reported.Add(name))
 		{
-			_warn($"'{File}' declares no message type '{name}'; the original logs it as NULL_MESSAGE");
+			_warn(CDiagnostics.Located(File, 0, $"declares no message type '{name}'; the original logs it as NULL_MESSAGE"));
 		}
 		return CMessageType.Null;
 	}
@@ -151,7 +151,7 @@ public sealed class CMessageTypes
 		}
 		catch (Exception e)
 		{
-			_warn($"Could not read '{path}': {e.Message}");
+			_warn(CDiagnostics.Located(path, 0, $"could not read the file: {e.Message}"));
 		}
 	}
 
@@ -204,12 +204,13 @@ public sealed class CMessageTypes
 						if (index < 0)
 						{
 							// Said, where it became the last category unseen (clausewitz.md, section 3).
-							_warn($"'{File}': the message type '{block.Key}' names no category, '{value}'; read as cat_other");
+							_warn(CDiagnostics.Located(File, entry.Line,
+								$"the message type '{block.Key}' names no category, '{value}'; read as cat_other"));
 						}
 						break;
 					}
 					default:
-						_warn($"'{File}': the message type '{block.Key}' has a key '{entry.Key}' no type takes");
+						_warn(CDiagnostics.Located(File, entry.Line, $"the message type '{block.Key}' has a key '{entry.Key}' no type takes"));
 						break;
 				}
 			}

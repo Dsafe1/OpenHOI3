@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using OpenHOI3.Content;
 using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Content.History;
 using OpenHOI3.Sim;
@@ -16,8 +17,7 @@ public class DiplomacyReaderTests
 {
 	private readonly Dictionary<string, CCountry> _countries = new(StringComparer.OrdinalIgnoreCase);
 	private readonly CDiplomacyHistory _history = new();
-	private readonly SortedSet<string> _unknownKeys = new();
-	private readonly SortedSet<string> _unknownTags = new();
+	private readonly List<string> _reports = new();
 
 	public DiplomacyReaderTests()
 	{
@@ -30,7 +30,7 @@ public class DiplomacyReaderTests
 	private void Read(string text, CDate date)
 	{
 		CDiplomacyReader.Read(ClausewitzParser.Parse(text), tag => tag is not null && _countries.TryGetValue(tag, out CCountry? found)
-			? found : null, date, _history, _unknownKeys, _unknownTags);
+			? found : null, date, _history, (line, message) => _reports.Add(CDiagnostics.Located("dip.txt", line, message)));
 	}
 
 	[Fact]
@@ -74,8 +74,12 @@ public class DiplomacyReaderTests
 		", new CDate(1936, 1, 1));
 
 		Assert.Empty(_history.Alliances);
-		Assert.Equal(new[] { "treaty" }, _unknownKeys);
-		Assert.Equal(new[] { "XXX" }, _unknownTags);
+		// Each at its file and line (logs.md, section 4).
+		Assert.Equal(new[]
+		{
+			"dip.txt:3: 'treaty' is a key that is not understood",
+			"dip.txt:4: 'XXX' is a country that is not defined",
+		}, _reports);
 	}
 
 	[Fact]

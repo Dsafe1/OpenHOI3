@@ -39,8 +39,6 @@ public static class CDiplomacyReader
 	{
 		warn ??= CDiagnostics.Problem;
 		var history = new CDiplomacyHistory();
-		var unknownKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		var unknownTags = new SortedSet<string>(StringComparer.Ordinal);
 
 		foreach (string file in directories.ListFiles(DiplomacyDirectory, "*.txt"))
 		{
@@ -51,27 +49,21 @@ public static class CDiplomacyReader
 			}
 			catch (IOException e)
 			{
-				warn($"Could not read '{file}': {e.Message}");
+				warn(CDiagnostics.Located(file, 0, $"could not read the file: {e.Message}"));
 				continue;
 			}
 
-			Read(root, countries.Find, date, history, unknownKeys, unknownTags);
-		}
-
-		if (unknownKeys.Count > 0)
-		{
-			warn($"diplomatic history has {unknownKeys.Count} keys that are not understood: {string.Join(", ", unknownKeys)}");
-		}
-		if (unknownTags.Count > 0)
-		{
-			warn($"diplomatic history names {unknownTags.Count} countries that are not defined: {string.Join(", ", unknownTags)}");
+			Read(root, countries.Find, date, history, (line, message) => warn(CDiagnostics.Located(file, line, message)));
 		}
 		return history;
 	}
 
-	/// <summary>One file's entries.</summary>
+	/// <summary>
+	/// One file's entries; each fault handed to <paramref name="report"/> with the line it is at
+	/// (<c>docs/mechanics/logs.md</c>, section 4).
+	/// </summary>
 	public static void Read(ClausewitzNode root, Func<string?, CCountry?> find, CDate date, CDiplomacyHistory history,
-		ISet<string> unknownKeys, ISet<string> unknownTags)
+		Action<int, string> report)
 	{
 		foreach (ClausewitzNode entry in root.Children)
 		{
@@ -82,20 +74,20 @@ public static class CDiplomacyReader
 			if (entry.Key is null || !entry.IsBlock)
 			{
 				// Said, where it was passed over (clausewitz.md, section 3).
-				unknownKeys.Add(entry.Key ?? entry.Value ?? "{ }");
+				report(entry.Line, $"'{entry.Key ?? entry.Value ?? "{ }"}' is a key that is not understood");
 				continue;
 			}
 			string kind = entry.Key.ToLowerInvariant();
 			if (kind is not ("vassal" or "alliance" or "guarantee" or "nap" or "relation"))
 			{
-				unknownKeys.Add(entry.Key);
+				report(entry.Line, $"'{entry.Key}' is a key that is not understood");
 				continue;
 			}
 			foreach (ClausewitzNode part in entry.Children)
 			{
 				if (part.Key is null || !PactKeys.Contains(part.Key))
 				{
-					unknownKeys.Add($"{entry.Key}/{part.Key ?? part.Value}");
+					report(part.Line, $"'{entry.Key}/{part.Key ?? part.Value}' is a key that is not understood");
 				}
 			}
 
@@ -103,7 +95,8 @@ public static class CDiplomacyReader
 			CCountry? second = find(entry.GetString("second"));
 			if (first is null || second is null)
 			{
-				unknownTags.Add(first is null ? entry.GetString("first") : entry.GetString("second"));
+				string side = first is null ? "first" : "second";
+				report(entry.Get(side)?.Line ?? entry.Line, $"'{entry.GetString(side)}' is a country that is not defined");
 				continue;
 			}
 
@@ -119,7 +112,8 @@ public static class CDiplomacyReader
 				}
 				else
 				{
-					unknownKeys.Add($"relation/value = {entry.GetString("value")}, no number");
+					report(entry.Get("value")?.Line ?? entry.Line,
+						$"'relation/value = {entry.GetString("value")}' is no number; the relation is passed over");
 				}
 				continue;
 			}

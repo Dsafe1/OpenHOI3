@@ -146,9 +146,10 @@ public static class CGameStateLoader
 		CDefines defines = CDefinesReader.Read(directories, warn);
 		CBuilding[] buildings = CBuildingReader.Read(directories, warn);
 		var captures = new List<(CCountryTag Taker, CCountryTag From)>();
+		var resourceLines = new Dictionary<int, (string File, int Line)>();
 		ApplyProvinceHistory(directories, provinces, at, countries, map.Terrains, buildings, warn,
 			defines.Has(CNationalism.Section, CNationalism.Years) ? defines[CNationalism.Section, CNationalism.Years] : CFixedPoint.Zero,
-			definesStart: start, captures: captures);
+			definesStart: start, captures: captures, resourceLines: resourceLines);
 		// One table by name, as the original looks both files' names up in one; the first of a name wins, the name matched
 		// case and all - so an event modifier differing from a static one only in case is its own (effects.md, section 6).
 		List<CModifier> staticModifiers = CModifierReader.ReadStaticModifiers(directories, warn);
@@ -225,7 +226,7 @@ public static class CGameStateLoader
 		// What the history's wars left as they were replayed: who is mobilised, and the last_war of each who joined (war.md,
 		// section 4).
 		CWarSides.SetFromHistory(state, joins);
-		ReportUnknownStrategicResources(state, warn);
+		ReportUnknownStrategicResources(state, warn, resourceLines);
 		// Each country's going into exile or coming back that its history says, every line in turn, in the countries' order,
 		// its government to its faction leader's seat (war.md, section 14). Ours: once the history stands, where the
 		// original goes at the line's place in the history.
@@ -594,24 +595,20 @@ public static class CGameStateLoader
 
 	/// <summary>
 	/// A province naming a strategic resource nothing declares is left with none. The
-	/// original would say nothing about it.
+	/// original would say nothing about it. Each is said at the history line that named it (logs.md, section 4).
 	/// </summary>
-	private static void ReportUnknownStrategicResources(CGameState state, Action<string> warn)
+	private static void ReportUnknownStrategicResources(CGameState state, Action<string> warn,
+		IReadOnlyDictionary<int, (string File, int Line)> resourceLines)
 	{
-		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		foreach (CProvince province in state.Provinces)
 		{
 			if (province.StrategicResource.Length != 0
 				&& state.FindStrategicResource(province.StrategicResource) is null)
 			{
-				unknown.Add(province.StrategicResource);
+				(string file, int line) = resourceLines.TryGetValue(province.Id, out (string File, int Line) at) ? at : ("", 0);
+				warn(CDiagnostics.Located(file, line, $"'{province.StrategicResource}' is a strategic resource that is not defined"));
 				province.StrategicResource = "";
 			}
-		}
-		if (unknown.Count > 0)
-		{
-			warn($"province history names {unknown.Count} strategic resources that are not defined: " +
-				string.Join(", ", unknown));
 		}
 	}
 
@@ -639,7 +636,7 @@ public static class CGameStateLoader
 		{
 			return date;
 		}
-		warn($"'{path}' has no readable end_date");
+		warn(CDiagnostics.Located(path, 0, "has no readable end_date"));
 		return ReadStartDate(directories);
 	}
 
@@ -707,7 +704,8 @@ public static class CGameStateLoader
 	public static void ApplyProvinceHistory(CDirectorySettings directories, CProvince[] provinces,
 		CDate start, CCountries countries, IReadOnlyList<CTerrain> terrains,
 		IReadOnlyList<CBuilding> buildings, Action<string> warn, CFixedPoint nationalism = default, CDate? definesStart = null,
-		List<(CCountryTag Taker, CCountryTag From)>? captures = null)
+		List<(CCountryTag Taker, CCountryTag From)>? captures = null,
+		Dictionary<int, (string File, int Line)>? resourceLines = null)
 	{
 		var lastPass = new int[provinces.Length];
 		var buildingByKey = new Dictionary<string, CBuilding>(StringComparer.OrdinalIgnoreCase);
@@ -717,17 +715,16 @@ public static class CGameStateLoader
 		}
 		// The building with the naval base's role, which the history never gives a province with no port (CBuildingRoles).
 		CBuilding? navalBase = CBuildingRoles.Find(buildings, Sim.Movement.CMovementRules.NavalBase);
-		int badLevels = 0;
 		var terrainByName = new Dictionary<string, CTerrain>(StringComparer.OrdinalIgnoreCase);
 		foreach (CTerrain terrain in terrains)
 		{
 			terrainByName.TryAdd(terrain.Name, terrain);
 		}
-		var unknownTerrains = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		var filesRead = new int[provinces.Length];
-		var unknownTags = new SortedSet<string>(StringComparer.Ordinal);
-		var unknownKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		int unreadable = 0;
+		// Each province's files in path order, for the report of a province given more than one.
+		var filesOf = new Dictionary<int, List<string>>();
+		// Each fault a line of its own at its place, once: the three passes never give one entry twice (logs.md, section 4).
+		var said = new HashSet<string>(StringComparer.Ordinal);
 
 		foreach (CDirectorySettings.LayeredFile file in
 			directories.ListFilesRecursive(ProvinceHistoryDirectory, "*.txt"))
@@ -735,7 +732,7 @@ public static class CGameStateLoader
 			if (!TryReadLeadingId(Path.GetFileName(file.RelativePath), out int id)
 				|| id <= 0 || id >= provinces.Length)
 			{
-				warn($"'{file.AbsolutePath}': the name does not start with a province id on this map");
+				warn(CDiagnostics.Located(file.AbsolutePath, 0, "the name does not start with a province id on this map"));
 				continue;
 			}
 
@@ -744,13 +741,27 @@ public static class CGameStateLoader
 			{
 				root = ClausewitzParser.ParseFile(file.AbsolutePath);
 			}
-			catch (IOException)
+			catch (IOException e)
 			{
-				unreadable++;
+				warn(CDiagnostics.Located(file.AbsolutePath, 0, $"could not read the file: {e.Message}"));
 				continue;
 			}
 
 			filesRead[id]++;
+			if (!filesOf.TryGetValue(id, out List<string>? paths))
+			{
+				filesOf[id] = paths = new List<string>();
+			}
+			paths.Add(file.AbsolutePath);
+			string path = file.AbsolutePath;
+			void Report(int line, string message)
+			{
+				string located = CDiagnostics.Located(path, line, message);
+				if (said.Add(located))
+				{
+					warn(located);
+				}
+			}
 			// In the original's three passes - to year 2, to the defines' start date, to the bookmark's - each province's
 			// controller taken from one country and put on the end of the other's list of the provinces it controls as the pass
 			// reaches it, provinces in the order of their numbers (CProvince.ControlOrder; supply.md, section 2).
@@ -767,8 +778,8 @@ public static class CGameStateLoader
 			{
 				bool changedBefore = province.ControllerChanged;
 				province.ControllerChanged = false;
-				badLevels += Apply(province, passes[pass], countries, unknownTags,
-					terrainByName, unknownTerrains, buildingByKey, nationalism, captures, unknownKeys, navalBase);
+				Apply(province, passes[pass], countries, terrainByName, buildingByKey, nationalism, captures, navalBase, Report,
+					resourceLines is null ? null : line => resourceLines[id] = (path, line));
 				if (province.ControllerChanged)
 				{
 					lastPass[id] = pass + 1;
@@ -781,56 +792,32 @@ public static class CGameStateLoader
 			provinces[id].ControlOrder = (long)lastPass[id] * provinces.Length + id;
 		}
 
-		if (unreadable > 0)
-		{
-			warn($"{unreadable} province history files could not be read");
-		}
-		if (unknownTags.Count > 0)
-		{
-			warn($"province history names {unknownTags.Count} countries that are not defined: " +
-				string.Join(", ", unknownTags));
-		}
-
-		if (badLevels > 0)
-		{
-			warn($"{badLevels} building levels and amounts in province history are not numbers and were ignored");
-		}
-		if (unknownKeys.Count > 0)
-		{
-			// Said, where nothing was: the original takes any key it does not name for a building's (clausewitz.md, 3).
-			warn($"province history has {unknownKeys.Count} keys that are no key of a province's and no building, " +
-				$"passed over: {string.Join(", ", unknownKeys)}");
-		}
-		if (unknownTerrains.Count > 0)
-		{
-			warn($"province history names {unknownTerrains.Count} terrains that are not defined: " +
-				string.Join(", ", unknownTerrains));
-		}
-
 		// Two files for one province are read in path order and the later one's lines
 		// land on top. What the original does with them has not been established.
-		var doubled = new List<int>();
 		for (int id = 1; id < filesRead.Length; id++)
 		{
 			if (filesRead[id] > 1)
 			{
-				doubled.Add(id);
+				List<string> paths = filesOf[id];
+				for (int later = 1; later < paths.Count; later++)
+				{
+					warn(CDiagnostics.Located(paths[later], 0, $"province {id} has more than one history file; this one, " +
+						$"later in path order than '{paths[later - 1]}', was applied last"));
+				}
 			}
-		}
-		if (doubled.Count > 0)
-		{
-			warn($"{doubled.Count} provinces have more than one history file; the later file in path order " +
-				$"was applied last. First few: {string.Join(", ", doubled.GetRange(0, Math.Min(8, doubled.Count)))}");
 		}
 	}
 
-	/// <summary>Applies one province's folded history and returns how many building levels were unreadable.</summary>
-	private static int Apply(CProvince province, List<ClausewitzNode> entries, CCountries countries,
-		SortedSet<string> unknownTags, Dictionary<string, CTerrain> terrainByName,
-		SortedSet<string> unknownTerrains, Dictionary<string, CBuilding> buildingByKey, CFixedPoint nationalism,
-		List<(CCountryTag Taker, CCountryTag From)>? captures, SortedSet<string> unknownKeys, CBuilding? navalBase)
+	/// <summary>
+	/// Applies one province's folded history, handing each fault to <paramref name="report"/> with its line, and each
+	/// <c>strategic_resource</c> line's number to <paramref name="resourceLine"/>.
+	/// </summary>
+	private static void Apply(CProvince province, List<ClausewitzNode> entries, CCountries countries,
+		Dictionary<string, CTerrain> terrainByName, Dictionary<string, CBuilding> buildingByKey, CFixedPoint nationalism,
+		List<(CCountryTag Taker, CCountryTag From)>? captures, CBuilding? navalBase, Action<int, string> report,
+		Action<int>? resourceLine)
 	{
-		int badLevels = 0;
+		void Bad(ClausewitzNode entry) => report(entry.Line, $"'{entry.Key} = {entry.Value}' is not a number and was ignored");
 		foreach (ClausewitzNode entry in entries)
 		{
 			// A revolt carried out as a new game is entered: its type and size; the name and the leader are read and
@@ -841,7 +828,8 @@ public static class CGameStateLoader
 				{
 					if (part.Key is null || part.Value is null)
 					{
-						unknownKeys.Add($"revolt/{part.Key ?? part.Value ?? "{ }"}");
+						report(part.Line, $"'revolt/{part.Key ?? part.Value ?? "{ }"}' is no key of a province's and no " +
+							"building; passed over");
 						continue;
 					}
 					if (part.Key.Equals("type", StringComparison.OrdinalIgnoreCase))
@@ -855,7 +843,7 @@ public static class CGameStateLoader
 					else if (!part.Key.Equals("name", StringComparison.OrdinalIgnoreCase)
 						&& !part.Key.Equals("leader", StringComparison.OrdinalIgnoreCase))
 					{
-						unknownKeys.Add($"revolt/{part.Key}");
+						report(part.Line, $"'revolt/{part.Key}' is no key of a province's and no building; passed over");
 					}
 				}
 				continue;
@@ -867,7 +855,7 @@ public static class CGameStateLoader
 			}
 			if (entry.Value is null)
 			{
-				unknownKeys.Add($"{entry.Key} = {{ }}");
+				report(entry.Line, $"'{entry.Key} = {{ }}' is no key of a province's and no building; passed over");
 				continue;
 			}
 
@@ -881,7 +869,7 @@ public static class CGameStateLoader
 				}
 				else
 				{
-					badLevels++;
+					Bad(entry);
 				}
 				continue;
 			}
@@ -901,13 +889,14 @@ public static class CGameStateLoader
 				}
 				else
 				{
-					badLevels++;
+					Bad(entry);
 				}
 				continue;
 			}
 			if (entry.Key.Equals("strategic_resource", StringComparison.OrdinalIgnoreCase))
 			{
 				province.StrategicResource = entry.Value;        // checked against the list once all are read
+				resourceLine?.Invoke(entry.Line);
 				continue;
 			}
 			if (entry.Key.Equals("revolt_risk", StringComparison.OrdinalIgnoreCase))
@@ -920,7 +909,7 @@ public static class CGameStateLoader
 				}
 				else
 				{
-					badLevels++;
+					Bad(entry);
 				}
 				continue;
 			}
@@ -932,7 +921,7 @@ public static class CGameStateLoader
 				}
 				else
 				{
-					badLevels++;
+					Bad(entry);
 				}
 				continue;
 			}
@@ -951,7 +940,7 @@ public static class CGameStateLoader
 				}
 				else
 				{
-					badLevels++;
+					Bad(entry);
 				}
 				continue;
 			}
@@ -965,7 +954,7 @@ public static class CGameStateLoader
 				}
 				else
 				{
-					unknownTerrains.Add(entry.Value);
+					report(entry.Line, $"'{entry.Value}' is a terrain that is not defined");
 				}
 				continue;
 			}
@@ -978,18 +967,19 @@ public static class CGameStateLoader
 			bool isRemoveCore = entry.Key.Equals("remove_core", StringComparison.OrdinalIgnoreCase);
 			if (!isOwner && !isController && !isAddCore && !isRemoveCore)
 			{
-				unknownKeys.Add(entry.Key);
+				// Said, where nothing was: the original takes any key it does not name for a building's (clausewitz.md, 3).
+				report(entry.Line, $"'{entry.Key}' is no key of a province's and no building; passed over");
 				continue;
 			}
 
 			if (!CCountryTag.TryParse(entry.Value, out CCountryTag tag))
 			{
-				unknownTags.Add(entry.Value);
+				report(entry.Line, $"'{entry.Value}' is a country that is not defined");
 				continue;
 			}
 			if (countries.Find(tag) is null)
 			{
-				unknownTags.Add(tag.Value);
+				report(entry.Line, $"'{tag.Value}' is a country that is not defined");
 			}
 
 			if (isOwner)
@@ -1020,7 +1010,6 @@ public static class CGameStateLoader
 				province.Cores.Remove(tag);
 			}
 		}
-		return badLevels;
 	}
 
 	/// <summary>

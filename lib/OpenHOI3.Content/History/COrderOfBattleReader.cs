@@ -129,6 +129,7 @@ public static class COrderOfBattleReader
 			NameSubUnit = (owner, type) => CUnitNames.ForSubUnit(state, owner, type),
 		};
 		reading.StartAfter(state.LastUnitId);
+		reading.File = path;
 		var made = new List<CUnit>();
 		var toPlace = new List<ClausewitzNode>();
 		foreach (ClausewitzNode entry in Entries(root))
@@ -152,7 +153,7 @@ public static class COrderOfBattleReader
 				}
 				else
 				{
-					reading.Nowhere.Add($"{country.Tag} {unit.Name}");
+					reading.Add(entry.Line, NowhereReport(country, unit));
 				}
 			}
 			else if (ReadPairBlock(state, country, entry, reading))
@@ -179,7 +180,7 @@ public static class COrderOfBattleReader
 			else
 			{
 				// Said, where the original drops it: a building's line passed over so made an event do nothing unseen.
-				reading.UnknownKeys.Add(entry.Key);
+				reading.Add(entry.Line, $"'{entry.Key}' is a key that is not understood");
 			}
 		}
 		state.LastUnitId = reading.LastId;
@@ -187,14 +188,7 @@ public static class COrderOfBattleReader
 		{
 			ReadWaiting(state, country, toPlace, file, warn);
 		}
-		Report(warn, reading.UnknownKeys, $"keys in the order of battle {file} are not understood");
-		Report(warn, reading.BadNumbers, $"figures in the order of battle {file} are not numbers and were ignored");
-		Report(warn, reading.UnknownTypes, $"brigades in the order of battle {file} are of a type that is not defined and were left out");
-		Report(warn, reading.NoType, $"brigades in the order of battle {file} have no type and were left out");
-		Report(warn, reading.Nowhere, $"units at the top of the order of battle {file} have no location and were left out");
-		Report(warn, reading.BadLocations,
-			$"units in the order of battle {file} are in a province that does not exist and were put in province 1");
-		Report(warn, reading.UnknownLeaders, UnknownLeadersReport);
+		reading.Lines.ForEach(warn);
 		foreach (CUnit unit in made)
 		{
 			AddLent(unit, tag => state.Country(tag));
@@ -285,10 +279,11 @@ public static class COrderOfBattleReader
 			}
 			catch (IOException e)
 			{
-				warn($"{country.Tag}: could not read its order of battle '{path}': {e.Message}");
+				warn(CDiagnostics.Located(path, 0, $"could not read {country.Tag}'s order of battle: {e.Message}"));
 				continue;
 			}
 
+			reading.File = path;
 			foreach (ClausewitzNode entry in Entries(root))
 			{
 				if (entry.Key is null)
@@ -301,7 +296,7 @@ public static class COrderOfBattleReader
 					if (unit.Location == 0)
 					{
 						// A unit that is nowhere is read in full and then thrown away.
-						reading.Nowhere.Add($"{country.Tag} {unit.Name}");
+						reading.Add(entry.Line, NowhereReport(country, unit));
 					}
 					else
 					{
@@ -328,11 +323,11 @@ public static class COrderOfBattleReader
 				}
 				else if (CountryKeysNotApplied.Contains(entry.Key))
 				{
-					reading.NotApplied.Add(entry.Key);
+					reading.Add(entry.Line, $"'{entry.Key}' is a key of the country's own and is not applied from an order of battle");
 				}
 				else if (!ReadPairBlock(state, country, entry, reading))
 				{
-					reading.UnknownKeys.Add(entry.Key);
+					reading.Add(entry.Line, $"'{entry.Key}' is a key that is not understood");
 				}
 			}
 		}
@@ -351,14 +346,7 @@ public static class COrderOfBattleReader
 			}
 		}
 
-		Report(warn, reading.UnknownKeys, "keys in orders of battle are not understood");
-		Report(warn, reading.UnknownTypes, "brigades are of a type that is not defined and were left out");
-		Report(warn, reading.NoType, "brigades have no type and were left out");
-		Report(warn, reading.Nowhere, "units at the top of an order of battle have no location and were left out");
-		Report(warn, reading.BadLocations, "units are in a province that does not exist and were put in province 1");
-		Report(warn, reading.BadNumbers, "figures in orders of battle are not numbers and were ignored");
-		Report(warn, reading.NotApplied, "keys of the country's own in orders of battle are not applied from there");
-		Report(warn, reading.UnknownLeaders, UnknownLeadersReport);
+		reading.Lines.ForEach(warn);
 		return reading.LastId;
 	}
 
@@ -380,7 +368,7 @@ public static class COrderOfBattleReader
 			if (entry.Key is null && entry.Value is { Length: > 0 } word && !entry.IsQuoted && i + 1 < children.Count
 				&& children[i + 1] is { Key: null, IsBlock: true } unkeyed)
 			{
-				var keyed = new ClausewitzNode { Key = word };
+				var keyed = new ClausewitzNode { Key = word, Line = entry.Line };
 				keyed.Children.AddRange(unkeyed.Children);
 				yield return keyed;
 				i++;
@@ -404,21 +392,14 @@ public static class COrderOfBattleReader
 		{
 			return false;
 		}
-		Saves.CSaveStatus.Apply(state, CGameState.Status(country, other), entry, unknown => reading.UnknownKeys.Add($"{key}/{unknown}"));
+		// The save reader hands back only the key's name, so the fault is placed at the block it is in.
+		Saves.CSaveStatus.Apply(state, CGameState.Status(country, other), entry,
+			unknown => reading.Add(entry.Line, $"'{key}/{unknown}' is a key that is not understood"));
 		return true;
 	}
 
-	/// <summary>Ours: the original passes them over in silence.</summary>
-	private const string UnknownLeadersReport =
-		"leaders named in orders of battle are declared by no file and were passed over, as the original passes them over";
-
-	private static void Report(Action<string> warn, SortedSet<string> found, string what)
-	{
-		if (found.Count > 0)
-		{
-			warn($"{found.Count} {what}: {string.Join("; ", found)}");
-		}
-	}
+	private static string NowhereReport(CCountry country, CUnit unit) =>
+		$"{country.Tag}'s unit '{unit.Name}' at the top of the order of battle has no location and was left out";
 
 	/// <summary>A finished unit waiting to be placed, in the original's save keys.</summary>
 	private const string UnitDeployment = "unit_deployment";
@@ -579,7 +560,7 @@ public static class COrderOfBattleReader
 				}
 				else if (!ConstructionKeysNotKept.Contains(key))
 				{
-					UnknownKeys.Add($"{key} in a {block.Key}");
+					Add(entry.Line, $"'{key}' in a {block.Key} is not understood");
 				}
 			}
 
@@ -633,20 +614,28 @@ public static class COrderOfBattleReader
 				}
 				else if (!BrigadeOrderKeysNotKept.Contains(key))
 				{
-					UnknownKeys.Add($"{key} in a {block.Key} under construction");
+					Add(entry.Line, $"'{key}' in a {block.Key} under construction is not understood");
 				}
 			}
 			return order;
 		}
 
-		public SortedSet<string> UnknownKeys { get; } = new(StringComparer.OrdinalIgnoreCase);
-		public SortedSet<string> UnknownTypes { get; } = new(StringComparer.OrdinalIgnoreCase);
-		public SortedSet<string> NoType { get; } = new(StringComparer.OrdinalIgnoreCase);
-		public SortedSet<string> Nowhere { get; } = new(StringComparer.OrdinalIgnoreCase);
-		public SortedSet<string> BadLocations { get; } = new(StringComparer.OrdinalIgnoreCase);
-		public SortedSet<string> BadNumbers { get; } = new(StringComparer.OrdinalIgnoreCase);
-		public SortedSet<string> NotApplied { get; } = new(StringComparer.OrdinalIgnoreCase);
-		public SortedSet<string> UnknownLeaders { get; } = new(StringComparer.OrdinalIgnoreCase);
+		private readonly HashSet<string> _said = new(StringComparer.Ordinal);
+
+		/// <summary>The file being read, which each fault found from now on is placed in.</summary>
+		public string File { get; set; } = "";
+
+		/// <summary>What went wrong, each fault a line of its own at its file and line, once, in the order found (logs.md, section 4).</summary>
+		public List<string> Lines { get; } = new();
+
+		public void Add(int line, string message)
+		{
+			string located = CDiagnostics.Located(File, line, message);
+			if (_said.Add(located))
+			{
+				Lines.Add(located);
+			}
+		}
 
 		/// <summary>
 		/// The game's leaders, every file's, by number: a <c>leader</c> line naming none of them is passed over, leaving the
@@ -676,7 +665,7 @@ public static class COrderOfBattleReader
 				int index = Whole(block.Get("building")?.Value) - 1;
 				if (Buildings is null || index < 0 || index >= Buildings.Count)
 				{
-					UnknownKeys.Add($"a {block.Key} of no building known, left out");
+					Add(block.Get("building")?.Line ?? block.Line, $"a {block.Key} of no building known, left out");
 					return true;
 				}
 				line = new CConstruction(owner.Tag) { Building = Buildings[index] };
@@ -723,7 +712,7 @@ public static class COrderOfBattleReader
 					default:
 						if (!OtherLineKeysNotKept.Contains(entry.Key!))
 						{
-							UnknownKeys.Add($"{entry.Key} in a {block.Key}");
+							Add(entry.Line, $"'{entry.Key}' in a {block.Key} is not understood");
 						}
 						break;
 				}
@@ -758,7 +747,7 @@ public static class COrderOfBattleReader
 				}
 				else if (key.Equals("location", StringComparison.OrdinalIgnoreCase))
 				{
-					unit.Location = Province(entry.Value, $"{owner.Tag} {unit.Name}");
+					unit.Location = Province(entry, $"{owner.Tag} {unit.Name}");
 				}
 				else if (key.Equals("base", StringComparison.OrdinalIgnoreCase))
 				{
@@ -776,7 +765,9 @@ public static class COrderOfBattleReader
 					}
 					else
 					{
-						UnknownLeaders.Add($"{owner.Tag} {leader}");
+						// Ours: the original passes it over in silence.
+						Add(entry.Line, $"{owner.Tag}'s leader {leader} is declared by no file and was passed over, as the " +
+							"original passes him over");
 					}
 				}
 				else if (key.Equals("is_reserve", StringComparison.OrdinalIgnoreCase))
@@ -793,7 +784,7 @@ public static class COrderOfBattleReader
 				}
 				else if (!UnitKeysNotKept.Contains(key))
 				{
-					UnknownKeys.Add($"{key} in a {block.Key}");
+					Add(entry.Line, $"'{key}' in a {block.Key} is not understood");
 				}
 			}
 			// An air group aboard a carrier is based where the carrier's fleet is (transport.md, section 13.1); a
@@ -819,8 +810,15 @@ public static class COrderOfBattleReader
 			string typeKey = block.GetString("type");
 			if (!_unitTypes.TryGetValue(typeKey, out CSubUnitType? type))
 			{
-				(typeKey.Length == 0 ? NoType : UnknownTypes).Add(
-					typeKey.Length == 0 ? $"{owner.Tag} {block.GetString("name")}" : typeKey);
+				if (typeKey.Length == 0)
+				{
+					Add(block.Line, $"{owner.Tag}'s {keyword} '{block.GetString("name")}' has no type and was left out");
+				}
+				else
+				{
+					Add(block.Get("type")?.Line ?? block.Line,
+						$"'{typeKey}' is a brigade type that is not defined; the {keyword} was left out");
+				}
 				LastId++;                                        // it is numbered all the same
 				return;
 			}
@@ -892,7 +890,7 @@ public static class COrderOfBattleReader
 				}
 				else if (!SubUnitKeysNotKept.Contains(key))
 				{
-					UnknownKeys.Add($"{key} in a {keyword}");
+					Add(entry.Line, $"'{key}' in a {keyword} is not understood");
 				}
 			}
 			if (fromUnit && unit.IsReserve)
@@ -915,12 +913,12 @@ public static class COrderOfBattleReader
 			}
 		}
 
-		private int Province(string? text, string who)
+		private int Province(ClausewitzNode entry, string who)
 		{
-			int id = Whole(text);
+			int id = Whole(entry.Value);
 			if (id <= 0 || id >= _provinceCount)
 			{
-				BadLocations.Add($"{who} at {text}");
+				Add(entry.Line, $"'{who}' is at {entry.Value}, a province that does not exist, and was put in province 1");
 				return 1;
 			}
 			return id;
@@ -932,7 +930,7 @@ public static class COrderOfBattleReader
 			{
 				return value;
 			}
-			BadNumbers.Add($"{entry.Key} = {entry.Value}");
+			Add(entry.Line, $"'{entry.Key} = {entry.Value}' is not a number and was ignored");
 			return otherwise;
 		}
 

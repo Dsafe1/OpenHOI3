@@ -153,8 +153,10 @@ public class OrderOfBattleTests : IDisposable
 			""", leaders: leaders);
 
 		Assert.Equal(new[] { 77, 0, 77 }, country.Units.Select(unit => unit.LeaderId));
-		Assert.Contains(_warnings, warning => warning.StartsWith("2 leaders named in orders of battle")
-			&& warning.Contains("AAA 98") && warning.Contains("AAA 99"));
+		// Each at its own line (logs.md, section 4).
+		Assert.Contains(_warnings, warning => warning.EndsWith("a.txt:2: AAA's leader 99 is declared by no file and was passed " +
+			"over, as the original passes him over"));
+		Assert.Contains(_warnings, warning => warning.Contains("a.txt:3: AAA's leader 98"));
 	}
 
 	[Fact]
@@ -604,7 +606,7 @@ public class OrderOfBattleTests : IDisposable
 		Assert.Equal(1, construction.Size);                                 // a file's line builds one, whatever it says
 		Assert.Equal(CFixedPoint.FromInt(20), construction.Brigades[1].Experience);
 		Assert.Equal(new[] { 2, 1 }, construction.Brigades[1].Model);
-		Assert.Contains(_warnings, warning => warning.Contains("nonsense in a military_construction"));
+		Assert.Contains(_warnings, warning => warning.Contains("'nonsense' in a military_construction"));
 	}
 
 	[Fact]
@@ -974,10 +976,11 @@ public class OrderOfBattleTests : IDisposable
 			weather = fine
 			""");
 
-		string warning = Assert.Single(_warnings);
-		Assert.Contains("colour in a division", warning);
-		Assert.Contains("mood in a regiment", warning);
-		Assert.Contains("weather", warning);
+		// One line each, at its file and line (logs.md, section 4).
+		Assert.Equal(3, _warnings.Count);
+		Assert.EndsWith("a.txt:1: 'colour' in a division is not understood", _warnings[0]);
+		Assert.EndsWith("a.txt:1: 'mood' in a regiment is not understood", _warnings[1]);
+		Assert.EndsWith("a.txt:2: 'weather' is a key that is not understood", _warnings[2]);
 	}
 
 	[Fact]

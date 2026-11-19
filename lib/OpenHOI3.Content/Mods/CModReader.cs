@@ -116,7 +116,9 @@ public static class CModReader
 			}
 			if (selected.Any(m => m.Name == mod.Name))
 			{
-				warn($"'{match.VirtualPath}' is named '{mod.Name}' as an earlier mod is; the first is kept, as the original keeps it");
+				// The name's line is not kept with the mod, so the descriptor as a whole is named.
+				warn(CDiagnostics.Located(match.VirtualPath, 0,
+					$"the mod is named '{mod.Name}' as an earlier mod is; the first is kept, as the original keeps it"));
 				continue;
 			}
 			selected.Add(mod);
@@ -165,11 +167,15 @@ public static class CModReader
 		string? engine = null;
 		var replaced = new List<string>();
 		var dependencies = new List<string>();
+		// The lines of the path and archive that stand, the last given, for what is said of them.
+		int pathLine = 0;
+		int archiveLine = 0;
 		foreach (ClausewitzNode entry in root.Children)
 		{
 			if (entry.Key is null)
 			{
-				warn($"'{virtualPath}': {(entry.IsBlock ? "a block" : $"'{entry.Value}'")} with no key, which a .mod file does not hold; ignored");
+				warn(CDiagnostics.Located(virtualPath, entry.Line,
+					$"{(entry.IsBlock ? "a block" : $"'{entry.Value}'")} with no key, which a .mod file does not hold; ignored"));
 				continue;
 			}
 			if (entry.Key == "dependencies" && entry.IsBlock)
@@ -180,7 +186,7 @@ public static class CModReader
 			}
 			if (entry.Value is null)
 			{
-				warn($"'{virtualPath}': '{entry.Key}' is a block, which it is not in a .mod file; ignored");
+				warn(CDiagnostics.Located(virtualPath, entry.Line, $"'{entry.Key}' is a block, which it is not in a .mod file; ignored"));
 				continue;
 			}
 			// A key given twice keeps its last value, as the original keeps it; replace_path adds one each time.
@@ -191,9 +197,11 @@ public static class CModReader
 					break;
 				case "path":
 					path = entry.Value;
+					pathLine = entry.Line;
 					break;
 				case "archive":
 					archive = entry.Value;
+					archiveLine = entry.Line;
 					break;
 				case "user_dir":
 					userDir = entry.Value;
@@ -212,7 +220,8 @@ public static class CModReader
 				case "gamersgate_id":
 					break;
 				default:
-					warn($"'{virtualPath}': '{entry.Key}' {UnknownKeyNote} ({string.Join(", ", Keys)}); the original drops it");
+					warn(CDiagnostics.Located(virtualPath, entry.Line,
+						$"'{entry.Key}' {UnknownKeyNote} ({string.Join(", ", Keys)}); the original drops it"));
 					break;
 			}
 		}
@@ -228,17 +237,19 @@ public static class CModReader
 			folder = Path.GetFullPath(Path.Combine(gameRoot, path.Replace('/', Path.DirectorySeparatorChar)));
 			if (!Directory.Exists(folder))
 			{
-				warn($"'{virtualPath}': its path '{path}' is no folder of the install, so the mod lays nothing over it");
+				warn(CDiagnostics.Located(virtualPath, pathLine,
+					$"its path '{path}' is no folder of the install, so the mod lays nothing over it"));
 			}
 		}
 		if (archive.Length > 0)
 		{
-			warn($"'{virtualPath}': archive = \"{archive}\" is not read here; "
-				+ (folder is null ? "the mod lays nothing over the install" : "its path is laid over the install instead, where the original prefers the archive"));
+			warn(CDiagnostics.Located(virtualPath, archiveLine, $"archive = \"{archive}\" is not read here; "
+				+ (folder is null ? "the mod lays nothing over the install" : "its path is laid over the install instead, where the original prefers the archive")));
 		}
 		if (path.Contains('\\') && CModRules.BackslashedPathDisablesReplace && replaced.Count > 0)
 		{
-			warn($"'{virtualPath}': its path is written with a backslash, so its {replaced.Count} replace_path lines do nothing, as in the original");
+			warn(CDiagnostics.Located(virtualPath, pathLine,
+				$"its path is written with a backslash, so its {replaced.Count} replace_path lines do nothing, as in the original"));
 		}
 		return new CMod(name, Path.GetFullPath(file), virtualPath, folder, path.Length > 0 ? path : null, archive.Length > 0 ? archive : null,
 			userDir, replaced, dependencies, engine);

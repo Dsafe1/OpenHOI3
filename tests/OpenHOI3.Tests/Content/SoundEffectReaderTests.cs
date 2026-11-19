@@ -31,10 +31,15 @@ public class SoundEffectReaderTests
 	public void ANameIsLookedUpWithoutCaseAndTheFirstOfANameWins()
 	{
 		(Dictionary<string, CSoundEffect> sounds, List<string> warnings) =
-			Read("Click = { file = \"first.wav\" } click = { file = \"second.wav\" }");
+			Read("Click = { file = \"first.wav\" }\nclick = { file = \"second.wav\" volume = 3 echo = 1 }");
 
 		Assert.Equal("sound/first.wav", sounds["CLICK"].Path);
-		Assert.Single(warnings);
+		// Each at its file and line (logs.md, section 4).
+		Assert.Equal(new[]
+		{
+			"interface/sound.sfx:2: sound click: unknown key 'echo'",
+			"interface/sound.sfx:2: duplicate sound 'click', the first kept",
+		}, warnings);
 	}
 
 	[Fact]

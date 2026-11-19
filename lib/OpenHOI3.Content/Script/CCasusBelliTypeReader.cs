@@ -52,14 +52,17 @@ public static class CCasusBelliTypeReader
 	public static void ReadText(string text, List<CCasusBelliType> types, CScriptContext context)
 	{
 		var ranks = new Dictionary<string, int>(StringComparer.Ordinal);
+		// Where each name of the order and each type stands, for what is said of them (logs.md, section 4).
+		var orderLines = new Dictionary<string, int>(StringComparer.Ordinal);
+		var typeLines = new Dictionary<CCasusBelliType, int>();
 		ClausewitzNode? order = ClausewitzParser.Parse(text).Get("peace_order");
 		if (order is not null)
 		{
 			foreach (ClausewitzNode entry in order.Children)
 			{
-				if (entry.Value is { } name)
+				if (entry.Value is { } name && ranks.TryAdd(name, ranks.Count))
 				{
-					ranks.TryAdd(name, ranks.Count);
+					orderLines[name] = entry.Line;
 				}
 			}
 		}
@@ -68,7 +71,9 @@ public static class CCasusBelliTypeReader
 		{
 			if (!node.KeyIs("peace_order") && CEventReader.Block(node, context))
 			{
-				types.Add(ReadType(node, types.Count, context));
+				CCasusBelliType type = ReadType(node, types.Count, context);
+				types.Add(type);
+				typeLines[type] = node.Line;
 			}
 		}
 		foreach (CCasusBelliType type in types)
@@ -83,7 +88,7 @@ public static class CCasusBelliTypeReader
 			}
 			else
 			{
-				context.Problems.Add(EScriptProblem.Quirk, 0,
+				context.Problems.Add(EScriptProblem.Quirk, typeLines.GetValueOrDefault(type),
 					$"casus belli '{type.Name}' is not in peace_order; the original ranks it first, with nought");
 			}
 		}
@@ -92,7 +97,8 @@ public static class CCasusBelliTypeReader
 		{
 			if (!types.Exists(type => type.IsReal && type.Name == name))
 			{
-				context.Problems.Add(EScriptProblem.UnknownName, 0, $"peace_order names '{name}', which is no casus belli type");
+				context.Problems.Add(EScriptProblem.UnknownName, orderLines.GetValueOrDefault(name),
+					$"peace_order names '{name}', which is no casus belli type");
 			}
 		}
 	}

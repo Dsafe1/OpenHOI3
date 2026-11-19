@@ -43,7 +43,7 @@ public static class CBookmarkReader
 		}
 		catch (IOException e)
 		{
-			warn($"Could not read '{path}': {e.Message}");
+			warn(CDiagnostics.Located(path, 0, $"could not read the file: {e.Message}"));
 			return Array.Empty<CBookmark>();
 		}
 		return Parse(root, tag => countries.Find(tag) is not null, path, warn);
@@ -55,9 +55,10 @@ public static class CBookmarkReader
 		var bookmarks = new List<CBookmark>();
 		foreach (ClausewitzNode block in root.Children)
 		{
-			if (ReadOne(block, isCountry, warn) is not { } read)
+			if (ReadOne(block, isCountry, path, warn, out int failedAt) is not { } read)
 			{
-				warn($"Failed to read bookmark in {path}");
+				// The original's own words, at the key that ended the file.
+				warn(CDiagnostics.Located(path, failedAt, "Failed to read bookmark"));
 				break;
 			}
 			if (!read.IsCustom)
@@ -68,9 +69,14 @@ public static class CBookmarkReader
 		return bookmarks;
 	}
 
-	/// <summary>One top-level block as a bookmark, or null where a key of it is none of the seven.</summary>
-	private static (CBookmark Bookmark, bool IsCustom)? ReadOne(ClausewitzNode block, Func<CCountryTag, bool> isCountry, Action<string> warn)
+	/// <summary>
+	/// One top-level block as a bookmark, or null where a key of it is none of the seven - with
+	/// <paramref name="failedAt"/> the line of that key, or of the entry where it is no block.
+	/// </summary>
+	private static (CBookmark Bookmark, bool IsCustom)? ReadOne(ClausewitzNode block, Func<CCountryTag, bool> isCountry,
+		string path, Action<string> warn, out int failedAt)
 	{
+		failedAt = block.Line;
 		if (!block.IsBlock)
 		{
 			return null;
@@ -79,6 +85,7 @@ public static class CBookmarkReader
 		{
 			if (entry.Key is null || !Keys.Contains(entry.Key))
 			{
+				failedAt = entry.Line;
 				return null;
 			}
 		}
@@ -92,7 +99,7 @@ public static class CBookmarkReader
 			}
 			else
 			{
-				warn($"Bad tag {country.Value} in bookmark {name}");
+				warn(CDiagnostics.Located(path, country.Line, $"Bad tag {country.Value} in bookmark {name}"));
 			}
 		}
 		// year.month.day.hour, the hour nought where it is left out; a date that does not read is the calendar's start.

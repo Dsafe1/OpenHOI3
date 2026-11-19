@@ -628,7 +628,8 @@ public class MapLoadingTests : IDisposable
 		Assert.Equal("plains", state.Province(1).Terrain?.Name);   // the bitmap said forest
 		Assert.Equal("plains", state.Province(2).Terrain?.Name);   // no file, so the bitmap stands
 		Assert.Equal("plains", state.Province(3).Terrain?.Name);   // an unknown name changes nothing
-		Assert.Contains(_warnings, warning => warning.Contains("terrains that are not defined") && warning.Contains("swamp"));
+		// At its file and line (logs.md, section 4).
+		Assert.Contains(_warnings, warning => warning.EndsWith("3 - Gamma.txt:2: 'swamp' is a terrain that is not defined"));
 	}
 
 	// --- the start state ---
@@ -1005,9 +1006,12 @@ public class MapLoadingTests : IDisposable
 		Assert.Equal(new[] { "free_press", "full_civilian_economy" }, germany.Laws.Values.Select(law => law.Name).OrderBy(name => name, StringComparer.Ordinal));
 		// The history's 99 is nobody, and the post is filled from the pool as an empty one (politics.md, section 7).
 		Assert.NotEqual(99, germany.Government["head_of_state"].Id);
-		Assert.Contains(_warnings, warning => warning.Contains("economic_law = planned_economy"));
-		Assert.Contains(_warnings, warning => warning.Contains("1 positions with ministers the country does not declare"));
-		Assert.Contains(_warnings, warning => warning.Contains("1 ministers hold a position"));   // The Clerk at armaments
+		// Each at its file and line (logs.md, section 4).
+		Assert.Contains(_warnings, warning => warning.EndsWith("GER - Germany.txt:2: 'economic_law = planned_economy' is a law that is not defined"));
+		Assert.Contains(_warnings, warning => warning.EndsWith("GER - Germany.txt:3: 'head_of_state = 99' fills the position with a " +
+			"minister the country does not declare"));
+		Assert.Contains(_warnings, warning => warning.Contains("GER - Germany.txt:4: 'armament_minister = 3': the minister holds a " +
+			"position"));   // The Clerk at armaments
 		Assert.Contains(_warnings, warning => warning.Contains("there is no country 'XYZ'"));
 		Assert.Contains(_warnings, warning => warning.Contains("does not start with a country tag"));
 	}
@@ -1176,7 +1180,8 @@ public class MapLoadingTests : IDisposable
 		CGameState state = LoadStart();
 
 		Assert.Equal(CFixedPoint.Zero, state.Province(1).BuildingLevel(state.Buildings[1]));
-		Assert.Contains(_warnings, warning => warning.Contains("1 building levels and amounts"));
+		// At its file and line (logs.md, section 4).
+		Assert.Contains(_warnings, warning => warning.EndsWith("1 - Alpha.txt:2: 'industry = lots' is not a number and was ignored"));
 	}
 
 	[Fact]
@@ -1202,7 +1207,8 @@ public class MapLoadingTests : IDisposable
 		Assert.Equal("GER", state.Province(2).Owner?.Value);  // east/ sorts after asia/
 		// A change of owner takes control first, as the original's does (occupation.md, section 5).
 		Assert.Equal("GER", state.Province(2).Controller?.Value);
-		Assert.Contains(_warnings, warning => warning.Contains("1 provinces have more than one history file"));
+		// Said of the file applied last (logs.md, section 4).
+		Assert.Contains(_warnings, warning => warning.Contains("2 - Later.txt: province 2 has more than one history file"));
 	}
 
 	[Fact]
@@ -1461,7 +1467,8 @@ public class MapLoadingTests : IDisposable
 		Write("history/countries/GER - Germany.txt", "capital = 1\nmoney = plenty");
 		LoadStart();
 
-		Assert.Contains(_warnings, warning => warning.Contains("1 amounts in country history"));
+		// At its file and line (logs.md, section 4).
+		Assert.Contains(_warnings, warning => warning.EndsWith("GER - Germany.txt:2: 'money = plenty' is not a number and was ignored"));
 	}
 
 	// --- research ---
@@ -1612,7 +1619,8 @@ public class MapLoadingTests : IDisposable
 
 		Assert.Equal("gold", state.Province(1).StrategicResource);
 		Assert.Equal("", state.Province(3).StrategicResource);
-		Assert.Contains(_warnings, warning => warning.Contains("strategic resources that are not defined") && warning.Contains("unobtainium"));
+		// At the history line that named it, found after every file is read (logs.md, section 4).
+		Assert.Contains(_warnings, warning => warning.EndsWith("3 - Gamma.txt:3: 'unobtainium' is a strategic resource that is not defined"));
 
 		// Nobody has the use of a resource until a day has been run. Then: five IC at
 		// 0.05, and a third more for the gold - each with the 5% of the workhorse the empty head of state's post is

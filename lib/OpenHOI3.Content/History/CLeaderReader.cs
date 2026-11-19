@@ -33,6 +33,7 @@ public static class CLeaderReader
 			traits.TryAdd(trait.Key, trait);
 		}
 		var problems = new Problems();
+		var firstRead = new Dictionary<int, string>();
 		foreach (string path in directories.ListFiles(LeaderDirectory, "*.txt"))
 		{
 			ClausewitzNode root;
@@ -42,30 +43,38 @@ public static class CLeaderReader
 			}
 			catch (Exception e) when (e is IOException or InvalidDataException)
 			{
-				warn($"Could not read '{path}': {e.Message}");
+				warn(CDiagnostics.Located(path, 0, $"could not read the file: {e.Message}"));
 				continue;
 			}
+			problems.File = path;
 			foreach (ClausewitzNode block in root.Children)
 			{
 				if (block.Key is null || !block.IsBlock || !int.TryParse(block.Key, out int id))
 				{
 					// Said, where it was passed over: a leader is a number and a block (clausewitz.md, section 3).
-					problems.UnknownKeys.Add($"{block.Key ?? block.Value} (no leader: a number and a block)");
+					string what = block.Key ?? block.Value ?? "";
+					problems.UnknownKeys.Add($"{what} (no leader: a number and a block)");
+					problems.Add(block.Line, $"'{what}' is no leader: a number and a block");
 					continue;
 				}
 				CLeader leader = Read(block, id, traits, start, problems);
 				if (!state.Leaders.TryAdd(id, leader))
 				{
 					problems.Duplicates.Add(id);
+					problems.Add(block.Line, $"the leader {id} is numbered twice; the first read, at {firstRead[id]}, stands");
 					continue;
 				}
+				firstRead[id] = block.Line > 0 ? $"{path}:{block.Line}" : path;
 				if (leader.Country is { } tag && state.Country(tag) is { } country)
 				{
 					country.Leaders.Add(leader);
 				}
 				else
 				{
-					problems.UnknownCountries.Add(leader.Country?.Value ?? "(none)");
+					string named = leader.Country?.Value ?? "(none)";
+					problems.UnknownCountries.Add(named);
+					ClausewitzNode? given = block.Get("country");
+					problems.Add(given?.Line ?? block.Line, $"the leader {id} is given to '{named}', a country that is not defined");
 				}
 			}
 		}
@@ -99,7 +108,8 @@ public static class CLeaderReader
 						"sea" => ELeaderType.Sea,
 						"air" => ELeaderType.Air,
 						"land" => ELeaderType.Land,
-						_ => Unknown(problems, $"type {entry.Value}", ELeaderType.Land),
+						_ => Unknown(problems, entry, $"type {entry.Value}", $"type '{entry.Value}' is not understood; read as land",
+							ELeaderType.Land),
 					};
 					break;
 				case "skill":
@@ -126,7 +136,7 @@ public static class CLeaderReader
 					break;
 				case "add_trait":
 				case "trait":
-					AddTrait(leader, entry.Value, traits, problems);
+					AddTrait(leader, entry, traits, problems);
 					break;
 				case "history":
 					history = entry;
@@ -138,6 +148,7 @@ public static class CLeaderReader
 					break;
 				default:
 					problems.UnknownKeys.Add(key);
+					problems.Add(entry.Line, $"'{entry.Key ?? entry.Value}' is a key nothing reads");
 					break;
 			}
 		}
@@ -175,7 +186,7 @@ public static class CLeaderReader
 					leader.Loyalty = Number(entry.Value);
 					break;
 				case "add_trait":
-					AddTrait(leader, entry.Value, traits, problems);
+					AddTrait(leader, entry, traits, problems);
 					break;
 				case "remove_trait":
 					if (entry.Value is not null && traits.TryGetValue(entry.Value, out CTrait? gone))
@@ -188,13 +199,16 @@ public static class CLeaderReader
 					break;
 				default:
 					problems.UnknownKeys.Add($"history {entry.Key}");
+					problems.Add(entry.Line, $"history: '{entry.Key ?? entry.Value}' is a key nothing reads");
 					break;
 			}
 		}
 	}
 
-	private static void AddTrait(CLeader leader, string? name, IReadOnlyDictionary<string, CTrait> traits, Problems problems)
+	private static void AddTrait(CLeader leader, ClausewitzNode entry, IReadOnlyDictionary<string, CTrait> traits,
+		Problems problems)
 	{
+		string? name = entry.Value;
 		if (name is not null && traits.TryGetValue(name, out CTrait? trait))
 		{
 			// Whether the trait is meant for his kind is not asked here, as in the original.
@@ -203,12 +217,14 @@ public static class CLeaderReader
 		else
 		{
 			problems.UnknownTraits.Add(name ?? "");
+			problems.Add(entry.Line, $"'{name ?? ""}' is a trait that is not defined");
 		}
 	}
 
-	private static T Unknown<T>(Problems problems, string what, T fallback)
+	private static T Unknown<T>(Problems problems, ClausewitzNode entry, string what, string message, T fallback)
 	{
 		problems.UnknownKeys.Add(what);
+		problems.Add(entry.Line, message);
 		return fallback;
 	}
 
@@ -222,33 +238,39 @@ public static class CLeaderReader
 		return CFixedPoint.TryParse(text, out CFixedPoint value) ? value : CFixedPoint.Zero;
 	}
 
-	/// <summary>What the files got wrong, said once for the lot.</summary>
+	/// <summary>
+	/// What the files got wrong: each kind gathered by name, and each fault a line of its own at its file and line
+	/// (<c>docs/mechanics/logs.md</c>, section 4), said in the order found.
+	/// </summary>
 	public sealed class Problems
 	{
+		private readonly HashSet<string> _said = new(StringComparer.Ordinal);
+
 		public SortedSet<string> UnknownKeys { get; } = new(StringComparer.OrdinalIgnoreCase);
 		public SortedSet<string> UnknownTraits { get; } = new(StringComparer.OrdinalIgnoreCase);
 		public SortedSet<string> UnknownCountries { get; } = new(StringComparer.OrdinalIgnoreCase);
 		public SortedSet<int> Duplicates { get; } = new();
 
+		/// <summary>The file being read, which each fault found from now on is placed in.</summary>
+		public string File { get; set; } = "";
+
+		/// <summary>Each fault as its line of the validation log, once.</summary>
+		public List<string> Lines { get; } = new();
+
+		public void Add(int line, string message)
+		{
+			string located = CDiagnostics.Located(File, line, message);
+			if (_said.Add(located))
+			{
+				Lines.Add(located);
+			}
+		}
+
 		public void Report(Action<string> warn)
 		{
-			if (UnknownKeys.Count > 0)
+			foreach (string line in Lines)
 			{
-				warn($"'{LeaderDirectory}' uses {UnknownKeys.Count} keys nothing reads: {string.Join(", ", UnknownKeys)}");
-			}
-			if (UnknownTraits.Count > 0)
-			{
-				warn($"'{LeaderDirectory}' names {UnknownTraits.Count} traits that are not defined: {string.Join(", ", UnknownTraits)}");
-			}
-			if (UnknownCountries.Count > 0)
-			{
-				warn($"'{LeaderDirectory}' gives leaders to {UnknownCountries.Count} countries that are not defined: " +
-					string.Join(", ", UnknownCountries));
-			}
-			if (Duplicates.Count > 0)
-			{
-				warn($"'{LeaderDirectory}' numbers {Duplicates.Count} leaders twice; the first read stands: " +
-					string.Join(", ", Duplicates));
+				warn(line);
 			}
 		}
 	}

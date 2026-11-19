@@ -119,8 +119,6 @@ public static class CWarReader
 		var standingEarly = new List<CWar>();
 		var endedLate = new List<CWar>();
 		CDate early = definesStart is { } defines && defines.CompareTo(date) < 0 ? defines : date;
-		var unknownKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		var unknownTags = new SortedSet<string>(StringComparer.Ordinal);
 
 		foreach (string file in directories.ListFiles(WarsDirectory, "*.txt"))
 		{
@@ -131,7 +129,7 @@ public static class CWarReader
 			}
 			catch (IOException e)
 			{
-				warn($"Could not read '{file}': {e.Message}");
+				warn(CDiagnostics.Located(file, 0, $"could not read the file: {e.Message}"));
 				continue;
 			}
 
@@ -157,12 +155,12 @@ public static class CWarReader
 				};
 				if (side is null)
 				{
-					unknownKeys.Add(entry.Key);
+					warn(CDiagnostics.Located(file, entry.Line, $"'{entry.Key}' is a key that is not understood"));
 					continue;
 				}
 				if (!CCountryTag.TryParse(entry.Value, out CCountryTag tag) || countries.Find(tag) is null)
 				{
-					unknownTags.Add(entry.Value ?? "");
+					warn(CDiagnostics.Located(file, entry.Line, $"'{entry.Value ?? ""}' is a country that is not defined"));
 					continue;
 				}
 
@@ -199,15 +197,6 @@ public static class CWarReader
 		}
 		wars.InsertRange(0, standingEarly);
 		finished?.AddRange(endedLate);
-
-		if (unknownKeys.Count > 0)
-		{
-			warn($"war history has {unknownKeys.Count} keys that are not understood: {string.Join(", ", unknownKeys)}");
-		}
-		if (unknownTags.Count > 0)
-		{
-			warn($"war history names {unknownTags.Count} countries that are not defined: {string.Join(", ", unknownTags)}");
-		}
 		return wars;
 	}
 
@@ -279,13 +268,13 @@ public static class CWarReader
 				{
 					if (part.Key is null || !GoalKeys.Contains(part.Key))
 					{
-						CDiagnostics.Problem($"'{file}': war_goal: '{part.Key ?? part.Value}' is no key of a war goal; passed over");
+						CDiagnostics.Problem(file, part.Line, $"war_goal: '{part.Key ?? part.Value}' is no key of a war goal; passed over");
 					}
 				}
 				if (!CCountryTag.TryParse(entry.GetString("actor"), out CCountryTag actor)
 					|| !CCountryTag.TryParse(entry.GetString("receiver"), out CCountryTag receiver))
 				{
-					CDiagnostics.Problem($"'{file}': a war_goal's actor '{entry.GetString("actor")}' or receiver " +
+					CDiagnostics.Problem(file, entry.Line, $"a war_goal's actor '{entry.GetString("actor")}' or receiver " +
 						$"'{entry.GetString("receiver")}' is no country's tag; the goal is left off");
 					continue;
 				}
@@ -297,12 +286,13 @@ public static class CWarReader
 				};
 				if (regionName.Length > 0 && goal.Region is null)
 				{
-					CDiagnostics.Problem($"'{file}': a war_goal's region '{regionName}' is no region; the goal has none");
+					CDiagnostics.Problem(file, entry.Get("region")?.Line ?? entry.Line,
+						$"a war_goal's region '{regionName}' is no region; the goal has none");
 				}
 				if (!goal.Type.IsReal)
 				{
-					CDiagnostics.Problem($"'{file}': a war_goal's casus_belli '{entry.GetString("casus_belli")}' is no casus " +
-						"belli type; the goal is left off");
+					CDiagnostics.Problem(file, entry.Get("casus_belli")?.Line ?? entry.Line,
+						$"a war_goal's casus_belli '{entry.GetString("casus_belli")}' is no casus belli type; the goal is left off");
 					continue;
 				}
 				if (!CCasusBellis.IsValid(state, actor, receiver, goal.Type))

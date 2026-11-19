@@ -102,7 +102,7 @@ public static class CScriptNamesReader
 		string path = directories.Resolve(gameRelative);
 		if (!File.Exists(path))
 		{
-			warn($"script cannot check {kind} names: '{path}' is missing");
+			warn(CDiagnostics.Located(path, 0, $"is missing; script cannot check {kind} names"));
 			return;
 		}
 		foreach (ClausewitzNode block in ClausewitzParser.ParseFile(path).Children)
@@ -123,7 +123,7 @@ public static class CScriptNamesReader
 		string path = directories.Resolve("common/ideologies.txt");
 		if (!File.Exists(path))
 		{
-			warn($"script cannot check ideologies: '{path}' is missing");
+			warn(CDiagnostics.Located(path, 0, "is missing; script cannot check ideologies"));
 			return;
 		}
 		foreach (ClausewitzNode group in ClausewitzParser.ParseFile(path).Children)
