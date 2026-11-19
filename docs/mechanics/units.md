@@ -231,8 +231,13 @@ read**, as the new game is entered, in the order it joined the country's list - 
 group as its block closes, a unit at the top of the file as it is added: its level's pattern with
 the first free number, `$TYPE$` its first brigade's - `AIR_NAME`, `1st Air wing` - and never a
 list. So a name anywhere in the file can take a group's number, and the two numbers are two
-searches over two texts, agreeing while each group holds one wing. Only a new game names; a save
-and `load_oob` leave a unit as it is, so an unnamed group `load_oob` brings stays unnamed.
+searches over two texts, agreeing while each group holds one wing. Only a new game names a unit;
+a save and `load_oob` leave a unit as it is, so an unnamed group `load_oob` brings stays unnamed.
+**A ship or a wing is named all the same in `load_oob`**: the effect reads its file through the
+country's own loader and so through `CUnit::LoadKey`, whose `ship` and `wing` cases do the naming
+(`reversing/findings/FINDINGS-oob.md`, "An OOB file is a piece of a country's save block"). BlackICE's
+`GER_Hessen.txt` gives its torpedo boat no name, and in the original it takes the next free one of
+Germany's list - seen in play, 2026-11-19; here it was left with none until then.
 `confirmed` (`reversing/findings/FINDINGS-unitstart.md`, section 6a), and measured: the 24 air
 groups aboard carriers and their wings are the save's, 24 of 24 - BlackICE's `AIR_NAME` gives
 `1st CAG Air wing`. The ordinal is the one of `builders.md`, section 8, `111st` and all.
@@ -514,7 +519,7 @@ hourly return of organisation were on this list until 2026-10-08. They are built
 
 ## A file of units as a game runs
 
-`load_oob` reads a file under `history/units` into the scope's country [exe]: nothing where the name is empty, or where the country owns no land and is not the rebels. Its units are on the map at once at the file's `location`, and one with no location is left out. Numbers follow the game's last. Each brigade takes what the file gives, held to its ceiling as it stands now; **experience the file does not give is not filled in**, and a unit with no `leader` line has no leader, where a new game fills both [exe]. `reversing/findings/FINDINGS-scriptgaps.md`, section 6.
+`load_oob` reads a file under `history/units` into the scope's country [exe]: nothing where the name is empty, or where the country owns no land and is not the rebels. Its units are on the map at once at the file's `location`, and one with no location is left out. Numbers follow the game's last. A ship or a wing with no name takes one as in a new game, and every name read is the country's from then on (section 3, *Names*); a unit with no name keeps none. Each brigade takes what the file gives, held to its ceiling as it stands now; **experience the file does not give is not filled in**, and a unit with no `leader` line has no leader, where a new game fills both [exe]. `reversing/findings/FINDINGS-scriptgaps.md`, section 6.
 
 **A `military_construction` in such a file** - built 2026-11-16, read in `FINDINGS-scriptgaps.md`, section 6, and
 `FINDINGS-buildqueue.md`, sections 1 and 10 - goes **on the end of the country's build queue as the file gives it** [exe]:

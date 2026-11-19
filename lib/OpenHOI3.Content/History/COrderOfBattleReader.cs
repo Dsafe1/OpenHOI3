@@ -120,9 +120,13 @@ public static class COrderOfBattleReader
 			return;
 		}
 		ClausewitzNode root = ClausewitzParser.ParseFile(path);
+		// A ship or a wing the file leaves unnamed is named as its block closes, and every name read is the country's from
+		// then on, as in a new game's reading: the same unit loader reads both (units.md, section 3). A unit's own name is
+		// not given here - only a new game's entering gives it.
 		var reading = new CReading(state.SubUnitTypes, state.Technologies, state.Provinces.Count)
 		{
 			Leaders = state.Leaders, Buildings = state.Buildings,
+			NameSubUnit = (owner, type) => CUnitNames.ForSubUnit(state, owner, type),
 		};
 		reading.StartAfter(state.LastUnitId);
 		var made = new List<CUnit>();

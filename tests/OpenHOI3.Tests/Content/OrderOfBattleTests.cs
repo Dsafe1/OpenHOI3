@@ -658,6 +658,44 @@ public class OrderOfBattleTests : IDisposable
 	}
 
 	[Fact]
+	public void AShipNobodyNamedInAFileReadAsAGameRunsTakesTheNextFreeNameOfItsCountrysList()
+	{
+		Dictionary<string, CSubUnitType> types = Types();
+		Dictionary<string, CTechnology> technologies = Technologies(types);
+		CCountries countries = ReadModels(types, technologies);
+		CCountry a = countries.Find("AAA")!;
+		a.UnitNames["flat_top"] = new List<string> { "Taken", "Hessen", "Next" };
+		a.UnitNamesInUse.Add("Taken");
+		var provinces = new List<OpenHOI3.Sim.Provinces.CProvince>();
+		for (int id = 0; id < 10; id++)
+		{
+			provinces.Add(new OpenHOI3.Sim.Provinces.CProvince(id, $"p{id}", isSea: false));
+		}
+		var state = new CGameState(new CDate(1939, 2, 1), provinces, countries.Declared, technologies: technologies.Values)
+		{
+			SubUnitTypes = types,
+			LastUnitId = 40,
+		};
+		Write("history/units/hessen.txt", """
+			navy = {
+				name = "Hessen"
+				base = 1
+				location = 1
+				ship = { type = flat_top name = "Hessen" historical_model = 0 }
+				ship = { type = flat_top historical_model = 0 }
+			}
+			""");
+
+		COrderOfBattleReader.ReadInto(Directories, state, a, "hessen.txt", _warnings.Add);
+
+		// "Taken" is in use and "Hessen" was registered as the first ship was read, so the second takes "Next".
+		CUnit fleet = a.Units.Single();
+		Assert.Equal(new[] { "Hessen", "Next" }, fleet.SubUnits.Select(ship => ship.Name));
+		Assert.Contains("Next", a.UnitNamesInUse);
+		Assert.Empty(_warnings);
+	}
+
+	[Fact]
 	public void AUnitWaitingToBePlacedInAFileReadAsAGameRunsGoesOnTheDeployList()
 	{
 		Dictionary<string, CSubUnitType> types = Types();
