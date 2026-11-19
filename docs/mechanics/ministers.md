@@ -128,6 +128,16 @@ precision, `production.md`'s needs; **the lend-lease figure always 0**, the lend
 anyone, **`BalanceLendLeaseSliders(ai, country, tags, values)`** then follows. A Lua error is reported and skips the rest
 of that country's day, the lend-lease call with it. What they post counts from the next day's shares.
 
+`confirmed` **The supply need is handed over in its 15 binary places, not cut to thousandths** [exe]: the setting's need
+is a 48.15 number taken as it stands (`FINDINGS-ministers.md` B.2; `upkeep.md`, section 8), and so is what a script's
+`GetNeeded()` answers for the supply setting. Until 2026-11-19 ours cut it to thousandths first, which lost up to a
+thousandth of IC - half a per cent of a two-IC country's supply share. *Measured* with `firstdays` against the start
+saves: the AI's written `distribution` is the save's for 60 of 78 countries in Their Finest Hour (36 before) and 52 of 80 in
+BlackICE (32 before); given the save's mud and frost in place of a new game's own weather, 73 of 78 and 67 of 80. So what
+is left is mostly **a new game's weather**, which is drawn afresh and puts its mud elsewhere than the original's did:
+mud raises the loss in the carriage the supply need carries (`supply.md`, section 11), and BlackICE's
+`MUDDYNESSSUPPLYTAXMODIFIER` of 0.9 against the base game's 0.25 makes it count nearly four times as much there.
+
 `confirmed` **It is that country's own day, before the later countries' days** [exe]: the countries' days run one after
 another, the whole of one before the next (`tick.md`, section 3), and a trade route is exchanged in its `from`'s day - so
 the supply need's `traded_for` and `traded_away` hold what the countries before it and its own day traded, and nothing of

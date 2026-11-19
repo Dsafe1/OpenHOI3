@@ -61,10 +61,15 @@ public static class CDistributionSettingClass
 
 	/// <summary>
 	/// What the share wants, the slider's need: lend-lease, officers and espionage nought, the rest as the slider works it
-	/// (<c>sliders.md</c>, section 2), thousandths turned to the second kind of number toward nought as the original does.
+	/// (<c>sliders.md</c>, section 2), thousandths turned to the second kind of number toward nought as the original does -
+	/// but supplies' as the original keeps it, never cut to thousandths (<c>upkeep.md</c>, section 8).
 	/// </summary>
 	public static CFixed15 Needed(CGameState state, CLuaDistributionSetting setting)
 	{
+		if (!setting.IsLeadership && (EProductionCategory)setting.Index == EProductionCategory.Supplies)
+		{
+			return CProduction.SuppliesNeededExactly(state, setting.Country);
+		}
 		CFixedPoint need = setting.IsLeadership
 			? CLeadership.Needed(state, setting.Country, (ELeadershipCategory)setting.Index)
 			: CProduction.Needed(state, setting.Country, (EProductionCategory)setting.Index);

@@ -415,7 +415,10 @@ traded for and tribute; here the only trade is what a country pays a friend for 
 the friend's depots, and that is added and taken off the same way. There is no tribute.
 What the units asked for also carries **the carriage out to the country's provinces** -
 each it holds with a unit in it adds its hops to its depot times a load's loss there
-(`supply.md`, section 11).
+(`supply.md`, section 11). **The need is a number of 15 binary places**: the three goods are each turned
+into it from thousandths, added and divided in it, and it is **not cut to thousandths** where it is used
+- the AI's daily sliders and a script's `GetNeeded()` take it as it stands (`ministers.md`, section 5);
+only what is shown is cut (`CProduction.SuppliesNeededExactly`, `SuppliesNeeded`).
 
 **On the first screen** (`confirmed`, read 2026-11-15; `reversing/findings/FINDINGS-laterstart.md`,
 section 18): the three needs are **the second day's**, at every start. What the units asked for is

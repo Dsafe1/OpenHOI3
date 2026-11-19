@@ -422,7 +422,11 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		float ic = country.TotalIc;
 		object Need(EProductionCategory category)
 		{
-			float share = CProduction.Needed(state, country, category).Raw / 1000f / ic;
+			// The supply need as the original keeps it, in 15 binary places; the others are kept in thousandths.
+			float need = category == EProductionCategory.Supplies
+				? (float)(CProduction.SuppliesNeededExactly(state, country).Raw / (double)(1 << CFixed15.Places))
+				: CProduction.Needed(state, country, category).Raw / 1000f;
+			float share = need / ic;
 			return (double)(share > 0 ? share : 0f);
 		}
 		try

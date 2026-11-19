@@ -286,6 +286,19 @@ public class UpkeepTests
 		Assert.InRange(need.Raw, 9998, 10001);
 	}
 
+	[Fact]
+	public void TheSupplyNeedTheAiIsHandedKeepsItsBinaryPlaces()
+	{
+		CCountry country = Country();
+		CGameState state = State(country);
+		country.UnitDemand[EGoods.Supplies] = CFixedPoint.Parse("1.4");
+
+		// 1.4 is 45875 32768ths, over 7 is 6553 of them: 0.19998, which thousandths cut to 0.199 - a whole thousandth of IC
+		// that moved a small country's supply share by half a per cent, Libya's of 1 January 1936 among them.
+		Assert.Equal(6553, CProduction.SuppliesNeededExactly(state, country).Raw);
+		Assert.Equal(CFixedPoint.Parse("0.199"), CProduction.SuppliesNeeded(state, country));
+	}
+
 	// ---- rotation
 
 	[Fact]

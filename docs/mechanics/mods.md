@@ -335,7 +335,12 @@ original's table's.
 rule of the day - `supplypass ... country=ENG` and `country=HOL` give each country's day the save's but for its
 supplies share, Britain's 0.087 to the save's 0.04202, the Netherlands' 0.049 to its 0.20419, the other shares to the
 fifth place; what makes and uses supplies agrees with the save's figures under each. So they wait on BlackICE's
-production minister in Lua, the AI's side. What also stays open: the manpower of Ethiopia and China Yunnan
+production minister in Lua, the AI's side. **That side, 2026-11-19**: the supply need the script is handed is the
+original's 15-binary-place figure, no longer cut to thousandths (`ministers.md`, section 5), and the written `distribution`
+is the save's for 52 of 80 countries where it was 32, the start's supply stockpiles 43 of 79 as before. What is left
+is mostly a new game's weather, drawn afresh with its mud elsewhere: given the save's mud and frost before the two days,
+67 of 80 shares and 51 of 79 supply stockpiles, the Netherlands' supply share 0.20410 to the save's 0.20419. Britain's
+supply stockpile, 163 above the save's, stays open, and with it its share, which the stockpile weighs. What also stays open: the manpower of Ethiopia and China Yunnan
 (`manpower.md`, *not established*), and 432 brigades' organisation a thousandth off - each country's one way, which a
 single rule of rounding a positive figure would not give, and so not chased without a reading.
 

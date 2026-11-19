@@ -204,25 +204,35 @@ public static class CProduction
 		}
 	}
 
-	/// <summary>The IC that would make the supplies the country's units asked for today.</summary>
+	/// <summary>The IC that would make the supplies the country's units asked for today, cut to thousandths.</summary>
 	public static CFixedPoint SuppliesNeeded(CGameState state, CCountry country)
 	{
-		// What it pays a friend for its units on the friend's depots it has to make too,
-		// and what it is paid it need not.
-		CFixed15 asked = CFixed15.FromThousandths(country.UnitDemand[EGoods.Supplies]
-			+ country.TradedAway[EGoods.Supplies] - country.TradedFor[EGoods.Supplies]);
+		return SuppliesNeededExactly(state, country).ToThousandths();
+	}
+
+	/// <summary>
+	/// The supply share's need as the original keeps it, in its 15 binary places and not cut to thousandths: what the AI's
+	/// <c>BalanceProductionSliders</c> is handed (<c>upkeep.md</c>, section 8).
+	/// </summary>
+	public static CFixed15 SuppliesNeededExactly(CGameState state, CCountry country)
+	{
+		// What it pays a friend for its units on the friend's depots it has to make too, and what it is paid it need not:
+		// each turned into 15 binary places before they are added.
+		CFixed15 asked = CFixed15.FromThousandths(country.UnitDemand[EGoods.Supplies])
+			+ CFixed15.FromThousandths(country.TradedAway[EGoods.Supplies])
+			- CFixed15.FromThousandths(country.TradedFor[EGoods.Supplies]);
 		if (asked <= CFixed15.Zero)
 		{
-			return CFixedPoint.Zero;
+			return CFixed15.Zero;
 		}
 		CFixedPoint bonus = country.Modifier[GlobalSupplies] + country.Technology[TechnologySupplies];
 		CFixed15 perIc = CFixed15.FromThousandths(state.Defines[CResources.EconomySection, IcToSupplies])
 			* (CFixed15.FromThousandths(bonus) + CFixed15.One);
 		if (perIc <= CFixed15.Zero)
 		{
-			return CFixedPoint.Zero;
+			return CFixed15.Zero;
 		}
-		return new CFixed15((asked.Raw << CFixed15.Places) / perIc.Raw).ToThousandths();
+		return new CFixed15((asked.Raw << CFixed15.Places) / perIc.Raw);
 	}
 
 	/// <summary>
