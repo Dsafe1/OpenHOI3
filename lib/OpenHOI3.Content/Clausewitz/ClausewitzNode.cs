@@ -23,6 +23,12 @@ public sealed class ClausewitzNode
 	/// <summary>Whether the value was written in quotes, which an interface file's <c>format</c> cares about.</summary>
 	public bool IsQuoted { get; init; }
 
+	/// <summary>
+	/// The line of the file the entry begins on, counted from one - its key's, or a bare value's own - for a report of a
+	/// fault in it (<c>docs/mechanics/logs.md</c>, section 4); nought for a node not read from a text.
+	/// </summary>
+	public int Line { get; init; }
+
 	public List<ClausewitzNode> Children { get; } = new();
 
 	public bool IsBlock => Value is null;

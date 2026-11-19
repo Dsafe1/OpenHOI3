@@ -160,7 +160,7 @@ public static class ClausewitzParser
 			if (token.Kind == TokenKind.OpenBrace)
 			{
 				i++;
-				var anonymous = new ClausewitzNode();
+				var anonymous = new ClausewitzNode { Line = token.Line };
 				ParseInto(anonymous, tokens, ref i, topLevel: false, parse);
 				parent.Children.Add(anonymous);
 				continue;
@@ -185,21 +185,21 @@ public static class ClausewitzParser
 					// The original's parse context holds the block's opening brace as the pair's value.
 					parse.LastValue = "{";
 					i++;
-					var block = new ClausewitzNode { Key = key };
+					var block = new ClausewitzNode { Key = key, Line = token.Line };
 					ParseInto(block, tokens, ref i, topLevel: false, parse);
 					parent.Children.Add(block);
 				}
 				else
 				{
 					parse.LastValue = tokens[i].Text;
-					parent.Children.Add(new ClausewitzNode { Key = key, Value = tokens[i].Text, IsQuoted = tokens[i].Quoted });
+					parent.Children.Add(new ClausewitzNode { Key = key, Value = tokens[i].Text, IsQuoted = tokens[i].Quoted, Line = token.Line });
 					i++;
 				}
 				continue;
 			}
 
 			// Bare value inside a list block - or, in a block of pairs, a key whose `=` is missing (Settle).
-			var node = new ClausewitzNode { Value = token.Text, IsQuoted = token.Quoted };
+			var node = new ClausewitzNode { Value = token.Text, IsQuoted = token.Quoted, Line = token.Line };
 			parent.Children.Add(node);
 			TokenKind next = i + 1 < tokens.Count ? tokens[i + 1].Kind : TokenKind.CloseBrace;
 			bare.Add(new CBare(node, parse.LastValue, token.Line, next));
@@ -235,7 +235,7 @@ public static class ClausewitzParser
 				CDiagnostics.Problem(parse.Source, word.Line,
 					$"'{key} {after.Value}' has no '='; read as the original reads it, '{key} = {word.Previous}' - the value " +
 					$"the pair before it gave - and '{after.Value}' lost");
-				parent.Children[at] = new ClausewitzNode { Key = key, Value = word.Previous };
+				parent.Children[at] = new ClausewitzNode { Key = key, Value = word.Previous, Line = word.Line };
 				parent.Children.RemoveAt(at + 1);
 				taken.Add(after);
 			}
@@ -243,7 +243,7 @@ public static class ClausewitzParser
 			{
 				// The brace is taken where the `=` should be, and the block is read as the key's.
 				CDiagnostics.Problem(parse.Source, word.Line, $"'{key} {{' has no '='; read as '{key} = {{', as the original reads it");
-				var block = new ClausewitzNode { Key = key };
+				var block = new ClausewitzNode { Key = key, Line = word.Line };
 				block.Children.AddRange(after.Children);
 				parent.Children[at + 1] = block;
 				parent.Children.RemoveAt(at);
