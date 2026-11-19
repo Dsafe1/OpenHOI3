@@ -2083,8 +2083,10 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 
 - **The order a folder is listed in** (2026-11-19, `mods.md`, section 2): the original lists every name over all the
   layers once, sorted by byte with case; `CDirectorySettings.ListFiles` lists the base layer first, then by name without
-  case. The localisation sorts its tables the original's way since that day. The other readers of a listing - the
-  `.gfx` and `.gui` files, the technology files, events, decisions, history, music - were written against ours, and
+  case. The localisation sorts its tables the original's way since that day, and the technology files since the same
+  evening - BlackICE's save lists its technologies so, `Aircraft_Armament` before `Aircraftsystems` (a technology's place
+  is each unit type's place for it, and a save's order); Their Finest Hour's eleven come out the same either way. The other
+  readers of a listing - the `.gfx` and `.gui` files, events, decisions, history, music - were written against ours, and
   whether one of them settles a name given twice by its order, and so would read differently, was not looked into.
 
 

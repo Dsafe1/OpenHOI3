@@ -95,7 +95,8 @@ takes another of the line's fields in the original - very likely the English - w
 English, the column read here, is never short.
 
 *Ours*: `ListFiles` itself still lists the base layer first, then by name without case, which the registries built from
-it were written against; which of them the original's order would change is in `docs/worklist.md`, *Loose ends*.
+it were written against; which of them the original's order would change is in `docs/worklist.md`, *Loose ends*. The
+localisation and, since 2026-11-19, the technology files sort their listing by byte with case.
 
 *Ours*: `CDirectorySettings` is made with the selected mods (`Mods`, front first) and the Documents folder; a session is
 made with one, so the mods are a property of the game being made and nothing static. `Resolve`, `ResolveTexture`,
