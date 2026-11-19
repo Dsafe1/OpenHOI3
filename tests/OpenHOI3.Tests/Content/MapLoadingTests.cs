@@ -262,7 +262,7 @@ public class MapLoadingTests : IDisposable
 		Write("map/positions.txt", "9 = { unit = { x=1 y=1 } }\n2 = { unit = { x=2 y=2 } }\n");
 		CMap map = Load();
 		Assert.Equal(new CMapPosition(2, 2), map.Positions[2]);
-		Assert.Contains(_warnings, warning => warning.Contains("1 blocks are not for a province"));
+		Assert.Contains(_warnings, warning => warning.Contains("positions.txt:1: '9' begins a block that is not for a province"));
 
 		File.Delete(Path.Combine(_root, "map", "positions.txt"));
 		_warnings.Clear();
@@ -407,7 +407,7 @@ public class MapLoadingTests : IDisposable
 
 		Assert.Equal(0, map.ProvinceAt(3, 1));
 		string warning = Assert.Single(_warnings);
-		Assert.Contains("1 pixels in 1 colours", warning);
+		Assert.Contains("provinces.bmp: 1 pixels of colour", warning);
 	}
 
 	[Fact]
@@ -604,7 +604,7 @@ public class MapLoadingTests : IDisposable
 		CMap map = Load();
 
 		Assert.Equal("plains", map.Terrain[1]?.Name);
-		Assert.Contains(_warnings, warning => warning.Contains("3 pixels use a palette index"));
+		Assert.Contains(_warnings, warning => warning.Contains("3 pixels use palette index 99"));
 	}
 
 	[Fact]
@@ -1558,7 +1558,9 @@ public class MapLoadingTests : IDisposable
 		Assert.Single(odd.ResearchBonusFrom);
 		Assert.Equal("", odd.OnCompletion);
 		Assert.Equal(2, _warnings.Count(IsScriptProblem));
-		Assert.Contains(_warnings, warning => warning.Contains("categories that are not defined") && warning.Contains("alchemy"));
+		// A line for each place the category is named (logs.md, section 4).
+		Assert.Contains(_warnings, warning => warning.Contains("more.txt:4: research_bonus_from names a category that is not defined: alchemy"));
+		Assert.Contains(_warnings, warning => warning.Contains("more.txt:5: odd: on_completion names a category that is not defined: alchemy"));
 	}
 
 	/// <summary>A script problem's own line: <c>file:line: message [Kind]</c>.</summary>
@@ -1602,8 +1604,8 @@ public class MapLoadingTests : IDisposable
 		CMap map = Load();
 
 		Assert.Equal("west", map.Continents[3]);             // the first to name it keeps it
-		Assert.Contains(_warnings, warning => warning.Contains("1 entries are not the id of a province"));
-		Assert.Contains(_warnings, warning => warning.Contains("1 provinces are listed on more than one continent"));
+		Assert.Contains(_warnings, warning => warning.Contains("continent.txt:1: '99' is not the id of a province"));
+		Assert.Contains(_warnings, warning => warning.Contains("continent.txt:2: province 3 is listed on more than one continent"));
 	}
 
 	[Fact]

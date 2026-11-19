@@ -79,4 +79,14 @@ public class CoastlinesReaderTests
 		Assert.Empty(Read(""));
 		Assert.Empty(_warnings);
 	}
+
+	[Fact]
+	public void Each_name_that_is_no_region_is_reported_at_its_own_line()
+	{
+		CCoastlinesReader.Read(ClausewitzParser.Parse("strategic_resource_coastlines = {\n\tnorth_sea_region\n\tnorth_sea\n\tbaltic\n}"),
+			Regions, _warnings.Add, "map/coastlines.txt");
+
+		Assert.Equal(new[] { "map/coastlines.txt:3: no region is called north_sea", "map/coastlines.txt:4: no region is called baltic" },
+			_warnings);
+	}
 }

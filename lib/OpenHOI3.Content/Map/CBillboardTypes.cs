@@ -67,7 +67,7 @@ public sealed class CBillboardTypes
 			}
 			catch (Exception e)
 			{
-				warn($"Could not parse '{file}': {e.Message}");
+				warn(CDiagnostics.Located(file, 0, $"could not be parsed: {e.Message}"));
 				continue;
 			}
 			foreach (ClausewitzNode container in root.All("objectTypes"))
@@ -101,14 +101,14 @@ public sealed class CBillboardTypes
 		string name = node.GetString("name");
 		if (name.Length == 0)
 		{
-			warn($"{file}: a billboardType has no name and is left out");
+			warn(CDiagnostics.Located(file, node.Line, "a billboardType has no name and is left out"));
 			return null;
 		}
 		foreach (ClausewitzNode child in node.Children)
 		{
 			if (child.Key is not null && !Keys.Contains(child.Key))
 			{
-				warn($"{file}: billboardType '{name}' has a key nothing reads: {child.Key}");
+				warn(CDiagnostics.Located(file, child.Line, $"billboardType '{name}' has a key nothing reads: {child.Key}"));
 			}
 		}
 		return new CBillboardType

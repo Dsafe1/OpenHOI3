@@ -49,7 +49,7 @@ public static class CGainableTraitReader
 		}
 		catch (Exception e)
 		{
-			warn($"Could not read '{path}': {e.Message}");
+			warn(CDiagnostics.Located(path, 0, $"could not be read: {e.Message}"));
 			return CGainableTraits.Empty;
 		}
 		return Read(root, traits, warn);
@@ -66,8 +66,9 @@ public static class CGainableTraitReader
 		}
 
 		var gainable = new List<CGainableTrait>();
-		var unknownKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		var unknownConditions = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+		Action<string> report = warn;
+		void UnknownCondition(ClausewitzNode entry, string text) => report(CDiagnostics.Located(GainableFile, entry.Line,
+			$"'{text}' is a condition of a gainable trait's trigger block that is not understood and never holds"));
 		foreach (ClausewitzNode block in root.Children)
 		{
 			if (block.Key is null)
@@ -76,7 +77,7 @@ public static class CGainableTraitReader
 			}
 			if (!block.Key.Equals("gainable_trait", StringComparison.OrdinalIgnoreCase) || !block.IsBlock)
 			{
-				unknownKeys.Add(block.Key);
+				warn(CDiagnostics.Located(GainableFile, block.Line, $"'{block.Key}' is a key that is not understood"));
 				continue;
 			}
 
@@ -98,29 +99,21 @@ public static class CGainableTraitReader
 						trait = found;
 						break;
 					case "trigger" when entry.IsBlock:
-						condition = CCombatConditionReader.ReadGroup(entry, ECombatCondition.All, unknownConditions);
+						condition = CCombatConditionReader.ReadGroup(entry, ECombatCondition.All, UnknownCondition);
 						break;
 					default:
-						unknownKeys.Add(entry.Value is null ? entry.Key ?? "" : $"{entry.Key} = {entry.Value}");
+						warn(CDiagnostics.Located(GainableFile, entry.Line,
+							$"'{(entry.Value is null ? entry.Key ?? "" : $"{entry.Key} = {entry.Value}")}' is a key that is not understood"));
 						break;
 				}
 			}
 			if (combat is null || trait is null)
 			{
-				warn($"'{GainableFile}' has a gainable_trait with no trait or kind of battle it knows; it is dropped");
+				warn(CDiagnostics.Located(GainableFile, block.Line,
+					"a gainable_trait with no trait or kind of battle it knows; it is dropped"));
 				continue;
 			}
 			gainable.Add(new CGainableTrait(combat.Value, trait) { HoursRequired = hours, Condition = condition });
-		}
-
-		if (unknownKeys.Count > 0)
-		{
-			warn($"'{GainableFile}' has {unknownKeys.Count} keys that are not understood: {string.Join(", ", unknownKeys)}");
-		}
-		if (unknownConditions.Count > 0)
-		{
-			warn($"gainable traits' trigger blocks have {unknownConditions.Count} conditions that are not understood " +
-				$"and never hold: {string.Join(", ", unknownConditions)}");
 		}
 		return new CGainableTraits(gainable);
 	}

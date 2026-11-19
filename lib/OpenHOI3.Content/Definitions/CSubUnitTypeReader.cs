@@ -65,11 +65,20 @@ public static class CSubUnitTypeReader
 
 		var types = new List<CSubUnitType>();
 		var fileOf = new Dictionary<CSubUnitType, string>();
-		var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-		var unknownKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		var notNumbers = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		var noBranch = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		int duplicates = 0;
+		var firstAt = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+		// Each kind of brigade an extra_amphibious_defence names, where it is named, checked once every type is read.
+		var amphibious = new List<(CSubUnitType Type, string File, ClausewitzNode Brigade)>();
+
+		// Each fault said once at its file and line, in the files' order (logs.md, section 4).
+		var reported = new HashSet<string>(StringComparer.Ordinal);
+		void Report(string file, int line, string message)
+		{
+			string located = CDiagnostics.Located(file, line, message);
+			if (reported.Add(located))
+			{
+				warn(located);
+			}
+		}
 
 		foreach (string file in directories.ListFiles(TypeDirectory, "*.txt"))
 		{
@@ -80,7 +89,7 @@ public static class CSubUnitTypeReader
 			}
 			catch (IOException e)
 			{
-				warn($"Could not read '{file}': {e.Message}");
+				warn(CDiagnostics.Located(file, 0, $"could not be read: {e.Message}"));
 				continue;
 			}
 
@@ -90,14 +99,16 @@ public static class CSubUnitTypeReader
 				{
 					continue;
 				}
-				if (!seen.Add(block.Key))
+				if (firstAt.TryGetValue(block.Key, out string? first))
 				{
-					duplicates++;
+					Report(file, block.Line, $"unit type '{block.Key}' is declared again; the first declaration, at {first}, stands");
 					continue;
 				}
+				firstAt[block.Key] = $"{file}:{block.Line}";
 				if (!TryParseBranch(block.GetString("type"), out EUnitBranch branch))
 				{
-					noBranch.Add(block.Key);
+					Report(file, block.Get("type")?.Line ?? block.Line,
+						$"unit type '{block.Key}' has no type of land, naval or air and was left out");
 					continue;
 				}
 
@@ -107,36 +118,23 @@ public static class CSubUnitTypeReader
 					UnitGroup = block.GetString("unit_group"),
 					OnCompletion = block.GetString("on_completion"),
 				};
+				void NotNumber(ClausewitzNode figure, string text) =>
+					Report(file, figure.Line, $"{text} is a figure of a unit type that is no number and was ignored");
 				CSubUnitStatsReader.Read(block, type.Stats, Statistics.Contains, adjusters.Contains,
-					entry => ReadOther(type, entry, unknownKeys, notNumbers), notNumbers);
+					entry => ReadOther(type, entry, file, amphibious,
+						other => Report(file, other.Line, $"{type.Key}: '{(other.IsBlock ? other.Key + " { }" : other.Key)}' is a key of a unit type that is not understood"),
+						NotNumber),
+					NotNumber);
 				types.Add(type);
 				fileOf[type] = file;
 			}
 		}
 		NumberInDatabaseOrder(types, fileOf);
-		ReportUnknownBrigades(types, warn);
+		ReportUnknownBrigades(types, amphibious, Report);
 
 		if (types.Count == 0)
 		{
 			warn($"no unit types were found under '{TypeDirectory}'");
-		}
-		if (duplicates > 0)
-		{
-			warn($"{duplicates} unit types are declared more than once; the first declaration stands");
-		}
-		if (noBranch.Count > 0)
-		{
-			warn($"{noBranch.Count} unit types have no type of land, naval or air and were left out: " +
-				string.Join(", ", noBranch));
-		}
-		if (notNumbers.Count > 0)
-		{
-			warn($"{notNumbers.Count} figures of unit types are not numbers and were ignored: " +
-				string.Join("; ", notNumbers));
-		}
-		if (unknownKeys.Count > 0)
-		{
-			warn($"unit types use {unknownKeys.Count} keys that are not understood: " + string.Join(", ", unknownKeys));
 		}
 		return types;
 	}
@@ -189,32 +187,26 @@ public static class CSubUnitTypeReader
 	/// Ours: a kind of brigade named in a type's <c>extra_amphibious_defence</c> that no type is, reported. What the
 	/// original does with one was not read; it keeps the names as written and looks them up after the files are read.
 	/// </summary>
-	private static void ReportUnknownBrigades(List<CSubUnitType> types, Action<string> warn)
+	private static void ReportUnknownBrigades(List<CSubUnitType> types,
+		List<(CSubUnitType Type, string File, ClausewitzNode Brigade)> amphibious, Action<string, int, string> report)
 	{
 		var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		foreach (CSubUnitType type in types)
 		{
 			names.Add(type.Key);
 		}
-		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		foreach (CSubUnitType type in types)
+		foreach ((CSubUnitType type, string file, ClausewitzNode brigade) in amphibious)
 		{
-			foreach (string brigade in type.ExtraAmphibiousDefence.Keys)
+			if (!names.Contains(brigade.Key!))
 			{
-				if (!names.Contains(brigade))
-				{
-					unknown.Add($"{type.Key}: {brigade}");
-				}
+				report(file, brigade.Line, $"{type.Key}: {brigade.Key} in {ExtraAmphibiousDefence} is no unit type");
 			}
-		}
-		if (unknown.Count > 0)
-		{
-			warn($"{unknown.Count} kinds of brigade in {ExtraAmphibiousDefence} are no unit type: " + string.Join("; ", unknown));
 		}
 	}
 
-	private static void ReadOther(CSubUnitType type, ClausewitzNode entry, SortedSet<string> unknownKeys,
-		SortedSet<string> notNumbers)
+	private static void ReadOther(CSubUnitType type, ClausewitzNode entry, string file,
+		List<(CSubUnitType Type, string File, ClausewitzNode Brigade)> amphibious, Action<ClausewitzNode> unknownKey,
+		Action<ClausewitzNode, string> notNumber)
 	{
 		string key = entry.Key!;
 		if (entry.IsBlock && key.Equals(ExtraAmphibiousDefence, StringComparison.OrdinalIgnoreCase))
@@ -229,10 +221,11 @@ public static class CSubUnitTypeReader
 				if (!brigade.IsBlock && CFixedPoint.TryParse(brigade.Value, out CFixedPoint value))
 				{
 					type.ExtraAmphibiousDefence[brigade.Key] = value;
+					amphibious.Add((type, file, brigade));
 				}
 				else
 				{
-					notNumbers.Add($"{type.Key}.{ExtraAmphibiousDefence}.{brigade.Key}");
+					notNumber(brigade, $"{type.Key}.{ExtraAmphibiousDefence}.{brigade.Key}");
 				}
 			}
 		}
@@ -260,7 +253,7 @@ public static class CSubUnitTypeReader
 		}
 		else
 		{
-			unknownKeys.Add(entry.IsBlock ? key + " { }" : key);
+			unknownKey(entry);
 		}
 	}
 

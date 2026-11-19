@@ -22,43 +22,45 @@ public static class CCoastlinesReader
 	{
 		if (!File.Exists(path))
 		{
-			warn($"no coastlines: '{path}' is missing, so no strategic resource is shared by sea");
+			warn(CDiagnostics.Located(path, 0, "no coastlines: the file is missing, so no strategic resource is shared by sea"));
 			return new List<int>();
 		}
-		return Read(ClausewitzParser.ParseFile(path), regions, text => warn($"'{path}': {text}"));
+		return Read(ClausewitzParser.ParseFile(path), regions, warn, path);
 	}
 
-	public static List<int> Read(ClausewitzNode root, IReadOnlyList<CRegion> regions, Action<string> warn)
+	/// <param name="file">The file the text is, which each report is placed in with its line; none, the report alone.</param>
+	public static List<int> Read(ClausewitzNode root, IReadOnlyList<CRegion> regions, Action<string> warn, string file = "")
 	{
 		// The original makes the list afresh at each block of the key, so the last one stands; everything else in
 		// the file it passes over without a word.
-		List<string>? names = null;
+		List<ClausewitzNode>? entries = null;
 		foreach (ClausewitzNode block in root.Children)
 		{
 			if (block.Key is not null && block.IsBlock && block.Key.Equals(Key, StringComparison.OrdinalIgnoreCase))
 			{
-				names = new List<string>();
+				entries = new List<ClausewitzNode>();
 				foreach (ClausewitzNode entry in block.Children)
 				{
-					if (entry.Key is null && entry.Value is { Length: > 0 } name)
+					if (entry.Key is null && entry.Value is { Length: > 0 })
 					{
-						names.Add(name);
+						entries.Add(entry);
 					}
 					else
 					{
-						warn($"'{Key}' lists region names, and '{entry.Key} = ...' is not one");
+						warn(CDiagnostics.Located(file, entry.Line, $"'{Key}' lists region names, and '{entry.Key} = ...' is not one"));
 					}
 				}
 			}
 			else
 			{
-				warn($"'{block.Key ?? block.Value}' is not '{Key}', the file's one key");
+				warn(CDiagnostics.Located(file, block.Line, $"'{block.Key ?? block.Value}' is not '{Key}', the file's one key"));
 			}
 		}
-		if (names is null)
+		if (entries is null)
 		{
 			return new List<int>();
 		}
+		List<string> names = entries.ConvertAll(entry => entry.Value!);
 
 		// Each region of the map, in region.txt's order, that one of the names names - matched as written, case and all -
 		// is taken once, however often it is named.
@@ -72,13 +74,23 @@ public static class CCoastlinesReader
 				found.Add(regions[index].Name);
 			}
 		}
-		// The original warns where it took fewer regions than the block has names, which a name given twice also does.
+		// The original warns where it took fewer regions than the block has names, which a name given twice also does:
+		// said here at each name that is no region and at each name given again.
 		if (coastlines.Count < names.Count)
 		{
-			var missing = names.FindAll(name => !found.Contains(name));
-			warn(missing.Count > 0
-				? $"no region is called {string.Join(", ", missing)}"
-				: $"'{Key}' names a region more than once");
+			var named = new HashSet<string>(StringComparer.Ordinal);
+			foreach (ClausewitzNode entry in entries)
+			{
+				string name = entry.Value!;
+				if (!found.Contains(name))
+				{
+					warn(CDiagnostics.Located(file, entry.Line, $"no region is called {name}"));
+				}
+				else if (!named.Add(name))
+				{
+					warn(CDiagnostics.Located(file, entry.Line, $"'{Key}' names the region {name} more than once"));
+				}
+			}
 		}
 		return coastlines;
 	}

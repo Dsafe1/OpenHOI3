@@ -38,7 +38,7 @@ public static class CCombatTacticReader
 		}
 		catch (Exception e)
 		{
-			warn($"Could not read '{path}': {e.Message}");
+			warn(CDiagnostics.Located(path, 0, $"could not be read: {e.Message}"));
 			return tactics;
 		}
 		return Read(root, warn);
@@ -50,8 +50,11 @@ public static class CCombatTacticReader
 		warn ??= CDiagnostics.Problem;
 		var tactics = new List<CCombatTactic>();
 		var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-		var unknownKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		var unknownConditions = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+		Action<string> report = warn;
+		void UnknownKey(ClausewitzNode entry, string text) =>
+			report(CDiagnostics.Located(TacticFile, entry.Line, $"'{text}' is a key of a tactic that is not understood"));
+		void UnknownCondition(ClausewitzNode entry, string text) => report(CDiagnostics.Located(TacticFile, entry.Line,
+			$"'{text}' is a condition of a tactic's trigger block that is not understood and never holds"));
 		foreach (ClausewitzNode block in root.Children)
 		{
 			if (block.Key is null || !block.IsBlock)
@@ -60,7 +63,8 @@ public static class CCombatTacticReader
 			}
 			if (!names.Add(block.Key))
 			{
-				warn($"'{TacticFile}' declares the tactic '{block.Key}' more than once; the first declaration stands");
+				warn(CDiagnostics.Located(TacticFile, block.Line,
+					$"the tactic '{block.Key}' is declared more than once; the first declaration stands"));
 				continue;
 			}
 
@@ -78,7 +82,7 @@ public static class CCombatTacticReader
 				switch (key)
 				{
 					case "trigger" when entry.IsBlock:
-						condition = CCombatConditionReader.ReadGroup(entry, ECombatCondition.All, unknownConditions);
+						condition = CCombatConditionReader.ReadGroup(entry, ECombatCondition.All, UnknownCondition);
 						break;
 					case "picture":
 						picture = entry.Value ?? "";
@@ -98,11 +102,11 @@ public static class CCombatTacticReader
 						}
 						else
 						{
-							unknownKeys.Add($"{entry.Key} = {entry.Value}");
+							UnknownKey(entry, $"{entry.Key} = {entry.Value}");
 						}
 						break;
 					default:
-						unknownKeys.Add(entry.Key);
+						UnknownKey(entry, entry.Key);
 						break;
 				}
 			}
@@ -121,16 +125,8 @@ public static class CCombatTacticReader
 			});
 		}
 
-		CCombatTactics.Link(tactics, warn);
-		if (unknownKeys.Count > 0)
-		{
-			warn($"'{TacticFile}' gives tactics {unknownKeys.Count} keys that are not understood: {string.Join(", ", unknownKeys)}");
-		}
-		if (unknownConditions.Count > 0)
-		{
-			warn($"tactics' trigger blocks have {unknownConditions.Count} conditions that are not understood " +
-				$"and never hold: {string.Join(", ", unknownConditions)}");
-		}
+		// The game state's link knows no file or line, so what it says is placed in the file alone.
+		CCombatTactics.Link(tactics, text => report(CDiagnostics.Located(TacticFile, 0, text)));
 		return tactics;
 	}
 }

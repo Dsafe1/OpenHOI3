@@ -56,6 +56,9 @@ public static class CTerrainReader
 		/// <summary>For each palette index, the trees.txt entry its palette entry's <c>tree</c> names, or null.</summary>
 		public string?[]? TreeOfIndex { get; init; }
 
+		/// <summary>For each palette index, the line of the file its entry's <c>tree</c> is on, for a report; nought for none.</summary>
+		public int[]? TreeLineOfIndex { get; init; }
+
 		/// <summary>
 		/// For each palette index, d: the entry's <c>tree_density</c>, or where it gives none 4 less the index's place in its
 		/// <c>color</c> list, never below nought. Not a density: the row of the tree sheet, 4 − d, and no trees at nought
@@ -88,19 +91,21 @@ public static class CTerrainReader
 				if (category.Key is null || !category.IsBlock || indexByName.ContainsKey(category.Key))
 				{
 					// Said, where it was passed over (clausewitz.md, section 3).
-					warn($"'{path}': categories: '{category.Key ?? category.Value}' is " +
-						(category.Key is not null && indexByName.ContainsKey(category.Key) ? "given again; the first stands" : "no category"));
+					warn(CDiagnostics.Located(path, category.Line, $"categories: '{category.Key ?? category.Value}' is " +
+						(category.Key is not null && indexByName.ContainsKey(category.Key) ? "given again; the first stands" : "no category")));
 					continue;
 				}
 				foreach (ClausewitzNode part in category.Children)
 				{
 					if (part.Key is null || !CategoryKeys.Contains(part.Key))
 					{
-						warn($"'{path}': {category.Key}: '{part.Key ?? part.Value}' is no key a terrain is read with here; passed over");
+						warn(CDiagnostics.Located(path, part.Line,
+							$"{category.Key}: '{part.Key ?? part.Value}' is no key a terrain is read with here; passed over"));
 					}
 					else if (CategoryNumbers.Contains(part.Key) && !CFixedPoint.TryParse(part.Value, out _))
 					{
-						warn($"'{path}': {category.Key}: {part.Key} = {part.Value} is no number; read as nought");
+						warn(CDiagnostics.Located(path, part.Line,
+							$"{category.Key}: {part.Key} = {part.Value} is no number; read as nought"));
 					}
 				}
 				indexByName[category.Key] = categories.Count;
@@ -128,10 +133,10 @@ public static class CTerrainReader
 		var categoryOfIndex = new int[256];
 		Array.Fill(categoryOfIndex, -1);
 		var treeOfIndex = new string?[256];
+		var treeLineOfIndex = new int[256];
 		var treeRowOfIndex = new int[256];
 		var priorityOfIndex = new int[256];
 		Array.Fill(priorityOfIndex, -1);
-		var unknownTypes = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 
 		foreach (ClausewitzNode entry in root.Children)
 		{
@@ -144,22 +149,25 @@ public static class CTerrainReader
 			ClausewitzNode? indices = entry.Get("color");
 			if (type.Length == 0 || indices is null)
 			{
-				warn($"'{path}': '{entry.Key}' has no type or no color, and colours nothing");
+				warn(CDiagnostics.Located(path, entry.Line, $"'{entry.Key}' has no type or no color, and colours nothing"));
 				continue;
 			}
 			foreach (ClausewitzNode part in entry.Children)
 			{
 				if (part.Key is null || !EntryKeys.Contains(part.Key))
 				{
-					warn($"'{path}': {entry.Key}: '{part.Key ?? part.Value}' is no key of a terrain colour's; passed over");
+					warn(CDiagnostics.Located(path, part.Line,
+						$"{entry.Key}: '{part.Key ?? part.Value}' is no key of a terrain colour's; passed over"));
 				}
 			}
 			if (!indexByName.TryGetValue(type, out int category))
 			{
-				unknownTypes.Add(type);
+				warn(CDiagnostics.Located(path, entry.Get("type")?.Line ?? entry.Line,
+					$"{entry.Key} paints with type '{type}', which is not a category"));
 				continue;
 			}
 			string tree = entry.GetString("tree");
+			int treeLine = entry.Get("tree")?.Line ?? 0;
 			// An int read as the original's %i reads it; −1 where the key is not there.
 			int density = int.TryParse(entry.GetString("tree_density"), NumberStyles.Integer, CultureInfo.InvariantCulture,
 				out int given) ? given : -1;
@@ -173,11 +181,13 @@ public static class CTerrainReader
 					if (categoryOfIndex[index] >= 0)
 					{
 						// The original logs it as an attempt to use the index again (FINDINGS-mapdraw.md); the later stands here.
-						warn($"'{path}': {entry.Key} uses colour index {index} again; the later entry stands");
+						warn(CDiagnostics.Located(path, value.Line,
+							$"{entry.Key} uses colour index {index} again; the later entry stands"));
 					}
 					categoryOfIndex[index] = category;
 					priorityOfIndex[index] = priority;
 					treeOfIndex[index] = tree.Length == 0 ? null : tree;
+					treeLineOfIndex[index] = tree.Length == 0 ? 0 : treeLine;
 					treeRowOfIndex[index] = density > -1 ? density : Math.Max(0, 4 - place);
 				}
 				place++;
@@ -186,32 +196,29 @@ public static class CTerrainReader
 
 		if (categories.Count == 0)
 		{
-			warn($"'{path}' declares no terrain categories");
-		}
-		if (unknownTypes.Count > 0)
-		{
-			warn($"'{path}' paints with types that are not categories: {string.Join(", ", unknownTypes)}");
+			warn(CDiagnostics.Located(path, block?.Line ?? 0, "declares no terrain categories"));
 		}
 		return new Definition(categories.ToArray(), categoryOfIndex)
 		{
 			TreeOfIndex = treeOfIndex,
+			TreeLineOfIndex = treeLineOfIndex,
 			TreeRowOfIndex = treeRowOfIndex,
 			PriorityOfIndex = priorityOfIndex,
 			PaletteSize = root.GetInt("terrain", 256),
 		};
 	}
 
-	/// <summary>How many pixels of the bitmap are painted with an index the definition gives no terrain.</summary>
-	public static int CountUnknown(CBitmapFile terrain, Definition definition)
+	/// <summary>For each palette index the definition gives no terrain, how many pixels of the bitmap are painted with it.</summary>
+	public static int[] CountUnknownByIndex(CBitmapFile terrain, Definition definition)
 	{
-		int unknown = 0;
+		var unknown = new int[256];
 		for (int stored = 0; stored < terrain.Height; stored++)
 		{
 			foreach (byte index in terrain.StoredRow(stored))
 			{
 				if (definition.CategoryOfIndex[index] < 0)
 				{
-					unknown++;
+					unknown[index]++;
 				}
 			}
 		}

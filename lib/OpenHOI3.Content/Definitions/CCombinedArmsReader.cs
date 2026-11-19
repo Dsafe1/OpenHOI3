@@ -33,17 +33,19 @@ public static class CCombinedArmsReader
 		}
 		catch (Exception e)
 		{
-			warn($"Could not read '{path}': {e.Message}");
+			warn(CDiagnostics.Located(path, 0, $"could not be read: {e.Message}"));
 			return groups;
 		}
 
-		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+		Action<string> report = warn;
+		void Unknown(ClausewitzNode node, string text) =>
+			report(CDiagnostics.Located(GroupFile, node.Line, $"'{text}' is a key of the groups that is not understood"));
 		foreach (ClausewitzNode top in root.Children)
 		{
 			// Said, where it was passed over (clausewitz.md, section 3).
 			if (top.Key is null || !top.Key.Equals("combined_arms", StringComparison.OrdinalIgnoreCase))
 			{
-				unknown.Add(top.Key ?? top.Value ?? "{ }");
+				Unknown(top, top.Key ?? top.Value ?? "{ }");
 			}
 		}
 		foreach (ClausewitzNode list in root.All("combined_arms"))
@@ -52,7 +54,7 @@ public static class CCombinedArmsReader
 			{
 				if (entry.Key is null || !entry.IsBlock)
 				{
-					unknown.Add($"{entry.Key ?? entry.Value} (no group: a name and a block)");
+					Unknown(entry, $"{entry.Key ?? entry.Value} (no group: a name and a block)");
 					continue;
 				}
 				CFixedPoint value = CFixedPoint.Zero;
@@ -61,7 +63,7 @@ public static class CCombinedArmsReader
 				{
 					if (setting.Key is null || setting.Value is null)
 					{
-						unknown.Add($"{entry.Key}/{setting.Key ?? setting.Value}");
+						Unknown(setting, $"{entry.Key}/{setting.Key ?? setting.Value}");
 						continue;
 					}
 					if (setting.Key.Equals("value", StringComparison.OrdinalIgnoreCase)
@@ -71,7 +73,7 @@ public static class CCombinedArmsReader
 					}
 					else if (setting.Key.Equals("value", StringComparison.OrdinalIgnoreCase))
 					{
-						unknown.Add($"{entry.Key}/value = {setting.Value}, no number");
+						Unknown(setting, $"{entry.Key}/value = {setting.Value}, no number");
 					}
 					else if (setting.Key.Equals("base", StringComparison.OrdinalIgnoreCase))
 					{
@@ -79,15 +81,11 @@ public static class CCombinedArmsReader
 					}
 					else
 					{
-						unknown.Add(setting.Key);
+						Unknown(setting, setting.Key);
 					}
 				}
 				groups.Add(new CCombinedArmsGroup(entry.Key, isBase, value));
 			}
-		}
-		if (unknown.Count > 0)
-		{
-			warn($"'{GroupFile}' gives groups {unknown.Count} keys that are not understood: {string.Join(", ", unknown)}");
 		}
 		return groups;
 	}

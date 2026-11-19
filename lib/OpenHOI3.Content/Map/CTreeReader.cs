@@ -21,7 +21,6 @@ public static class CTreeReader
 		{
 			return types;
 		}
-		var unknown = new SortedSet<string>(StringComparer.Ordinal);
 		foreach (ClausewitzNode entry in ClausewitzParser.ParseFile(path).Children)
 		{
 			if (entry.Key is null || !entry.IsBlock)
@@ -44,15 +43,12 @@ public static class CTreeReader
 						}
 						break;
 					default:
-						unknown.Add(key.Key ?? "");
+						warn(CDiagnostics.Located(path, key.Line,
+							$"'{key.Key ?? key.Value}' is a key no tree type has, which is not read"));
 						break;
 				}
 			}
 			types.Add(new CTreeType(entry.Key, texture, density));
-		}
-		if (unknown.Count > 0)
-		{
-			warn($"'{path}': keys no tree type has, which are not read: {string.Join(", ", unknown)}");
 		}
 		return types;
 	}

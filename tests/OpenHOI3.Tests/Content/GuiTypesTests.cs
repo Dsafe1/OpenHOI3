@@ -221,8 +221,9 @@ public class GuiTypesTests
 	}
 
 	[Fact]
-	public void AKeyAnElementDoesNotTakeIsReportedOnceHoweverOftenItComesUp()
+	public void AKeyAnElementDoesNotTakeIsReportedAtEachLineItComesUp()
 	{
+		// A line for each place, as a compiler writes it, so that each can be opened (logs.md, section 4).
 		var warnings = new List<string>();
 		Read("""
 			guiTypes = {
@@ -234,9 +235,7 @@ public class GuiTypesTests
 			}
 			""", warnings);
 
-		string warning = Assert.Single(warnings);
-		Assert.Contains("iconType does not take 'colour'", warning);
-		Assert.Contains("1 more", warning);
+		Assert.Equal(new[] { "text:4: iconType does not take 'colour'", "text:5: iconType does not take 'colour'" }, warnings);
 	}
 
 	[Fact]

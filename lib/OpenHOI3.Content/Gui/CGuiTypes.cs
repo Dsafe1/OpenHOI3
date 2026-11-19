@@ -94,8 +94,12 @@ public sealed class CGuiTypes
 	};
 
 	private readonly Dictionary<string, CGuiType> _types = new(StringComparer.OrdinalIgnoreCase);
-	private readonly Dictionary<string, int> _complaints = new(StringComparer.OrdinalIgnoreCase);
-	private readonly Dictionary<string, string> _firstSeenIn = new(StringComparer.OrdinalIgnoreCase);
+	/// <summary>Each fault found, at its file and line, in the order found and each once (<c>docs/mechanics/logs.md</c>, section 4).</summary>
+	private readonly List<string> _complaints = new();
+	private readonly HashSet<string> _complained = new(StringComparer.Ordinal);
+
+	/// <summary>The line of each button's <c>parent</c>, for a report of a parent its container does not hold.</summary>
+	private readonly Dictionary<CGuiType, int> _parentLine = new();
 	private string _file = "";
 
 	public int Count => _types.Count;
@@ -116,7 +120,7 @@ public sealed class CGuiTypes
 			}
 			catch (Exception e) when (e is IOException or FormatException)
 			{
-				warn($"Could not read '{file}': {e.Message}");
+				warn(CDiagnostics.Located(file, 0, $"could not be read: {e.Message}"));
 				continue;
 			}
 			types.AddFile(root, Path.GetFileName(file));
@@ -168,7 +172,7 @@ public sealed class CGuiTypes
 			{
 				// The original reads this one key and nothing else, so a file that opens
 				// with an element loads nothing.
-				Complain($"top-level '{top.Key}' is not guiTypes and is not read");
+				Complain(top.Line, $"top-level '{top.Key}' is not guiTypes and is not read");
 				continue;
 			}
 			foreach (ClausewitzNode node in top.Children)
@@ -180,12 +184,13 @@ public sealed class CGuiTypes
 				}
 				if (type.Name.Length == 0)
 				{
-					Complain($"a top-level {node.Key} has no name and cannot be found");
+					Complain(node.Line, $"a top-level {node.Key} has no name and cannot be found");
 					continue;
 				}
 				if (_types.ContainsKey(type.Name))
 				{
 					Replaced.Add(type.Name);
+					Complain(node.Line, $"'{type.Name}' is declared more than once at the top level; the later one is used");
 				}
 				_types[type.Name] = type;
 			}
@@ -198,7 +203,7 @@ public sealed class CGuiTypes
 		{
 			if (node.Key is not null && topLevel)
 			{
-				Complain($"'{node.Key}' in guiTypes is not an element");
+				Complain(node.Line, $"'{node.Key}' in guiTypes is not an element");
 			}
 			return null;
 		}
@@ -215,7 +220,7 @@ public sealed class CGuiTypes
 			case "guibuttontype":
 			case "checkboxtype":
 				Check(node, ButtonKeys);
-				return new CGuiButtonType
+				return WithParentLine(node, new CGuiButtonType
 				{
 					Name = node.GetString("name"),
 					Keyword = kind,
@@ -236,7 +241,7 @@ public sealed class CGuiTypes
 					Size = Point(node, "size"),
 					Format = node.Get("format") is null ? EGuiTextFormat.Centre : Format(node),
 					BorderSize = Point(node, "borderSize"),
-				};
+				});
 
 			case "icontype":
 				Check(node, IconKeys);
@@ -352,7 +357,7 @@ public sealed class CGuiTypes
 			default:
 				if (!OtherKeys.TryGetValue(keyword, out string[]? keys))
 				{
-					Complain($"'{node.Key}' is not a kind of element");
+					Complain(node.Line, $"'{node.Key}' is not a kind of element");
 					return null;
 				}
 				Check(node, keys);
@@ -398,7 +403,7 @@ public sealed class CGuiTypes
 			}
 			else if (!CommonKeys.Contains(key) && !WindowKeys.Contains(key))
 			{
-				Complain($"{node.Key} does not take '{child.Key}'");
+				Complain(child.Line, $"{node.Key} does not take '{child.Key}'");
 			}
 		}
 		InheritSprites(window.Children, window.Name);
@@ -427,8 +432,8 @@ public sealed class CGuiTypes
 				CGuiType? parent = children.Find(child => child.Name.Equals(at, StringComparison.OrdinalIgnoreCase));
 				if (parent is null)
 				{
-					Complain($"'{button.Name}' in '{container}' names a parent '{at}' it does not hold; the original reads " +
-						"through nothing there");
+					Complain(_parentLine.GetValueOrDefault(button), $"'{button.Name}' in '{container}' names a parent '{at}' " +
+						"it does not hold; the original reads through nothing there");
 					break;
 				}
 				if (parent is not CGuiButtonType from)
@@ -443,6 +448,13 @@ public sealed class CGuiTypes
 				at = from.Parent.Equals(button.Name, StringComparison.OrdinalIgnoreCase) ? "" : from.Parent;
 			}
 		}
+	}
+
+	/// <summary>A button, its <c>parent</c>'s line - its own where it gives none - kept for a report.</summary>
+	private CGuiButtonType WithParentLine(ClausewitzNode node, CGuiButtonType button)
+	{
+		_parentLine[button] = node.Get("parent")?.Line ?? node.Line;
+		return button;
 	}
 
 	/// <summary>The later of two keys that are one field to the original, or an empty string.</summary>
@@ -518,7 +530,7 @@ public sealed class CGuiTypes
 			// A format in quotes is not taken, and the one before it stands (interface.md, section 1).
 			if (IsQuotedFormat(child))
 			{
-				Complain($"{node.Key} gives 'format' in quotes, which is not taken");
+				Complain(child.Line, $"{node.Key} gives 'format' in quotes, which is not taken");
 				repeats = true;
 				continue;
 			}
@@ -526,7 +538,7 @@ public sealed class CGuiTypes
 			{
 				// Valid, and what the original does with it is known; it is said because
 				// the earlier value is almost never what the file's author thinks is used.
-				Complain($"{node.Key} gives '{child.Key}' more than once and the last is the one used");
+				Complain(child.Line, $"{node.Key} gives '{child.Key}' more than once and the last is the one used");
 				repeats = true;
 			}
 			last[child.Key] = child;
@@ -536,7 +548,7 @@ public sealed class CGuiTypes
 			return node;
 		}
 
-		var settled = new ClausewitzNode { Key = node.Key, Value = node.Value };
+		var settled = new ClausewitzNode { Key = node.Key, Value = node.Value, Line = node.Line };
 		foreach (ClausewitzNode child in node.Children)
 		{
 			if (child.Key is null || IsElement(child)
@@ -582,7 +594,7 @@ public sealed class CGuiTypes
 			string key = child.Key.ToLowerInvariant();
 			if (!CommonKeys.Contains(key) && !keys.Contains(key))
 			{
-				Complain($"{node.Key} does not take '{child.Key}'");
+				Complain(child.Line, $"{node.Key} does not take '{child.Key}'");
 			}
 		}
 	}
@@ -603,7 +615,8 @@ public sealed class CGuiTypes
 	/// </summary>
 	private EGuiOrientation Orientation(ClausewitzNode node)
 	{
-		string? word = node.Get("orientation")?.Value;
+		ClausewitzNode? given = node.Get("orientation");
+		string? word = given?.Value;
 		switch (word)
 		{
 			case null:
@@ -622,14 +635,15 @@ public sealed class CGuiTypes
 			case "CENTER_DOWN":
 				return EGuiOrientation.CenterDown;
 			default:
-				Complain($"orientation '{word}' is not one of the seven and is taken for UPPER_LEFT");
+				Complain(given?.Line ?? node.Line, $"orientation '{word}' is not one of the seven and is taken for UPPER_LEFT");
 				return EGuiOrientation.UpperLeft;
 		}
 	}
 
 	private EGuiTextFormat Format(ClausewitzNode node)
 	{
-		string? word = node.Get("format")?.Value;
+		ClausewitzNode? given = node.Get("format");
+		string? word = given?.Value;
 		switch (word?.ToLower(CultureInfo.InvariantCulture))
 		{
 			case null:
@@ -641,29 +655,29 @@ public sealed class CGuiTypes
 			case "right":
 				return EGuiTextFormat.Right;
 			default:
-				Complain($"format '{word}' is not left, centre or right and is taken for left");
+				Complain(given?.Line ?? node.Line, $"format '{word}' is not left, centre or right and is taken for left");
 				return EGuiTextFormat.Left;
 		}
 	}
 
-	private void Complain(string what)
+	/// <summary>A fault at a line of the file being read, kept once.</summary>
+	private void Complain(int line, string what)
 	{
-		_complaints[what] = _complaints.GetValueOrDefault(what) + 1;
-		_firstSeenIn.TryAdd(what, _file);
+		string located = CDiagnostics.Located(_file, line, what);
+		if (_complained.Add(located))
+		{
+			_complaints.Add(located);
+		}
 	}
 
-	/// <summary>One line for each kind of complaint, however many times it came up.</summary>
+	/// <summary>Each fault, one line each, in the order found.</summary>
 	private void Report(Action<string> warn)
 	{
-		foreach ((string what, int count) in _complaints.OrderBy(pair => pair.Key, StringComparer.OrdinalIgnoreCase))
+		foreach (string complaint in _complaints)
 		{
-			string where = count == 1 ? _firstSeenIn[what] : $"{_firstSeenIn[what]} and {count - 1} more";
-			warn($"interface: {what} ({where})");
-		}
-		foreach (string name in Replaced)
-		{
-			warn($"interface: '{name}' is declared more than once at the top level; the later one is used");
+			warn(complaint);
 		}
 		_complaints.Clear();
+		_complained.Clear();
 	}
 }

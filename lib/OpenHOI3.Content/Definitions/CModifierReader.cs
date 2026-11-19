@@ -28,14 +28,13 @@ public static class CModifierReader
 
 	/// <summary>
 	/// A block's modifier: every key that is not one of its own, nor <c>icon</c>, which every modifier takes, with its
-	/// number. A key that is no kind the original knows is added to <paramref name="unknown"/> - the block's name and the
-	/// key - and dropped. <paramref name="unreadable"/> is how many kinds had something other than a number.
+	/// number. A key that is no kind the original knows is told to <paramref name="unknown"/>, its entry with its line,
+	/// and dropped; a kind with something other than a number is told to <paramref name="notNumber"/>, where given.
 	/// </summary>
 	public static CModifier ReadBlock(ClausewitzNode block, HashSet<string> ownKeys, CModifierKeys kinds,
-		ICollection<string> unknown, out int unreadable)
+		Action<ClausewitzNode> unknown, Action<ClausewitzNode>? notNumber = null)
 	{
 		var modifier = new CModifier(block.Key ?? "");
-		unreadable = 0;
 		foreach (ClausewitzNode entry in block.Children)
 		{
 			if (entry.Key is null || ownKeys.Contains(entry.Key)
@@ -45,7 +44,7 @@ public static class CModifierReader
 			}
 			if (!kinds.Contains(entry.Key))
 			{
-				unknown.Add($"{block.Key}: {entry.Key}");
+				unknown(entry);
 				continue;
 			}
 			if (entry.Value is not null && CFixedPoint.TryParse(entry.Value, out CFixedPoint value))
@@ -55,7 +54,7 @@ public static class CModifierReader
 			}
 			else
 			{
-				unreadable++;
+				notNumber?.Invoke(entry);
 			}
 		}
 		return modifier;
@@ -75,14 +74,20 @@ public static class CModifierReader
 		return new CModifierKeys(factions);
 	}
 
-	/// <summary>Ours: every key of a file's modifiers that is no kind, in one line, which the original logs one by one.</summary>
-	public static void ReportUnknown(Action<string> warn, string path, string what, SortedSet<string> unknown)
+	/// <summary>
+	/// The report of a key of a block of modifiers that is no kind, at its file and line, one for each as the original
+	/// logs them (<c>docs/mechanics/logs.md</c>, section 4).
+	/// </summary>
+	public static string Unknown(string path, string what, ClausewitzNode block, ClausewitzNode entry)
 	{
-		if (unknown.Count > 0)
-		{
-			warn($"'{path}': {unknown.Count} keys of {what} are no kind of modifier and were dropped, as the original drops " +
-				$"them: {string.Join("; ", unknown)}");
-		}
+		return CDiagnostics.Located(path, entry.Line,
+			$"{block.Key}: {entry.Key} is a key of {what} that is no kind of modifier and was dropped, as the original drops it");
+	}
+
+	/// <summary>The report of a kind in a block of modifiers whose value is no number, at its file and line.</summary>
+	public static string NotNumber(string path, string what, ClausewitzNode block, ClausewitzNode entry)
+	{
+		return CDiagnostics.Located(path, entry.Line, $"{block.Key}: {entry.Key} = {entry.Value} inside {what} is no number");
 	}
 
 	/// <summary><c>common/laws.txt</c>: groups, each holding the laws a country picks one of.</summary>
@@ -97,8 +102,6 @@ public static class CModifierReader
 		}
 
 		CModifierKeys kinds = Kinds(directories);
-		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		int unreadable = 0;
 		foreach (ClausewitzNode group in root.Children)
 		{
 			if (group.Key is null || !group.IsBlock)
@@ -116,18 +119,13 @@ public static class CModifierReader
 				{
 					continue;
 				}
-				laws[law.Key] = new CLaw(group.Key, ReadBlock(law, LawKeys, kinds, unknown, out int bad))
+				laws[law.Key] = new CLaw(group.Key, ReadBlock(law, LawKeys, kinds,
+					entry => warn(Unknown(path, "laws", law, entry)), entry => warn(NotNumber(path, "laws", law, entry))))
 				{
 					Cost = CFixedPoint.TryParse(law.GetString("cost"), out CFixedPoint cost) ? cost : CFixedPoint.Zero,
 				};
-				unreadable += bad;
 			}
 		}
-		if (unreadable > 0)
-		{
-			warn($"'{path}': {unreadable} entries inside laws are neither the law's own keys nor a number");
-		}
-		ReportUnknown(warn, path, "laws", unknown);
 		return groups;
 	}
 
@@ -148,23 +146,17 @@ public static class CModifierReader
 		}
 
 		CModifierKeys kinds = Kinds(directories);
-		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		int unreadable = 0;
+		const string what = "occupation policies";
 		foreach (ClausewitzNode block in root.Children)
 		{
 			if (block.Key is null || !block.IsBlock)
 			{
 				continue;
 			}
-			policies.Add(new Sim.Occupation.COccupationPolicy(ReadBlock(block, PolicyKeys, kinds, unknown, out int bad),
+			policies.Add(new Sim.Occupation.COccupationPolicy(ReadBlock(block, PolicyKeys, kinds,
+				entry => warn(Unknown(path, what, block, entry)), entry => warn(NotNumber(path, what, block, entry))),
 				policies.Count));
-			unreadable += bad;
 		}
-		if (unreadable > 0)
-		{
-			warn($"'{path}': {unreadable} entries inside occupation policies are neither the policy's own keys nor a number");
-		}
-		ReportUnknown(warn, path, "occupation policies", unknown);
 		return policies;
 	}
 
@@ -184,16 +176,15 @@ public static class CModifierReader
 		}
 
 		CModifierKeys kinds = Kinds(directories);
-		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		int unreadable = 0;
+		const string what = "minister types";
 		foreach (ClausewitzNode type in root.Children)
 		{
 			if (type.Key is null || !type.IsBlock)
 			{
 				continue;
 			}
-			var read = new CMinisterType(ReadBlock(type, MinisterTypeKeys, kinds, unknown, out int bad));
-			unreadable += bad;
+			var read = new CMinisterType(ReadBlock(type, MinisterTypeKeys, kinds,
+				entry => warn(Unknown(path, what, type, entry)), entry => warn(NotNumber(path, what, type, entry))));
 
 			// decay = { a_category = -0.25 }: what he adds to that category's decay. A type
 			// may have several such blocks, and a category named twice adds up.
@@ -207,7 +198,7 @@ public static class CModifierReader
 					}
 					else
 					{
-						unreadable++;
+						warn(NotNumber(path, what, type, entry));
 					}
 				}
 			}
@@ -224,11 +215,6 @@ public static class CModifierReader
 			}
 			types[type.Key] = read;
 		}
-		if (unreadable > 0)
-		{
-			warn($"'{path}': {unreadable} entries inside minister types are not numbers");
-		}
-		ReportUnknown(warn, path, "minister types", unknown);
 		return types;
 	}
 
@@ -260,22 +246,15 @@ public static class CModifierReader
 		}
 
 		CModifierKeys kinds = Kinds(directories);
-		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		int unreadable = 0;
 		foreach (ClausewitzNode block in root.Children)
 		{
 			if (block.Key is null || !block.IsBlock)
 			{
 				continue;
 			}
-			modifiers.Add(ReadBlock(block, StaticModifierKeys, kinds, unknown, out int bad));
-			unreadable += bad;
+			modifiers.Add(ReadBlock(block, StaticModifierKeys, kinds,
+				entry => warn(Unknown(path, what, block, entry)), entry => warn(NotNumber(path, what, block, entry))));
 		}
-		if (unreadable > 0)
-		{
-			warn($"'{path}': {unreadable} entries inside {what} are not numbers");
-		}
-		ReportUnknown(warn, path, what, unknown);
 		return modifiers;
 	}
 
@@ -294,22 +273,16 @@ public static class CModifierReader
 		}
 
 		CModifierKeys kinds = Kinds(directories);
-		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		int unreadable = 0;
+		const string what = "strategic resources";
 		foreach (ClausewitzNode block in root.Children)
 		{
 			if (block.Key is null || !block.IsBlock)
 			{
 				continue;
 			}
-			resources.Add(ReadBlock(block, NoKeys, kinds, unknown, out int bad));
-			unreadable += bad;
+			resources.Add(ReadBlock(block, NoKeys, kinds,
+				entry => warn(Unknown(path, what, block, entry)), entry => warn(NotNumber(path, what, block, entry))));
 		}
-		if (unreadable > 0)
-		{
-			warn($"'{path}': {unreadable} entries inside strategic resources are not numbers");
-		}
-		ReportUnknown(warn, path, "strategic resources", unknown);
 		return resources;
 	}
 
@@ -339,7 +312,7 @@ public static class CModifierReader
 		path = directories.Resolve(gameRelative);
 		if (!File.Exists(path))
 		{
-			warn($"no {what}: '{path}' is missing");
+			warn(CDiagnostics.Located(path, 0, $"no {what}: the file is missing"));
 			return null;
 		}
 		return ClausewitzParser.ParseFile(path);

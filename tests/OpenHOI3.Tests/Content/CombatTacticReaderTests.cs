@@ -101,8 +101,9 @@ public class CombatTacticReaderTests
 			}
 		");
 
-		Assert.Contains(_warnings, warning => warning.Contains("wobble"));
-		Assert.Contains(_warnings, warning => warning.Contains("has_cavalry"));
+		// Each at the file and the line it is on (logs.md, section 4).
+		Assert.Contains(_warnings, warning => warning.StartsWith("common/combat_tactics.txt:3: 'wobble'"));
+		Assert.Contains(_warnings, warning => warning.StartsWith("common/combat_tactics.txt:4: 'has_cavalry = yes'"));
 		Assert.Equal(ECombatCondition.Never, tactics[0].Condition!.Children[1].Kind);
 	}
 

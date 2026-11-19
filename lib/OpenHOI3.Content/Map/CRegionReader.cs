@@ -22,16 +22,16 @@ public static class CRegionReader
 	{
 		if (!File.Exists(path))
 		{
-			warn($"no regions: '{path}' is missing");
+			warn(CDiagnostics.Located(path, 0, "no regions: the file is missing"));
 			return new List<CRegion>();
 		}
-		return Read(ClausewitzParser.ParseFile(path), provinceCount, text => warn($"'{path}': {text}"));
+		return Read(ClausewitzParser.ParseFile(path), provinceCount, warn, path);
 	}
 
-	public static List<CRegion> Read(ClausewitzNode root, int provinceCount, Action<string> warn)
+	/// <param name="file">The file the text is, which each report is placed in with its line; none, the report alone.</param>
+	public static List<CRegion> Read(ClausewitzNode root, int provinceCount, Action<string> warn, string file = "")
 	{
 		var regions = new List<CRegion>();
-		int unknown = 0;
 		foreach (ClausewitzNode block in root.Children)
 		{
 			if (block.Key is null || !block.IsBlock)
@@ -59,14 +59,11 @@ public static class CRegionReader
 				else
 				{
 					// The original passes over an id beyond the map without a word.
-					unknown++;
+					warn(CDiagnostics.Located(file, entry.Line,
+						$"'{entry.Value ?? entry.Key}' is neither the id of a province nor '{Peace}' or '{AiPriority}'"));
 				}
 			}
 			regions.Add(new CRegion(block.Key, provinces, useForPeace, aiPriority));
-		}
-		if (unknown > 0)
-		{
-			warn($"{unknown} entries are neither the id of a province nor '{Peace}' or '{AiPriority}'");
 		}
 		return regions;
 	}

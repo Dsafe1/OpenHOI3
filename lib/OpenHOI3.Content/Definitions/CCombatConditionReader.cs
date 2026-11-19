@@ -8,13 +8,13 @@ namespace OpenHOI3.Content.Definitions;
 
 /// <summary>
 /// Reads a battle's condition block - a tactic's <c>trigger</c> or a gainable trait's - into
-/// a <see cref="CCombatCondition"/>. A key that is not understood is added to
-/// <c>unknown</c> and never holds, so that nothing is handed out on the strength of a test
-/// nothing made.
+/// a <see cref="CCombatCondition"/>. A key that is not understood is told to
+/// <c>unknown</c> - its entry, with its line, and how it is written - and never holds, so
+/// that nothing is handed out on the strength of a test nothing made.
 /// </summary>
 public static class CCombatConditionReader
 {
-	public static CCombatCondition ReadGroup(ClausewitzNode block, ECombatCondition kind, SortedSet<string> unknown)
+	public static CCombatCondition ReadGroup(ClausewitzNode block, ECombatCondition kind, Action<ClausewitzNode, string> unknown)
 	{
 		var group = new CCombatCondition(kind);
 		foreach (ClausewitzNode entry in block.Children)
@@ -38,7 +38,7 @@ public static class CCombatConditionReader
 						group.Children.Add(ReadGroup(entry, ECombatCondition.None, unknown));
 						break;
 					default:
-						unknown.Add(entry.Key);
+						unknown(entry, entry.Key);
 						group.Children.Add(new CCombatCondition(ECombatCondition.Never));
 						break;
 				}
@@ -92,7 +92,7 @@ public static class CCombatConditionReader
 					group.Children.Add(new CCombatCondition(ECombatCondition.HasCombatModifier, name: value));
 					break;
 				default:
-					unknown.Add(value.Length > 0 ? $"{entry.Key} = {value}" : entry.Key);
+					unknown(entry, value.Length > 0 ? $"{entry.Key} = {value}" : entry.Key);
 					group.Children.Add(new CCombatCondition(ECombatCondition.Never));
 					break;
 			}

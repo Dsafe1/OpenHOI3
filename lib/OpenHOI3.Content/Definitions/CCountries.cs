@@ -62,32 +62,36 @@ public sealed class CCountries
 		}
 		catch (Exception e)
 		{
-			warn($"Could not read '{listPath}': {e.Message}");
+			warn(CDiagnostics.Located(listPath, 0, $"could not be read: {e.Message}"));
 			return countries;
 		}
 
+		// The line of each country's graphical_culture, for a report of it once the cultures are read; nought for none.
+		var cultureLines = new Dictionary<CCountry, int>();
 		foreach (ClausewitzNode entry in list.Children)
 		{
 			if (entry.Key is null || entry.Value is null || !CCountryTag.TryParse(entry.Key, out CCountryTag tag))
 			{
 				// Said, where it was passed over: a line that is no tag and its file (clausewitz.md, section 3).
-				warn($"'{listPath}': '{entry.Key ?? entry.Value}' is no country's tag and a file; passed over");
+				warn(CDiagnostics.Located(listPath, entry.Line,
+					$"'{entry.Key ?? entry.Value}' is no country's tag and a file; passed over"));
 				continue;
 			}
 			if (countries._byTag.ContainsKey(tag.Value))
 			{
-				warn($"'{listPath}': {tag} is declared again, to '{entry.Value}'; the first stands");
+				warn(CDiagnostics.Located(listPath, entry.Line, $"{tag} is declared again, to '{entry.Value}'; the first stands"));
 				continue;
 			}
 
-			CCountry country = Read(directories, localisation, tag, entry.Value, warn);
+			CCountry country = Read(directories, localisation, tag, entry.Value, warn, out int cultureLine);
+			cultureLines[country] = cultureLine;
 			countries._byTag.Add(tag.Value, country);
 			countries._all.Add(country);
 			countries._declared.Add(country);
 		}
 
 		countries._all.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCulture));
-		CheckCultures(directories, countries._declared, warn);
+		CheckCultures(directories, countries._declared, cultureLines, warn);
 		return countries;
 	}
 
@@ -97,7 +101,8 @@ public sealed class CCountries
 	/// with none <c>Generic</c>, logging "No gfxculturetype set"; it names only the 3D unit figures, which are not drawn
 	/// here (<c>reversing/findings/FINDINGS-fontterrain.md</c>, section 4). Both are said (clausewitz.md, section 3).
 	/// </summary>
-	private static void CheckCultures(CDirectorySettings directories, IEnumerable<CCountry> countries, Action<string> warn)
+	private static void CheckCultures(CDirectorySettings directories, IEnumerable<CCountry> countries,
+		Dictionary<CCountry, int> cultureLines, Action<string> warn)
 	{
 		string path = directories.Resolve("common/graphicalculturetype.txt");
 		if (!System.IO.File.Exists(path))
@@ -113,30 +118,33 @@ public sealed class CCountries
 			}
 			else
 			{
-				warn($"'{path}': '{entry.Key ?? entry.Value}' is no name of a culture; passed over");
+				warn(CDiagnostics.Located(path, entry.Line, $"'{entry.Key ?? entry.Value}' is no name of a culture; passed over"));
 			}
 		}
 		foreach (CCountry country in countries)
 		{
 			if (country.GraphicalCulture.Length == 0)
 			{
-				warn($"'{country.DefinitionFile}': {country.Tag} has no graphical_culture; the original gives it Generic");
+				warn(CDiagnostics.Located(country.DefinitionFile, 0,
+					$"{country.Tag} has no graphical_culture; the original gives it Generic"));
 			}
 			else if (!cultures.Contains(country.GraphicalCulture))
 			{
-				warn($"'{country.DefinitionFile}': {country.Tag}'s graphical_culture '{country.GraphicalCulture}' is no culture " +
-					"of graphicalculturetype.txt; the original drops it");
+				warn(CDiagnostics.Located(country.DefinitionFile, cultureLines.GetValueOrDefault(country),
+					$"{country.Tag}'s graphical_culture '{country.GraphicalCulture}' is no culture " +
+					"of graphicalculturetype.txt; the original drops it"));
 			}
 		}
 	}
 
 	private static CCountry Read(CDirectorySettings directories, CLocalisation localisation,
-		CCountryTag tag, string definitionFile, Action<string> warn)
+		CCountryTag tag, string definitionFile, Action<string> warn, out int cultureLine)
 	{
 		CColor color = CColor.Gray;
 		string culture = "";
 		bool major = false;
 		ClausewitzNode? definition = null;
+		cultureLine = 0;
 
 		string path = directories.Resolve("common/" + definitionFile);
 		try
@@ -146,17 +154,18 @@ public sealed class CCountries
 			{
 				if (entry.Key is not null && !DefinitionKeys.Contains(entry.Key))
 				{
-					warn($"'{path}': '{entry.Key}' is no key of a country's file; passed over");
+					warn(CDiagnostics.Located(path, entry.Line, $"'{entry.Key}' is no key of a country's file; passed over"));
 				}
 			}
 			color = definition.GetRgb("color", CColor.Gray);
 			culture = definition.GetString("graphical_culture");
+			cultureLine = definition.Get("graphical_culture")?.Line ?? 0;
 			major = definition.GetString("major").Equals("yes", StringComparison.OrdinalIgnoreCase);
 		}
 		catch (Exception e)
 		{
 			// A missing definition costs the colour, not the country.
-			warn($"Could not read country file '{path}': {e.Message}");
+			warn(CDiagnostics.Located(path, 0, $"could not read the country file: {e.Message}"));
 		}
 
 		var country = new CCountry

@@ -25,10 +25,11 @@ public static class CSubUnitStatsReader
 	/// Fills <paramref name="stats"/> from a block. A line is taken when
 	/// <paramref name="isStatistic"/> says its key is one, a block when
 	/// <paramref name="isAdjuster"/> says so; the rest is left for the caller, who is
-	/// told of each through <paramref name="other"/>.
+	/// told of each through <paramref name="other"/>. A figure that is no number is told through
+	/// <paramref name="notNumber"/>, with the line it is on and how it is written.
 	/// </summary>
 	public static void Read(ClausewitzNode block, CSubUnitStats stats, Func<string, bool> isStatistic,
-		Func<string, bool> isAdjuster, Action<ClausewitzNode> other, SortedSet<string> notNumbers)
+		Func<string, bool> isAdjuster, Action<ClausewitzNode> other, Action<ClausewitzNode, string> notNumber)
 	{
 		foreach (ClausewitzNode entry in block.Children)
 		{
@@ -46,7 +47,7 @@ public static class CSubUnitStatsReader
 				}
 				else
 				{
-					notNumbers.Add($"{block.Key}: {entry.Key} = {entry.Value}");
+					notNumber(entry, $"{block.Key}: {entry.Key} = {entry.Value}");
 				}
 			}
 			else if (entry.IsBlock && isAdjuster(entry.Key))
@@ -63,7 +64,7 @@ public static class CSubUnitStatsReader
 					}
 					if (!AdjusterKinds.Contains(line.Key) || !CFixedPoint.TryParse(line.Value, out CFixedPoint value))
 					{
-						notNumbers.Add($"{block.Key}: {entry.Key} {{ {line.Key} = {line.Value} }}");
+						notNumber(line, $"{block.Key}: {entry.Key} {{ {line.Key} = {line.Value} }}");
 						continue;
 					}
 					adjuster.Set(line.Key, value);

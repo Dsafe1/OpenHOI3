@@ -50,7 +50,7 @@ public sealed class CProjectionTypes
 			}
 			catch (Exception e)
 			{
-				warn($"Could not parse '{file}': {e.Message}");
+				warn(CDiagnostics.Located(file, 0, $"could not be parsed: {e.Message}"));
 				continue;
 			}
 			foreach (ClausewitzNode container in root.All("objectTypes"))
@@ -75,14 +75,14 @@ public sealed class CProjectionTypes
 		string name = node.GetString("name");
 		if (name.Length == 0)
 		{
-			warn($"{file}: a projectionType has no name and is left out");
+			warn(CDiagnostics.Located(file, node.Line, "a projectionType has no name and is left out"));
 			return null;
 		}
 		foreach (ClausewitzNode child in node.Children)
 		{
 			if (child.Key is not null && !Keys.Contains(child.Key))
 			{
-				warn($"{file}: projectionType '{name}' has a key nothing reads: {child.Key}");
+				warn(CDiagnostics.Located(file, child.Line, $"projectionType '{name}' has a key nothing reads: {child.Key}"));
 			}
 		}
 		return new CProjectionType

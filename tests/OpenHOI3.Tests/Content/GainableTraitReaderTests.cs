@@ -74,6 +74,11 @@ public class GainableTraitReaderTests
 		");
 
 		Assert.Empty(gainable.All);
-		Assert.Equal(3, _warnings.Count);
+		// Each key not understood and each block dropped, a line each at its place (logs.md, section 4).
+		Assert.Equal(5, _warnings.Count);
+		Assert.Contains("common/gainable_traits.txt:2: 'trait = no_such_trait' is a key that is not understood", _warnings[0]);
+		Assert.Contains("common/gainable_traits.txt:2: a gainable_trait with no trait", _warnings[1]);
+		Assert.Contains("common/gainable_traits.txt:3: 'combat = sea_battle'", _warnings[2]);
+		Assert.Contains("common/gainable_traits.txt:4: 'something_else'", _warnings[4]);
 	}
 }

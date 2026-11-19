@@ -48,7 +48,7 @@ public sealed class CCounterTypes
 			}
 			catch (Exception e)
 			{
-				warn($"Could not parse '{file}': {e.Message}");
+				warn(CDiagnostics.Located(file, 0, $"could not be parsed: {e.Message}"));
 				continue;
 			}
 			foreach (ClausewitzNode container in root.All("objectTypes"))
@@ -71,14 +71,14 @@ public sealed class CCounterTypes
 		string name = node.GetString("name");
 		if (name.Length == 0)
 		{
-			warn($"{file}: a CounterType has no name and is left out");
+			warn(CDiagnostics.Located(file, node.Line, "a CounterType has no name and is left out"));
 			return null;
 		}
 		foreach (ClausewitzNode child in node.Children)
 		{
 			if (child.Key is not null && !Keys.Contains(child.Key))
 			{
-				warn($"{file}: CounterType '{name}' has a key nothing reads: {child.Key}");
+				warn(CDiagnostics.Located(file, child.Line, $"CounterType '{name}' has a key nothing reads: {child.Key}"));
 			}
 		}
 

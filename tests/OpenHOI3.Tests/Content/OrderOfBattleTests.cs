@@ -257,9 +257,10 @@ public class OrderOfBattleTests : IDisposable
 
 		Types();
 
-		string warning = Assert.Single(_warnings);
-		Assert.Contains("shininess", warning);
-		Assert.Contains("swamp", warning);
+		// A line each, at the file and the line of the key.
+		Assert.Equal(2, _warnings.Count);
+		Assert.Contains("odd.txt:1: odd_brigade: 'shininess'", _warnings[0]);
+		Assert.Contains("odd.txt:1: odd_brigade: 'swamp { }'", _warnings[1]);
 	}
 
 	[Fact]
@@ -408,7 +409,8 @@ public class OrderOfBattleTests : IDisposable
 
 		Dictionary<string, int> model = countries.Find("AAA")!.HistoricalModels["staff_brigade"][0];
 		Assert.Equal(new[] { "drill" }, model.Keys);
-		Assert.Contains(_warnings, warning => warning.Contains("rifles for staff_brigade") && warning.Contains("nonsense"));
+		Assert.Contains(_warnings, warning => warning.Contains("AAA.txt:1: 'rifles' is not a technology of the unit type staff_brigade"));
+		Assert.Contains(_warnings, warning => warning.Contains("AAA.txt:1: 'nonsense' is not a technology of the unit type staff_brigade"));
 	}
 
 	// ---- the order of battle

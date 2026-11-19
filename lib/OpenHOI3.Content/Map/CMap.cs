@@ -214,8 +214,8 @@ public sealed class CMap
 		int declared = definition.GetInt("max_provinces", highestId + 1);
 		if (declared != highestId + 1)
 		{
-			warn($"'{definitionPath}' declares max_provinces = {declared}, " +
-				$"but '{provincesCsv}' runs to id {highestId}; using {highestId + 1}");
+			warn(CDiagnostics.Located(definitionPath, definition.Get("max_provinces")?.Line ?? 0,
+				$"declares max_provinces = {declared}, but '{provincesCsv}' runs to id {highestId}; using {highestId + 1}"));
 		}
 		int provinceCount = highestId + 1;
 
@@ -239,25 +239,22 @@ public sealed class CMap
 			throw new InvalidDataException($"'{provincesBmp}' must be 24 bits per pixel, not {bitmap.BitsPerPixel}");
 		}
 
-		ushort[] raster = BuildRaster(bitmap, idByColour, out int unmatchedPixels, out int unmatchedColours);
-		if (unmatchedPixels > 0)
+		// A bitmap has no lines, so each fault in it is said of the file: a colour no row has, a province with no pixel.
+		ushort[] raster = BuildRaster(bitmap, idByColour, out List<(int Colour, int Pixels)> unmatched);
+		foreach ((int colour, int pixels) in unmatched)
 		{
-			warn($"'{provincesBmp}': {unmatchedPixels} pixels in {unmatchedColours} colours match no row of " +
-				$"'{Path.GetFileName(provincesCsv)}' and belong to no province");
+			warn(CDiagnostics.Located(provincesBmp, 0,
+				$"{pixels} pixels of colour {colour >> 16} {(colour >> 8) & 0xFF} {colour & 0xFF} match no row of " +
+				$"'{Path.GetFileName(provincesCsv)}' and belong to no province"));
 		}
 
 		CProvinceShape[] shapes = MeasureShapes(raster, bitmap.Width, bitmap.Height, provinceCount);
-		int empty = 0;
 		for (int id = 1; id < provinceCount; id++)
 		{
 			if (shapes[id].IsEmpty)
 			{
-				empty++;
+				warn(CDiagnostics.Located(provincesBmp, 0, $"province {id} has no pixel at all"));
 			}
-		}
-		if (empty > 0)
-		{
-			warn($"'{provincesBmp}': {empty} provinces have no pixel at all");
 		}
 
 		List<HashSet<int>> touching = FindRasterAdjacency(raster, bitmap.Width, bitmap.Height, provinceCount);
@@ -295,25 +292,34 @@ public sealed class CMap
 			if (terrainBitmap.BitsPerPixel != 8
 				|| terrainBitmap.Width != bitmap.Width || terrainBitmap.Height != bitmap.Height)
 			{
-				warn($"'{terrainBmp}' must be 8 bits per pixel and {bitmap.Width} x {bitmap.Height} like the province " +
-					"bitmap; no province was given a terrain and no distance was measured");
+				warn(CDiagnostics.Located(terrainBmp, 0, $"must be 8 bits per pixel and {bitmap.Width} x {bitmap.Height} " +
+					"like the province bitmap; no province was given a terrain and no distance was measured"));
 				terrainBitmap = null;
 			}
 			else
 			{
 				terrain = CTerrainReader.FindTerrain(terrainBitmap, raster, terrainDefinition, positions,
 					id => isSea[id]);
-				int unknown = CTerrainReader.CountUnknown(terrainBitmap, terrainDefinition);
-				if (unknown > 0)
+				int[] unknown = CTerrainReader.CountUnknownByIndex(terrainBitmap, terrainDefinition);
+				for (int index = 0; index < unknown.Length; index++)
 				{
-					warn($"'{terrainBmp}': {unknown} pixels use a palette index that '{Path.GetFileName(terrainTxt)}' " +
-						"gives no terrain");
+					if (unknown[index] > 0)
+					{
+						warn(CDiagnostics.Located(terrainBmp, 0, $"{unknown[index]} pixels use palette index {index}, " +
+							$"which '{Path.GetFileName(terrainTxt)}' gives no terrain"));
+					}
 				}
 			}
 		}
 		else
 		{
-			warn($"no terrain: '{terrainTxt}' or '{terrainBmp}' is missing");
+			foreach (string missing in new[] { terrainTxt, terrainBmp })
+			{
+				if (!File.Exists(missing))
+				{
+					warn(CDiagnostics.Located(missing, 0, "no terrain: the file is missing"));
+				}
+			}
 		}
 
 		// The trees: trees.txt's types, and each palette index's type by the name its terrain.txt entry gives, matched as
@@ -322,21 +328,19 @@ public sealed class CMap
 		List<CTreeType> treeTypes = CTreeReader.Read(treesTxt, warn);
 		var treeTypeOfIndex = new int[256];
 		Array.Fill(treeTypeOfIndex, -1);
-		var unknownTrees = new SortedSet<string>(StringComparer.Ordinal);
+		var unknownTrees = new HashSet<(int Line, string Name)>();
 		for (int index = 0; index < 256; index++)
 		{
 			if (terrainDefinition.TreeOfIndex?[index] is { } name)
 			{
 				treeTypeOfIndex[index] = treeTypes.FindIndex(t => t.Name == name);
-				if (treeTypeOfIndex[index] < 0)
+				int line = terrainDefinition.TreeLineOfIndex?[index] ?? 0;
+				if (treeTypeOfIndex[index] < 0 && unknownTrees.Add((line, name)))
 				{
-					unknownTrees.Add(name);
+					warn(CDiagnostics.Located(terrainTxt, line,
+						$"names tree '{name}', which '{Path.GetFileName(treesTxt)}' has not"));
 				}
 			}
-		}
-		if (unknownTrees.Count > 0)
-		{
-			warn($"'{terrainTxt}' names trees '{Path.GetFileName(treesTxt)}' has not: {string.Join(", ", unknownTrees)}");
 		}
 
 		CBitmapFile? riverBitmap = null;
@@ -345,14 +349,14 @@ public sealed class CMap
 			riverBitmap = CBitmapFile.Read(riversBmp);
 			if (riverBitmap.BitsPerPixel != 8 || riverBitmap.Width != bitmap.Width || riverBitmap.Height != bitmap.Height)
 			{
-				warn($"'{riversBmp}' must be 8 bits per pixel and {bitmap.Width} x {bitmap.Height} like the province " +
-					"bitmap; no river was read from it");
+				warn(CDiagnostics.Located(riversBmp, 0, $"must be 8 bits per pixel and {bitmap.Width} x {bitmap.Height} " +
+					"like the province bitmap; no river was read from it"));
 				riverBitmap = null;
 			}
 		}
 		else
 		{
-			warn($"no rivers: '{riversBmp}' is missing");
+			warn(CDiagnostics.Located(riversBmp, 0, "no rivers: the file is missing"));
 		}
 
 		CProvinceEdge[][] edges = CMapGraph.Build(raster, bitmap.Width, bitmap.Height, provinceCount,
@@ -381,8 +385,8 @@ public sealed class CMap
 		{
 			ClimateIndex = climate,
 			CoastlineRegions = coastlineRegions,
-			LowPressureZones = ReadLowPressureZones(definition, provinceCount, warn),
-			HighPressureZones = ReadHighPressureZones(definition, provinceCount, warn),
+			LowPressureZones = ReadLowPressureZones(definition, definitionPath, provinceCount, warn),
+			HighPressureZones = ReadHighPressureZones(definition, definitionPath, provinceCount, warn),
 			TerrainSheetHeights = ReadHeights(definition, "terrain_sheet_heights"),
 			BorderHeights = ReadHeights(definition, "border_heights"),
 			BorderCutoff = definition.GetFloat("border_cutoff", 0f),
@@ -513,13 +517,15 @@ public sealed class CMap
 		var climate = new byte[provinceCount];
 		if (!File.Exists(path))
 		{
-			warn($"no climate: '{path}' is missing, and every province starts its temperature at the palette's nought");
+			warn(CDiagnostics.Located(path, 0,
+				"no climate: the file is missing, and every province starts its temperature at the palette's nought"));
 			return climate;
 		}
 		CBitmapFile bitmap = CBitmapFile.Read(path);
 		if (bitmap.BitsPerPixel != 8 || bitmap.Width != width || bitmap.Height != height)
 		{
-			warn($"'{path}' must be 8 bits per pixel and {width} x {height} like the province bitmap; no climate was read from it");
+			warn(CDiagnostics.Located(path, 0,
+				$"must be 8 bits per pixel and {width} x {height} like the province bitmap; no climate was read from it"));
 			return climate;
 		}
 		// Province 0 stands at the first pixel, having no point of its own; only the cache's file says so.
@@ -535,8 +541,8 @@ public sealed class CMap
 		return climate;
 	}
 
-	private static List<(int Province, int Mask)> ReadLowPressureZones(ClausewitzNode definition, int provinceCount,
-		Action<string> warn)
+	private static List<(int Province, int Mask)> ReadLowPressureZones(ClausewitzNode definition, string path,
+		int provinceCount, Action<string> warn)
 	{
 		var zones = new List<(int, int)>();
 		foreach (ClausewitzNode entry in definition.Get("low_pressure_zones")?.Children ?? new List<ClausewitzNode>())
@@ -549,13 +555,15 @@ public sealed class CMap
 			}
 			else
 			{
-				warn($"low_pressure_zones: '{entry.Key} = {entry.Value}' is not a province and a mask");
+				warn(CDiagnostics.Located(path, entry.Line,
+					$"low_pressure_zones: '{entry.Key} = {entry.Value}' is not a province and a mask"));
 			}
 		}
 		return zones;
 	}
 
-	private static List<int> ReadHighPressureZones(ClausewitzNode definition, int provinceCount, Action<string> warn)
+	private static List<int> ReadHighPressureZones(ClausewitzNode definition, string path, int provinceCount,
+		Action<string> warn)
 	{
 		var zones = new List<int>();
 		foreach (ClausewitzNode entry in definition.Get("high_pressure_zones")?.Children ?? new List<ClausewitzNode>())
@@ -567,7 +575,7 @@ public sealed class CMap
 			}
 			else
 			{
-				warn($"high_pressure_zones: '{entry.Value}' is not a province");
+				warn(CDiagnostics.Located(path, entry.Line, $"high_pressure_zones: '{entry.Value}' is not a province"));
 			}
 		}
 		return zones;
@@ -583,12 +591,10 @@ public sealed class CMap
 		Array.Fill(continents, "");
 		if (!File.Exists(path))
 		{
-			warn($"no continents: '{path}' is missing");
+			warn(CDiagnostics.Located(path, 0, "no continents: the file is missing"));
 			return continents;
 		}
 
-		int unknown = 0;
-		int repeated = 0;
 		foreach (ClausewitzNode block in ClausewitzParser.ParseFile(path).Children)
 		{
 			if (block.Key is null || !block.IsBlock)
@@ -601,25 +607,19 @@ public sealed class CMap
 				if (!int.TryParse(entry.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int id)
 					|| id <= 0 || id >= provinceCount)
 				{
-					unknown++;
+					warn(CDiagnostics.Located(path, entry.Line,
+						$"'{entry.Value ?? entry.Key}' is not the id of a province"));
 				}
 				else if (continents[id].Length != 0)
 				{
-					repeated++;
+					warn(CDiagnostics.Located(path, entry.Line,
+						$"province {id} is listed on more than one continent; the first, '{continents[id]}', was kept"));
 				}
 				else
 				{
 					continents[id] = block.Key;
 				}
 			}
-		}
-		if (unknown > 0)
-		{
-			warn($"'{path}': {unknown} entries are not the id of a province");
-		}
-		if (repeated > 0)
-		{
-			warn($"'{path}': {repeated} provinces are listed on more than one continent; the first was kept");
 		}
 		return continents;
 	}
@@ -639,12 +639,11 @@ public sealed class CMap
 		var idByColour = new Dictionary<int, ushort>();
 		var seen = new HashSet<int>();
 		highestId = 0;
-		int malformed = 0;
-		int duplicateColours = 0;
 
 		string[] lines = Encoding.Latin1.GetString(File.ReadAllBytes(path)).Split('\n');
 		for (int i = 1; i < lines.Length; i++)                 // row 0 is the header
 		{
+			int lineNumber = i + 1;
 			string line = lines[i].TrimEnd('\r');
 			if (line.Length == 0)
 			{
@@ -661,28 +660,22 @@ public sealed class CMap
 				|| !int.TryParse(columns[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out int blue)
 				|| id <= 0 || id > ushort.MaxValue)
 			{
-				malformed++;
+				warn(CDiagnostics.Located(path, lineNumber, "the row could not be read"));
 				continue;
 			}
 			seen.Add(id);
 			highestId = Math.Max(highestId, id);
 			if (!idByColour.TryAdd(ColourKey(red, green, blue), (ushort)id))
 			{
-				duplicateColours++;
+				warn(CDiagnostics.Located(path, lineNumber, $"the row repeats the colour of province " +
+					$"{idByColour[ColourKey(red, green, blue)]}, an earlier row's, and can never be matched"));
 			}
 		}
 
-		if (malformed > 0)
-		{
-			warn($"'{path}': {malformed} rows could not be read");
-		}
-		if (duplicateColours > 0)
-		{
-			warn($"'{path}': {duplicateColours} rows repeat an earlier row's colour and can never be matched");
-		}
+		// A gap is an id no row has, so it has no line of its own: said once, of the file.
 		if (seen.Count != highestId)
 		{
-			warn($"'{path}': ids run to {highestId} but only {seen.Count} are defined, so there are gaps");
+			warn(CDiagnostics.Located(path, 0, $"ids run to {highestId} but only {seen.Count} are defined, so there are gaps"));
 		}
 		return idByColour;
 	}
@@ -691,14 +684,15 @@ public sealed class CMap
 	/// Turns the bitmap into province ids. The file's first row is the northernmost,
 	/// so it becomes the raster's last.
 	/// </summary>
+	/// <param name="unmatched">Each colour no row has, in the order it is first met, with how many pixels it paints.</param>
 	private static ushort[] BuildRaster(CBitmapFile bitmap, Dictionary<int, ushort> idByColour,
-		out int unmatchedPixels, out int unmatchedColours)
+		out List<(int Colour, int Pixels)> unmatched)
 	{
 		int width = bitmap.Width;
 		int height = bitmap.Height;
 		var raster = new ushort[width * height];
-		var unmatched = new HashSet<int>();
-		unmatchedPixels = 0;
+		var unmatchedOrder = new List<int>();
+		var unmatchedPixels = new Dictionary<int, int>();
 
 		// Neighbouring pixels are nearly always the same province, so remembering the
 		// last colour saves almost every dictionary lookup.
@@ -719,18 +713,25 @@ public sealed class CMap
 					if (!idByColour.TryGetValue(key, out lastId))
 					{
 						lastId = 0;
-						unmatched.Add(key);
+						if (unmatchedPixels.TryAdd(key, 0))
+						{
+							unmatchedOrder.Add(key);
+						}
 					}
 				}
 				if (lastId == 0)
 				{
-					unmatchedPixels++;
+					unmatchedPixels[key]++;
 				}
 				target[x] = lastId;
 			}
 		}
 
-		unmatchedColours = unmatched.Count;
+		unmatched = new List<(int, int)>(unmatchedOrder.Count);
+		foreach (int key in unmatchedOrder)
+		{
+			unmatched.Add((key, unmatchedPixels[key]));
+		}
 		return raster;
 	}
 
@@ -829,11 +830,10 @@ public sealed class CMap
 			return result.ToArray();
 		}
 
-		int malformed = 0;
-		var unknownKinds = new SortedSet<string>(StringComparer.Ordinal);
 		string[] lines = Encoding.Latin1.GetString(File.ReadAllBytes(path)).Split('\n');
 		for (int i = 1; i < lines.Length; i++)                 // row 0 is the header
 		{
+			int lineNumber = i + 1;
 			string line = lines[i].TrimEnd('\r');
 			if (line.Trim().Length == 0)
 			{
@@ -844,7 +844,7 @@ public sealed class CMap
 				|| !int.TryParse(columns[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int from)
 				|| !int.TryParse(columns[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int to))
 			{
-				malformed++;
+				warn(CDiagnostics.Located(path, lineNumber, "the row could not be read"));
 				continue;
 			}
 			if (from < 0 && to < 0)
@@ -853,7 +853,7 @@ public sealed class CMap
 			}
 			if (from <= 0 || to <= 0 || from >= provinceCount || to >= provinceCount)
 			{
-				malformed++;
+				warn(CDiagnostics.Located(path, lineNumber, "the row could not be read"));
 				continue;
 			}
 			int through = columns.Length > 3
@@ -865,19 +865,10 @@ public sealed class CMap
 			if (kind is not ("river" or "sea" or "impassable" or "canal"))
 			{
 				// Read as a plain edge, as every type but those three is; said, where it was unseen (clausewitz.md, 3).
-				unknownKinds.Add(kind.Length == 0 ? "(none)" : kind);
+				warn(CDiagnostics.Located(path, lineNumber,
+					$"'{(kind.Length == 0 ? "(none)" : kind)}' is no type of a way and was read as a plain edge"));
 			}
 			result.Add(new CExplicitAdjacency(from, to, kind, through));
-		}
-
-		if (malformed > 0)
-		{
-			warn($"'{path}': {malformed} rows could not be read");
-		}
-		if (unknownKinds.Count > 0)
-		{
-			warn($"'{path}': {unknownKinds.Count} types are no type of a way and were read as a plain edge: " +
-				string.Join(", ", unknownKinds));
 		}
 		return result.ToArray();
 	}

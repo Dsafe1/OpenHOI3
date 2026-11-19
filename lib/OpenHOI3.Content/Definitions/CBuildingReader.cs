@@ -29,16 +29,15 @@ public static class CBuildingReader
 		string path = directories.Resolve(BuildingsFile);
 		if (!System.IO.File.Exists(path))
 		{
-			warn($"no buildings: '{path}' is missing");
+			warn(CDiagnostics.Located(path, 0, "no buildings: the file is missing"));
 			return Array.Empty<CBuilding>();
 		}
 		ClausewitzNode root = ClausewitzParser.ParseFile(path);
 
 		var buildings = new List<CBuilding>();
-		var lists = new List<(List<string> Required, List<string> Excluded)>();
+		var lists = new List<(List<(string, int)> Required, List<(string, int)> Excluded)>();
 		var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		Sim.Modifiers.CModifierKeys kinds = CModifierReader.Kinds(directories);
-		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		foreach (ClausewitzNode block in root.Children)
 		{
 			if (block.Key is null || !block.IsBlock)
@@ -47,7 +46,7 @@ public static class CBuildingReader
 			}
 			if (!seen.Add(block.Key))
 			{
-				warn($"'{path}': the building '{block.Key}' is declared twice; the first stands");
+				warn(CDiagnostics.Located(path, block.Line, $"the building '{block.Key}' is declared twice; the first stands"));
 				continue;
 			}
 
@@ -62,19 +61,19 @@ public static class CBuildingReader
 				if (!kinds.Contains(entry.Key))
 				{
 					// The original passes over a key that is no kind of modifier in silence (modifiers.md, section 2).
-					unknown.Add($"{block.Key}: {entry.Key}");
+					warn(CModifierReader.Unknown(path, "buildings", block, entry));
 					continue;
 				}
 				if (entry.Value is null || !CFixedPoint.TryParse(entry.Value, out CFixedPoint value))
 				{
-					warn($"'{path}': '{entry.Key}' on the building '{block.Key}' is not a number");
+					warn(CDiagnostics.Located(path, entry.Line, $"'{entry.Key}' on the building '{block.Key}' is not a number"));
 					continue;
 				}
 				if (modifierKey.Length != 0)
 				{
 					// A building holds one modifier, so a second one replaces the first.
-					warn($"'{path}': the building '{block.Key}' has two modifiers, '{modifierKey}' and " +
-						$"'{entry.Key}'; only the last counts");
+					warn(CDiagnostics.Located(path, entry.Line,
+						$"the building '{block.Key}' has two modifiers, '{modifierKey}' and '{entry.Key}'; only the last counts"));
 				}
 				modifierKey = entry.Key;
 				modifierValue = value;
@@ -100,13 +99,13 @@ public static class CBuildingReader
 			// A figure that is no number is read as nought - one as its damage factor - and said (clausewitz.md, section 3).
 			foreach (string key in NumberKeys)
 			{
-				if (block.Get(key) is { Value: { } text } && !CFixedPoint.TryParse(text, out _))
+				if (block.Get(key) is { Value: { } text } figure && !CFixedPoint.TryParse(text, out _))
 				{
-					warn($"'{path}': {block.Key}: {key} = {text} is no number; read as {(key == "damage_factor" ? "one" : "nought")}");
+					warn(CDiagnostics.Located(path, figure.Line,
+						$"{block.Key}: {key} = {text} is no number; read as {(key == "damage_factor" ? "one" : "nought")}"));
 				}
 			}
 		}
-		CModifierReader.ReportUnknown(warn, path, "buildings", unknown);
 		// The two lists of buildings are resolved once every building is read, as the original does at load
 		// (docs/mechanics/buildinglines.md, section 1).
 		for (int index = 0; index < buildings.Count; index++)
@@ -126,10 +125,10 @@ public static class CBuildingReader
 		return block.Get(key) is { Value: { } text } && CFixedPoint.TryParse(text, out CFixedPoint value) ? value : CFixedPoint.Zero;
 	}
 
-	/// <summary>The names a list key gives, written as a block of words or as one word.</summary>
-	private static List<string> Names(ClausewitzNode block, string key)
+	/// <summary>The names a list key gives, written as a block of words or as one word, each with its line for a report.</summary>
+	private static List<(string Name, int Line)> Names(ClausewitzNode block, string key)
 	{
-		var names = new List<string>();
+		var names = new List<(string, int)>();
 		if (block.Get(key) is not { } list)
 		{
 			return names;
@@ -138,7 +137,7 @@ public static class CBuildingReader
 		{
 			if (list.Value is { Length: > 0 } single)
 			{
-				names.Add(single);
+				names.Add((single, list.Line));
 			}
 			return names;
 		}
@@ -146,25 +145,25 @@ public static class CBuildingReader
 		{
 			if ((child.Value ?? child.Key) is { Length: > 0 } name)
 			{
-				names.Add(name);
+				names.Add((name, child.Line));
 			}
 		}
 		return names;
 	}
 
-	private static void Resolve(List<CBuilding> buildings, CBuilding building, List<string> names, List<CBuilding> into,
-		string path, Action<string> warn)
+	private static void Resolve(List<CBuilding> buildings, CBuilding building, List<(string Name, int Line)> names,
+		List<CBuilding> into, string path, Action<string> warn)
 	{
-		foreach (string name in names)
+		foreach ((string name, int line) in names)
 		{
 			CBuilding? found = buildings.Find(each => each.Key.Equals(name, StringComparison.OrdinalIgnoreCase));
 			if (found is null)
 			{
-				warn($"'{path}': unknown building '{name}' referred to in the list of '{building.Key}'");
+				warn(CDiagnostics.Located(path, line, $"unknown building '{name}' referred to in the list of '{building.Key}'"));
 			}
 			else if (found == building)
 			{
-				warn($"'{path}': the building '{building.Key}' names itself in its own list");
+				warn(CDiagnostics.Located(path, line, $"the building '{building.Key}' names itself in its own list"));
 			}
 			else
 			{

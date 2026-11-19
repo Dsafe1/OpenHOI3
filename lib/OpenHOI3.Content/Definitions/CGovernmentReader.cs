@@ -31,7 +31,6 @@ public static class CGovernmentReader
 		}
 		// A post is a modifier besides: what of it is a kind is read and not kept, and a key that is none is reported.
 		Sim.Modifiers.CModifierKeys kinds = CModifierReader.Kinds(directories);
-		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		foreach (ClausewitzNode block in root.Children)
 		{
 			if (block.Key is null || !block.IsBlock)
@@ -40,9 +39,9 @@ public static class CGovernmentReader
 			}
 			bool changeable = !block.GetString("changeable").Equals("no", StringComparison.OrdinalIgnoreCase);
 			positions.Add(new CGovernmentPosition(block.Key, positions.Count + 1, changeable));
-			CModifierReader.ReadBlock(block, PositionKeys, kinds, unknown, out _);
+			CModifierReader.ReadBlock(block, PositionKeys, kinds,
+				entry => warn(CModifierReader.Unknown(PositionsFile, "government positions", block, entry)));
 		}
-		CModifierReader.ReportUnknown(warn, PositionsFile, "government positions", unknown);
 		return positions;
 	}
 
@@ -69,16 +68,16 @@ public static class CGovernmentReader
 		ownKeys.UnionWith(positionNames);
 
 		Sim.Modifiers.CModifierKeys kinds = CModifierReader.Kinds(directories);
-		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		int unreadable = 0;
 		foreach (ClausewitzNode block in root.Children)
 		{
 			if (block.Key is null || !block.IsBlock)
 			{
 				continue;
 			}
-			var government = new CGovernment(block.Key, CModifierReader.ReadBlock(block, ownKeys, kinds, unknown, out int bad));
-			unreadable += bad;
+			var government = new CGovernment(block.Key, CModifierReader.ReadBlock(block, ownKeys, kinds,
+				entry => warn(CModifierReader.Unknown(GovernmentsFile, "governments", block, entry)),
+				entry => warn(CDiagnostics.Located(GovernmentsFile, entry.Line,
+					$"{block.Key}: {entry.Key} = {entry.Value} is neither an ideology, a post nor a number"))));
 			foreach (ClausewitzNode entry in block.Children)
 			{
 				if (entry.Key is null || entry.Value is null)
@@ -115,17 +114,13 @@ public static class CGovernmentReader
 				if (!int.TryParse(entry.Value, out _))
 				{
 					// Said, where it was read as nought (clausewitz.md, section 3).
-					warn($"'{GovernmentsFile}': {block.Key}: duration = {entry.Value} is no whole number; read as nought");
+					warn(CDiagnostics.Located(GovernmentsFile, entry.Line,
+						$"{block.Key}: duration = {entry.Value} is no whole number; read as nought"));
 				}
 				}
 			}
 			governments[block.Key] = government;
 		}
-		if (unreadable > 0)
-		{
-			warn($"'{GovernmentsFile}': {unreadable} entries are neither an ideology, a post nor a number");
-		}
-		CModifierReader.ReportUnknown(warn, GovernmentsFile, "governments", unknown);
 		return governments;
 	}
 
@@ -138,7 +133,7 @@ public static class CGovernmentReader
 		}
 		catch (IOException e)
 		{
-			warn($"Could not read '{path}': {e.Message}");
+			warn(CDiagnostics.Located(path, 0, $"could not be read: {e.Message}"));
 			return null;
 		}
 	}

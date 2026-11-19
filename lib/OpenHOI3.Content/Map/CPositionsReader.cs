@@ -69,7 +69,8 @@ public static class CPositionsReader
 		}
 		if (!File.Exists(path))
 		{
-			warn($"no positions: '{path}' is missing, and every province is at the centre of its bounding box");
+			warn(CDiagnostics.Located(path, 0,
+				"no positions: the file is missing, and every province is at the centre of its bounding box"));
 			return new CMapPositions(unit, text, navalBase, buildings, Array.Empty<CPortPlacement>()) { Labels = labels, City = city };
 		}
 		var placed = new List<CBuildingPosition>?[shapes.Count];
@@ -87,7 +88,6 @@ public static class CPositionsReader
 		float y = 0f;
 		bool hasX = false;
 		bool hasY = false;
-		int unknown = 0;
 
 		while (NextToken(bytes, ref at, out int start, out int length))
 		{
@@ -155,7 +155,8 @@ public static class CPositionsReader
 					if (!known)
 					{
 						province = 0;
-						unknown++;
+						warn(CDiagnostics.Located(path, LineAt(bytes, start),
+							$"'{word}' begins a block that is not for a province of the map"));
 					}
 				}
 			}
@@ -203,10 +204,6 @@ public static class CPositionsReader
 			afterEquals = false;
 		}
 
-		if (unknown > 0)
-		{
-			warn($"'{path}': {unknown} blocks are not for a province of the map");
-		}
 		for (int id = 0; id < placed.Length; id++)
 		{
 			if (placed[id] is { } list)
@@ -260,6 +257,20 @@ public static class CPositionsReader
 		}
 		length = at - start;
 		return true;
+	}
+
+	/// <summary>The line of the file a byte is on, counted from one, for a report.</summary>
+	private static int LineAt(byte[] bytes, int offset)
+	{
+		int line = 1;
+		for (int i = 0; i < offset && i < bytes.Length; i++)
+		{
+			if (bytes[i] == (byte)'\n')
+			{
+				line++;
+			}
+		}
+		return line;
 	}
 
 	private static bool IsPunctuation(byte c)

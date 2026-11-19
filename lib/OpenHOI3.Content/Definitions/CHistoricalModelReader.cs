@@ -26,13 +26,8 @@ public static class CHistoricalModelReader
 		int defaultCount, Action<string>? warn = null)
 	{
 		warn ??= CDiagnostics.Problem;
-		var broken = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		var unknownTypes = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		var outOfOrder = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		var notForType = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		var notNumbers = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		var noCountry = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 
+		// Each fault said once at its file and line, in the files' order (logs.md, section 4).
 		foreach (string file in directories.ListFiles(ModelDirectory, "*.txt"))
 		{
 			// The country a file belongs to is the tag its name starts with, in either case.
@@ -42,7 +37,7 @@ public static class CHistoricalModelReader
 				: null;
 			if (country is null)
 			{
-				noCountry.Add(name);
+				warn(CDiagnostics.Located(file, 0, "the model file is named for no country and was skipped"));
 				continue;
 			}
 
@@ -53,7 +48,7 @@ public static class CHistoricalModelReader
 			}
 			catch (IOException e)
 			{
-				warn($"Could not read '{file}': {e.Message}");
+				warn(CDiagnostics.Located(file, 0, $"could not be read: {e.Message}"));
 				continue;
 			}
 
@@ -62,24 +57,24 @@ public static class CHistoricalModelReader
 				if (block.Key is null || !block.IsBlock)
 				{
 					// Said, where it was passed over (clausewitz.md, section 3).
-					broken.Add($"{name}: {block.Key ?? block.Value}");
+					warn(CDiagnostics.Located(file, block.Line, $"'{block.Key ?? block.Value}' is not a unit type and a number"));
 					continue;
 				}
 				string[] parts = block.Key.Split('.');
 				if (parts.Length != 2)
 				{
-					broken.Add($"{name}: {block.Key}");
+					warn(CDiagnostics.Located(file, block.Line, $"'{block.Key}' is not a unit type and a number"));
 					continue;
 				}
 				if (!unitTypes.TryGetValue(parts[0], out CSubUnitType? type))
 				{
-					unknownTypes.Add($"{name}: {parts[0]}");
+					warn(CDiagnostics.Located(file, block.Line, $"'{parts[0]}' names a unit type that is not defined"));
 					continue;
 				}
 				// Anything that is not a number is model 0, as the original reads it - and said.
 				if (!int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int number))
 				{
-					notNumbers.Add($"{name}: {block.Key}, read as model 0");
+					warn(CDiagnostics.Located(file, block.Line, $"{block.Key} is no whole number of a model; read as model 0"));
 				}
 
 				if (!country.HistoricalModels.TryGetValue(type.Key, out SortedDictionary<int, Dictionary<string, int>>? models))
@@ -94,7 +89,8 @@ public static class CHistoricalModelReader
 				}
 				if (number < 0 || number > count)
 				{
-					outOfOrder.Add($"{name}: {block.Key}, where the next would be {count}");
+					warn(CDiagnostics.Located(file, block.Line,
+						$"{block.Key} is numbered past the next model, which would be {count}, and was left out"));
 					continue;
 				}
 
@@ -104,38 +100,25 @@ public static class CHistoricalModelReader
 				{
 					if (line.Key is null || line.IsBlock)
 					{
-						broken.Add($"{name}: {block.Key} {{ {line.Key ?? line.Value} }}");
+						warn(CDiagnostics.Located(file, line.Line,
+							$"'{block.Key} {{ {line.Key ?? line.Value} }}' is not a technology and a level"));
 						continue;
 					}
 					if (!technologies.TryGetValue(line.Key, out CTechnology? technology)
 						|| !technology.UnitEffects.ContainsKey(type.Key))
 					{
-						notForType.Add($"{line.Key} for {type.Key}");
+						warn(CDiagnostics.Located(file, line.Line,
+							$"'{line.Key}' is not a technology of the unit type {type.Key} and was left out"));
 						continue;
 					}
 					if (!int.TryParse(line.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int level))
 					{
-						notNumbers.Add($"{name}: {block.Key} {line.Key} = {line.Value}, read as 0");
+						warn(CDiagnostics.Located(file, line.Line, $"{block.Key}: {line.Key} = {line.Value} is no whole number; read as 0"));
 					}
 					levels[technology.Name] = level;
 				}
 				models[number] = levels;
 			}
-		}
-
-		Report(warn, noCountry, "model files are named for no country and were skipped");
-		Report(warn, broken, "statements in model files are not a unit type and a number");
-		Report(warn, unknownTypes, "statements in model files name a unit type that is not defined");
-		Report(warn, outOfOrder, "models are numbered past the next one and were left out");
-		Report(warn, notForType, "technologies in model files are not technologies of that unit type and were left out");
-		Report(warn, notNumbers, "figures in model files are no whole numbers");
-	}
-
-	private static void Report(Action<string> warn, SortedSet<string> found, string what)
-	{
-		if (found.Count > 0)
-		{
-			warn($"{found.Count} {what}: {string.Join("; ", found)}");
 		}
 	}
 }

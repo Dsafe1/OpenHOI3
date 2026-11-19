@@ -27,7 +27,7 @@ public static class CIdeologyReader
 		}
 		catch (IOException e)
 		{
-			warn($"Could not read '{path}': {e.Message}");
+			warn(CDiagnostics.Located(path, 0, $"could not be read: {e.Message}"));
 			return new List<CIdeologyGroup>();
 		}
 		return Read(root, warn);
@@ -39,13 +39,14 @@ public static class CIdeologyReader
 		// The kinds of modifier known as each group is read: a faction's own kind is made once its block is read, so a
 		// group's blocks know only the factions before it (modifiers.md, section 2).
 		var factions = new List<string>();
-		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+		const string what = "ideologies and faction modifiers";
+		void Passed(ClausewitzNode node, string message) => warn(CDiagnostics.Located(IdeologiesFile, node.Line, message));
 		foreach (ClausewitzNode block in root.Children)
 		{
 			if (block.Key is null || !block.IsBlock)
 			{
 				// Said, where it was passed over (clausewitz.md, section 3).
-				unknown.Add($"{block.Key ?? block.Value} (no group: a name and a block)");
+				Passed(block, $"'{block.Key ?? block.Value}' is no group: a name and a block; passed over");
 				continue;
 			}
 			var kinds = new Sim.Modifiers.CModifierKeys(factions);
@@ -53,28 +54,28 @@ public static class CIdeologyReader
 			ClausewitzNode? faction = block.Get("faction");
 			if (position is null)
 			{
-				warn($"'{IdeologiesFile}': the group '{block.Key}' has no position");
+				Passed(block, $"the group '{block.Key}' has no position");
 			}
 			foreach (ClausewitzNode part in position?.Children ?? new List<ClausewitzNode>())
 			{
 				if (part.Key is null || !(part.Key.Equals("x", StringComparison.OrdinalIgnoreCase)
 					|| part.Key.Equals("y", StringComparison.OrdinalIgnoreCase)))
 				{
-					unknown.Add($"{block.Key}/position/{part.Key ?? part.Value}");
+					Passed(part, $"'{block.Key}/position/{part.Key ?? part.Value}' is a key nothing reads; passed over");
 				}
 			}
 			foreach (ClausewitzNode part in faction?.Children ?? new List<ClausewitzNode>())
 			{
 				if (part.Key is null || !FactionKeys.Contains(part.Key))
 				{
-					unknown.Add($"{block.Key}/faction/{part.Key ?? part.Value}");
+					Passed(part, $"'{block.Key}/faction/{part.Key ?? part.Value}' is a key nothing reads; passed over");
 				}
 			}
 			foreach (ClausewitzNode part in block.Children)
 			{
 				if (part.Key is null || !part.IsBlock)
 				{
-					unknown.Add($"{block.Key}/{part.Key ?? part.Value} (no ideology: a name and a block)");
+					Passed(part, $"'{block.Key}/{part.Key ?? part.Value}' is no ideology: a name and a block; passed over");
 				}
 			}
 			ClausewitzNode? modifier = faction?.Get("modifier");
@@ -84,7 +85,7 @@ public static class CIdeologyReader
 				FactionNeutrality = Number(faction?.GetString("neutrality")),
 				Influence = faction?.GetString("influence") ?? "",
 				FactionIcon = int.TryParse(faction?.GetString("icon"), out int icon) ? icon : 0,
-				FactionModifier = modifier is { IsBlock: true } ? ReadModifier(modifier, block.Key, kinds, unknown, warn) : new(),
+				FactionModifier = modifier is { IsBlock: true } ? ReadModifier(modifier, block.Key, kinds, warn) : new(),
 			};
 			ReadRules(faction?.Get("rule"), group, warn);
 			foreach (ClausewitzNode ideology in block.Children)
@@ -95,13 +96,13 @@ public static class CIdeologyReader
 					group.IdeologyOrder.Add(ideology.Key);
 					group.IdeologyColours[ideology.Key] = ideology.GetRgb("color", CColor.Gray);
 					// An ideology is a modifier with a colour of its own; what of it is a kind is read and not kept.
-					CModifierReader.ReadBlock(ideology, IdeologyKeys, kinds, unknown, out _);
+					CModifierReader.ReadBlock(ideology, IdeologyKeys, kinds,
+						entry => warn(CModifierReader.Unknown(IdeologiesFile, what, ideology, entry)));
 				}
 			}
 			groups.Add(group);
 			factions.Add(group.Faction);
 		}
-		CModifierReader.ReportUnknown(warn, IdeologiesFile, "ideologies and faction modifiers", unknown);
 		return groups;
 	}
 
@@ -124,7 +125,7 @@ public static class CIdeologyReader
 			}
 			if (!CFactionRules.IsRule(entry.Key))
 			{
-				warn($"'{IdeologiesFile}': unknown rule '{entry.Key}' in the group '{group.Name}'");
+				warn(CDiagnostics.Located(IdeologiesFile, entry.Line, $"unknown rule '{entry.Key}' in the group '{group.Name}'"));
 			}
 			else if (string.Equals(entry.Value, "yes", StringComparison.OrdinalIgnoreCase))
 			{
@@ -132,7 +133,7 @@ public static class CIdeologyReader
 			}
 			else if (!string.Equals(entry.Value, "no", StringComparison.OrdinalIgnoreCase))
 			{
-				warn($"'{IdeologiesFile}': the rule '{entry.Key}' of the group '{group.Name}' is neither yes nor no");
+				warn(CDiagnostics.Located(IdeologiesFile, entry.Line, $"the rule '{entry.Key}' of the group '{group.Name}' is neither yes nor no"));
 			}
 		}
 	}
@@ -147,15 +148,12 @@ public static class CIdeologyReader
 	};
 
 	private static Sim.Modifiers.CModifier ReadModifier(ClausewitzNode block, string group,
-		Sim.Modifiers.CModifierKeys kinds, SortedSet<string> unknown, Action<string> warn)
+		Sim.Modifiers.CModifierKeys kinds, Action<string> warn)
 	{
-		Sim.Modifiers.CModifier modifier = CModifierReader.ReadBlock(block, new HashSet<string>(), kinds, unknown,
-			out int unreadable);
-		if (unreadable > 0)
-		{
-			warn($"'{IdeologiesFile}': {unreadable} entries of the group '{group}''s faction modifier are not numbers");
-		}
-		return modifier;
+		return CModifierReader.ReadBlock(block, new HashSet<string>(), kinds,
+			entry => warn(CModifierReader.Unknown(IdeologiesFile, "ideologies and faction modifiers", block, entry)),
+			entry => warn(CDiagnostics.Located(IdeologiesFile, entry.Line,
+				$"{entry.Key} = {entry.Value} in the group '{group}''s faction modifier is no number")));
 	}
 
 	private static long Thousandths(ClausewitzNode? point, string key) => Number(point?.GetString(key)).Raw;

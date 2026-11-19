@@ -60,6 +60,20 @@ public class RegionReaderTests
 		List<CRegion> regions = Read("edge_region = { 5 500 war }");
 
 		Assert.Equal(new[] { 5 }, regions[0].Provinces);
-		Assert.Single(_warnings);
+		// One line for each entry, its own.
+		Assert.Equal(2, _warnings.Count);
+		Assert.Contains("'500'", _warnings[0]);
+		Assert.Contains("'war'", _warnings[1]);
+	}
+
+	[Fact]
+	public void A_report_is_placed_at_the_file_and_the_line_of_its_entry()
+	{
+		var warnings = new List<string>();
+		CRegionReader.Read(ClausewitzParser.Parse("north_region = { 1 2 }\nsouth_region = {\n\t3\n\t900\n}"), 100,
+			warnings.Add, "map/region.txt");
+
+		string warning = Assert.Single(warnings);
+		Assert.StartsWith("map/region.txt:4: '900' is neither the id of a province", warning);
 	}
 }

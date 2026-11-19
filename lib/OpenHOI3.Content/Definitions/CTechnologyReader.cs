@@ -66,7 +66,7 @@ public static class CTechnologyReader
 		string path = directories.Resolve(CategoryFile);
 		if (!File.Exists(path))
 		{
-			warn($"no technology categories: '{path}' is missing");
+			warn(CDiagnostics.Located(path, 0, "no technology categories: the file is missing"));
 			return categories;
 		}
 
@@ -78,14 +78,15 @@ public static class CTechnologyReader
 				|| top.Key.Equals("practical", StringComparison.OrdinalIgnoreCase)
 				|| top.Key.Equals("folders", StringComparison.OrdinalIgnoreCase)))
 			{
-				warn($"'{path}': '{top.Key ?? top.Value}' is no list of the file's; passed over");
+				warn(CDiagnostics.Located(path, top.Line, $"'{top.Key ?? top.Value}' is no list of the file's; passed over"));
 				continue;
 			}
 			foreach (ClausewitzNode entry in top.Children)
 			{
 				if (entry.Key is not null)
 				{
-					warn($"'{path}': '{entry.Key}' in {top.Key} is a pair, where the list holds names; passed over");
+					warn(CDiagnostics.Located(path, entry.Line,
+						$"'{entry.Key}' in {top.Key} is a pair, where the list holds names; passed over"));
 				}
 			}
 		}
@@ -139,12 +140,19 @@ public static class CTechnologyReader
 		warn ??= CDiagnostics.Problem;
 		var adjusters = new HashSet<string>(CSubUnitTypeReader.Circumstances, StringComparer.OrdinalIgnoreCase);
 		adjusters.UnionWith(terrains ?? Array.Empty<string>());
-		var unknownUnitKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		var unknownMissionKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		var notNumbers = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		var unknownTechnologyKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		var technologies = new List<CTechnology>();
-		int duplicates = 0;
+
+		// Each fault said once at its file and line, in the files' order (logs.md, section 4).
+		var reported = new HashSet<string>(StringComparer.Ordinal);
+		void Report(string file, int line, string message)
+		{
+			string located = CDiagnostics.Located(file, line, message);
+			if (reported.Add(located))
+			{
+				warn(located);
+			}
+		}
+		var fileOf = new Dictionary<ClausewitzNode, string>();
 
 		// Every block first, in the files' order. A name declared twice is two technologies in the original, each in its
 		// place: a save lists both under the one name, and each unit type's levels by position count both, while every look
@@ -166,7 +174,7 @@ public static class CTechnologyReader
 			}
 			catch (IOException e)
 			{
-				warn($"Could not read '{file}': {e.Message}");
+				warn(CDiagnostics.Located(file, 0, $"could not be read: {e.Message}"));
 				continue;
 			}
 
@@ -176,10 +184,12 @@ public static class CTechnologyReader
 				{
 					continue;
 				}
+				fileOf[block] = file;
 				if (names.TryGetValue(block.Key, out ClausewitzNode? earlier))
 				{
-					duplicates++;
 					shadowed.Add(earlier);
+					Report(file, block.Line, $"technology '{block.Key}' is declared again, first at {fileOf[earlier]}:{earlier.Line}; " +
+						"the last is the one a name finds, the earlier kept for its unit types");
 				}
 				names[block.Key] = block;
 				blocks.Add(block);
@@ -191,10 +201,10 @@ public static class CTechnologyReader
 		{
 			categoryNames.Add(category.Name);
 		}
-		var unknownCategories = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 
 		foreach (ClausewitzNode block in blocks)
 		{
+			string file = fileOf[block];
 			var effect = new CModifier(block.Key!);
 			foreach (ClausewitzNode entry in block.Children)
 			{
@@ -215,9 +225,11 @@ public static class CTechnologyReader
 			string onCompletion = block.GetString("on_completion");
 			if (onCompletion.Length != 0 && categories is not null && !categoryNames.Contains(onCompletion))
 			{
-				unknownCategories.Add(onCompletion);
+				Report(file, block.Get("on_completion")?.Line ?? block.Line,
+					$"{block.Key}: on_completion names a category that is not defined: {onCompletion}");
 				onCompletion = "";
 			}
+			void UnknownAmount(ClausewitzNode entry, string message) => Report(file, entry.Line, message);
 
 			var technology = new CTechnology(block.Key!, block.GetInt("max_level"), effect)
 			{
@@ -229,8 +241,8 @@ public static class CTechnologyReader
 				IsNuclear = block.GetString("is_nuclear").Equals("yes", StringComparison.OrdinalIgnoreCase),
 				OnCompletion = onCompletion,
 				Folder = block.GetString("folder"),
-				ResearchBonusFrom = ReadAmounts(block.Get("research_bonus_from"), categories is null ? null : categoryNames, unknownCategories),
-				Decay = ReadAmounts(block.Get("decay"), categories is null ? null : categoryNames, unknownCategories),
+				ResearchBonusFrom = ReadAmounts(block.Get("research_bonus_from"), categories is null ? null : categoryNames, UnknownAmount),
+				Decay = ReadAmounts(block.Get("decay"), categories is null ? null : categoryNames, UnknownAmount),
 				// The allow block is script, read with the rest of it once everything it may name is loaded
 				// (CTechnologyAllowReader).
 				HasPrecondition = block.Get("allow") is { IsBlock: true, Children.Count: > 0 },
@@ -258,7 +270,8 @@ public static class CTechnologyReader
 				{
 					if (figure.Key is null || !CFixedPoint.TryParse(figure.Value, out CFixedPoint amount))
 					{
-						unknownMissionKeys.Add(entry.Key + " { " + (figure.Key ?? figure.Value ?? "?") + " }");
+						Report(file, figure.Line, $"{block.Key}: '{entry.Key} {{ {figure.Key ?? figure.Value ?? "?"} }}' " +
+							"is a key a technology gives a mission that is not understood");
 					}
 					else if (figure.Key.Equals("efficiency", StringComparison.OrdinalIgnoreCase))
 					{
@@ -270,7 +283,8 @@ public static class CTechnologyReader
 					}
 					else
 					{
-						unknownMissionKeys.Add(entry.Key + " { " + figure.Key + " }");
+						Report(file, figure.Line, $"{block.Key}: '{entry.Key} {{ {figure.Key} }}' " +
+							"is a key a technology gives a mission that is not understood");
 					}
 				}
 			}
@@ -289,7 +303,9 @@ public static class CTechnologyReader
 					type.Technologies.Add(technology);
 				}
 				CSubUnitStatsReader.Read(entry, stats, CSubUnitTypeReader.Statistics.Contains, adjusters.Contains,
-					other => unknownUnitKeys.Add(other.IsBlock ? other.Key + " { }" : other.Key!), notNumbers);
+					other => Report(file, other.Line, $"{block.Key}: {entry.Key}: '{(other.IsBlock ? other.Key + " { }" : other.Key)}' " +
+						"is a key a technology gives a unit type that is not understood"),
+					(figure, text) => Report(file, figure.Line, $"{block.Key}: {text} is no number and was ignored"));
 			}
 
 			// Said, where it was passed over (clausewitz.md, section 3): a block that is no unit type, mission or block of a
@@ -299,64 +315,34 @@ public static class CTechnologyReader
 			{
 				if (entry.Key is null)
 				{
-					unknownTechnologyKeys.Add($"{block.Key}: '{entry.Value}'");
+					Report(file, entry.Line, $"{block.Key}: '{entry.Value}' is a word nothing reads in a technology; passed over");
 				}
 				else if (entry.IsBlock)
 				{
 					if (!OwnBlocks.Contains(entry.Key) && !Missions.Contains(entry.Key)
 						&& (unitTypes is null || !unitTypes.ContainsKey(entry.Key)))
 					{
-						unknownTechnologyKeys.Add($"{block.Key}: {entry.Key} {{ }}");
+						Report(file, entry.Line, $"{block.Key}: {entry.Key} {{ }} is a block nothing reads in a technology; passed over");
 					}
 				}
 				else if (OwnNumbers.Contains(entry.Key))
 				{
 					if (!CFixedPoint.TryParse(entry.Value, out _))
 					{
-						notNumbers.Add($"{block.Key}: {entry.Key} = {entry.Value}");
+						Report(file, entry.Line, $"{block.Key}: {entry.Key} = {entry.Value} is no number and was ignored");
 					}
 				}
 				else if (!OwnKeys.Contains(entry.Key) && !OwnWords.Contains(entry.Key) && !CFixedPoint.TryParse(entry.Value, out _)
 					&& !"yes".Equals(entry.Value, StringComparison.OrdinalIgnoreCase))
 				{
-					unknownTechnologyKeys.Add($"{block.Key}: {entry.Key} = {entry.Value}");
+					Report(file, entry.Line, $"{block.Key}: {entry.Key} = {entry.Value} is a key nothing reads in a technology; passed over");
 				}
 			}
-		}
-
-		if (unknownTechnologyKeys.Count > 0)
-		{
-			warn($"technologies hold {unknownTechnologyKeys.Count} keys and blocks nothing reads, passed over: " +
-				string.Join(", ", unknownTechnologyKeys));
-		}
-		if (unknownMissionKeys.Count > 0)
-		{
-			warn($"technologies give missions {unknownMissionKeys.Count} keys that are not understood: " +
-				string.Join(", ", unknownMissionKeys));
-		}
-		if (unknownUnitKeys.Count > 0)
-		{
-			warn($"technologies give unit types {unknownUnitKeys.Count} keys that are not understood: " +
-				string.Join(", ", unknownUnitKeys));
-		}
-		if (notNumbers.Count > 0)
-		{
-			warn($"{notNumbers.Count} figures technologies give unit types are not numbers and were ignored: " +
-				string.Join("; ", notNumbers));
 		}
 
 		if (technologies.Count == 0)
 		{
 			warn($"no technologies were found under '{TechnologyDirectory}'");
-		}
-		if (duplicates > 0)
-		{
-			warn($"{duplicates} technologies are declared more than once; the last is the one a name finds, the earlier kept for its unit types");
-		}
-		if (unknownCategories.Count > 0)
-		{
-			warn($"technologies name {unknownCategories.Count} categories that are not defined: " +
-				string.Join(", ", unknownCategories));
 		}
 		return technologies;
 	}
@@ -368,20 +354,20 @@ public static class CTechnologyReader
 
 	/// <summary>A block of <c>category = amount</c> lines. A category nobody declared is left out.</summary>
 	private static List<(string, CFixedPoint)> ReadAmounts(ClausewitzNode? block, HashSet<string>? categories,
-		SortedSet<string> unknown)
+		Action<ClausewitzNode, string> unknown)
 	{
 		var amounts = new List<(string, CFixedPoint)>();
 		foreach (ClausewitzNode entry in block?.Children ?? new List<ClausewitzNode>())
 		{
 			if (entry.Key is null || !CFixedPoint.TryParse(entry.Value, out CFixedPoint amount))
 			{
-				// Said, where it was passed over (clausewitz.md, section 3): reported with the categories no file declares.
-				unknown.Add($"{block!.Key}: {entry.Key ?? entry.Value} = {entry.Value}, no category and amount");
+				// Said, where it was passed over (clausewitz.md, section 3), as a category no file declares is.
+				unknown(entry, $"{block!.Key}: {entry.Key ?? entry.Value} = {entry.Value} is no category and amount");
 				continue;
 			}
 			if (categories is not null && !categories.Contains(entry.Key))
 			{
-				unknown.Add(entry.Key);
+				unknown(entry, $"{block!.Key} names a category that is not defined: {entry.Key}");
 				continue;
 			}
 			amounts.Add((entry.Key, amount));

@@ -107,7 +107,8 @@ public class ModifierKeysTests : IDisposable
 		Assert.False(law.Modifier.Values.ContainsKey("global_lc"));
 		Assert.False(law.Modifier.Values.ContainsKey("icon"));
 		string warning = Assert.Single(_warnings);
-		Assert.Contains("war_economy: global_lc", warning);
+		// At the file and the line of the key, as a compiler writes it (logs.md, section 4).
+		Assert.Contains("laws.txt:4: war_economy: global_lc", warning);
 	}
 
 	[Fact]
@@ -121,9 +122,10 @@ public class ModifierKeysTests : IDisposable
 		Assert.False(groups[0].FactionModifier.Values.ContainsKey("suseptibility_axis"));
 		Assert.Equal(CFixedPoint.Parse("0.1"), groups[0].FactionModifier["territorial_pride"]);
 		Assert.Equal(CFixedPoint.Parse("-0.1"), groups[1].FactionModifier["suseptibility_axis"]);
-		string warning = Assert.Single(_warnings);
-		Assert.Contains("modifier: suseptibility_axis", warning);
-		Assert.Contains("social_liberal: bogus_kind", warning);
+		// One line for each, at the line of the key.
+		Assert.Equal(2, _warnings.Count);
+		Assert.Contains("common/ideologies.txt:5: modifier: suseptibility_axis", _warnings[0]);
+		Assert.Contains("common/ideologies.txt:10: social_liberal: bogus_kind", _warnings[1]);
 	}
 
 	[Fact]

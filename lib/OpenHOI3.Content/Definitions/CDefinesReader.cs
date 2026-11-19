@@ -60,17 +60,13 @@ public static class CDefinesReader
 			}
 		}
 
-		var missing = new List<string>();
+		// A define the file does not give has no line of its own: each is said of the file.
 		foreach ((string section, string name) in Used)
 		{
 			if (!defines.Has(section, name))
 			{
-				missing.Add($"{section}.{name}");
+				warn(CDiagnostics.Located(path, 0, $"does not give {section}.{name}; it is taken as zero"));
 			}
-		}
-		if (missing.Count > 0)
-		{
-			warn($"'{path}' does not give {string.Join(", ", missing)}; each is taken as zero");
 		}
 		return defines;
 	}

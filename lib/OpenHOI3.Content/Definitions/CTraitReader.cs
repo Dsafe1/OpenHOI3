@@ -39,7 +39,7 @@ public static class CTraitReader
 		}
 		catch (Exception e)
 		{
-			warn($"Could not read '{path}': {e.Message}");
+			warn(CDiagnostics.Located(path, 0, $"could not be read: {e.Message}"));
 			return new List<CTrait>();
 		}
 		return Read(root, warn);
@@ -51,8 +51,6 @@ public static class CTraitReader
 		warn ??= CDiagnostics.Problem;
 		var traits = new List<CTrait>();
 		var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-		var unknownKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		var overfull = new List<string>();
 		foreach (ClausewitzNode block in root.Children)
 		{
 			if (block.Key is null || !block.IsBlock)
@@ -61,7 +59,8 @@ public static class CTraitReader
 			}
 			if (!names.Add(block.Key))
 			{
-				warn($"'{TraitFile}' declares the trait '{block.Key}' more than once; the first declaration stands");
+				warn(CDiagnostics.Located(TraitFile, block.Line,
+					$"the trait '{block.Key}' is declared more than once; the first declaration stands"));
 				continue;
 			}
 
@@ -92,14 +91,15 @@ public static class CTraitReader
 						}
 						else
 						{
-							unknownKeys.Add($"allowed_leader {word}");
+							warn(CDiagnostics.Located(TraitFile, kind.Line,
+								$"{block.Key}: 'allowed_leader {word}' is a key nothing reads"));
 						}
 					}
 					continue;
 				}
 				if (!EffectKeys.TryGetValue(entry.Key, out ETraitEffect effect))
 				{
-					unknownKeys.Add(entry.Key);
+					warn(CDiagnostics.Located(TraitFile, entry.Line, $"{block.Key}: '{entry.Key}' is a key nothing reads"));
 					continue;
 				}
 
@@ -112,26 +112,19 @@ public static class CTraitReader
 				}
 				if (!CFixedPoint.TryParse(figure, out CFixedPoint value))
 				{
-					unknownKeys.Add($"{entry.Key} (not a number)");
+					warn(CDiagnostics.Located(TraitFile, entry.Line,
+						$"{block.Key}: '{entry.Key}' is not a number, and nothing reads it"));
 					continue;
 				}
 				if (trait.Effects.Count == CTrait.MostEffects)
 				{
-					overfull.Add(trait.Key);
+					warn(CDiagnostics.Located(TraitFile, entry.Line, $"the trait '{trait.Key}' has more than " +
+						$"{CTrait.MostEffects} effects, and this one is dropped as the original drops it"));
 					continue;
 				}
 				trait.Effects.Add(new CTraitEffect(effect, value, terrain));
 			}
 			traits.Add(trait);
-		}
-		if (unknownKeys.Count > 0)
-		{
-			warn($"'{TraitFile}' uses {unknownKeys.Count} keys nothing reads: {string.Join(", ", unknownKeys)}");
-		}
-		if (overfull.Count > 0)
-		{
-			warn($"'{TraitFile}': {overfull.Count} traits have more than {CTrait.MostEffects} effects, and the rest " +
-				$"are dropped as the original drops them: {string.Join(", ", overfull)}");
 		}
 		return traits;
 	}
