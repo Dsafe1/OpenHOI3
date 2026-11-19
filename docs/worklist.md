@@ -2062,12 +2062,6 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   `.gfx` and `.gui` files, the technology files, events, decisions, history, music - were written against ours, and
   whether one of them settles a name given twice by its order, and so would read differently, was not looked into.
 
-- **`unit_deployment` in a file `load_oob` reads** (2026-11-19, `units.md`, "A file of units as a game runs"): the
-  original reads such a file through its country's save keys, so a finished unit waiting to be placed is as good there as
-  a queue line. 13 of BlackICE's files have 179 of them - the `AI_CAG_buildup` air groups among them - written in the
-  save's unit format (`model`-style level pairs, `{ id type }` numbers), which the history's reader does not take. Passed
-  over, and since that day named in the validation log. The save loader's `CSaveLines.ReadUnitDeployment` and
-  `CSaveUnitReader` read them; what wants deciding is the numbering, a save's pairs against the running game's count.
 
 - **The launcher - built 2026-11-18, what is left** (`docs/launcher.md`). Built: the Avalonia window
   (`launcher/OpenHOI3.Launcher`), its logic under test (`lib/OpenHOI3.Content/Launch`), `--install=` in the engine, the

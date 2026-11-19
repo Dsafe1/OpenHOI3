@@ -69,6 +69,20 @@ public sealed class CSaveIds
 		return Of(pair.GetInt("id"), pair.GetInt("type"));
 	}
 
+	/// <summary>Where every pair is given a new number after this one, in the order met; -1 for a save's numbering.</summary>
+	private int _freshAfter = -1;
+
+	/// <summary>
+	/// Numbers for a file read into a game under way - a <c>load_oob</c> file written in a save's form: every pair, of
+	/// whatever type, takes the next number after the game's last, in the order it is met, the same pair the same number.
+	/// *Ours*: the original keeps the file's own pairs, which may be a live unit's (<c>units.md</c>, "A file of units as
+	/// a game runs").
+	/// </summary>
+	public static CSaveIds After(int last)
+	{
+		return new CSaveIds { _freshAfter = last, Highest = last };
+	}
+
 	public int Of(int serial, int type)
 	{
 		if (serial <= 0 && type <= 0)
@@ -76,7 +90,15 @@ public sealed class CSaveIds
 			return 0;
 		}
 		int id;
-		if (type == History)
+		if (_freshAfter >= 0)
+		{
+			if (!_others.TryGetValue((serial, type), out id))
+			{
+				id = _freshAfter + 1 + _others.Count;
+				_others[(serial, type)] = id;
+			}
+		}
+		else if (type == History)
 		{
 			id = serial;
 		}

@@ -658,6 +658,72 @@ public class OrderOfBattleTests : IDisposable
 	}
 
 	[Fact]
+	public void AUnitWaitingToBePlacedInAFileReadAsAGameRunsGoesOnTheDeployList()
+	{
+		Dictionary<string, CSubUnitType> types = Types();
+		Dictionary<string, CTechnology> technologies = Technologies(types);
+		CCountries countries = ReadModels(types, technologies);
+		CCountry a = countries.Find("AAA")!;
+		var provinces = new List<OpenHOI3.Sim.Provinces.CProvince>();
+		for (int id = 0; id < 10; id++)
+		{
+			provinces.Add(new OpenHOI3.Sim.Provinces.CProvince(id, $"p{id}", isSea: false));
+		}
+		var state = new CGameState(new CDate(1939, 1, 1), provinces, countries.Declared, technologies: technologies.Values)
+		{
+			SubUnitTypes = types,
+			LastUnitId = 40,
+		};
+		// BlackICE's AI_CAG_buildup files: a save's own form, its numbers the save's pairs.
+		Write("history/units/cag.txt", """
+			unit_deployment=
+			{
+				id=
+				{
+					id=2353
+					type=4713
+				}
+				air=
+				{
+					id=
+					{
+						id=2352
+						type=4713
+					}
+					name="2nd CAG"
+					wing=
+					{
+						id=
+						{
+							id=2355
+							type=4713
+						}
+						name="2nd CAG"
+						type="deck_wing"
+						organisation=73.987
+						strength=100
+						experience=20
+					}
+				}
+			}
+			""");
+
+		COrderOfBattleReader.ReadInto(Directories, state, a, "cag.txt", _warnings.Add);
+
+		CUnit waiting = Assert.Single(a.Deployments);
+		Assert.Equal("2nd CAG", waiting.Name);
+		Assert.Equal(EUnitKind.Air, waiting.Kind);
+		Assert.Equal("deck_wing", Assert.Single(waiting.SubUnits).Type.Key);
+		// The file's pairs take the numbers after the game's last, in the order the save's reader asks for them: the
+		// group, its wing, and then the deployment's own.
+		Assert.Equal(41, waiting.Id);
+		Assert.Equal(42, waiting.SubUnits[0].Id);
+		Assert.Equal(43, waiting.DeploymentId);
+		Assert.Equal(43, state.LastUnitId);
+		Assert.Empty(a.Units);
+	}
+
+	[Fact]
 	public void ABuildingsLineAndAConvoysInAFileReadAsAGameRunsGoOnTheQueuesEndAsTheFileHasThem()
 	{
 		Dictionary<string, CSubUnitType> types = Types();

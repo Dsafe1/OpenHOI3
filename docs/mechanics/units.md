@@ -542,6 +542,14 @@ every one loaded by an event, none a start file: event 95584's `GER_Peenemuende.
 nothing. *Ours*: each takes one number; how many the original's line takes was not read. *Mod-able*: every figure, in
 the file.
 
+**A `unit_deployment` in such a file** - built 2026-11-19 - is a finished unit put on the country's list of units
+waiting to be placed, the deploy menu's [exe, the same `CCountry::LoadKey`]. 13 of BlackICE's files have 179 of them -
+the `AI_CAG_buildup` air groups among them, each loaded by an event - written in a save's own form: `{ id type }`
+numbers and a wing's technologies as `technology = { level progress }`. So they are read by the save's unit reader
+(`savegame.md`, section 5): a technology the brigade's type has not got is listed in the validation log, as 2,834 of
+BlackICE's are. *Ours*: their numbers are the next after the game's last, in the order the reader meets them; the
+original keeps the file's pairs, which may be a live unit's own.
+
 A block such a file holds that nothing reads is listed in the validation log with the file's name (`logs.md`, section 4),
 where the original drops it.
 

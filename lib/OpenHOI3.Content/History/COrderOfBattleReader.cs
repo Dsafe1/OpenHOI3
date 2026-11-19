@@ -126,13 +126,19 @@ public static class COrderOfBattleReader
 		};
 		reading.StartAfter(state.LastUnitId);
 		var made = new List<CUnit>();
+		var toPlace = new List<ClausewitzNode>();
 		foreach (ClausewitzNode entry in Entries(root))
 		{
 			if (entry.Key is null)
 			{
 				continue;
 			}
-			if (entry.IsBlock && UnitKinds.TryGetValue(entry.Key, out EUnitKind kind))
+			if (entry.IsBlock && entry.Key.Equals(UnitDeployment, StringComparison.OrdinalIgnoreCase))
+			{
+				// A finished unit waiting to be placed, written in a save's form: read after the rest (ReadWaiting).
+				toPlace.Add(entry);
+			}
+			else if (entry.IsBlock && UnitKinds.TryGetValue(entry.Key, out EUnitKind kind))
 			{
 				CUnit unit = reading.ReadUnit(entry, kind, country, parent: null, carriedBy: null);
 				if (unit.Location != 0)
@@ -173,6 +179,10 @@ public static class COrderOfBattleReader
 			}
 		}
 		state.LastUnitId = reading.LastId;
+		if (toPlace.Count > 0)
+		{
+			ReadWaiting(state, country, toPlace, file, warn);
+		}
 		Report(warn, reading.UnknownKeys, $"keys in the order of battle {file} are not understood");
 		Report(warn, reading.BadNumbers, $"figures in the order of battle {file} are not numbers and were ignored");
 		Report(warn, reading.UnknownTypes, $"brigades in the order of battle {file} are of a type that is not defined and were left out");
@@ -378,6 +388,42 @@ public static class COrderOfBattleReader
 		if (found.Count > 0)
 		{
 			warn($"{found.Count} {what}: {string.Join("; ", found)}");
+		}
+	}
+
+	/// <summary>A finished unit waiting to be placed, in the original's save keys.</summary>
+	private const string UnitDeployment = "unit_deployment";
+
+	/// <summary>
+	/// A <c>load_oob</c> file's <c>unit_deployment</c> blocks: each a finished unit put on the country's list of units
+	/// waiting to be placed - the deploy menu's - read as a save's are, for the original reads such a file through its
+	/// country's own save keys (<c>docs/mechanics/units.md</c>, "A file of units as a game runs"). Their numbers are
+	/// the next after the game's last, in the order met (<see cref="Saves.CSaveIds.After"/>); their names are taken.
+	/// </summary>
+	private static void ReadWaiting(CGameState state, CCountry country, List<ClausewitzNode> blocks, string file,
+		Action<string> warn)
+	{
+		Saves.CSaveIds ids = Saves.CSaveIds.After(state.LastUnitId);
+		var report = new Saves.CSaveReport();
+		var units = new Saves.CSaveUnitReader(state, ids, report);
+		int before = country.Deployments.Count;
+		foreach (ClausewitzNode block in blocks)
+		{
+			Saves.CSaveLines.ReadUnitDeployment(country, block, ids, units, report);
+		}
+		state.LastUnitId = Math.Max(state.LastUnitId, ids.Highest);
+		for (int index = before; index < country.Deployments.Count; index++)
+		{
+			CUnit unit = country.Deployments[index];
+			CUnitNames.Register(country, unit.Name);
+			foreach (CSubUnit subUnit in unit.SubUnits)
+			{
+				CUnitNames.Register(country, subUnit.Name);
+			}
+		}
+		foreach (string line in report.Lines())
+		{
+			warn($"the order of battle {file}: {line}");
 		}
 	}
 
