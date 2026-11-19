@@ -307,11 +307,13 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    170, air 34 of 34; the five others unchanged. The other readers of `CCountryLists.Allies`, which keeps the faction's
    members, were not looked at. **Ours' attack estimates are the original's look for look** (section 146: `wr22`'s every
    Soviet look on entering to the thousandth, clean defenders among them).
-   Open: (a) the orders the draws leave: `wr14`'s from hour 32 - Soviet divisions - and `wr11`'s and `wr21`'s, which part on
-   entering alike: the Soviet attacks on 1576 and 1440 ours makes and the original does not - **not the halves**: an entering
-   with the same halves (`et4`) attacks both as ours does, so most likely the target's stance, 4 at a weight of 500 (1440's
-   533) - to settle with the original's target weights logged in a run that declines (`wr20`'s and `wr22`'s do not, the
-   defenders' halves worked out there); `wr20`'s four land orders of its last hours; `wr21` 440 of 468 from that entering on;
+   **And `wr11`'s and `wr21`'s entering is the recording's** (`replay.md`, section 9; section 147): the Soviet attacks on 1576
+   and 1440 ours makes and those originals decline are at stance 4 in ours and in every entering made without
+   `probes/hoidraws.lua` - the target weights logged live are ours to the thousandth, and those enterings attack as ours
+   does - while `hoidraws.lua`'s breakpoints put Smolensk HQ's other front (779) at the head of its area, which moves the
+   ramp's depot. Not a rule of ours.
+   Open: (a) the orders the draws leave: `wr14`'s from hour 32 - Soviet divisions; `wr20`'s four land orders of its last
+   hours; `wr21` 440 of 468 and `wr11` 464 of 488, both from that entering on, so to be measured only past it;
    `wr11`'s twenty fleets are its recording's, which has no patrol
    draws (`P` lines, `probes/hoidraws.lua` since `wr14`), so its patrols roll ours: the US Cruiser Fleet 5's way at hour
    6 is every other recording's. A hook naming each `math.random` caller is in the session scratchpad as

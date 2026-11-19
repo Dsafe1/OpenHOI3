@@ -249,6 +249,13 @@ shots fewer in ours, not yet followed.
 **What it does not do**: the trading's states (`CAiWorkers`) keep their own generators and are not fed; and only one run
 is followed, so whether the original agrees with itself still wants its other runs.
 
+**What the recording does to the original**: `hoidraws.lua`'s breakpoints hold the threads they watch, and on entering
+July 1941 that changes the order a theatre's area of operations takes its fronts in - Smolensk HQ's other front's 779
+first, where an unprobed entering keeps the save's order with it last - which moves the land attack's ramp and so the
+stance of its targets (`reversing/findings/FINDINGS-liveread.md`, section 147). Ours keeps the save's order, as the
+unprobed game does; a playback of such a recording parts on entering wherever that matters - `wr11`'s and `wr21`'s
+Soviet attacks on 1576 and 1440 - and that parting is the probe's, not a rule's.
+
 ## Not established
 
 - **What else of the AI writes the game directly** in what the checks so far have not reached; the hash names it the day it

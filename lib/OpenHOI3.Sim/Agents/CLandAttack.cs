@@ -76,6 +76,11 @@ public static class CLandAttack
 			}
 		}
 		long spread = most > least ? most - least : 0;
+		if (state.AiTrace is { } rampTrace && rampTrace.Country == country.Tag)
+		{
+			rampTrace.Write($"  ramp {headquarters.Name}: area head {(agent.Area.Count > 0 ? agent.Area[0] : 0)}, depot {depot?.Id ?? 0}, " +
+				$"far {most}, spread {spread}; area tail {(agent.Area.Count > 0 ? agent.Area[^1] : 0)}, its depot {(agent.Area.Count > 0 ? network.DepotOf(agent.Area[^1]) : 0)}");
+		}
 		foreach (int id in agent.FrontProvinces)
 		{
 			CProvince p = state.Province(id);
