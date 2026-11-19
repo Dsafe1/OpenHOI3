@@ -215,6 +215,14 @@ public static class CInvasionTick
 			{
 				continue;
 			}
+			// An empty fleet under any other order has it taken away first, its way kept, and is told the rendezvous as where
+			// the AI sends it - so it is not sent there this hour but the next (FINDINGS-liveread.md, section 139).
+			if (fleet.Order is not (EUnitOrder.None or EUnitOrder.Move))
+			{
+				state.Outbox.Add(new CDropOrderCommand(country.Tag, fleet.Id));
+				fleet.AiBound = rendezvous;
+				continue;
+			}
 			if (fleet.Location == rendezvous)
 			{
 				if (!fleet.IsMoving)

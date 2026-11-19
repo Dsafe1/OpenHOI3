@@ -907,7 +907,10 @@ cannot carry the smallest, the objective is in nobody's hands it may enter, or i
 sea within 2000 (1000 with the capital's area bordering hostile land), the least (1.5 - its level / 10) x 10 on a front x
 0.3 the country's own x 0.75 the capital's area, x 2 or 4 where its area borders hostile land, x the distance, x 3 where
 the troops stand nowhere in that area - none, and it is over. Then **the troops** ashore march to the rendezvous; **the
-empty fleets** sail there and merge; the one fleet, there and idle, **loads** the troops standing there and waits for
+empty fleets** sail there and merge - **one under an order first has it taken away, its way kept, and sails an hour
+later**, the order's taking writing the rendezvous as where the AI sends it so that the sailing passes it over that hour
+(`reversing/findings/FINDINGS-liveread.md`, section 139: the Soviet Cernoje Flote, on a patrol, taken for an invasion at
+04:00 on 18 July 1941, sails for 1218 at 06:00); the one fleet, there and idle, **loads** the troops standing there and waits for
 those still coming; then sails to the port, and there is given the **invasion** on the landing picked again - none left,
 and the area fails for the month.
 
