@@ -188,7 +188,10 @@ Nothing should be designed around these coming back.
   through `CSimulation.OnMain`. So **a new node that reads the game goes under the HUD, or asks
   `CSession.GameBusy`; a handler of a state event shows what it made through `OnMain`; and a map layer that
   reads the game as it draws asks for redraws through its `CHeldRedraw`** - anything else reads the game as
-  the worker changes it, which is a crash that comes and goes.
+  the worker changes it, which is a crash that comes and goes. **At the top speed the worker runs hours back
+  to back** (since 2026-11-19), stopping after an hour that turns a day, ends the game or tells through
+  `OnMain` with `mayStopTheClock` - so **a handler that may pause the game, as a pausing message does, passes
+  it**, or the clock stops some hours late.
 - **A mechanics spec before each system.** The findings mix formulas with addresses, so
   coding straight from one leaks offsets into this repository. Write the spec first -
   formulas, ordering, rounding, caps, no addresses - citing the findings file it came from.

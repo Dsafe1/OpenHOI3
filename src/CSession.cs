@@ -703,7 +703,8 @@ public partial class CSession : Node
 			layer.MoveChild(popups, _production.GetIndex());
 			CCountryTag player = Player.Tag;
 			// A message is made from the game where the game raises it - on the hours' thread while they run beside the
-			// frame - and shown on this one once they are collected.
+			// frame - and shown on this one once they are collected. One whose type pauses stops the top speed's run of hours
+			// after its hour, so the clock stops there (docs/mechanics/tick.md, section 2).
 			void Tell(CMessage message)
 			{
 				// The console's debug nopopup: nothing at all, the log too.
@@ -711,7 +712,7 @@ public partial class CSession : Node
 				{
 					return;
 				}
-				_simulation.OnMain(() => Show(message));
+				_simulation.OnMain(() => Show(message), mayStopTheClock: message.Type.PausePopup);
 			}
 			void Show(CMessage message)
 			{

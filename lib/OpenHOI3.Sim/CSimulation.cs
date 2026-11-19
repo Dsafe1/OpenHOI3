@@ -126,9 +126,24 @@ public sealed class CSimulation
 	private volatile bool _beside;
 
 	/// <summary>
+	/// How long the hours of the top speed run one after another before the frame takes them, in seconds of real time.
+	/// Ours: the original runs an hour a frame, its hour on the frame's own thread (<c>docs/mechanics/tick.md</c>, section 2).
+	/// </summary>
+	public const double BackToBackSeconds = 0.05;
+
+	/// <summary>
+	/// Set as an hour beside the frame tells what shows the game something that may stop the clock - a message whose type
+	/// pauses (<see cref="OnMain"/>) - after which the hours stop for the frame to take.
+	/// </summary>
+	private volatile bool _toldBeside;
+
+	/// <summary>
 	/// For a client running hours beside its frames, once a frame while nothing runs, with the real time since it last
-	/// started one: the hour the clock says is due - at most one, as <see cref="Advance"/> runs - started on a worker, or,
-	/// with none due, what is queued run here. <see cref="Collect"/> takes it when it is done.
+	/// started one: the hour the clock says is due started on a worker, or, with none due, what is queued run here.
+	/// <see cref="Collect"/> takes it when it is done. At the top speed the worker runs the hours after it too, one after
+	/// another for <see cref="BackToBackSeconds"/>, where the original runs one a frame - stopping after an hour that tells
+	/// what may stop the clock, turns a day or ends the game, so that what the frame does with those hours it does at the
+	/// hour it would have: a message's pause, the autosave of a new day, the end (<c>docs/mechanics/tick.md</c>, section 2).
 	/// </summary>
 	public void BeginAdvance(double realSeconds)
 	{
@@ -145,14 +160,33 @@ public sealed class CSimulation
 			return;
 		}
 		_beside = true;
+		_toldBeside = false;
+		bool backToBack = Clock.IsTopSpeed;
 		_running = Task.Run(() =>
 		{
 			_runningThread = Environment.CurrentManagedThreadId;
 			var spent = Stopwatch.StartNew();
-			RunOneHour();
+			int hours = 0;
+			while (true)
+			{
+				CDate before = State.Date;
+				RunOneHour();
+				hours++;
+				if (!backToBack || _toldBeside || State.Date != before || IsOver()
+					|| spent.Elapsed.TotalSeconds >= BackToBackSeconds)
+				{
+					break;
+				}
+			}
 			LastRunMilliseconds = spent.Elapsed.TotalMilliseconds;
-			return 1;
+			return hours;
 		});
+	}
+
+	/// <summary>Whether the game has been won or has passed its end date - strictly after it, by the hour.</summary>
+	private bool IsOver()
+	{
+		return State.GameFinished || State.Date > State.EndDate || (State.Date == State.EndDate && State.Hour > 0);
 	}
 
 	/// <summary>
@@ -214,9 +248,22 @@ public sealed class CSimulation
 
 	/// <summary>
 	/// Runs what is to be told of the game now - or, while hours run beside the frame, once they are collected, in the
-	/// order it was told: what listens for the state's events from a screen wraps its handler in this.
+	/// order it was told: what listens for the state's events from a screen wraps its handler in this. **A handler that may
+	/// stop the clock says so** with <paramref name="mayStopTheClock"/> - a message whose type pauses the game - and the
+	/// hours of the top speed stop after the hour that told it, so the clock stops where it would have; one that does not
+	/// lets them run on (<see cref="BeginAdvance"/>).
 	/// </summary>
-	public void OnMain(Action tell)
+	public void OnMain(Action tell, bool mayStopTheClock = false)
+	{
+		if (_beside && mayStopTheClock)
+		{
+			_toldBeside = true;
+		}
+		Defer(tell);
+	}
+
+	/// <summary>What is told now, or once the hours beside the frame are collected - the time among it, which stops nothing.</summary>
+	private void Defer(Action tell)
 	{
 		if (_beside)
 		{
@@ -323,7 +370,7 @@ public sealed class CSimulation
 	private void RaiseTimeEvents(CDate before, CDate now)
 	{
 		// What shows the game hears of it on its own thread, after hours run beside the frame.
-		OnMain(() => TellTime(before, now));
+		Defer(() => TellTime(before, now));
 	}
 
 	private void TellTime(CDate before, CDate now)

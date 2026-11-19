@@ -68,6 +68,25 @@ same hours in the same order. Measured 2026-11-18 at the top speed, Germany, wit
 Their Finest Hour 83 frames a second and 55 days a minute, BlackICE 80 and 23 - where with every hour run
 in the frame, under the clock of before, BlackICE drew 8 frames a second.
 
+*Ours, decided 2026-11-19: at the top speed the hours run back to back.* An hour a frame left the worker idle
+for most of each cycle - an hour started only after the frame that collected the last one was drawn, so an
+hour of 14 ms took two or three frames, about 35. So at the top speed alone the worker goes on to the next
+hour as one ends, for `CSimulation.BackToBackSeconds` (a twentieth of a second) of real time, and the frame
+then collects them all; below the top speed it is one hour as before. **A run ends early after an hour that**:
+- **tells what may stop the clock**: a message whose type pauses the game, as the original stops it in a
+  game of one player (`CSimulation.OnMain`'s `mayStopTheClock`, which `CSession`'s messages pass by their
+  type). A message that does not pause - another country's trade or event logged - and a sound or an offer
+  to the player let the hours run on.
+- **turns a day**, so that what the interface does at a new day - the autosave, the midnight hash of
+  `--hash` - reads the game as that hour left it;
+- **ends the game** or passes its end date, which the interface stops the clock at.
+
+So the clock stops at the hour it would have, and nothing else the interface does depends on which hour it
+is told an hour in. The interface and the player's clicks wait one run instead of one hour - a twentieth of a
+second, or an hour where one is longer. Measured on 2026-11-19, Germany at the top speed, a frame log of a
+minute each: **Their Finest Hour 73 days a minute to 132, BlackICE 35 to 45**, 77 to 85 frames a second both
+ways (`docs/performance.md`, section 2). A run of a tenth of a second gave BlackICE nothing more.
+
 ## 3. What an hour does
 
 One hour, in this order. `confirmed` throughout unless marked.

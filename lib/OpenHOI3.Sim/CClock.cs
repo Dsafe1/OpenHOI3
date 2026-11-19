@@ -32,6 +32,12 @@ public sealed class CClock
 		set => _speed = Math.Clamp(value, 0, SpeedCount - 1);
 	}
 
+	/// <summary>
+	/// Whether the clock is at the top speed, where a client running hours beside its frames runs them one after another
+	/// and not one a frame (<see cref="CSimulation.BeginAdvance"/>).
+	/// </summary>
+	public bool IsTopSpeed => _speed == SpeedCount - 1;
+
 	/// <summary>A game starts paused, as the original's does.</summary>
 	public bool Paused { get; set; } = true;
 
