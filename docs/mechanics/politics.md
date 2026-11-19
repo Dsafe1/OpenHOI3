@@ -470,7 +470,14 @@ country's set-up, and each law the script moves goes one step: the 1939.9.1 star
 `volunteer_army`, at `one_year_draft`, where a second look would take it on (*measured*, 2026-11-15). Until then the look
 was repeated until it posted nothing, at most ten times, which gives the 1936 start save the same laws. Each country is
 asked **in its turn of the set-up** (section 13): a country whose turn is still to come has no IC worked out, so the
-script's `ValidFor` of a law with `enemy_ic_ratio` is false while any enemy comes later. Each such country is given a
+script's `ValidFor` of a law with `enemy_ic_ratio` is false while any enemy comes later. **And the script is asked
+before the country's manpower is started at its most** - the call stands before `UpdateMaxManpower` and `manpower =
+max_manpower` in `SetUpCountryForNewGame` (`reversing/findings/FINDINGS-startshares.md`, section 2) - so the country
+asked and every one after it has none. Their Finest Hour's look reads no manpower; BlackICE's `ConscriptionLaws2` takes
+`conscription_law_two` by manpower over eight per division, which with none is nought - or not a number, for a country
+with no division - and moves nothing: (measured, 2026-11-19, on a BlackICE start save) the 17 countries the engine's
+walk gave a later law keep it, Germany its history's `standard_conscription`, where with their manpower counted all 17
+went to `volunteer_recruitment` and Germany's reserves started at 70% to the save's 80%. Each such country is given a
 politics minister as the look is made, which first works after `draw mod 3 + 1` hours, a draw on the game's generator
 each.
 

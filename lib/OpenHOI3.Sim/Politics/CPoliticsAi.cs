@@ -93,17 +93,24 @@ public static class CPoliticsAi
 		bool was = state.IsBeingMade;
 		state.IsBeingMade = true;
 		// Each country is asked in its turn of the original's set-up, when a country whose turn is still to come has no IC
-		// worked out - so a law's enemy_ic_ratio the script asks is false while any enemy comes later (section 13).
+		// worked out - so a law's enemy_ic_ratio the script asks is false while any enemy comes later (section 13). And the
+		// original's set-up asks the script before it starts the country's manpower at its most, so the country asked and
+		// every one after it has none yet: BlackICE's conscription_law_two rule, a ratio of manpower to divisions, then
+		// moves nothing (section 12).
 		int[] worked = new int[state.Countries.Count];
+		var manpower = new CFixedPoint[state.Countries.Count];
 		foreach (CCountry country in state.Countries)
 		{
 			worked[country.Index] = country.BaseIc;
 			country.BaseIc = 0;
+			manpower[country.Index] = country.Manpower;
+			country.Manpower = CFixedPoint.Zero;
 		}
 		foreach (CCountry country in state.Countries)
 		{
 			country.BaseIc = worked[country.Index];
 			scripts.RunLaws(state, country);
+			country.Manpower = manpower[country.Index];
 			posted.AddRange(state.Outbox);
 			state.Outbox.Clear();
 		}
