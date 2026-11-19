@@ -99,10 +99,18 @@ public class UpkeepTests
 		defines.Set(CManpower.MilitarySection, CUpgrades.AirSpeed, CFixedPoint.One);
 		defines.Set(CManpower.MilitarySection, CUpgrades.LandSpeed, CFixedPoint.One);
 		defines.Set(CResources.EconomySection, CProduction.IcToSupplies, CFixedPoint.FromInt(7));
+		// Roads and industry enough to be an area of its own and its own depot: on ground that draws on nothing a country
+		// with no overlord pays the null country for what its units draw (supply.md, section 13).
 		var capital = new CProvince(1, "Berlin", isSea: false) { Owner = Ger, Controller = Ger };
+		capital.SetBuildingLevel(Infra, CFixedPoint.FromInt(10));
+		capital.SetBuildingLevel(Industry, CFixedPoint.FromInt(5));
+		capital.Modifier.Set(CSupplyFigures.Infrastructure, CFixedPoint.One);
 		return new CGameState(new CDate(1936, 1, 1), new[] { new CProvince(0, "", isSea: false), capital }, new[] { country },
-			technologies: technologies, defines: defines);
+			new[] { Infra, Industry }, technologies: technologies, defines: defines);
 	}
+
+	private static readonly CBuilding Infra = new(0, "infra", 10, CSupplyFigures.Infrastructure, CFixedPoint.Parse("0.1"));
+	private static readonly CBuilding Industry = new(1, CSupplyNetworks.Industry, 10, "", CFixedPoint.Zero);
 
 	private static CUnit Unit(CCountry country, EUnitKind kind = EUnitKind.Division, int id = 1)
 	{

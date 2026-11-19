@@ -600,6 +600,19 @@ is counted as asked by the province's holder (`reversing/findings/FINDINGS-suppl
 which puts each stockpile back after every pass, the exiles' payments piled up in London - 2,000
 supplies too many at 1941.6.22 once the exiles had any to pay with.
 
+**Ground that draws on nothing is paid for, into nowhere** (`confirmed`, read 2026-11-19;
+`reversing/findings/FINDINGS-supplypass.md`, section 4): its depot is province 0, which the null country holds, and the
+friend test's first arm - the other's overlord is this country - holds between the null country and **every country
+with no overlord**, both ids being nought. So such a country's unit there pays as on a friend's depot, a quarter over on
+an empty province: the payment is counted as **traded away** - which the supply share's need adds (`upkeep.md`, section
+8) - and leaves its stockpile for the null country's, and nothing of it is counted as its units' own ask. A puppet,
+whose overlord is somebody, pays nothing and draws as on its own ground. The province's pool gives the unit what it
+holds either way, the depot test that follows being only for a real depot. *Measured* at BlackICE's start, where
+Shanxi's government sits in China's Beiping through the two days and its land draws on nothing: Shanxi pays 1.701
+supplies and 0.065 fuel and ends with no supplies, all three the save's, where it had paid nothing and kept 3.944; the
+province-less network of the supply pass agrees in 665 of its 665 provinces, 659 before. A fault of the original's,
+kept (`docs/enhanced.md`).
+
 **How much.** The province holds what it holds:
 
     where it holds less than its units ask for:

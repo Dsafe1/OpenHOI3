@@ -448,6 +448,50 @@ public class SupplyPassTests
 	}
 
 	[Fact]
+	public void On_ground_drawing_on_nothing_a_country_with_no_overlord_pays_the_null_country_into_nowhere()
+	{
+		int berlin = Land(Ger, industry: 5);
+		int island = Land(Ger);                                 // touching nothing, no port: no depot
+		CCountry germany = Country(Ger, berlin);
+		CUnit division = Division(germany, island);
+		CGameState state = State();
+		state.Province(berlin).Pool[EGoods.Supplies] = CFixedPoint.FromInt(50);
+		state.Province(island).Pool[EGoods.Supplies] = CFixedPoint.FromInt(15);
+
+		CSupplyDraw.Draw(state, germany, division);
+
+		// Given what it asked out of the province, and the same paid out of the stockpile to nobody - counted as traded
+		// away, which the supply share's need adds, and not as its units' own demand.
+		Assert.Equal(CFixedPoint.One, division.SuppliesReceived);
+		Assert.Equal(CFixedPoint.FromInt(14), Supplies(state, island));
+		Assert.Equal(CFixedPoint.FromInt(49), Supplies(state, berlin));
+		Assert.Equal(CFixedPoint.One, germany.TradedAway[EGoods.Supplies]);
+		Assert.Equal(CFixedPoint.Zero, germany.UnitDemand[EGoods.Supplies]);
+	}
+
+	[Fact]
+	public void On_ground_drawing_on_nothing_a_puppet_pays_nobody()
+	{
+		int berlin = Land(Ger, industry: 5);
+		int rome = Land(Ita, industry: 5);
+		int island = Land(Ita);
+		CCountry germany = Country(Ger, berlin);
+		CCountry italy = Country(Ita, rome);
+		italy.Overlord = germany.Tag;
+		CUnit division = Division(italy, island);
+		CGameState state = State();
+		state.Province(rome).Pool[EGoods.Supplies] = CFixedPoint.FromInt(50);
+		state.Province(island).Pool[EGoods.Supplies] = CFixedPoint.FromInt(15);
+
+		CSupplyDraw.Draw(state, italy, division);
+
+		Assert.Equal(CFixedPoint.One, division.SuppliesReceived);
+		Assert.Equal(CFixedPoint.FromInt(50), Supplies(state, rome));
+		Assert.Equal(CFixedPoint.Zero, italy.TradedAway[EGoods.Supplies]);
+		Assert.Equal(CFixedPoint.One, italy.UnitDemand[EGoods.Supplies]);
+	}
+
+	[Fact]
 	public void On_a_depot_held_by_nobodys_friend_a_unit_is_given_nothing()
 	{
 		int berlin = Land(Ger, industry: 5);

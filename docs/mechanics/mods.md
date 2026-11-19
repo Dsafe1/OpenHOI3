@@ -338,10 +338,14 @@ supplies share, Britain's 0.087 to the save's 0.04202, the Netherlands' 0.049 to
 fifth place; what makes and uses supplies agrees with the save's figures under each. So they wait on BlackICE's
 production minister in Lua, the AI's side. **That side, 2026-11-19**: the supply need the script is handed is the
 original's 15-binary-place figure, no longer cut to thousandths (`ministers.md`, section 5), and the written `distribution`
-is the save's for 52 of 80 countries where it was 32, the start's supply stockpiles 43 of 79 as before. What is left
+is the save's for 52 of 80 countries where it was 32, the start's supply stockpiles 43 of 79 as before - and 44, fuel 69,
+since a unit on ground that draws on nothing pays the null country as the original's does (`supply.md`, section 13),
+which Shanxi's does through the two days, its government sitting in China's Beiping. What is left
 is mostly a new game's weather, drawn afresh with its mud elsewhere: given the save's mud and frost before the two days,
 67 of 80 shares and 51 of 79 supply stockpiles, the Netherlands' supply share 0.20410 to the save's 0.20419. Britain's
-supply stockpile, 163 above the save's, stays open, and with it its share, which the stockpile weighs. What also stays open: the manpower of Ethiopia and China Yunnan
+supply stockpile, 163 above the save's, and its fuel, 183 above, stay open, and with them its share, which the stockpile
+weighs: its second day is the save's line for line and its home network's provinces hold what the save's do, so the two
+went out of London's pool on the first day, which no save keeps. What also stays open: the manpower of Ethiopia and China Yunnan
 (`manpower.md`, *not established*), and 432 brigades' organisation a thousandth off - each country's one way, which a
 single rule of rounding a positive figure would not give, and so not chased without a reading.
 

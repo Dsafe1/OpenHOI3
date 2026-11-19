@@ -62,11 +62,15 @@ public static class CSupplyDraw
 		// On a friend's depot the unit's country pays the friend for what it asks, the
 		// more the emptier the province it draws in - but a government in exile pays nothing
 		// (reversing/findings/FINDINGS-supplypass.md, section 4).
+		// Where the province draws on nothing its depot is province 0, held by the null country - which is a friend of every
+		// country with no overlord, its id being nought as theirs is: so such a country's unit pays it, into nowhere
+		// (supply.md, section 13; the original's, docs/enhanced.md).
 		bool pays = false;
 		long price = Scale;
 		long fuelPrice = Scale;
-		if (depot.Controller != owner.Tag && depotHolder is not null && !owner.InExile
-			&& CSupplyRelations.IsFriendly(state, depotHolder, owner))
+		bool toNobody = depot.Id == 0 && owner.Overlord is null;
+		if (depot.Controller != owner.Tag && (toNobody || depotHolder is not null) && !owner.InExile
+			&& (toNobody || CSupplyRelations.IsFriendly(state, depotHolder!, owner)))
 		{
 			pays = true;
 			long days = CSupplyDay.DaysHeld(state);
@@ -158,7 +162,12 @@ public static class CSupplyDraw
 
 		long paid = price * asked / Scale;
 		CSupplyPass.Add(owner.TradedAway, goods, paid);
-		if (state.Stockpile(owner) is not { } paying || state.Stockpile(depotHolder!) is not { } paidTo)
+		if (state.Stockpile(owner) is not { } paying)
+		{
+			return;
+		}
+		CGoodsPool? paidTo = depotHolder is null ? null : state.Stockpile(depotHolder);
+		if (depotHolder is not null && paidTo is null)
 		{
 			return;
 		}
@@ -167,8 +176,13 @@ public static class CSupplyDraw
 			paid = CSupplyPass.Held(paying, goods);
 		}
 		CSupplyPass.Add(paying, goods, -paid);
-		CSupplyPass.Add(paidTo, goods, paid);
-		CSupplyPass.Add(depotHolder!.TradedFor, goods, paid);
+		// Paid to the null country, the payment is gone.
+		if (depotHolder is null)
+		{
+			return;
+		}
+		CSupplyPass.Add(paidTo!, goods, paid);
+		CSupplyPass.Add(depotHolder.TradedFor, goods, paid);
 		CSupplyPass.Add(depotHolder.UnitDemand, goods, paid);
 	}
 
