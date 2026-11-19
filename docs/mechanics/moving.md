@@ -262,8 +262,12 @@ is cleared - on every pass that runs the dispatcher, full or every third hour, a
    one** (`FINDINGS-moving.md` A.4d): this one's fill is (have + 1) / want, the 1 left out where it is its own depot;
    the other's is (count - k) / want, count being those standing there where the division stands in it and those it has
    otherwise, and k - the division itself - 1 unless this one is its own depot, or has nobody and the other more than
-   one; a division bound for no position, or one that wants none, or standing here while nobody else does, is taken
-   without asking. At war below stance 2 a division whose position is not over-filled moves only two steps. A pull
+   one; a division bound for no position, or one that wants none, or - standing elsewhere than it is bound - standing
+   here where nobody stood **as the pull began**, is taken without asking: that standing is the pull's own copy, which
+   its picks do not raise, so a division standing here, picked once and still bound elsewhere, is taken again - the German
+   71. Infanterie-Division in 2443 on entering September 1939, on a strategic redeployment to 2700 and halted twice
+   (`reversing/findings/FINDINGS-liveread.md`, section 149). One standing where it is bound goes to the test with that
+   position's standing as its count. At war below stance 2 a division whose position is not over-filled moves only two steps. A pull
    takes one off the other position's count, and off those standing there where it stood in it. **The pull counts its
    picks on a count of its own** - the position's have as the pull begins, one more for each pick - and stops when that
    reaches the want; "has nobody" in k is that count. **A division already bound here is not passed over**: its other

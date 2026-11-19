@@ -314,8 +314,15 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    ramp's depot. Not a rule of ours. **And the march check looks at a unit the same pass has just reordered** (`moving.md`,
    section 9; section 148, on the listing): by its new destination and its old way, so the Soviet 15. Tankovaya, sent to 2509
    by the line at `wr20`'s hour 42, is cut to 2770, its old way crossing 2390, Germany's since that hour - ours had passed
-   over such a unit. `wr20` 523 of 523 land orders (520), the others unchanged.
-   Open: (a) the orders the draws leave: `wr14`'s from hour 32 - Soviet divisions; `wr20`'s one of ours alone at hour 47, the
+   over such a unit. `wr20` 523 of 523 land orders (520), the others unchanged. `wr22` 468 of 468, 166 of 166 and 26 of 26.
+   **A war-start recording, `wz3`** (2026-11-19, 48 hours from `Ireland1939_09_06_18`, every probe, T0 60791610): **and the
+   pull's taken-without-test rule reads the standing as the pull began** (`moving.md`, section 7.3, step 7; section 149,
+   on the running game): the German 71. Infanterie-Division, standing in 2443 on a strategic redeployment to 2700, is taken
+   by 2443's pull twice, where ours took it and then the 56., whose way then moved the 4th Corps' pick on entering. `wz3`
+   238 of 241 land orders (237), 2 of ours alone (8), fleets 128 of 137 (124); the July recordings unchanged.
+   Open: (a) the orders the draws leave: `wz3`'s - its draws part at hours 16 (Belgium's Lua drawing 28 on the AI's
+   generator ours alone), 19, 26 and 43, and its fleets, the British 1st Destroyer Squadron from hour 1 among them;
+   `wr14`'s from hour 32 - Soviet divisions; `wr20`'s one of ours alone at hour 47, the
    German 6th H Arm Division sent at 2275 at odds 1.693 over a bar of 1.5 where the original makes no attack (no odds probe in
    that recording); `wr21` 440 of 468 and `wr11` 464 of 488, both from that entering on, so to be measured only past it;
    `wr11`'s twenty fleets are its recording's, which has no patrol

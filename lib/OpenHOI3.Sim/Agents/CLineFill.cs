@@ -453,6 +453,9 @@ public static class CLineFill
 			// pick whatever the pick does to the records - so a division pulled here already, still a candidate, can be picked
 			// again and the pick is spent (FINDINGS-liveread.md, section 110).
 			int counted = position.Have;
+			// And who stands in it, as the pull begins: the test of a unit standing here reads that, not the record the picks
+			// raise (FINDINGS-liveread.md, section 149).
+			int standingAtStart = position.Standing;
 			while (counted < position.Want)
 			{
 				CProvince here = state.Province(position.Province);
@@ -480,8 +483,11 @@ public static class CLineFill
 						continue;
 					}
 					byProvince.TryGetValue(bound, out CPosition? from);
+					// Taken without the test where it is bound for no position, or for one that wants nobody, or - standing
+					// elsewhere than it is bound - it stands here and nobody stood here as the pull began (0x4CA515-0x4CA543 on
+					// the listing).
 					bool bypass = from is null || from.Want <= 0
-						|| (position.Standing < 1 && unit.Location == position.Province);
+						|| (unit.Location != bound && standingAtStart < 1 && unit.Location == position.Province);
 					if (!bypass)
 					{
 						int count = unit.Location == bound ? from!.Standing : from!.Have;
@@ -510,6 +516,12 @@ public static class CLineFill
 						key = (float)((double)key + CUnitRatings.Terrain(state, country, state.Province(bound), unit, attacking: false) / (double)Whole * 100.0);
 					}
 					keyed.Add((key, unit));
+				}
+				if (state.AiTrace is { } pullTrace && pullTrace.Country == country.Tag)
+				{
+					pullTrace.Write($"  pull {position.Province}: want {position.Want}, have {position.Have}, standing {position.Standing}, " +
+						$"counted {counted}, not depot {notDepot}, fill {fill:F4}; keyed " + string.Join(" ",
+						System.Linq.Enumerable.Select(System.Linq.Enumerable.OrderBy(keyed, entry => entry.Key), entry => $"{entry.Unit.Name}={entry.Key:F2}")));
 				}
 				CUnit? best = null;
 				foreach ((float _, CUnit unit) in System.Linq.Enumerable.OrderBy(keyed, entry => entry.Key))
