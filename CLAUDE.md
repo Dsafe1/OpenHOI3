@@ -1082,7 +1082,9 @@ beside the repository.
   what is left open for the player, and the decisions offered him. A look: no save keeps what
   fired. On 2026-10-12 the first 120 days fired 46 events of 10 kinds, the death of George V for
   Britain on 14 January among them; on 2026-11-07, with the seeding corrected, the 180 days fired 129 times, 25 events
-  (110 times, 26 events, under the old seeding the same day). Run it after touching `Sim/Events` or the tick's order.
+  (110 times, 26 events, under the old seeding the same day); on 2026-11-20, the event files read in the original's
+  order (`mods.md`, section 2), 99 times, 24 events, where the build before gave 118 and 29 - the events are asked in
+  the order they were read, and the draws fall to others. Run it after touching `Sim/Events` or the tick's order.
   `OpenHOI3.SaveCheck scripttext <install> [tag] [event id or decision name]` writes every event
   option's tooltip, every `immediate` block and every decision's two tooltips as the country sees
   them (Germany by default), counts them and lists the key-shaped keys no table has - or, given
