@@ -139,10 +139,37 @@ public static class CResources
 	public static void GatherCutOff(CGameState state)
 	{
 		Supply.CSupplyNetwork network = Supply.CSupplyNetworks.Refresh(state);
+		List<CProvince>[] held = LandByHolder(state);
+		foreach (CCountry holder in state.Countries)
+		{
+			GatherCutOff(state, network, holder, held[holder.Index]);
+		}
+	}
+
+	/// <summary>The land provinces each country holds, in the map's order, by the country's index.</summary>
+	public static List<CProvince>[] LandByHolder(CGameState state)
+	{
+		var held = new List<CProvince>[state.Countries.Count];
+		for (int index = 0; index < held.Length; index++)
+		{
+			held[index] = new List<CProvince>();
+		}
 		foreach (CProvince province in state.Provinces)
 		{
-			if (province.Id == 0 || province.IsSea || state.Country(province.Controller) is not { } holder
-				|| IsHome(network, holder, province))
+			if (province.Id != 0 && !province.IsSea && state.Country(province.Controller) is { } holder)
+			{
+				held[holder.Index].Add(province);
+			}
+		}
+		return held;
+	}
+
+	/// <summary>One holder's cut-off land gathered, in the holder's own day, over the land it holds in the map's order.</summary>
+	public static void GatherCutOff(CGameState state, Supply.CSupplyNetwork network, CCountry holder, List<CProvince> held)
+	{
+		foreach (CProvince province in held)
+		{
+			if (IsHome(network, holder, province))
 			{
 				continue;
 			}

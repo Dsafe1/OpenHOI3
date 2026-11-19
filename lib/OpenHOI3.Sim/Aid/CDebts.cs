@@ -17,39 +17,44 @@ public static class CDebts
 
 	public static void RepayDaily(CGameState state)
 	{
-		CCountryFacts facts = CCountryFacts.Of(state);
 		foreach (CCountry debtor in state.Countries)
 		{
-			if (facts.OwnedCount(debtor.Tag) == 0 || state.Stockpile(debtor) is not { } pool)
+			RepayCountry(state, debtor);
+		}
+	}
+
+	/// <summary>One debtor's repayments, in its own day (<c>docs/mechanics/tick.md</c>, section 3).</summary>
+	public static void RepayCountry(CGameState state, CCountry debtor)
+	{
+		if (CCountryFacts.Of(state).OwnedCount(debtor.Tag) == 0 || state.Stockpile(debtor) is not { } pool)
+		{
+			return;
+		}
+		foreach (CCountry creditor in state.Countries)
+		{
+			if (creditor == debtor)
 			{
 				continue;
 			}
-			foreach (CCountry creditor in state.Countries)
+			CDiplomacyStatus status = CGameState.Status(debtor, creditor);
+			long repay = DailyRepay(state, status);
+			if (repay <= 0)
 			{
-				if (creditor == debtor)
-				{
-					continue;
-				}
-				CDiplomacyStatus status = CGameState.Status(debtor, creditor);
-				long repay = DailyRepay(state, status);
-				if (repay <= 0)
-				{
-					continue;
-				}
-				if (state.IsAtWar(debtor.Tag) || pool[EGoods.Money].Raw <= repay)
-				{
-					status.DailyRepay = 0;
-					continue;
-				}
-				var paid = new CFixedPoint(repay);
-				pool[EGoods.Money] -= paid;
-				if (state.Stockpile(creditor) is { } theirs)
-				{
-					theirs[EGoods.Money] += paid;
-				}
-				debtor.RepaidAway += paid;
-				creditor.IncomeFromDebt += paid;
+				continue;
 			}
+			if (state.IsAtWar(debtor.Tag) || pool[EGoods.Money].Raw <= repay)
+			{
+				status.DailyRepay = 0;
+				continue;
+			}
+			var paid = new CFixedPoint(repay);
+			pool[EGoods.Money] -= paid;
+			if (state.Stockpile(creditor) is { } theirs)
+			{
+				theirs[EGoods.Money] += paid;
+			}
+			debtor.RepaidAway += paid;
+			creditor.IncomeFromDebt += paid;
 		}
 	}
 

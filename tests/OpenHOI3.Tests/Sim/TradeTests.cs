@@ -257,4 +257,32 @@ public class TradeTests
 		CTradeRoutes.RunDaily(state);
 		Assert.Empty(state.TradeRoutes);
 	}
+
+	[Fact]
+	public void A_route_is_paid_with_the_money_the_countries_before_its_day_made_that_day_and_not_its_own()
+	{
+		// Germany's day comes before Poland's. With 10 base IC at 0.1 money an IC it makes 1.000 money a day, and has none.
+		CGameState state = World();
+		state.Defines.Set(CResources.EconomySection, CResources.IcToMoney, CFixedPoint.Parse("0.1"));
+		state.Province(1).Modifier.Set(CIndustrialCapacity.ProvinceIc, CFixedPoint.FromInt(10));
+		CGoodsPool germany = state.Stockpile(C(state, Ger))!;
+		germany[EGoods.Money] = CFixedPoint.Zero;
+		germany[EGoods.Metal] = CFixedPoint.FromInt(100);                // enough that no shortage cuts its IC
+		germany[EGoods.Energy] = CFixedPoint.FromInt(100);
+		germany[EGoods.RareMaterials] = CFixedPoint.FromInt(100);
+
+		// Poland sells Germany 10 metal for 0.750 in Poland's day, after Germany's: Germany pays with today's money.
+		CTradeTerms sale = CTradeRules.SetTrading(state, CTradeTerms.None, C(state, Pol), C(state, Ger),
+			-CFixedPoint.FromInt(10).Raw, EGoods.Metal);
+		CTradeRoute later = CTradeRoutes.Make(state, new CTradeDeal(Pol, Ger, sale), state.TotalHours)!;
+		// Germany buys 10 more in its own day, before its money is made: nothing to pay with.
+		CTradeRoute own = CTradeRoutes.Make(state, BuyMetal(state, Pol, "10").Deal!, state.TotalHours)!;
+
+		CTick.RunEconomy(state);
+		Assert.False(later.Inactive);
+		Assert.True(own.Inactive);
+		Assert.Equal(EGoods.Money, own.InactiveGoods);
+		// Poland, with no energy, has no IC to make money of: what it holds is Germany's payment alone.
+		Assert.Equal(CFixedPoint.Parse("0.75"), state.Stockpile(C(state, Pol))![EGoods.Money]);
+	}
 }

@@ -131,8 +131,11 @@ a trade convoy at once and goes the next day.
 ## 6. The day
 
 `confirmed`. **Each country's day runs its routes after what its provinces produced reaches its
-stockpile and before its IC is worked out.** For each other country and each route between them, in
-the order the routes were made:
+stockpile and before its IC is worked out.** The countries' days come one after another, the whole of
+one before the next, so a route is paid out of what the buyer holds at that point in the order: the
+day's money of the countries before it made, that of the countries after it not yet
+(`reversing/findings/FINDINGS-liveread.md`, section 140; `tick.md`, section 3). For each other country
+and each route between them, in the order the routes were made:
 
 1. **the convoy**: where one is needed and missing, the route is marked to end after the walk. Where
    its path is shorter than two provinces, it has no transports, or its way is not usable, the route

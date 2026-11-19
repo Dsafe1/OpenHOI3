@@ -263,17 +263,19 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    intelligence ministers saw (`aid.md`, section 1). **And every patrol draw but two**: the Soviet one left at 34 was a
    full pass the fall-back asks for the next hour, which ours wiped (`agents.md`, section 3); New Zealand's and France's
    at hours 6 and 29 the original makes too - read on the running game - and the recording lost
-   (`reversing/findings/FINDINGS-liveread.md`, section 134), so a playback reports them as ours beyond. Open: (a) **the
-   daily pass's trade, IC and production run as one block per country, in the countries' order** - the cause of the
-   offers the AI answers one draw out in `wr15`, `wr14` and `wr11` (`CPactPasses.Answer`): the original makes each
-   country's money of the day in its own day, after its trade and before the next country's, where ours makes every
-   country's in `CProduction.RunDaily` after every country's trade - so `wr15`'s Soviet Union cannot pay two Italian
-   purchases at the first midnight and pays Hungary's supplies route, which the original's cannot, Hungary then offering
-   Germany a trade the original never makes (section 140, read on the running game: the Soviet money country by
-   country). A restructure of `CTick.RunDailyPass` from `CTradeRoutes.RunDaily` to `CProduction.RunDaily`; the savegame
-   checks of the economy - `firstdays`, `supplypass`, `research`, `politics` - to be run after it. Then Sweden's Lua draw
-   at 46 of `wr11`; a hook naming each `math.random` caller is in the session scratchpad as `dbg7-luarand.patch`
-   (`OHDBG_LUARAND=TAG`); (b) **every fleet order of `wr19`, `wr15` and `wr14` is the original's since 2026-11-19**, none
+   (`reversing/findings/FINDINGS-liveread.md`, section 134), so a playback reports them as ours beyond. **Every draw of
+   `wr15` is the original's in its 48 hours since 2026-11-19, and every offer the AI answers in `wr14` and `wr11`**: the
+   offers answered one draw out (`CPactPasses.Answer`) - `wr15`'s at hours 24, 36 and 38, `wr14`'s at 24 and 36,
+   `wr11`'s at 25 and 46, Sweden's Lua draw at 46 going with them - were the daily pass making every country's money after every country's trade, where the
+   original makes each country's in its own day, after its trade and before the next country's - so `wr15`'s Soviet
+   Union could not pay two Italian purchases at the first midnight and paid Hungary's supplies route, which the
+   original's cannot, Hungary then offering Germany a trade the original never makes (section 140, read on the running
+   game: the Soviet money country by country). The economy now runs a country at a time (`tick.md`, section 3), the
+   savegame checks of it - `firstdays`, `supplypass`, `research`, `politics` - line for line as before, and a day no
+   slower; the land, fleet and air scores of all four unchanged. Open: (a) the two draws left in `wr14` and `wr11`: a
+   Soviet `math.random` draw of ours beyond at hour 26 of `wr14`, and a Soviet draw of the AI's generator the original
+   makes and ours does not at hour 36 of `wr11`; a hook naming each `math.random` caller is in the session scratchpad as
+   `dbg7-luarand.patch` (`OHDBG_LUARAND=TAG`); (b) **every fleet order of `wr19`, `wr15` and `wr14` is the original's since 2026-11-19**, none
    of ours alone (the British 31st and 41st Navies were a submarine fleet sent raiding that ours left free for the
    intercept, `moving.md` section 14; the German 33. Unterseebootsflottille, 5th and 6th Navy the sea targets' undeclared
    war and capital-area fifth and a fleet's share counted out of its own agent, `moving.md` section 12 and `agents.md`

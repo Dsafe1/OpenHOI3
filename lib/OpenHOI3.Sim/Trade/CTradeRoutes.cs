@@ -81,12 +81,13 @@ public static class CTradeRoutes
 		{
 			if (owns[country.Index])
 			{
-				RunDay(state, network, country);
+				RunCountry(state, network, country);
 			}
 		}
 	}
 
-	private static void RunDay(CGameState state, CSupplyNetwork network, CCountry country)
+	/// <summary>One country's trade, in its own day (<c>docs/mechanics/tick.md</c>, section 3), for a country owning a province.</summary>
+	public static void RunCountry(CGameState state, CSupplyNetwork network, CCountry country)
 	{
 		var lost = new List<CTradeRoute>();
 		foreach (CCountry other in state.Countries)

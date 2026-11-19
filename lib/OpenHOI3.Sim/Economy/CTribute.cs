@@ -19,17 +19,29 @@ public static class CTribute
 
 	public static void RunDaily(CGameState state)
 	{
+		ClearDaily(state);
+		foreach (CCountry puppet in state.Countries)
+		{
+			RunCountry(state, puppet);
+		}
+	}
+
+	/// <summary>Every country's ledger of the day's dues emptied, before the first country's day.</summary>
+	public static void ClearDaily(CGameState state)
+	{
 		foreach (CCountry country in state.Countries)
 		{
 			country.TributeReceived.Clear();
 			country.TributeSent.Clear();
 		}
-		foreach (CCountry puppet in state.Countries)
+	}
+
+	/// <summary>A puppet's dues to its overlord, in the puppet's own day.</summary>
+	public static void RunCountry(CGameState state, CCountry puppet)
+	{
+		if (puppet.Overlord is { } tag && state.Country(tag) is { } overlord)
 		{
-			if (puppet.Overlord is { } tag && state.Country(tag) is { } overlord)
-			{
-				Pay(state, puppet, overlord);
-			}
+			Pay(state, puppet, overlord);
 		}
 	}
 

@@ -200,10 +200,16 @@ public static class CStockpile
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			if (CResources.HasOwnDay(state, country))
-			{
-				state.Stockpile(country)?.Add(country.HomeProduced);
-			}
+			AddHomeProduction(state, country);
+		}
+	}
+
+	/// <summary>One country's day's production put in its stockpile, in its own day.</summary>
+	public static void AddHomeProduction(CGameState state, CCountry country)
+	{
+		if (CResources.HasOwnDay(state, country))
+		{
+			state.Stockpile(country)?.Add(country.HomeProduced);
 		}
 	}
 

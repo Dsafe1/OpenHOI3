@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using OpenHOI3.Sim.Combat;
@@ -181,17 +182,13 @@ public static class CTick
 		Step(state, Transport.CTransport.CheckEveryOverload);    // the last of a fleet's day (transport.md, section 6)
 		Step(state, CIntelGrants.CountDown);                     // what others were given to know of a unit, a day less
 		Step(state, CResources.UpdateHomeProduction);
-		Step(state, CStockpile.AddHomeProduction);
-		Step(state, CTribute.RunDaily);                           // the end of it: a puppet's dues (stockpile.md, section 7)
-		Step(state, CResources.GatherCutOff);                     // what the sea cuts off waits in a harbour
-		Step(state, Aid.CDebts.RepayDaily);                       // the end of a country's production
-		Step(state, Trade.CTradeRoutes.RunDaily);                 // then each country's trade, before its IC
-		Step(state, CIndustrialCapacity.Update);
-		Step(state, Wars.CExile.HandOverDaily);                   // the ledger of what exiles hand over, made anew (each
-		                                                           // hands its supplies over in its own day, CProduction)
-		Step(state, CProduction.RunDaily);
-		Step(state, Wars.CExile.HoldPoolsDaily);                  // an exile's own pool held within bounds (war.md, 14;
-		                                                           // ours: before its shares of leadership, which take none)
+		// Then each country's economy, one country's whole stretch before the next's as the original's day runs it: its
+		// production put in its stockpile, a puppet's dues (stockpile.md, section 7), what the sea cuts off of its land
+		// gathered in a harbour, its debts repaid, its trade, its IC, its conversions and shares, and an exile's own pool
+		// held within bounds (war.md, 14; ours: before its shares of leadership, which take none) - so a country's trade
+		// sees the money of the countries before it made and not those after (tick.md, section 3; FINDINGS-liveread.md,
+		// section 140).
+		Step(state, RunEconomy, "CStockpile.AddHomeProduction to CExile.HoldPool, country by country");
 		// Then, a country at a time: its shares of leadership, spies placed with the espionage share; its mission looked
 		// at; its spies at work after the alignment's step (espionage.md, 5); its undergrounds (undergrounds.md, 3); the
 		// roll for a rising (rebels.md, 3); an election where one is due and the seats where the ruling party holds none
@@ -453,6 +450,34 @@ public static class CTick
 	/// the shares, the mission, the spies' missions and counter-espionage, the undergrounds, the roll for a rising, an
 	/// election and the seats.
 	/// </summary>
+	/// <summary>
+	/// Every country's economy of the day, the whole of one country's before the next's (<c>docs/mechanics/tick.md</c>, section 3).
+	/// </summary>
+	public static void RunEconomy(CGameState state)
+	{
+		CTribute.ClearDaily(state);
+		Wars.CExile.HandOverDaily(state);                         // the ledger of what exiles hand over, made anew (each
+		                                                           // hands its supplies over in its own day, CProduction)
+		Supply.CSupplyNetwork network = Supply.CSupplyNetworks.Refresh(state);
+		bool[] owns = Diplomacy.CRelations.Owning(state);
+		List<Provinces.CProvince>[] held = CResources.LandByHolder(state);
+		CIndustrialCapacity.CDay ic = CIndustrialCapacity.Prepare(state);
+		foreach (Countries.CCountry country in state.Countries)
+		{
+			CStockpile.AddHomeProduction(state, country);
+			CTribute.RunCountry(state, country);
+			CResources.GatherCutOff(state, network, country, held[country.Index]);
+			Aid.CDebts.RepayCountry(state, country);
+			if (owns[country.Index])
+			{
+				Trade.CTradeRoutes.RunCountry(state, network, country);
+			}
+			CIndustrialCapacity.Apply(state, ic, country);
+			CProduction.RunCountry(state, country);
+			Wars.CExile.HoldPool(country);
+		}
+	}
+
 	private static void RunLeadershipToSeats(CGameState state)
 	{
 		Countries.CCountryFacts facts = Countries.CCountryFacts.Of(state);

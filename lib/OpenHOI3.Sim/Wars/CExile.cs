@@ -235,17 +235,23 @@ public static class CExile
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			if (!country.InExile)
+			HoldPool(country);
+		}
+	}
+
+	/// <summary>One exile's pool held, in its own day after its shares.</summary>
+	public static void HoldPool(CCountry country)
+	{
+		if (!country.InExile)
+		{
+			return;
+		}
+		for (int goods = 0; goods < CGoodsPool.Count; goods++)
+		{
+			long held = country.PoolInExile[(EGoods)goods].Raw;
+			if (held < 0 || held > MostHeld)
 			{
-				continue;
-			}
-			for (int goods = 0; goods < CGoodsPool.Count; goods++)
-			{
-				long held = country.PoolInExile[(EGoods)goods].Raw;
-				if (held < 0 || held > MostHeld)
-				{
-					country.PoolInExile[(EGoods)goods] = new CFixedPoint(System.Math.Clamp(held, 0, MostHeld));
-				}
+				country.PoolInExile[(EGoods)goods] = new CFixedPoint(System.Math.Clamp(held, 0, MostHeld));
 			}
 		}
 	}

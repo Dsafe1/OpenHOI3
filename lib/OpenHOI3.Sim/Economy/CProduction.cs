@@ -267,61 +267,67 @@ public static class CProduction
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			// The usage was cleared at the head of the day, the original's ClearDailyPools before the supply pass
-			// (CSupplyPass.ClearCounts), and holds only the supplies and fuel the pass and the units took out of the capital
-			// since - so the conversions find nothing of today's energy or crude oil in it yet (ic.md, section 4); the
-			// conversions' own pools are cleared as the IC is worked out.
-			country.ConversionUsed.Clear();
-			country.ConversionMade.Clear();
-			country.ReinforcementSpent = CFixedPoint.Zero;
-			country.UpgradeSpent = CFixedPoint.Zero;
-			country.ProductionSpent = CFixedPoint.Zero;
-			if (state.Stockpile(country) is not { } stockpile || !TakesPart(state, country))
-			{
-				continue;
-			}
-
-			// The conversions are part of a country's own day, which only a country that
-			// exists has - one owning a province, or a government in exile.
-			bool exists = Countries.CCountryLists.OwnedCount(state, country.Tag) > 0 || country.InExile;
-			if (exists)
-			{
-				CConversions.EnergyIntoCrudeOil(country, stockpile);
-			}
-
-			// A shortage costs IC across the board, before any of it is shared out - for
-			// a country that exists. One that does not has no day of its own in which its
-			// IC is worked out again, and keeps what it has.
-			int supported = (int)Math.Min(int.MaxValue, SupportedIc(stockpile).ToInt());
-			if (exists && country.TotalIc > supported)
-			{
-				country.TotalIc = supported;
-			}
-			// Then the whole IC of the lend-lease it holds, after the cap and needing no resources.
-			if (exists)
-			{
-				Aid.CLendLeaseIc.Receive(country);
-			}
-
-			if (exists)
-			{
-				CConversions.CrudeOilIntoFuel(state, country, stockpile);
-			}
-			// Then an exile's supplies and fuel go to whoever holds its seat - the fuel just made with them - before its
-			// shares make the day's supplies, which wait for the next day (war.md, section 14).
-			if (country.InExile)
-			{
-				Wars.CExile.HandOverSupplies(state, country);
-			}
-
-			// Lend-lease is the first of the six.
-			Aid.CLendLeaseIc.Give(state, country, stockpile, ic => Charge(country, stockpile, ic, whateverItHolds: true));
-			RunConsumerGoods(state, country, stockpile);
-			RunBuildQueue(state, country, stockpile);
-			RunSupplies(state, country, stockpile);
-			RunReinforcement(state, country, stockpile);
-			RunUpgrades(state, country, stockpile);
+			RunCountry(state, country);
 		}
+	}
+
+	/// <summary>One country's conversions, cap and shares, in its own day (<c>docs/mechanics/tick.md</c>, section 3).</summary>
+	public static void RunCountry(CGameState state, CCountry country)
+	{
+		// The usage was cleared at the head of the day, the original's ClearDailyPools before the supply pass
+		// (CSupplyPass.ClearCounts), and holds only the supplies and fuel the pass and the units took out of the capital
+		// since - so the conversions find nothing of today's energy or crude oil in it yet (ic.md, section 4); the
+		// conversions' own pools are cleared as the IC is worked out.
+		country.ConversionUsed.Clear();
+		country.ConversionMade.Clear();
+		country.ReinforcementSpent = CFixedPoint.Zero;
+		country.UpgradeSpent = CFixedPoint.Zero;
+		country.ProductionSpent = CFixedPoint.Zero;
+		if (state.Stockpile(country) is not { } stockpile || !TakesPart(state, country))
+		{
+			return;
+		}
+
+		// The conversions are part of a country's own day, which only a country that
+		// exists has - one owning a province, or a government in exile.
+		bool exists = Countries.CCountryLists.OwnedCount(state, country.Tag) > 0 || country.InExile;
+		if (exists)
+		{
+			CConversions.EnergyIntoCrudeOil(country, stockpile);
+		}
+
+		// A shortage costs IC across the board, before any of it is shared out - for
+		// a country that exists. One that does not has no day of its own in which its
+		// IC is worked out again, and keeps what it has.
+		int supported = (int)Math.Min(int.MaxValue, SupportedIc(stockpile).ToInt());
+		if (exists && country.TotalIc > supported)
+		{
+			country.TotalIc = supported;
+		}
+		// Then the whole IC of the lend-lease it holds, after the cap and needing no resources.
+		if (exists)
+		{
+			Aid.CLendLeaseIc.Receive(country);
+		}
+
+		if (exists)
+		{
+			CConversions.CrudeOilIntoFuel(state, country, stockpile);
+		}
+		// Then an exile's supplies and fuel go to whoever holds its seat - the fuel just made with them - before its
+		// shares make the day's supplies, which wait for the next day (war.md, section 14).
+		if (country.InExile)
+		{
+			Wars.CExile.HandOverSupplies(state, country);
+		}
+
+		// Lend-lease is the first of the six.
+		Aid.CLendLeaseIc.Give(state, country, stockpile, ic => Charge(country, stockpile, ic, whateverItHolds: true));
+		RunConsumerGoods(state, country, stockpile);
+		RunBuildQueue(state, country, stockpile);
+		RunSupplies(state, country, stockpile);
+		RunReinforcement(state, country, stockpile);
+		RunUpgrades(state, country, stockpile);
 	}
 
 	/// <summary>

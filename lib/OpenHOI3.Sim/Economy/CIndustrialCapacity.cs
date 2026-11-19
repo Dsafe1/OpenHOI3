@@ -46,10 +46,30 @@ public static class CIndustrialCapacity
 
 	private static void Update(CGameState state, bool setUp)
 	{
-		var sums = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
-		var coreHome = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
-		var owners = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-		long seed = state.StaticModifier(BaseValues, BaseValuesIc).Raw;
+		CDay day = Prepare(state);
+		foreach (CCountry country in state.Countries)
+		{
+			Apply(state, day, country, setUp);
+		}
+	}
+
+	/// <summary>What the day's IC is worked out from, over every province at once: the sums by controller.</summary>
+	public sealed class CDay
+	{
+		public readonly Dictionary<string, long> Sums = new(StringComparer.OrdinalIgnoreCase);
+		public readonly Dictionary<string, long> CoreHome = new(StringComparer.OrdinalIgnoreCase);
+		public readonly HashSet<string> Owners = new(StringComparer.OrdinalIgnoreCase);
+		public long Seed;
+	}
+
+	/// <summary>The provinces summed by controller, once a day before the first country's day.</summary>
+	public static CDay Prepare(CGameState state)
+	{
+		var day = new CDay();
+		var sums = day.Sums;
+		var coreHome = day.CoreHome;
+		var owners = day.Owners;
+		day.Seed = state.StaticModifier(BaseValues, BaseValuesIc).Raw;
 		Supply.CSupplyNetwork network = Supply.CSupplyNetworks.Refresh(state);
 
 		foreach (CProvince province in state.Provinces)
@@ -91,61 +111,64 @@ public static class CIndustrialCapacity
 			sums[controller.Value] = sum + contribution;
 		}
 
-		foreach (CCountry country in state.Countries)
+		return day;
+	}
+
+	/// <summary>One country's IC worked out from the day's sums, in its own day (<c>docs/mechanics/tick.md</c>, section 3).</summary>
+	public static void Apply(CGameState state, CDay day, CCountry country, bool setUp = false)
+	{
+		day.Sums.TryGetValue(country.Tag.Value, out long sum);
+
+		// The sum does not start at nothing: every country has base_values' IC before
+		// any province is counted.
+		sum += day.Seed;
+
+		// The fraction is dropped here, before the country's bonuses apply, so it
+		// never reaches the total.
+		long baseIc = sum / CFixedPoint.Scale;
+
+		day.CoreHome.TryGetValue(country.Tag.Value, out long home);
+		country.CoreHomeIc = home;
+		country.BaseIc = (int)baseIc;
+
+		// A country that owns no province and is in no exile has no day of its own in which its IC is worked out
+		// again: it keeps the figure it last had - for one that never owned land in the game, the one its set-up
+		// gave it, its history's ministers counted and the filled posts' not (ic.md, section 3).
+		bool daily = day.Owners.Contains(country.Tag.Value) || country.InExile;
+		if (!setUp && !daily && country.IcWorkedOut)
 		{
-			sums.TryGetValue(country.Tag.Value, out long sum);
-
-			// The sum does not start at nothing: every country has base_values' IC before
-			// any province is counted.
-			sum += seed;
-
-			// The fraction is dropped here, before the country's bonuses apply, so it
-			// never reaches the total.
-			long baseIc = sum / CFixedPoint.Scale;
-
-			coreHome.TryGetValue(country.Tag.Value, out long home);
-			country.CoreHomeIc = home;
-			country.BaseIc = (int)baseIc;
-
-			// A country that owns no province and is in no exile has no day of its own in which its IC is worked out
-			// again: it keeps the figure it last had - for one that never owned land in the game, the one its set-up
-			// gave it, its history's ministers counted and the filled posts' not (ic.md, section 3).
-			bool daily = owners.Contains(country.Tag.Value) || country.InExile;
-			if (!setUp && !daily && country.IcWorkedOut)
-			{
-				country.LendLeaseIc = 0;
-				FillResourcesNeeded(country, country.IcBeforeCap);
-				continue;
-			}
-
-			// 1 + GLOBAL_IC + the technology bonus, which is kept beside the modifier
-			// rather than in it.
-			long multiplier = CFixedPoint.Scale + country.Modifier[CountryGlobalIc].Raw
-				+ country.Technology[TechnologyIc].Raw;
-			// Where nothing has worked a landless country's IC out - a loaded game, the original saving no IC - it is
-			// worked out without its ministers, which a country that does not exist at a new game's start had none of
-			// when its set-up worked it out. They count in everything else.
-			if (!setUp && !daily && !country.IcWorkedOut)
-			{
-				multiplier -= Modifiers.CCountryModifiers.MinisterShare(country, CountryGlobalIc);
-			}
-			long total = baseIc * CFixedPoint.Scale * multiplier / CFixedPoint.Scale / CFixedPoint.Scale;
-			if (total < 1)
-			{
-				total = 1;                                   // every country has at least one
-			}
-
-			country.TotalIc = (int)total;
-			country.IcBeforeCap = (int)total;
-			if (setUp)
-			{
-				country.IcWorkedOut = true;
-			}
-			// What lend-lease adds comes later in the day, after the resource cap (docs/mechanics/aid.md, section 3).
 			country.LendLeaseIc = 0;
-			// What a day of that IC would cost, before the cap and the lend-lease, as the original's IC fills it.
-			FillResourcesNeeded(country, (int)total);
+			FillResourcesNeeded(country, country.IcBeforeCap);
+			return;
 		}
+
+		// 1 + GLOBAL_IC + the technology bonus, which is kept beside the modifier
+		// rather than in it.
+		long multiplier = CFixedPoint.Scale + country.Modifier[CountryGlobalIc].Raw
+			+ country.Technology[TechnologyIc].Raw;
+		// Where nothing has worked a landless country's IC out - a loaded game, the original saving no IC - it is
+		// worked out without its ministers, which a country that does not exist at a new game's start had none of
+		// when its set-up worked it out. They count in everything else.
+		if (!setUp && !daily && !country.IcWorkedOut)
+		{
+			multiplier -= Modifiers.CCountryModifiers.MinisterShare(country, CountryGlobalIc);
+		}
+		long total = baseIc * CFixedPoint.Scale * multiplier / CFixedPoint.Scale / CFixedPoint.Scale;
+		if (total < 1)
+		{
+			total = 1;                                   // every country has at least one
+		}
+
+		country.TotalIc = (int)total;
+		country.IcBeforeCap = (int)total;
+		if (setUp)
+		{
+			country.IcWorkedOut = true;
+		}
+		// What lend-lease adds comes later in the day, after the resource cap (docs/mechanics/aid.md, section 3).
+		country.LendLeaseIc = 0;
+		// What a day of that IC would cost, before the cap and the lend-lease, as the original's IC fills it.
+		FillResourcesNeeded(country, (int)total);
 	}
 
 	/// <summary>

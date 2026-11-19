@@ -141,7 +141,16 @@ landing on one hour. `confirmed` A second per-country gate fires at the hour equ
    **Here each step runs for every country in turn**, where the original runs every step of one
    country's day before the next country's. That is the same wherever a country's day reads only
    itself; **where it reads another country, the countries after it in the order have not had their
-   day yet**. The alignment's step is the one built so (`alignment.md`, section 3): it is taken beside
+   day yet**. **The economy is built so since 2026-11-19**: a country's day's production put in its
+   stockpile, a puppet's dues, what the sea cuts off of the land it holds gathered in a harbour, its
+   debts repaid, its trade (`trade.md`, section 6), its IC, its conversions, the cap a shortage sets and
+   its shares, and an exile's pool held, all of one country's before the next's - so a country's trade
+   finds the money the countries before it made that day and not the money of those after, as the
+   running game showed: the Soviet Union's money at each country's turn of one midnight
+   (`reversing/findings/FINDINGS-liveread.md`, section 140). What every country's day reads of the
+   provinces - each country's production and IC summed, the land each holds, the supply network - is
+   made once, before the first country's day, nothing in the stretch changing it. The later stretch
+   from its shares of leadership to its cabinet is built so as well, and the alignment's step (`alignment.md`, section 3): it is taken beside
    the surrender, a country at a time, reading the IC and the factions the earlier countries' days have
    left and the IC from before the day for itself and the later ones. And the most-threatening country
    (step 2's, with the neighbours) is worked out before any country's modifier is made, as the original's
