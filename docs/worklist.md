@@ -2128,6 +2128,13 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   them, because the defines are reached in ways it misses (`reversing/findings/FINDINGS-definesuse.md`, section 8), so
   the running game will, through the Cheat Engine bridge, once it is free (one session uses it at a time). The probe is the fact base's `probes/hoidefwatch.lua`, queued in its
   `CANDIDATES.md`, *Live probes queued*. Any field found read becomes a mechanic to build here.
+  **Run 2026-11-20: none read** (`reversing/findings/FINDINGS-definesuse.md`, section 11). Nine are settled, the play
+  that would read them having run beside a control: `SURPRISE_BONUS`, `MINIMUM_STRENGTH`, `COMBAT_EVENT_DURATION`,
+  `NAVAL_STACKING_PENALTY`, `IC_TO_CONSUMER_GOODS`, the three spy defines and `NAP_INFLUENCE_COST` - a pact is asked and
+  charged `NAP_JOIN_INFLUENCE_COST` - and `MILACC_CANCEL_RELATION_CHANGE` by the listing. So nothing is to build for them.
+  Still open where their play never ran: `CORE_GAIN`, `CORE_LOSE`, `REBEL_ACCEPTANCE_MONTHS`, `WAR_THREAT`,
+  `JOINBLOCK_INFLUENCE_COST`, `PURCHASE_INFLUENCE_COST`, `RELATION_INFLUENCE_COST`, `MAX_PROVINCE_SELL_PRICE`,
+  `ROUGH_COUNTRY_RUIN_EST_MODIFIER` and `UNDERGROUND_PARTISAN_STRENGTH`.
 
 - **Pictures code gives an icon** (`docs/mechanics/interface.md`, section 5): the original draws every one through its
   picture sprite, in the icon's sprite's box with the sprite's texture coordinates; here only the country screens', the
