@@ -830,6 +830,7 @@ public sealed class CMap
 		}
 
 		int malformed = 0;
+		var unknownKinds = new SortedSet<string>(StringComparer.Ordinal);
 		string[] lines = Encoding.Latin1.GetString(File.ReadAllBytes(path)).Split('\n');
 		for (int i = 1; i < lines.Length; i++)                 // row 0 is the header
 		{
@@ -860,12 +861,23 @@ public sealed class CMap
 				&& parsed > 0 && parsed < provinceCount
 				? parsed
 				: 0;
-			result.Add(new CExplicitAdjacency(from, to, columns[2].Trim(), through));
+			string kind = columns[2].Trim();
+			if (kind is not ("river" or "sea" or "impassable" or "canal"))
+			{
+				// Read as a plain edge, as every type but those three is; said, where it was unseen (clausewitz.md, 3).
+				unknownKinds.Add(kind.Length == 0 ? "(none)" : kind);
+			}
+			result.Add(new CExplicitAdjacency(from, to, kind, through));
 		}
 
 		if (malformed > 0)
 		{
 			warn($"'{path}': {malformed} rows could not be read");
+		}
+		if (unknownKinds.Count > 0)
+		{
+			warn($"'{path}': {unknownKinds.Count} types are no type of a way and were read as a plain edge: " +
+				string.Join(", ", unknownKinds));
 		}
 		return result.ToArray();
 	}

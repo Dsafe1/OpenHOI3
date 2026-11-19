@@ -1060,7 +1060,7 @@ beside the repository.
   `OpenHOI3.SaveCheck script <install> [kind]` needs no save: it reads every event and
   decision and lists each problem in them, of one kind if a kind is given - `UnknownKey`,
   `UnknownName`, `OtherCase`, `WrongShape`, `Structure`, `Quirk` - and counts what it read by
-  kind. **The base game should give thirteen problems, all its own** - four in its events, seven in its on_actions, whose battle events Their Finest Hour empties, and two unknown keys, `unit_transfer` in two rebel types, which the original drops
+  kind. **The base game should give fifteen problems, all its own** - four in its events, seven in its on_actions, whose battle events Their Finest Hour empties, two unknown keys, `unit_transfer` in two rebel types, which the original drops, and since 2026-11-19 two names in `cb_types.txt`'s `peace_order` that are no casus belli type
   (`docs/mechanics/script.md`, section 10). Run it after touching `Content/Script` or a list a
   key may name.
   `OpenHOI3.SaveCheck conditions <install> [tag]` is a look and not a check: it asks every

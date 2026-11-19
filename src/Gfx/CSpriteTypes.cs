@@ -36,23 +36,26 @@ public sealed class CSpriteTypes
 			}
 			foreach (ClausewitzNode container in root.All("spriteTypes"))
 			{
-				registry.AddFrom(container);
+				registry.AddFrom(container, file);
 			}
 		}
 		return registry;
 	}
 
-	private void AddFrom(ClausewitzNode container)
+	private void AddFrom(ClausewitzNode container, string file)
 	{
 		foreach (ClausewitzNode child in container.Children)
 		{
+			// Each passed over is said (docs/mechanics/clausewitz.md, section 3).
 			if (child.Key is null || !child.IsBlock)
 			{
+				CDiagnostics.Problem($"'{file}': spriteTypes: '{child.Key ?? child.Value}' is no sprite - a kind and a block; passed over");
 				continue;
 			}
 			if (Array.IndexOf(SpriteKinds, child.Key) < 0 &&
 				!child.Key.EndsWith("SpriteType", StringComparison.OrdinalIgnoreCase))
 			{
+				CDiagnostics.Problem($"'{file}': spriteTypes: '{child.Key}' is no kind of sprite read here; passed over");
 				continue;
 			}
 			CSpriteType sprite = CSpriteType.FromNode(child.Key, child);
@@ -60,6 +63,8 @@ public sealed class CSpriteTypes
 			if (sprite.Name.Length == 0 || (sprite.TextureFile.Length == 0 && sprite.OverlayFile.Length == 0
 				&& !sprite.IsPieChart && !sprite.IsProgressBar && !sprite.IsLineChart))
 			{
+				CDiagnostics.Problem($"'{file}': the {child.Key} '{sprite.Name}' has " +
+					(sprite.Name.Length == 0 ? "no name" : "no texture") + "; passed over");
 				continue;
 			}
 			// Last declaration wins. Files arrive base layer first, so an expansion

@@ -97,6 +97,14 @@ public static class CBuildingReader
 				ShowForProvince = block.GetBool("show_for_province", fallback: true),
 			});
 			lists.Add((Names(block, "prerequisites"), Names(block, "not_if_x_exists")));
+			// A figure that is no number is read as nought - one as its damage factor - and said (clausewitz.md, section 3).
+			foreach (string key in NumberKeys)
+			{
+				if (block.Get(key) is { Value: { } text } && !CFixedPoint.TryParse(text, out _))
+				{
+					warn($"'{path}': {block.Key}: {key} = {text} is no number; read as {(key == "damage_factor" ? "one" : "nought")}");
+				}
+			}
 		}
 		CModifierReader.ReportUnknown(warn, path, "buildings", unknown);
 		// The two lists of buildings are resolved once every building is read, as the original does at load
@@ -109,6 +117,9 @@ public static class CBuildingReader
 		}
 		return buildings.ToArray();
 	}
+
+	/// <summary>A building's own figures.</summary>
+	private static readonly string[] NumberKeys = { "max_level", "damage_factor", "cost", "time", "completion_size" };
 
 	private static CFixedPoint Number(ClausewitzNode block, string key)
 	{

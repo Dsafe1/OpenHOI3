@@ -112,6 +112,11 @@ public static class CGovernmentReader
 				{
 					// Read whole, as the original reads it.
 					government.Duration = int.TryParse(entry.Value, out int months) ? months : 0;
+				if (!int.TryParse(entry.Value, out _))
+				{
+					// Said, where it was read as nought (clausewitz.md, section 3).
+					warn($"'{GovernmentsFile}': {block.Key}: duration = {entry.Value} is no whole number; read as nought");
+				}
 				}
 			}
 			governments[block.Key] = government;

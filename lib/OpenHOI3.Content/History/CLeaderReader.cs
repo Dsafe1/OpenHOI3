@@ -49,6 +49,8 @@ public static class CLeaderReader
 			{
 				if (block.Key is null || !block.IsBlock || !int.TryParse(block.Key, out int id))
 				{
+					// Said, where it was passed over: a leader is a number and a block (clausewitz.md, section 3).
+					problems.UnknownKeys.Add($"{block.Key ?? block.Value} (no leader: a number and a block)");
 					continue;
 				}
 				CLeader leader = Read(block, id, traits, start, problems);

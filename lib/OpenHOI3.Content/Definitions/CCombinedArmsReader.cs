@@ -38,12 +38,21 @@ public static class CCombinedArmsReader
 		}
 
 		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+		foreach (ClausewitzNode top in root.Children)
+		{
+			// Said, where it was passed over (clausewitz.md, section 3).
+			if (top.Key is null || !top.Key.Equals("combined_arms", StringComparison.OrdinalIgnoreCase))
+			{
+				unknown.Add(top.Key ?? top.Value ?? "{ }");
+			}
+		}
 		foreach (ClausewitzNode list in root.All("combined_arms"))
 		{
 			foreach (ClausewitzNode entry in list.Children)
 			{
 				if (entry.Key is null || !entry.IsBlock)
 				{
+					unknown.Add($"{entry.Key ?? entry.Value} (no group: a name and a block)");
 					continue;
 				}
 				CFixedPoint value = CFixedPoint.Zero;
@@ -52,12 +61,17 @@ public static class CCombinedArmsReader
 				{
 					if (setting.Key is null || setting.Value is null)
 					{
+						unknown.Add($"{entry.Key}/{setting.Key ?? setting.Value}");
 						continue;
 					}
 					if (setting.Key.Equals("value", StringComparison.OrdinalIgnoreCase)
 						&& CFixedPoint.TryParse(setting.Value, out CFixedPoint parsed))
 					{
 						value = parsed;
+					}
+					else if (setting.Key.Equals("value", StringComparison.OrdinalIgnoreCase))
+					{
+						unknown.Add($"{entry.Key}/value = {setting.Value}, no number");
 					}
 					else if (setting.Key.Equals("base", StringComparison.OrdinalIgnoreCase))
 					{

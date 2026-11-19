@@ -18,6 +18,15 @@ public sealed class CCountries
 {
 	private const string TagListFile = "common/countries.txt";
 
+	/// <summary>
+	/// What a country's own file under <c>common/countries</c> may hold: what this reader takes and what the country's
+	/// history reads from it (<c>CCountryHistory</c>: the ministers, the last election and its duration).
+	/// </summary>
+	private static readonly HashSet<string> DefinitionKeys = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"color", "graphical_culture", "major", "default_templates", "unit_names", "ministers", "last_election", "duration",
+	};
+
 	private readonly Dictionary<string, CCountry> _byTag =
 		new(StringComparer.OrdinalIgnoreCase);
 	private readonly List<CCountry> _all = new();
@@ -59,21 +68,22 @@ public sealed class CCountries
 
 		foreach (ClausewitzNode entry in list.Children)
 		{
-			if (entry.Key is null || entry.Value is null)
+			if (entry.Key is null || entry.Value is null || !CCountryTag.TryParse(entry.Key, out CCountryTag tag))
 			{
+				// Said, where it was passed over: a line that is no tag and its file (clausewitz.md, section 3).
+				warn($"'{listPath}': '{entry.Key ?? entry.Value}' is no country's tag and a file; passed over");
 				continue;
 			}
-			if (!CCountryTag.TryParse(entry.Key, out CCountryTag tag))
+			if (countries._byTag.ContainsKey(tag.Value))
 			{
+				warn($"'{listPath}': {tag} is declared again, to '{entry.Value}'; the first stands");
 				continue;
 			}
 
 			CCountry country = Read(directories, localisation, tag, entry.Value, warn);
-			if (countries._byTag.TryAdd(tag.Value, country))
-			{
-				countries._all.Add(country);
-				countries._declared.Add(country);
-			}
+			countries._byTag.Add(tag.Value, country);
+			countries._all.Add(country);
+			countries._declared.Add(country);
 		}
 
 		countries._all.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCulture));
@@ -92,6 +102,13 @@ public sealed class CCountries
 		try
 		{
 			definition = ClausewitzParser.ParseFile(path);
+			foreach (ClausewitzNode entry in definition.Children)
+			{
+				if (entry.Key is not null && !DefinitionKeys.Contains(entry.Key))
+				{
+					warn($"'{path}': '{entry.Key}' is no key of a country's file; passed over");
+				}
+			}
 			color = definition.GetRgb("color", CColor.Gray);
 			culture = definition.GetString("graphical_culture");
 			major = definition.GetString("major").Equals("yes", StringComparison.OrdinalIgnoreCase);

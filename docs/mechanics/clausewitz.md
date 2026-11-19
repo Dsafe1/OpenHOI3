@@ -62,3 +62,36 @@ one today, so each is a net for a mod's mistake:
 - **A file `load_oob` reads** (`units.md`, "A file of units as a game runs"): a brigade of no type or of a type not
   defined, a unit at the top with no location, and one in a province that does not exist - as a new game's reading
   of the same files already said.
+
+And a second pass the same day, over the readers that took only the keys they asked for:
+
+- **`common/countries.txt`**: a line that is no tag and file, and a tag declared again (the first stands).
+- **A country's file** under `common/countries`: a key that is none of `color`, `graphical_culture`, `major`,
+  `default_templates`, `unit_names`, `ministers`, `last_election` and `duration`; in `ministers`, an entry that is no
+  number and block, and a minister's key that is none of his own and no position.
+- **Diplomatic history**: an entry that is no block, a key in a pact other than `first`, `second`, `start_date`,
+  `end_date` and `value`, and a relation whose value is no number. **Leaders**: a top-level entry that is no number and
+  block.
+- **`combined_arms.txt`, `unit_upgrades.txt`, `ideologies.txt`, `technology.txt`**: what is outside their one block or
+  lists, and what inside it is no group, upgrade, faction key or name.
+- **Technologies**: a block that is no unit type, mission, `research_bonus_from`, `decay` or `allow`; a word that is no
+  number, flag or key of its own; one of its own figures that is no number; and an entry of `research_bonus_from` or
+  `decay` that is no category and amount. *Ours*: a numeric key is still kept as an effect whatever it names - nothing
+  asks for one no rule reads, and a list of every effect the simulation asks for is not kept in one place.
+- **Buildings**: `max_level`, `damage_factor`, `cost`, `time` and `completion_size` that are no number (read as nought,
+  the damage factor as one). **Governments**: a `duration` that is no whole number. **Model files**: an entry that is
+  no block, a block inside a model, and a model number or level that is no whole number (each read as nought, as the
+  original reads it).
+- **Message types**: a category that is none of the list (read as `cat_other`). **On_actions**: one given twice (the
+  first stands). **`cb_types.txt`**: a `peace_order` name that is no type - Their Finest Hour's two.
+- **`map/terrain.txt`**: a category given twice, a key a category is not read with here - among them the original's
+  `attacker`, `defender` and `inland_sea`, none in either data set - a figure that is no number, a colour entry with no
+  type or colour, a key a colour entry does not take, and a colour index given twice (the original logs it; the later
+  stands). **`map/adjacencies.csv`**: a type other than `river`, `sea`, `impassable` and `canal` (read as plain).
+- **Sprites** (`.gfx` `spriteTypes`): an entry that is no kind and block, a kind no sprite is read as, and one with no
+  name or no texture.
+
+Measured the same day: the base game's survey gains Their Finest Hour's two `peace_order` names and nothing else, and
+BlackICE's not one line - so none of these fires on either's files today. *Not covered*: an `objectTypes` kind no
+reader takes - the original's list of kinds was not read, and a kind it knows that is not built here (the unit
+figures, `alwaysCounters = no`) is not a file's fault.

@@ -78,8 +78,12 @@ public static class COnActionReader
 					$"{missing.Count} of {block.Key}'s {ids.Count} ids are no event ({some}{(missing.Count > 5 ? ", ..." : "")}); "
 					+ "the original passes them over");
 			}
-			// Ours: a second block of one name is passed over; which one the original finds was not read.
-			onActions.TryAdd(block.Key, ids);
+			// Ours: a second block of one name is passed over; which one the original finds was not read. Said.
+			if (!onActions.TryAdd(block.Key, ids))
+			{
+				context.Problems.Add(EScriptProblem.Structure, block.Line,
+					$"{block.Key} is given again; the first stands and this one is passed over");
+			}
 		}
 		return onActions;
 	}

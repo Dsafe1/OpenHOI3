@@ -30,6 +30,7 @@ public static class CHistoricalModelReader
 		var unknownTypes = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		var outOfOrder = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		var notForType = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+		var notNumbers = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		var noCountry = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 
 		foreach (string file in directories.ListFiles(ModelDirectory, "*.txt"))
@@ -60,6 +61,8 @@ public static class CHistoricalModelReader
 			{
 				if (block.Key is null || !block.IsBlock)
 				{
+					// Said, where it was passed over (clausewitz.md, section 3).
+					broken.Add($"{name}: {block.Key ?? block.Value}");
 					continue;
 				}
 				string[] parts = block.Key.Split('.');
@@ -73,8 +76,11 @@ public static class CHistoricalModelReader
 					unknownTypes.Add($"{name}: {parts[0]}");
 					continue;
 				}
-				// Anything that is not a number is model 0, as the original reads it.
-				int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int number);
+				// Anything that is not a number is model 0, as the original reads it - and said.
+				if (!int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int number))
+				{
+					notNumbers.Add($"{name}: {block.Key}, read as model 0");
+				}
 
 				if (!country.HistoricalModels.TryGetValue(type.Key, out SortedDictionary<int, Dictionary<string, int>>? models))
 				{
@@ -98,6 +104,7 @@ public static class CHistoricalModelReader
 				{
 					if (line.Key is null || line.IsBlock)
 					{
+						broken.Add($"{name}: {block.Key} {{ {line.Key ?? line.Value} }}");
 						continue;
 					}
 					if (!technologies.TryGetValue(line.Key, out CTechnology? technology)
@@ -106,7 +113,10 @@ public static class CHistoricalModelReader
 						notForType.Add($"{line.Key} for {type.Key}");
 						continue;
 					}
-					int.TryParse(line.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int level);
+					if (!int.TryParse(line.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int level))
+					{
+						notNumbers.Add($"{name}: {block.Key} {line.Key} = {line.Value}, read as 0");
+					}
 					levels[technology.Name] = level;
 				}
 				models[number] = levels;
@@ -118,6 +128,7 @@ public static class CHistoricalModelReader
 		Report(warn, unknownTypes, "statements in model files name a unit type that is not defined");
 		Report(warn, outOfOrder, "models are numbered past the next one and were left out");
 		Report(warn, notForType, "technologies in model files are not technologies of that unit type and were left out");
+		Report(warn, notNumbers, "figures in model files are no whole numbers");
 	}
 
 	private static void Report(Action<string> warn, SortedSet<string> found, string what)

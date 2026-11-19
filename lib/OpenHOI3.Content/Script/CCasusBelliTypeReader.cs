@@ -87,6 +87,14 @@ public static class CCasusBelliTypeReader
 					$"casus belli '{type.Name}' is not in peace_order; the original ranks it first, with nought");
 			}
 		}
+		// A name in the order that is no type ranks nothing; said, where it was passed over (clausewitz.md, section 3).
+		foreach (string name in ranks.Keys)
+		{
+			if (!types.Exists(type => type.IsReal && type.Name == name))
+			{
+				context.Problems.Add(EScriptProblem.UnknownName, 0, $"peace_order names '{name}', which is no casus belli type");
+			}
+		}
 	}
 
 	/// <summary>The text with the inside of the first block of that key turned to spaces, its line breaks kept.</summary>

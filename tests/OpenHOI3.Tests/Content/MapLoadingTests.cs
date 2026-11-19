@@ -1523,7 +1523,10 @@ public class MapLoadingTests : IDisposable
 		Assert.Equal(new[] { "steel_production", "OR", "any_owned_province" }, arms.Allow!.Children.Select(condition => condition.Key));
 		Assert.Equal(ETriggerKind.Technology, arms.Allow.Children[0].Kind);
 		Assert.Equal(new[] { "industral_production", "num_of_ports" }, arms.Allow.Children[1].Children.Select(condition => condition.Key));
-		Assert.DoesNotContain(_warnings, warning => warning.Contains("technolog") && !IsScriptProblem(warning));
+		// The one technology warning: no unit type of this test is called infantry_brigade, so that block is passed over
+		// and said (clausewitz.md, section 3).
+		Assert.Single(_warnings, warning => warning.Contains("technolog") && !IsScriptProblem(warning));
+		Assert.Contains(_warnings, warning => warning.Contains("small_arms: infantry_brigade { }"));
 		Assert.Single(_warnings, IsScriptProblem);
 	}
 

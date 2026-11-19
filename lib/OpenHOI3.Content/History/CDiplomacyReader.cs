@@ -23,6 +23,12 @@ public static class CDiplomacyReader
 	/// <summary>The kinds of entry these files hold that nothing here uses: none now.</summary>
 	private static readonly HashSet<string> ReadPast = new(StringComparer.OrdinalIgnoreCase);
 
+	/// <summary>What a pact or a relation in the diplomatic history holds.</summary>
+	private static readonly HashSet<string> PactKeys = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"first", "second", "start_date", "end_date", "value",
+	};
+
 	/// <summary>
 	/// Makes every country that is a puppet on <paramref name="date"/> its master's, and gives the
 	/// alliances and guarantees standing on it and every relation entry. An entry counts from its
@@ -69,8 +75,14 @@ public static class CDiplomacyReader
 	{
 		foreach (ClausewitzNode entry in root.Children)
 		{
-			if (entry.Key is null || !entry.IsBlock || ReadPast.Contains(entry.Key))
+			if (entry.Key is not null && ReadPast.Contains(entry.Key))
 			{
+				continue;
+			}
+			if (entry.Key is null || !entry.IsBlock)
+			{
+				// Said, where it was passed over (clausewitz.md, section 3).
+				unknownKeys.Add(entry.Key ?? entry.Value ?? "{ }");
 				continue;
 			}
 			string kind = entry.Key.ToLowerInvariant();
@@ -78,6 +90,13 @@ public static class CDiplomacyReader
 			{
 				unknownKeys.Add(entry.Key);
 				continue;
+			}
+			foreach (ClausewitzNode part in entry.Children)
+			{
+				if (part.Key is null || !PactKeys.Contains(part.Key))
+				{
+					unknownKeys.Add($"{entry.Key}/{part.Key ?? part.Value}");
+				}
 			}
 
 			CCountry? first = find(entry.GetString("first"));
@@ -97,6 +116,10 @@ public static class CDiplomacyReader
 					CDate start = CDate.TryParse(entry.GetString("start_date"), out CDate starts) ? starts : new CDate(1, 1, 1);
 					CDate? end = CDate.TryParse(entry.GetString("end_date"), out CDate ends) ? ends : null;
 					history.Relations.Add(new CHistoryRelation(first.Tag, second.Tag, value, start, end));
+				}
+				else
+				{
+					unknownKeys.Add($"relation/value = {entry.GetString("value")}, no number");
 				}
 				continue;
 			}

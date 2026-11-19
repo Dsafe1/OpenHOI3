@@ -44,6 +44,8 @@ public static class CIdeologyReader
 		{
 			if (block.Key is null || !block.IsBlock)
 			{
+				// Said, where it was passed over (clausewitz.md, section 3).
+				unknown.Add($"{block.Key ?? block.Value} (no group: a name and a block)");
 				continue;
 			}
 			var kinds = new Sim.Modifiers.CModifierKeys(factions);
@@ -52,6 +54,28 @@ public static class CIdeologyReader
 			if (position is null)
 			{
 				warn($"'{IdeologiesFile}': the group '{block.Key}' has no position");
+			}
+			foreach (ClausewitzNode part in position?.Children ?? new List<ClausewitzNode>())
+			{
+				if (part.Key is null || !(part.Key.Equals("x", StringComparison.OrdinalIgnoreCase)
+					|| part.Key.Equals("y", StringComparison.OrdinalIgnoreCase)))
+				{
+					unknown.Add($"{block.Key}/position/{part.Key ?? part.Value}");
+				}
+			}
+			foreach (ClausewitzNode part in faction?.Children ?? new List<ClausewitzNode>())
+			{
+				if (part.Key is null || !FactionKeys.Contains(part.Key))
+				{
+					unknown.Add($"{block.Key}/faction/{part.Key ?? part.Value}");
+				}
+			}
+			foreach (ClausewitzNode part in block.Children)
+			{
+				if (part.Key is null || !part.IsBlock)
+				{
+					unknown.Add($"{block.Key}/{part.Key ?? part.Value} (no ideology: a name and a block)");
+				}
 			}
 			ClausewitzNode? modifier = faction?.Get("modifier");
 			var group = new CIdeologyGroup(block.Key, Thousandths(position, "x"), Thousandths(position, "y"))
@@ -115,6 +139,12 @@ public static class CIdeologyReader
 
 	/// <summary>An ideology's own key besides the kinds of modifier.</summary>
 	private static readonly HashSet<string> IdeologyKeys = new(StringComparer.OrdinalIgnoreCase) { "color" };
+
+	/// <summary>What a group's <c>faction</c> block holds.</summary>
+	private static readonly HashSet<string> FactionKeys = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"tag", "neutrality", "influence", "icon", "modifier", "rule",
+	};
 
 	private static Sim.Modifiers.CModifier ReadModifier(ClausewitzNode block, string group,
 		Sim.Modifiers.CModifierKeys kinds, SortedSet<string> unknown, Action<string> warn)

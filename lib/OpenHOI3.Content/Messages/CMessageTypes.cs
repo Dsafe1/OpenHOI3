@@ -201,6 +201,11 @@ public sealed class CMessageTypes
 					{
 						int index = Array.IndexOf(Categories, value);
 						type.Category = index < 0 ? EMessageCategory.Other : (EMessageCategory)index;
+						if (index < 0)
+						{
+							// Said, where it became the last category unseen (clausewitz.md, section 3).
+							_warn($"'{File}': the message type '{block.Key}' names no category, '{value}'; read as cat_other");
+						}
 						break;
 					}
 					default:

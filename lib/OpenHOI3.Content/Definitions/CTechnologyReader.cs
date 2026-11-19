@@ -33,6 +33,24 @@ public static class CTechnologyReader
 		"folder", "change", "can_upgrade", "is_nuclear", "on_completion", "stealable",
 	};
 
+	/// <summary>A technology's own blocks: what it is researched from, its decay and its precondition.</summary>
+	private static readonly HashSet<string> OwnBlocks = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"research_bonus_from", "decay", "allow",
+	};
+
+	/// <summary>A technology's own keys that are numbers; one that is not is reported and read as nought.</summary>
+	private static readonly HashSet<string> OwnNumbers = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"difficulty", "start_year", "first_offset", "additional_offset", "max_level",
+	};
+
+	/// <summary>A technology's own keys that name something: a unit type or a building it makes available.</summary>
+	private static readonly HashSet<string> OwnWords = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"activate_unit", "activate_building",
+	};
+
 	/// <summary>The names a block is read under as a mission's figures.</summary>
 	private static readonly HashSet<string> Missions =
 		new(OpenHOI3.Sim.Missions.CMissionEfficiency.Names, StringComparer.OrdinalIgnoreCase);
@@ -53,6 +71,24 @@ public static class CTechnologyReader
 		}
 
 		ClausewitzNode root = ClausewitzParser.ParseFile(path);
+		// Said, where it was passed over (clausewitz.md, section 3): what is no list of the file's, and a pair in one.
+		foreach (ClausewitzNode top in root.Children)
+		{
+			if (top.Key is null || !(top.Key.Equals("theoretical", StringComparison.OrdinalIgnoreCase)
+				|| top.Key.Equals("practical", StringComparison.OrdinalIgnoreCase)
+				|| top.Key.Equals("folders", StringComparison.OrdinalIgnoreCase)))
+			{
+				warn($"'{path}': '{top.Key ?? top.Value}' is no list of the file's; passed over");
+				continue;
+			}
+			foreach (ClausewitzNode entry in top.Children)
+			{
+				if (entry.Key is not null)
+				{
+					warn($"'{path}': '{entry.Key}' in {top.Key} is a pair, where the list holds names; passed over");
+				}
+			}
+		}
 		var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		foreach ((string key, bool isTheory) in new[] { ("theoretical", true), ("practical", false) })
 		{
@@ -104,6 +140,7 @@ public static class CTechnologyReader
 		var unknownUnitKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		var unknownMissionKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		var notNumbers = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+		var unknownTechnologyKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		var technologies = new List<CTechnology>();
 		int duplicates = 0;
 
@@ -242,8 +279,44 @@ public static class CTechnologyReader
 				CSubUnitStatsReader.Read(entry, stats, CSubUnitTypeReader.Statistics.Contains, adjusters.Contains,
 					other => unknownUnitKeys.Add(other.IsBlock ? other.Key + " { }" : other.Key!), notNumbers);
 			}
+
+			// Said, where it was passed over (clausewitz.md, section 3): a block that is no unit type, mission or block of a
+			// technology's own, and a word that is no number, flag or key of its own. A numeric key is kept as an effect
+			// whatever it names, nothing asking for one no rule reads.
+			foreach (ClausewitzNode entry in block.Children)
+			{
+				if (entry.Key is null)
+				{
+					unknownTechnologyKeys.Add($"{block.Key}: '{entry.Value}'");
+				}
+				else if (entry.IsBlock)
+				{
+					if (!OwnBlocks.Contains(entry.Key) && !Missions.Contains(entry.Key)
+						&& (unitTypes is null || !unitTypes.ContainsKey(entry.Key)))
+					{
+						unknownTechnologyKeys.Add($"{block.Key}: {entry.Key} {{ }}");
+					}
+				}
+				else if (OwnNumbers.Contains(entry.Key))
+				{
+					if (!CFixedPoint.TryParse(entry.Value, out _))
+					{
+						notNumbers.Add($"{block.Key}: {entry.Key} = {entry.Value}");
+					}
+				}
+				else if (!OwnKeys.Contains(entry.Key) && !OwnWords.Contains(entry.Key) && !CFixedPoint.TryParse(entry.Value, out _)
+					&& !"yes".Equals(entry.Value, StringComparison.OrdinalIgnoreCase))
+				{
+					unknownTechnologyKeys.Add($"{block.Key}: {entry.Key} = {entry.Value}");
+				}
+			}
 		}
 
+		if (unknownTechnologyKeys.Count > 0)
+		{
+			warn($"technologies hold {unknownTechnologyKeys.Count} keys and blocks nothing reads, passed over: " +
+				string.Join(", ", unknownTechnologyKeys));
+		}
 		if (unknownMissionKeys.Count > 0)
 		{
 			warn($"technologies give missions {unknownMissionKeys.Count} keys that are not understood: " +
@@ -290,6 +363,8 @@ public static class CTechnologyReader
 		{
 			if (entry.Key is null || !CFixedPoint.TryParse(entry.Value, out CFixedPoint amount))
 			{
+				// Said, where it was passed over (clausewitz.md, section 3): reported with the categories no file declares.
+				unknown.Add($"{block!.Key}: {entry.Key ?? entry.Value} = {entry.Value}, no category and amount");
 				continue;
 			}
 			if (categories is not null && !categories.Contains(entry.Key))

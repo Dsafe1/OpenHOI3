@@ -25,6 +25,24 @@ public static class CTerrainReader
 	/// </summary>
 	public const int ProvinceTakenAtItsText = 1737;
 
+	/// <summary>What a terrain category is read with here; any other key is reported (clausewitz.md, section 3).</summary>
+	private static readonly HashSet<string> CategoryKeys = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"movement_cost", "attack", "defence", "humidity", "attrition", "precipitation", "temperature", "is_water", "color",
+	};
+
+	/// <summary>The figures among them, each read as nought where it is no number.</summary>
+	private static readonly HashSet<string> CategoryNumbers = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"movement_cost", "attack", "defence", "humidity", "attrition", "precipitation", "temperature",
+	};
+
+	/// <summary>What a terrain colour entry holds.</summary>
+	private static readonly HashSet<string> EntryKeys = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"type", "color", "tree", "tree_density", "priority", "has_texture",
+	};
+
 	/// <summary>What the terrain definition file declares.</summary>
 	/// <param name="Categories">In file order.</param>
 	/// <param name="CategoryOfIndex">
@@ -66,7 +84,21 @@ public static class CTerrainReader
 			{
 				if (category.Key is null || !category.IsBlock || indexByName.ContainsKey(category.Key))
 				{
+					// Said, where it was passed over (clausewitz.md, section 3).
+					warn($"'{path}': categories: '{category.Key ?? category.Value}' is " +
+						(category.Key is not null && indexByName.ContainsKey(category.Key) ? "given again; the first stands" : "no category"));
 					continue;
+				}
+				foreach (ClausewitzNode part in category.Children)
+				{
+					if (part.Key is null || !CategoryKeys.Contains(part.Key))
+					{
+						warn($"'{path}': {category.Key}: '{part.Key ?? part.Value}' is no key a terrain is read with here; passed over");
+					}
+					else if (CategoryNumbers.Contains(part.Key) && !CFixedPoint.TryParse(part.Value, out _))
+					{
+						warn($"'{path}': {category.Key}: {part.Key} = {part.Value} is no number; read as nought");
+					}
 				}
 				indexByName[category.Key] = categories.Count;
 				CFixedPoint.TryParse(category.GetString("movement_cost"), out CFixedPoint movementCost);
@@ -109,7 +141,15 @@ public static class CTerrainReader
 			ClausewitzNode? indices = entry.Get("color");
 			if (type.Length == 0 || indices is null)
 			{
+				warn($"'{path}': '{entry.Key}' has no type or no color, and colours nothing");
 				continue;
+			}
+			foreach (ClausewitzNode part in entry.Children)
+			{
+				if (part.Key is null || !EntryKeys.Contains(part.Key))
+				{
+					warn($"'{path}': {entry.Key}: '{part.Key ?? part.Value}' is no key of a terrain colour's; passed over");
+				}
 			}
 			if (!indexByName.TryGetValue(type, out int category))
 			{
@@ -127,6 +167,11 @@ public static class CTerrainReader
 				if (int.TryParse(value.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int index)
 					&& index >= 0 && index < categoryOfIndex.Length)
 				{
+					if (categoryOfIndex[index] >= 0)
+					{
+						// The original logs it as an attempt to use the index again (FINDINGS-mapdraw.md); the later stands here.
+						warn($"'{path}': {entry.Key} uses colour index {index} again; the later entry stands");
+					}
 					categoryOfIndex[index] = category;
 					priorityOfIndex[index] = priority;
 					treeOfIndex[index] = tree.Length == 0 ? null : tree;

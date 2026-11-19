@@ -24,6 +24,12 @@ public static class CCountryHistory
 {
 	private const string HistoryDirectory = "history/countries";
 
+	/// <summary>What a minister in a country's <c>ministers</c> block holds besides a line for each position.</summary>
+	private static readonly HashSet<string> MinisterKeys = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"name", "ideology", "picture", "loyalty", "start_date", "death_date",
+	};
+
 	/// <returns>
 	/// What each country's history sets of each good by the start date, by tag: the last line of a good stands.
 	/// </returns>
@@ -420,6 +426,8 @@ public static class CCountryHistory
 				if (!entry.IsBlock
 					|| !int.TryParse(entry.Key, NumberStyles.Integer, CultureInfo.InvariantCulture, out int id))
 				{
+					CDiagnostics.Problem($"'{path}': ministers: '{entry.Key ?? entry.Value}' is no minister - a number and a " +
+						"block; passed over");
 					continue;
 				}
 				var minister = new CMinister(id, entry.GetString("name"))
@@ -434,6 +442,11 @@ public static class CCountryHistory
 				{
 					if (line.Key is null || line.Value is null || !positions.Contains(line.Key))
 					{
+						if (line.Key is null || !MinisterKeys.Contains(line.Key))
+						{
+							CDiagnostics.Problem($"'{path}': minister {id}: '{line.Key ?? line.Value}' is no key of a " +
+								"minister's and no position; passed over");
+						}
 						continue;
 					}
 					if (ministerTypes.TryGetValue(line.Value, out CMinisterType? type))

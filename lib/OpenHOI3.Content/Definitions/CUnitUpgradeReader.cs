@@ -35,8 +35,23 @@ public static class CUnitUpgradeReader
 			warn($"Could not read '{path}': {e.Message}");
 			return;
 		}
+		// Said, where it was passed over (clausewitz.md, section 3).
+		foreach (ClausewitzNode top in root.Children)
+		{
+			if (top.Key is null || !top.Key.Equals("unit_upgrades", StringComparison.OrdinalIgnoreCase))
+			{
+				warn($"{UpgradeFile}: '{top.Key ?? top.Value}' is no key of the file; passed over");
+			}
+		}
 		foreach (ClausewitzNode list in root.All("unit_upgrades"))
 		{
+			foreach (ClausewitzNode other in list.Children)
+			{
+				if (other.Key is null || !other.Key.Equals("upgrade", StringComparison.OrdinalIgnoreCase))
+				{
+					warn($"{UpgradeFile}: '{other.Key ?? other.Value}' in unit_upgrades is no upgrade; passed over");
+				}
+			}
 			foreach (ClausewitzNode entry in list.All("upgrade"))
 			{
 				string from = "";
@@ -45,6 +60,7 @@ public static class CUnitUpgradeReader
 				{
 					if (setting.Key is null || setting.Value is null)
 					{
+						warn($"{UpgradeFile}: '{setting.Key ?? setting.Value}' in an upgrade is no key of one; passed over");
 						continue;
 					}
 					if (setting.Key.Equals("base", StringComparison.OrdinalIgnoreCase))
@@ -54,6 +70,10 @@ public static class CUnitUpgradeReader
 					else if (setting.Key.Equals("target", StringComparison.OrdinalIgnoreCase))
 					{
 						to = setting.Value;
+					}
+					else
+					{
+						warn($"{UpgradeFile}: '{setting.Key}' in an upgrade is no key of one; passed over");
 					}
 				}
 				if (types.TryGetValue(from, out CSubUnitType? source) && types.TryGetValue(to, out CSubUnitType? target))
