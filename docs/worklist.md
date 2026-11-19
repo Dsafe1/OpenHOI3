@@ -263,16 +263,25 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    intelligence ministers saw (`aid.md`, section 1). **And every patrol draw but two**: the Soviet one left at 34 was a
    full pass the fall-back asks for the next hour, which ours wiped (`agents.md`, section 3); New Zealand's and France's
    at hours 6 and 29 the original makes too - read on the running game - and the recording lost
-   (`reversing/findings/FINDINGS-liveread.md`, section 134), so a playback reports them as ours beyond. Open: (a) the
-   offers the AI answers one draw out in `wr15`, `wr14` and `wr11` (`CPactPasses.Answer`), and Sweden's Lua draw at 46
-   of `wr11` - a hook naming each `math.random` caller is in the session scratchpad as `dbg7-luarand.patch`
+   (`reversing/findings/FINDINGS-liveread.md`, section 134), so a playback reports them as ours beyond. Open: (a) **the
+   daily pass's trade, IC and production run as one block per country, in the countries' order** - the cause of the
+   offers the AI answers one draw out in `wr15`, `wr14` and `wr11` (`CPactPasses.Answer`): the original makes each
+   country's money of the day in its own day, after its trade and before the next country's, where ours makes every
+   country's in `CProduction.RunDaily` after every country's trade - so `wr15`'s Soviet Union cannot pay two Italian
+   purchases at the first midnight and pays Hungary's supplies route, which the original's cannot, Hungary then offering
+   Germany a trade the original never makes (section 140, read on the running game: the Soviet money country by
+   country). A restructure of `CTick.RunDailyPass` from `CTradeRoutes.RunDaily` to `CProduction.RunDaily`; the savegame
+   checks of the economy - `firstdays`, `supplypass`, `research`, `politics` - to be run after it. Then Sweden's Lua draw
+   at 46 of `wr11`; a hook naming each `math.random` caller is in the session scratchpad as `dbg7-luarand.patch`
    (`OHDBG_LUARAND=TAG`); (b) **every fleet order of `wr19`, `wr15` and `wr14` is the original's since 2026-11-19**, none
    of ours alone (the British 31st and 41st Navies were a submarine fleet sent raiding that ours left free for the
    intercept, `moving.md` section 14; the German 33. Unterseebootsflottille, 5th and 6th Navy the sea targets' undeclared
    war and capital-area fifth and a fleet's share counted out of its own agent, `moving.md` section 12 and `agents.md`
    10.4; the Soviet Cernoje Flote an invasion's fleet under an order sailing an hour too soon, `moving.md` section 16) -
-   what is left is `wr14`'s three and `wr11`'s twenty, and the one land order of `wr19`, Tannu Tuva's 1ya Tunska Armiya at
-   hour 2. **Every air order of `wr19` is the original's since
+   what is left is `wr14`'s three and `wr11`'s twenty. The one land order of `wr19` ours gives otherwise, Tannu Tuva's 1ya
+   Tunska Armiya at hour 2, is the runs' own: `wr19`'s and `wr11`'s originals send it to 2390, `wr15`'s and `wr14`'s keep it
+   bound for 2275 as ours does - what a line counts of an ally's orders depends on the threads (`docs/enhanced.md`).
+   **Every air order of `wr19` is the original's since
    2026-11-19**: the Omani dive bombers' rebase was Britain's waiting carrier groups, which ours had put on an airfield
    (`ministers.md`, section 6), and the German 26th Air wing's a multi-role wing ours let bar a bomber's move to a war
    candidate's front (`agents.md`, section 10.3); (c) `wr14`, whose dice part at hour 13, and `wr11`.
