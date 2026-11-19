@@ -27,7 +27,7 @@ public sealed class CPlanObjectTypes
 			}
 			catch (Exception failed) when (failed is IOException or FormatException or InvalidOperationException)
 			{
-				(warn ?? CDiagnostics.Warn)($"Could not parse '{file}': {failed.Message}");
+				(warn ?? CDiagnostics.Problem)($"Could not parse '{file}': {failed.Message}");
 				continue;
 			}
 			types.Read(root);

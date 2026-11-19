@@ -42,7 +42,7 @@ public sealed class CCountries
 	public static CCountries Load(CDirectorySettings directories, CLocalisation localisation,
 		Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var countries = new CCountries();
 
 		string listPath = directories.Resolve(TagListFile);

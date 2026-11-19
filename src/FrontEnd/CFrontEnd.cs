@@ -313,7 +313,7 @@ public partial class CFrontEnd : Node
 	{
 		_countries = CCountries.Load(_directories, _localisation);
 		CDate? date = hours is { } at ? CDate.FromDayNumber((int)(at / CGameState.HoursPerDay)) : null;
-		CGameState world = CGameStateLoader.BuildWorld(_directories, _map, _localisation, _countries, CDiagnostics.Warn, _aiScripts, date);
+		CGameState world = CGameStateLoader.BuildWorld(_directories, _map, _localisation, _countries, CDiagnostics.Problem, _aiScripts, date);
 		if (hours is { } exact)
 		{
 			world.SetClock(exact);

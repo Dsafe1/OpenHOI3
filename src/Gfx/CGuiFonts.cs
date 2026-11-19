@@ -201,7 +201,7 @@ public sealed class CGuiFonts
 		{
 			if (descriptor is null)
 			{
-				CDiagnostics.Warn($"The font '{fontName}' has no descriptor in gfx/fonts and no typeface beside one");
+				CDiagnostics.Problem($"The font '{fontName}' has no descriptor in gfx/fonts and no typeface beside one");
 			}
 			face = _shipped.For(descriptor?.Face ?? "", descriptor is { Bold: true }, descriptor is { Italic: true },
 				out sameWidths);
@@ -298,7 +298,7 @@ public sealed class CGuiFonts
 				file.AllowSystemFallback = false;
 				return file;
 			}
-			CDiagnostics.Warn($"Could not load the typeface '{path}' ({error})");
+			CDiagnostics.Problem($"Could not load the typeface '{path}' ({error})");
 		}
 		return null;
 	}

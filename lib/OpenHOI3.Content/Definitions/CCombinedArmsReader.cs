@@ -18,7 +18,7 @@ public static class CCombinedArmsReader
 
 	public static List<CCombinedArmsGroup> Read(CDirectorySettings directories, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var groups = new List<CCombinedArmsGroup>();
 		string path = directories.Resolve(GroupFile);
 		if (!File.Exists(path))

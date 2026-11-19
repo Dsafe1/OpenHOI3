@@ -68,7 +68,7 @@ public sealed class CFrontEndContent
 		CAiScripts aiScripts = await screen.Work(CLoadingSteps.SecondDatabases, () => new CAiScripts(directories));
 		(CGameState world, IReadOnlyList<CBookmark> bookmarks) = await screen.Work(CLoadingSteps.History, () =>
 		{
-			CGameState made = CGameStateLoader.BuildWorld(directories, map, localisation, countries, CDiagnostics.Warn, aiScripts);
+			CGameState made = CGameStateLoader.BuildWorld(directories, map, localisation, countries, CDiagnostics.Problem, aiScripts);
 			return (made, CBookmarkReader.Read(directories, countries));
 		}, steps: 1);
 		int checksum = await screen.Work(CLoadingSteps.Checksum, () => WorkOutChecksum(directories), steps: 1);

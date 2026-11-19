@@ -56,7 +56,7 @@ public sealed class CBillboardTypes
 
 	public static CBillboardTypes Load(CDirectorySettings directories, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var types = new CBillboardTypes();
 		foreach (string file in directories.ListFiles("interface", "*.gfx"))
 		{

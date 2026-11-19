@@ -36,7 +36,7 @@ public partial class CGuiWindow : CGuiObject
 		CGuiWindowType? type = context.Types.FindWindow(name);
 		if (type is null)
 		{
-			CDiagnostics.Warn($"interface: no file declares a window named '{name}'");
+			CDiagnostics.Problem($"interface: no file declares a window named '{name}'");
 			return null;
 		}
 		var window = new CGuiWindow();
@@ -442,7 +442,7 @@ public partial class CGuiWindow : CGuiObject
 		{
 			return found;
 		}
-		CDiagnostics.Warn($"interface: the window '{GuiType.Name}' has no {kind} named '{name}'");
+		CDiagnostics.Problem($"interface: the window '{GuiType.Name}' has no {kind} named '{name}'");
 		return null;
 	}
 }

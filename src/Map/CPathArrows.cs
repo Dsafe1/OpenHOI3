@@ -52,7 +52,7 @@ public sealed class CPathArrows
 			: gui.Effects.Get(file, Technique, EShaderTarget.Canvas, DrawnTexture, device: States);
 		if (_shader is null)
 		{
-			CDiagnostics.Warn($"map: the arrows' effect '{arrows.EffectFile}' gives no '{Technique}', so no unit's way is drawn");
+			CDiagnostics.Problem($"map: the arrows' effect '{arrows.EffectFile}' gives no '{Technique}', so no unit's way is drawn");
 		}
 	}
 

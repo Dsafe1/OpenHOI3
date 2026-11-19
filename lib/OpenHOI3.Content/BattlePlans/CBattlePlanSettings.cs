@@ -27,7 +27,7 @@ public sealed class CBattlePlanSettings
 		string path = directories.Resolve(FileName);
 		if (!File.Exists(path))
 		{
-			(warn ?? CDiagnostics.Warn)($"battle plans: no {FileName}");
+			(warn ?? CDiagnostics.Problem)($"battle plans: no {FileName}");
 			return settings;
 		}
 		settings.Read(ClausewitzParser.ParseFile(path));

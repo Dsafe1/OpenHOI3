@@ -70,7 +70,7 @@ public static class CGameStateLoader
 		bool firstDays = true, IAiScripts? aiScripts = null, IEnumerable<CCountryTag>? played = null,
 		Action<CGameState>? beforeFirstDays = null, CDate? date = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		CGameState state = BuildWorld(directories, map, localisation, countries, warn, aiScripts, date);
 		IReadOnlyDictionary<string, CSubUnitType> unitTypes = state.SubUnitTypes;
 		return SetUpNewGame(directories, state, countries, unitTypes, warn, fill, firstDays, played, beforeFirstDays);
@@ -257,9 +257,10 @@ public static class CGameStateLoader
 
 		// Events and decisions name nearly everything above, so they are read once it is there.
 		CScriptProblems scriptProblems = CScriptLoader.Load(directories, state, warn);
-		if (scriptProblems.Count > 0)
+		// Each a line of its own at its file and line, its kind after it (docs/mechanics/logs.md, section 4).
+		foreach (CScriptProblem problem in scriptProblems.All)
 		{
-			warn($"events and decisions: {scriptProblems.Count} problems, which `OpenHOI3.SaveCheck script` lists");
+			warn(problem.Report);
 		}
 		// The rebel types' words a faction and its armies are named in (rebels.md, sections 6 and 7).
 		foreach (Sim.Revolts.CRebelType type in state.RebelTypes)
@@ -282,7 +283,7 @@ public static class CGameStateLoader
 	public static CGameState StartNewGame(CDirectorySettings directories, CGameState world, CCountries countries,
 		IEnumerable<CCountryTag> played, Action<string>? warn = null, bool chooseVictoryConditions = true)
 	{
-		return SetUpNewGame(directories, world, countries, world.SubUnitTypes, warn ?? CDiagnostics.Warn, fill: true,
+		return SetUpNewGame(directories, world, countries, world.SubUnitTypes, warn ?? CDiagnostics.Problem, fill: true,
 			firstDays: true, played, beforeFirstDays: null, chooseVictoryConditions);
 	}
 

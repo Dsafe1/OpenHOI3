@@ -2007,6 +2007,12 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 
 ## Loose ends
 
+- **The validation log's lines** (2026-11-19, `logs.md`, section 4): the script's problems and the localisation's each
+  have a line of their own at file and line; the other loaders keep their old wording, most naming their file and no
+  line, and several gather a kind of fault into one line with a count and the first few names ("12 keys not understood:
+  a, b, c, ..."). Still to do: a line for every fault, and the line it is at - which wants the Clausewitz reader to keep
+  each node's line number.
+
 - **The order a folder is listed in** (2026-11-19, `mods.md`, section 2): the original lists every name over all the
   layers once, sorted by byte with case; `CDirectorySettings.ListFiles` lists the base layer first, then by name without
   case. The localisation sorts its tables the original's way since that day. The other readers of a listing - the

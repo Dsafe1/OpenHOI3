@@ -25,7 +25,7 @@ public static class CBuildingReader
 
 	public static CBuilding[] Read(CDirectorySettings directories, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		string path = directories.Resolve(BuildingsFile);
 		if (!System.IO.File.Exists(path))
 		{

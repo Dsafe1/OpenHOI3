@@ -106,7 +106,7 @@ public static class CWarReader
 		Action<string>? warn = null, List<CWar>? finished = null, List<(CCountryTag Joiner, CCountryTag Enemy)>? joins = null,
 		CDate? definesStart = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var wars = new List<CWar>();
 		// The wars standing after the pass to the defines' start date, and those of the bookmark's pass; the finished wars
 		// that stood after that pass and ended in the bookmark's, which the original moves to the back of its other list.

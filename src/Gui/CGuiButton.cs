@@ -154,7 +154,7 @@ public partial class CGuiButton : CGuiObject
 		_sprite = context.Sprites.Find(type.Sprite);
 		if (_sprite is null && type.Sprite.Length > 0)
 		{
-			CDiagnostics.Warn($"interface: '{type.Name}' names the sprite '{type.Sprite}', which no .gfx file declares");
+			CDiagnostics.Problem($"interface: '{type.Name}' names the sprite '{type.Sprite}', which no .gfx file declares");
 		}
 		// A masked shield has no picture until it is given a country.
 		_texture = _sprite is null || _sprite.IsMaskedShield ? null : context.Textures.Load(_sprite);

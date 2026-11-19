@@ -33,7 +33,7 @@ public partial class CTooltipBox : Control
 	{
 		if (context.Types.Find(TypeName) is not CGuiTextBoxType type)
 		{
-			CDiagnostics.Warn($"interface: no text box '{TypeName}' is declared, so there are no tooltips");
+			CDiagnostics.Problem($"interface: no text box '{TypeName}' is declared, so there are no tooltips");
 			return null;
 		}
 		var box = new CTooltipBox { Name = "TooltipBox" };
@@ -50,7 +50,7 @@ public partial class CTooltipBox : Control
 		_font = context.Fonts.Find(type.Font);
 		if (_font is null)
 		{
-			CDiagnostics.Warn($"interface: '{type.Name}' names the font '{type.Font}', which could not be loaded");
+			CDiagnostics.Problem($"interface: '{type.Name}' names the font '{type.Font}', which could not be loaded");
 		}
 
 		// Its picture, drawn behind the text in nine parts as the original's font draws a textBoxType's (_Draw).

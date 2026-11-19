@@ -33,7 +33,7 @@ public static class CCountryHistory
 		Dictionary<string, Dictionary<string, CLaw>>? lawBook = null, IReadOnlySet<string>? occupationPolicies = null,
 		CDate? definesStart = null, List<CMinisterType>? ministerTypeOrder = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var goodsGiven = new Dictionary<string, Dictionary<EGoods, CFixedPoint>>(StringComparer.OrdinalIgnoreCase);
 		int badAmounts = 0;
 		var categoryNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

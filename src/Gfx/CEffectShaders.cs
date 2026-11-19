@@ -31,7 +31,7 @@ public sealed class CEffectShaders
 			_effects[file] = effect;
 			if (effect is null)
 			{
-				Content.CDiagnostics.Warn($"shaders: no layer has gfx/FX/{file}");
+				Content.CDiagnostics.Problem($"shaders: no layer has gfx/FX/{file}");
 			}
 			else
 			{
@@ -76,7 +76,7 @@ public sealed class CEffectShaders
 		}
 		else if (Effect(file) is not null)
 		{
-			Content.CDiagnostics.Warn($"shaders: gfx/FX/{file} has no technique '{technique}'");
+			Content.CDiagnostics.Problem($"shaders: gfx/FX/{file} has no technique '{technique}'");
 		}
 		_shaders[key] = made;
 		return made;

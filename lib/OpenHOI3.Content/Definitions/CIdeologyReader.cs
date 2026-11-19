@@ -18,7 +18,7 @@ public static class CIdeologyReader
 
 	public static List<CIdeologyGroup> Read(CDirectorySettings directories, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		string path = directories.Resolve(IdeologiesFile);
 		ClausewitzNode root;
 		try

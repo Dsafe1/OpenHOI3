@@ -39,7 +39,7 @@ public sealed class CProjectionTypes
 
 	public static CProjectionTypes Load(CDirectorySettings directories, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var types = new CProjectionTypes();
 		foreach (string file in directories.ListFiles("interface", "*.gfx"))
 		{

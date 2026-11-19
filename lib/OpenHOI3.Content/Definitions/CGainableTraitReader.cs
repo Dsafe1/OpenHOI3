@@ -35,7 +35,7 @@ public static class CGainableTraitReader
 
 	public static CGainableTraits Read(CDirectorySettings directories, IReadOnlyList<CTrait> traits, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		string path = directories.Resolve(GainableFile);
 		if (!File.Exists(path))
 		{
@@ -58,7 +58,7 @@ public static class CGainableTraitReader
 	/// <summary>The gainable traits of a file already parsed.</summary>
 	public static CGainableTraits Read(ClausewitzNode root, IReadOnlyList<CTrait> traits, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var byName = new Dictionary<string, CTrait>(StringComparer.OrdinalIgnoreCase);
 		foreach (CTrait trait in traits)
 		{

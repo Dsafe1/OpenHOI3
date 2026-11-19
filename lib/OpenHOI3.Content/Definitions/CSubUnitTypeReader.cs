@@ -59,7 +59,7 @@ public static class CSubUnitTypeReader
 	public static List<CSubUnitType> Read(CDirectorySettings directories, IEnumerable<string> terrains,
 		Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var adjusters = new HashSet<string>(Circumstances, StringComparer.OrdinalIgnoreCase);
 		adjusters.UnionWith(terrains);
 

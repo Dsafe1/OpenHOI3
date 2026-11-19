@@ -19,7 +19,7 @@ public static class CUnitUpgradeReader
 
 	public static void Read(CDirectorySettings directories, IReadOnlyDictionary<string, CSubUnitType> types, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		string path = directories.Resolve(UpgradeFile);
 		if (!File.Exists(path))
 		{

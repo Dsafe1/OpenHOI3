@@ -85,7 +85,11 @@ read is logged as a duplicate and dropped, while a line with no text in it is lo
 to a later line. `confirmed` (`reversing/findings/FINDINGS-localisation.md`, sections 1 and 2). So BlackICE's `TECH_INVEST`, given twice in `zDD-tech.csv`, is its first line - "$TECH$
 $DIRECTION$ $VALUE$", which names the technology and the amount - where reading the last gave "Gain Tech." for every
 technology an event gives; 101 of its keys are given two different English texts, and none of the base game's.
-`CLocalisation` sorts its tables so and keeps the first text (2026-11-19). A line with fewer columns than the language's
+`CLocalisation` sorts its tables so and keeps the first text (2026-11-19). **A key is matched case and all**: the
+table is an exact, case-sensitive set (`confirmed`, the same findings, section 2), so the base game's `MANPOWER`
+("Manpower Increase") and `manpower` ("Manpower") are two keys with two texts - as are `WAR_EXHAUSTION`, `ALLIES`,
+`OPTIONS`, `industry` and `NONE`, besides eleven pairs whose texts agree - where matching without case, as this did
+until 2026-11-19, kept one text for both. A line with fewer columns than the language's
 takes another of the line's fields in the original - very likely the English - where this takes nothing: not read, and
 English, the column read here, is never short.
 

@@ -105,7 +105,7 @@ public sealed class CGuiTypes
 
 	public static CGuiTypes Load(CDirectorySettings directories, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var types = new CGuiTypes();
 		foreach (string file in directories.ListFiles(InterfaceDirectory, "*.gui"))
 		{
@@ -130,7 +130,7 @@ public sealed class CGuiTypes
 	{
 		var types = new CGuiTypes();
 		types.AddFile(ClausewitzParser.Parse(text), "text");
-		types.Report(warn ?? CDiagnostics.Warn);
+		types.Report(warn ?? CDiagnostics.Problem);
 		return types;
 	}
 

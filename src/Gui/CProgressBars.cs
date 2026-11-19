@@ -49,7 +49,7 @@ public sealed class CProgressBars
 		(Shader? shader, CGodotShader? translation) = _effects.Get(file, technique, EShaderTarget.Canvas, FilledTexture, device: States);
 		if (shader is null || translation is null)
 		{
-			CDiagnostics.Warn($"interface: gfx/FX/{file} has no '{technique}' to draw the progress bar '{sprite.Name}' with, and it is not drawn");
+			CDiagnostics.Problem($"interface: gfx/FX/{file} has no '{technique}' to draw the progress bar '{sprite.Name}' with, and it is not drawn");
 			return null;
 		}
 		var material = new CProgressBarMaterial(new ShaderMaterial { Shader = shader }, translation);
@@ -74,7 +74,7 @@ public sealed class CProgressBars
 		(Shader? shader, CGodotShader? translation) = _effects.Get(file, ScrollTechnique, EShaderTarget.Canvas, FilledTexture, device: States);
 		if (shader is null || translation is null)
 		{
-			CDiagnostics.Warn($"interface: gfx/FX/{file} has no '{ScrollTechnique}' to draw the scrolling sprite '{sprite.Name}' with, and it is not drawn");
+			CDiagnostics.Problem($"interface: gfx/FX/{file} has no '{ScrollTechnique}' to draw the scrolling sprite '{sprite.Name}' with, and it is not drawn");
 			return null;
 		}
 		var material = new CProgressBarMaterial(new ShaderMaterial { Shader = shader }, translation);

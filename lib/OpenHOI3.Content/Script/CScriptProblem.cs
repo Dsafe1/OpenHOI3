@@ -7,4 +7,20 @@ public readonly record struct CScriptProblem(EScriptProblem Kind, string File, i
 	{
 		return $"{File}:{Line}: {Message}";
 	}
+
+	/// <summary>Its line in the validation log: where, what, and its kind in brackets (<c>docs/mechanics/logs.md</c>, section 4).</summary>
+	public string Report => CDiagnostics.Located(File, Line, $"{Message} [{Kind}]");
+
+	/// <summary>Whether a reported line is a script problem's <see cref="Report"/>: one ending in a kind in brackets.</summary>
+	public static bool IsReport(string message)
+	{
+		foreach (string kind in System.Enum.GetNames<EScriptProblem>())
+		{
+			if (message.EndsWith($" [{kind}]", System.StringComparison.Ordinal))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 }

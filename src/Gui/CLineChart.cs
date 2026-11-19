@@ -75,7 +75,7 @@ public sealed partial class CLineChart : Control
 		(Shader? shader, CGodotShader? translation) = _context.Effects.Get(Effect, Technique, EShaderTarget.Spatial);
 		if (shader is null || translation is null)
 		{
-			CDiagnostics.Warn($"interface: gfx/FX/{Effect} has no '{Technique}' to draw the line chart '{_sprite.Name}' with");
+			CDiagnostics.Problem($"interface: gfx/FX/{Effect} has no '{Technique}' to draw the line chart '{_sprite.Name}' with");
 			return;
 		}
 		foreach ((IReadOnlyList<int> heights, Color colour) in lines)

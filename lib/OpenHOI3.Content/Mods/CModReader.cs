@@ -91,7 +91,9 @@ public static class CModReader
 	public static IReadOnlyList<CMod> Select(string gameRoot, string documentsFolder, IEnumerable<string> values,
 		Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		// A switch naming no mod is about this run, not the mod's files: it goes to the run's log where nobody is told.
+		Action<string> run = warn ?? CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		List<(string VirtualPath, string File)> descriptors = Descriptors(gameRoot, documentsFolder);
 		var selected = new List<CMod>();
 		foreach (string value in values)
@@ -99,7 +101,7 @@ public static class CModReader
 			(string VirtualPath, string File) match = descriptors.FirstOrDefault(d => CModRules.Comparer.Equals(d.VirtualPath, value));
 			if (match.File is null)
 			{
-				warn($"-mod={value} names no mod: no '{CModRules.DescriptorFolder}/*{CModRules.Extension}' is '{value}', case and all"
+				run($"-mod={value} names no mod: no '{CModRules.DescriptorFolder}/*{CModRules.Extension}' is '{value}', case and all"
 					+ (descriptors.Count > 0 ? $"; there are {string.Join(", ", descriptors.Select(d => $"'{d.VirtualPath}'"))}" : "")
 					+ " - played without it, as the original plays it");
 				continue;
@@ -154,7 +156,7 @@ public static class CModReader
 	/// </summary>
 	public static CMod? Read(string gameRoot, string file, string virtualPath, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		ClausewitzNode root = ClausewitzParser.ParseFile(file);
 		string name = "";
 		string path = "";

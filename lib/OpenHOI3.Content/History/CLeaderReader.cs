@@ -26,7 +26,7 @@ public static class CLeaderReader
 
 	public static void Read(CDirectorySettings directories, CGameState state, CDate start, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var traits = new Dictionary<string, CTrait>(StringComparer.OrdinalIgnoreCase);
 		foreach (CTrait trait in state.Traits)
 		{

@@ -36,7 +36,7 @@ public partial class CSoundEffects : Node
 	{
 		_directories = directories;
 		_settings = settings;
-		_effects = CSoundEffectReader.Load(directories, CDiagnostics.Warn);
+		_effects = CSoundEffectReader.Load(directories, CDiagnostics.Problem);
 	}
 
 	public override void _Ready()
@@ -87,7 +87,7 @@ public partial class CSoundEffects : Node
 		{
 			if (_missing.Add(name))
 			{
-				CDiagnostics.Warn($"sound: no sound '{name}' in {CSoundEffectReader.FilePath}");
+				CDiagnostics.Problem($"sound: no sound '{name}' in {CSoundEffectReader.FilePath}");
 			}
 		}
 		else if (Load(effect) is { } stream)
@@ -115,13 +115,13 @@ public partial class CSoundEffects : Node
 		string path = _directories.Resolve(effect.Path);
 		if (!System.IO.File.Exists(path))
 		{
-			CDiagnostics.Warn($"sound: '{effect.Name}' names {effect.Path}, which is missing");
+			CDiagnostics.Problem($"sound: '{effect.Name}' names {effect.Path}, which is missing");
 			return null;
 		}
 		AudioStreamWav? stream = AudioStreamWav.LoadFromFile(path);
 		if (stream is null)
 		{
-			CDiagnostics.Warn($"sound: {effect.Path} could not be read");
+			CDiagnostics.Problem($"sound: {effect.Path} could not be read");
 		}
 		return stream;
 	}

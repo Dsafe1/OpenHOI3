@@ -90,7 +90,7 @@ public sealed class CCounterKind
 	{
 		if (type is null)
 		{
-			CDiagnostics.Warn("map: a counter type is not declared, so that kind of counter is not drawn");
+			CDiagnostics.Problem("map: a counter type is not declared, so that kind of counter is not drawn");
 			return null;
 		}
 		Texture2D? plate = Load(gui, type.BackgroundFile);
@@ -98,7 +98,7 @@ public sealed class CCounterKind
 		Texture2D? sizes = Load(gui, type.SizeFile);
 		if (plate is null || mask is null || sizes is null)
 		{
-			CDiagnostics.Warn($"map: counter type '{type.Name}' lacks one of its three pictures and is not drawn");
+			CDiagnostics.Problem($"map: counter type '{type.Name}' lacks one of its three pictures and is not drawn");
 			return null;
 		}
 		RegisterShared();
@@ -106,13 +106,13 @@ public sealed class CCounterKind
 			device: States, shared: Shared);
 		if (shader is null || translation is null)
 		{
-			CDiagnostics.Warn($"map: gfx/FX/{EffectFile} gives no '{Technique}' technique, so counter type '{type.Name}' is not drawn");
+			CDiagnostics.Problem($"map: gfx/FX/{EffectFile} gives no '{Technique}' technique, so counter type '{type.Name}' is not drawn");
 			return null;
 		}
 		CGuiFont? font = gui.Fonts.Find(type.Font);
 		if (font is null && type.Font.Length != 0)
 		{
-			CDiagnostics.Warn($"map: counter type '{type.Name}' names the font '{type.Font}', which no file declares");
+			CDiagnostics.Problem($"map: counter type '{type.Name}' names the font '{type.Font}', which no file declares");
 		}
 		return new CCounterKind(type, plate, mask, sizes, shader, translation, family)
 		{

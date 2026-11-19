@@ -31,7 +31,7 @@ public static class CInterfaceColorsReader
 		}
 		catch (Exception e)
 		{
-			(warn ?? CDiagnostics.Warn)($"Could not parse '{path}': {e.Message}");
+			(warn ?? CDiagnostics.Problem)($"Could not parse '{path}': {e.Message}");
 			return colours;
 		}
 		var missing = new CColor(-1f, -1f, -1f, -1f);

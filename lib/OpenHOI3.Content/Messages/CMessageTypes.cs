@@ -45,7 +45,7 @@ public sealed class CMessageTypes
 	/// </summary>
 	public static CMessageTypes Load(CDirectorySettings directories, string? customPath = null, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var types = new CMessageTypes(warn);
 		types.ReadFile(directories.Resolve(File));
 		if (customPath is not null)
@@ -58,7 +58,7 @@ public sealed class CMessageTypes
 	/// <summary>The types of a file already parsed.</summary>
 	public static CMessageTypes Read(ClausewitzNode root, Action<string>? warn = null)
 	{
-		var types = new CMessageTypes(warn ?? CDiagnostics.Warn);
+		var types = new CMessageTypes(warn ?? CDiagnostics.Problem);
 		types.Read(root);
 		return types;
 	}

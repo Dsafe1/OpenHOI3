@@ -23,17 +23,23 @@ public sealed class CLocalisation
 		Italian = 6,
 	}
 
-	private readonly Dictionary<string, string> _entries = new(StringComparer.OrdinalIgnoreCase);
+	private readonly Dictionary<string, string> _entries = new(StringComparer.Ordinal);
 
 	public int Count => _entries.Count;
+
+	/// <summary>Where each key's text came from, <c>file:line</c>, for the report of a later line of it.</summary>
+	private readonly Dictionary<string, string> _firstAt = new(StringComparer.Ordinal);
 
 	/// <summary>How many lines gave a key that already had text, and were dropped as the original drops them.</summary>
 	public int Duplicates { get; private set; }
 
+	/// <summary>How many lines gave a key no text in the language read, which the original logs as an empty key.</summary>
+	public int Empties { get; private set; }
+
 	public static CLocalisation Load(CDirectorySettings directories,
 		Language language = Language.English, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var localisation = new CLocalisation();
 		// The original reads its tables in the order PhysFS lists them: every name over all the layers once, each its
 		// frontmost copy, sorted by byte with case - not the base layer first (reversing/findings/FINDINGS-localisation.md,
@@ -60,8 +66,11 @@ public sealed class CLocalisation
 			return;
 		}
 
+		string language = ((Language)column).ToString();
+		int number = 0;
 		foreach (string rawLine in text.Split('\n'))
 		{
+			number++;
 			string line = rawLine.TrimEnd('\r');
 			if (line.Length == 0 || line[0] == '#')
 			{
@@ -80,6 +89,9 @@ public sealed class CLocalisation
 			string value = columns[column];
 			if (value.Length == 0)
 			{
+				// The original logs it as an empty key; the key shows as itself unless a later line gives it text.
+				Empties++;
+				warn(CDiagnostics.Located(absolutePath, number, $"'{key}' has no {language} text"));
 				continue;
 			}
 			// A table writes a line break as a backslash and an n, and the original's text
@@ -91,9 +103,15 @@ public sealed class CLocalisation
 			// they are listed, and drops a later line of a key that already has text, logging it as a duplicate
 			// (reversing/findings/FINDINGS-localisation.md, section 2). A line with no text in the language gives none and
 			// leaves the key to a later one.
-			if (!_entries.TryAdd(key, value))
+			if (_entries.TryAdd(key, value))
+			{
+				_firstAt[key] = $"{absolutePath}:{number}";
+			}
+			else
 			{
 				Duplicates++;
+				warn(CDiagnostics.Located(absolutePath, number,
+					$"'{key}' is given again and dropped; its first text, at {_firstAt[key]}, stands"));
 			}
 		}
 	}

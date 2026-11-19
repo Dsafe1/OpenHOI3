@@ -43,7 +43,7 @@ public static class CTechnologyReader
 	/// </summary>
 	public static List<CTechnologyCategory> ReadCategories(CDirectorySettings directories, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var categories = new List<CTechnologyCategory>();
 		string path = directories.Resolve(CategoryFile);
 		if (!File.Exists(path))
@@ -98,7 +98,7 @@ public static class CTechnologyReader
 		IReadOnlyCollection<CTechnologyCategory>? categories = null,
 		IReadOnlyDictionary<string, CSubUnitType>? unitTypes = null, IEnumerable<string>? terrains = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var adjusters = new HashSet<string>(CSubUnitTypeReader.Circumstances, StringComparer.OrdinalIgnoreCase);
 		adjusters.UnionWith(terrains ?? Array.Empty<string>());
 		var unknownUnitKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);

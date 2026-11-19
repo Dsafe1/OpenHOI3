@@ -25,7 +25,7 @@ public static class CTraitReader
 
 	public static List<CTrait> Read(CDirectorySettings directories, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		string path = directories.Resolve(TraitFile);
 		if (!File.Exists(path))
 		{
@@ -48,7 +48,7 @@ public static class CTraitReader
 	/// <summary>The traits of a file already parsed.</summary>
 	public static List<CTrait> Read(ClausewitzNode root, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var traits = new List<CTrait>();
 		var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		var unknownKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);

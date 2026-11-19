@@ -56,7 +56,7 @@ public sealed class CFontDescriptor
 		}
 		catch (IOException e)
 		{
-			(warn ?? CDiagnostics.Warn)($"Could not read '{absolutePath}': {e.Message}");
+			(warn ?? CDiagnostics.Problem)($"Could not read '{absolutePath}': {e.Message}");
 			return null;
 		}
 	}

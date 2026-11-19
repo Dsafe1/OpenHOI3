@@ -50,7 +50,7 @@ public sealed class CArrowTypes
 
 	public static CArrowTypes Load(CDirectorySettings directories, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var types = new CArrowTypes();
 		foreach (string file in directories.ListFiles("interface", "*.gfx"))
 		{

@@ -35,8 +35,11 @@ public static class CTextureCheck
 		var counter = new CGodotMessageCounter();
 		OS.AddLogger(counter);
 		Action<string> sink = CDiagnostics.WarnSink;
+		Action<string> problems = CDiagnostics.ProblemSink;
 		string? reason = null;
+		// A texture that cannot be read is a fault in the files, reported as a problem (docs/mechanics/logs.md, section 4).
 		CDiagnostics.WarnSink = message => reason ??= message;
+		CDiagnostics.ProblemSink = message => reason ??= message;
 		var read = new Dictionary<string, int>();
 		var failed = new Dictionary<string, int>();
 		int noisy = 0;
@@ -79,6 +82,7 @@ public static class CTextureCheck
 		finally
 		{
 			CDiagnostics.WarnSink = sink;
+			CDiagnostics.ProblemSink = problems;
 			OS.RemoveLogger(counter);
 		}
 		foreach (string extension in Extensions)

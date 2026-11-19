@@ -40,7 +40,7 @@ internal static class CModSurvey
 	private static readonly Regex QuotedFile = new(@"'([^'\r\n]+?\.(?:txt|csv|gui|gfx|lua|mod|bmp|dds|tga|png|fnt|map|fx|inc|ttf|otf))'",
 		RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-	private static readonly Regex LeadingFile = new(@"^([^:'\r\n]+?\.(?:txt|csv|gui|gfx|lua|mod)):\d+",
+	private static readonly Regex LeadingFile = new(@"^((?:[A-Za-z]:)?[^:'\r\n]+?\.(?:txt|csv|gui|gfx|lua|mod)):\d+",
 		RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 	private static readonly Regex Quoted = new(@"'[^'\r\n]*'|""[^""\r\n]*""", RegexOptions.Compiled);
@@ -108,7 +108,10 @@ internal static class CModSurvey
 		}
 		Action<string> Sink(string section) => message => findings.Add(new Finding(section, KindOf(message), Relative(FileOf(message)), message));
 		var previousWarn = CDiagnostics.WarnSink;
+		var previousProblem = CDiagnostics.ProblemSink;
 		CDiagnostics.WarnSink = message => findings.Add(new Finding(step, KindOf(message), Relative(FileOf(message)), message));
+		// The faults in the files come as problems since 2026-11-19 (docs/mechanics/logs.md, section 4); both are findings.
+		CDiagnostics.ProblemSink = CDiagnostics.WarnSink;
 
 		Console.WriteLine($"modsurvey: {dirs.GameRoot}, {(dirs.Mods.Count > 0 ? "the mods " + string.Join(", ", dirs.Mods.Select(m => $"'{m.Name}' ({m.File})")) : "no mod: the base game's control")}");
 		Console.WriteLine($"layers:   {string.Join(", ", dirs.Layers)}");
@@ -178,7 +181,10 @@ internal static class CModSurvey
 		string? newGame = null;
 		if (localisation is not null && countries is not null && map is not null)
 		{
-			CGameState? world = Timed("world", () => CGameStateLoader.LoadStart(dirs, map, localisation, countries, Sink("world"),
+			// The script's problems come from its own step below, each once; the world's build reports them too.
+			Action<string> worldSink = Sink("world");
+			CGameState? world = Timed("world", () => CGameStateLoader.LoadStart(dirs, map, localisation, countries,
+				message => { if (!CScriptProblem.IsReport(message)) { worldSink(message); } },
 				fill: false, firstDays: false, aiScripts: scripts));
 			if (world is not null)
 			{
@@ -223,6 +229,7 @@ internal static class CModSurvey
 			newGame = "not tried: the localisation, the countries or the map threw";
 		}
 		CDiagnostics.WarnSink = previousWarn;
+		CDiagnostics.ProblemSink = previousProblem;
 		scripts?.Dispose();
 
 		Print(findings, timings, newGame, examples);

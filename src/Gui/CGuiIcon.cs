@@ -261,7 +261,7 @@ public partial class CGuiIcon : CGuiObject
 		_sprite = sprite;
 		if (sprite is null && name.Length > 0)
 		{
-			CDiagnostics.Warn($"interface: '{GuiType.Name}' names the sprite '{name}', which no .gfx file declares");
+			CDiagnostics.Problem($"interface: '{GuiType.Name}' names the sprite '{name}', which no .gfx file declares");
 		}
 		var type = (CGuiIconType)GuiType;
 

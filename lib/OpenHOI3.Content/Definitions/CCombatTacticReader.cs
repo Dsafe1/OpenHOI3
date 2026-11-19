@@ -23,7 +23,7 @@ public static class CCombatTacticReader
 
 	public static List<CCombatTactic> Read(CDirectorySettings directories, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var tactics = new List<CCombatTactic>();
 		string path = directories.Resolve(TacticFile);
 		if (!File.Exists(path))
@@ -47,7 +47,7 @@ public static class CCombatTacticReader
 	/// <summary>The tactics of a file already parsed.</summary>
 	public static List<CCombatTactic> Read(ClausewitzNode root, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var tactics = new List<CCombatTactic>();
 		var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		var unknownKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);

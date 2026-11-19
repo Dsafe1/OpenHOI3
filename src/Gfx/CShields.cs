@@ -79,13 +79,13 @@ public sealed class CShields
 		Texture2D? mask = sprite.MaskFile.Length == 0 ? null : _textures.LoadFromGamePath(sprite.MaskFile);
 		if (mask is null)
 		{
-			CDiagnostics.Warn($"interface: the shield '{sprite.Name}' has no mask to cut a flag with, and is not drawn");
+			CDiagnostics.Problem($"interface: the shield '{sprite.Name}' has no mask to cut a flag with, and is not drawn");
 			return null;
 		}
 		Texture2D? overlay = sprite.OverlayFile.Length == 0 ? null : _textures.LoadFromGamePath(sprite.OverlayFile);
 		if (overlay is null)
 		{
-			CDiagnostics.Warn($"interface: the shield '{sprite.Name}' has no texture to draw over a flag");
+			CDiagnostics.Problem($"interface: the shield '{sprite.Name}' has no texture to draw over a flag");
 		}
 		string file = EffectName(sprite.EffectFile);
 		var shaders = new Shader?[Techniques.Length];
@@ -98,7 +98,7 @@ public sealed class CShields
 		}
 		if (translation is null || shaders[0] is null)
 		{
-			CDiagnostics.Warn($"interface: gfx/FX/{file} gives the shield '{sprite.Name}' no '{Techniques[0]}' technique, and it is not drawn");
+			CDiagnostics.Problem($"interface: gfx/FX/{file} gives the shield '{sprite.Name}' no '{Techniques[0]}' technique, and it is not drawn");
 			return null;
 		}
 		Vector2 maskSize = mask.GetSize();

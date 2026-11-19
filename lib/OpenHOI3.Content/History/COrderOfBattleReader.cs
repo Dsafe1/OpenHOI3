@@ -99,7 +99,7 @@ public static class COrderOfBattleReader
 	/// </summary>
 	public static void ReadInto(CDirectorySettings directories, CGameState state, CCountry country, string file, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		string path = directories.Resolve($"{Directory}/{file}");
 		if (!File.Exists(path))
 		{
@@ -189,7 +189,7 @@ public static class COrderOfBattleReader
 		List<(CCountry Country, CUnit Unit)>? unnamed = null, IReadOnlyDictionary<int, Sim.Leaders.CLeader>? leaders = null,
 		CGameState? state = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var reading = new CReading(unitTypes, technologies, provinceCount)
 		{
 			NameSubUnit = nameSubUnit, Unnamed = unnamed, Leaders = leaders,

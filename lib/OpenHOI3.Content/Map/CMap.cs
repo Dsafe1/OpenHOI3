@@ -200,7 +200,7 @@ public sealed class CMap
 
 	public static CMap Load(CDirectorySettings directories, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 
 		string definitionPath = directories.Resolve(DefinitionFile);
 		ClausewitzNode definition = ClausewitzParser.ParseFile(definitionPath);

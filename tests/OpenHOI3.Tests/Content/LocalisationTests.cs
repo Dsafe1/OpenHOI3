@@ -64,10 +64,18 @@ public class LocalisationTests : IDisposable
 	}
 
 	[Fact]
-	public void LookupIsCaseInsensitive()
+	public void AKeyIsMatchedCaseAndAll()
 	{
-		Write("localisation/frontend.csv", "FE_EXIT;Exit;;;;;;;;;;;;;x\n");
-		Assert.Equal("Exit", Load().Localise("fe_exit"));
+		// The original's text keys are an exact, case-sensitive set (reversing/findings/FINDINGS-localisation.md, section 2):
+		// the base game's MANPOWER and manpower are two keys with two texts, not one given twice.
+		Write("localisation/misc.csv", "MANPOWER;Manpower Increase;;;;;;;;;;;;;x\nmanpower;Manpower;;;;;;;;;;;;;x\n");
+
+		CLocalisation localisation = Load();
+		Assert.Equal("Manpower Increase", localisation.Localise("MANPOWER"));
+		Assert.Equal("Manpower", localisation.Localise("manpower"));
+		// A third spelling is no key: it comes back as itself.
+		Assert.Null(localisation.Find("ManPower"));
+		Assert.Equal(0, localisation.Duplicates);
 	}
 
 	[Fact]
@@ -141,6 +149,33 @@ public class LocalisationTests : IDisposable
 		Write("localisation/b.csv", "USA_smallwarship_asw_0;Mk4 DC;;;;;;;;;;;;;x\n");
 
 		Assert.Equal("Mk4 DC", Load().Localise("USA_smallwarship_asw_0"));
+	}
+
+	[Fact]
+	public void ADuplicateAndAnEmptyKeyAreEachReportedAtTheirFileAndLine()
+	{
+		Write("localisation/tech.csv",
+			"#comment;;;;;;;;;;;;;;x\nTECH_INVEST;$TECH$ $DIRECTION$ $VALUE$;;;;;;;;;;;;;x\nTECH_INVEST;Gain Tech.\\n;;;;;;;;;;;;;x\nEMPTY;;;;;;;;;;;;;;x\n");
+		var problems = new System.Collections.Generic.List<string>();
+
+		CLocalisation localisation = CLocalisation.Load(CDirectorySettings.At(_root), warn: problems.Add);
+
+		string file = Path.Combine(_root, "localisation", "tech.csv");
+		Assert.Equal(new[]
+		{
+			$"{file}:3: 'TECH_INVEST' is given again and dropped; its first text, at {file}:2, stands",
+			$"{file}:4: 'EMPTY' has no English text",
+		}, problems);
+		Assert.Equal(1, localisation.Duplicates);
+		Assert.Equal(1, localisation.Empties);
+	}
+
+	[Fact]
+	public void AProblemsLineNamesItsFileAndLineAsACompilerWould()
+	{
+		Assert.Equal("a.csv:3: what", CDiagnostics.Located("a.csv", 3, "what"));
+		Assert.Equal("a.csv: what", CDiagnostics.Located("a.csv", 0, "what"));
+		Assert.Equal("what", CDiagnostics.Located("", 3, "what"));
 	}
 
 	[Fact]

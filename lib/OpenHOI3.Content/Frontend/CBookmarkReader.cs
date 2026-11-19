@@ -29,7 +29,7 @@ public static class CBookmarkReader
 	/// <summary>The historical bookmarks of the install's file, in its order; empty where there is no file.</summary>
 	public static IReadOnlyList<CBookmark> Read(CDirectorySettings directories, CCountries countries, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		string path = directories.Resolve(File);
 		if (!System.IO.File.Exists(path))
 		{

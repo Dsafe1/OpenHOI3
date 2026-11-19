@@ -1523,8 +1523,8 @@ public class MapLoadingTests : IDisposable
 		Assert.Equal(new[] { "steel_production", "OR", "any_owned_province" }, arms.Allow!.Children.Select(condition => condition.Key));
 		Assert.Equal(ETriggerKind.Technology, arms.Allow.Children[0].Kind);
 		Assert.Equal(new[] { "industral_production", "num_of_ports" }, arms.Allow.Children[1].Children.Select(condition => condition.Key));
-		Assert.DoesNotContain(_warnings, warning => warning.Contains("technolog"));
-		Assert.Contains(_warnings, warning => warning.StartsWith("events and decisions: 1 problems"));
+		Assert.DoesNotContain(_warnings, warning => warning.Contains("technolog") && !IsScriptProblem(warning));
+		Assert.Single(_warnings, IsScriptProblem);
 	}
 
 	[Fact]
@@ -1547,9 +1547,12 @@ public class MapLoadingTests : IDisposable
 		Assert.DoesNotContain(odd.Allow.Children, condition => condition.Key == "has_flying_saucers");
 		Assert.Single(odd.ResearchBonusFrom);
 		Assert.Equal("", odd.OnCompletion);
-		Assert.Contains(_warnings, warning => warning.StartsWith("events and decisions: 2 problems"));
+		Assert.Equal(2, _warnings.Count(IsScriptProblem));
 		Assert.Contains(_warnings, warning => warning.Contains("categories that are not defined") && warning.Contains("alchemy"));
 	}
+
+	/// <summary>A script problem's own line: <c>file:line: message [Kind]</c>.</summary>
+	private static bool IsScriptProblem(string warning) => OpenHOI3.Content.Script.CScriptProblem.IsReport(warning);
 
 	[Fact]
 	public void ACountrysHistoryGivesItsAbilities()

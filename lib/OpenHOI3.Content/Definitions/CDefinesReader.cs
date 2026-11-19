@@ -48,7 +48,7 @@ public static class CDefinesReader
 	/// <summary>Every numeric value in a section, by section and name, and every value at all as it is written.</summary>
 	public static CDefines Read(CDirectorySettings directories, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		string path = directories.Resolve(DefinesFile);
 		var defines = new CDefines();
 		foreach (((string section, string name), string text) in ReadText(path))

@@ -76,6 +76,8 @@ public partial class Main : Control
 		// code the line was written says nothing about them.
 		CDiagnostics.WarnSink = message => GD.Print("WARNING: " + message);
 		CDiagnostics.ErrorSink = message => GD.PushError(message);
+		// A fault in the install's or the mods' own files goes to the validation log, one to a line (docs/mechanics/logs.md).
+		CDiagnostics.ProblemSink = Debug.CValidationLog.Instance.Write;
 		// Everything printed from here on goes to the log file too, once its folder is known (docs/mechanics/logs.md).
 		Debug.CFileLog.Install();
 		// An exception nothing catches - a crash inside the engine among them - is written beside the logs.
@@ -109,6 +111,7 @@ public partial class Main : Control
 		// the runs before it kept (docs/mechanics/logs.md); a crash's file beside it.
 		string logs = Content.Logs.CLogFiles.Folder(directories);
 		Debug.CFileLog.Instance?.Open(Content.Logs.CLogFiles.Start(logs));
+		Debug.CValidationLog.Instance.Open(Content.Logs.CLogFiles.Validation(logs));
 		Debug.CCrashLog.Folder = logs;
 		// The install is the working folder, as the original's launcher starts it: a mod's script opens its files by paths
 		// written against it (docs/mechanics/mods.md, section 6). A path switch is kept against the folder started in.
@@ -218,7 +221,7 @@ public partial class Main : Control
 		{
 			return directories;
 		}
-		IReadOnlyList<CMod> mods = CModReader.Select(directories.GameRoot, directories.DocumentsFolder, values, CDiagnostics.Warn);
+		IReadOnlyList<CMod> mods = CModReader.Select(directories.GameRoot, directories.DocumentsFolder, values);
 		if (mods.Count == 0)
 		{
 			CDiagnostics.Warn("No mod is selected, so the install is played as it is");
@@ -355,7 +358,7 @@ public partial class Main : Control
 		IReadOnlyList<CSong>? songs = null;
 		if (carried is null)
 		{
-			songs = await screen.Work(CLoadingSteps.Sounds, () => CSongReader.Load(_directories, game.State, CDiagnostics.Warn));
+			songs = await screen.Work(CLoadingSteps.Sounds, () => CSongReader.Load(_directories, game.State, CDiagnostics.Problem));
 		}
 		_session?.QueueFree();
 		// Nothing is heard while a game's screen is being built, as the original switches its sound off then; the files the

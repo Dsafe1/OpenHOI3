@@ -30,7 +30,7 @@ public partial class CMenuBackground : Control
 		Visible = false;
 		if (_gui.Types.Find(IconName) is not CGuiIconType type)
 		{
-			Content.CDiagnostics.Warn($"interface: no file declares the icon '{IconName}'");
+			Content.CDiagnostics.Problem($"interface: no file declares the icon '{IconName}'");
 			return;
 		}
 		_icon = new CGuiIcon();

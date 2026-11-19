@@ -78,7 +78,7 @@ public partial class CWeatherLayer : Node2D
 			: gui.Effects.Get(file, type.Effect, EShaderTarget.Canvas, DrawnTexture);
 		if (shader is null || translation is null)
 		{
-			CDiagnostics.Warn($"map: the weather picture '{type.Name}' has no technique '{type.Effect}' to be drawn with, and is drawn plainly");
+			CDiagnostics.Problem($"map: the weather picture '{type.Name}' has no technique '{type.Effect}' to be drawn with, and is drawn plainly");
 			return null;
 		}
 		var material = new ShaderMaterial { Shader = shader };

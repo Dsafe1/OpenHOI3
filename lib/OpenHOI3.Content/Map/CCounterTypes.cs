@@ -37,7 +37,7 @@ public sealed class CCounterTypes
 
 	public static CCounterTypes Load(CDirectorySettings directories, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var types = new CCounterTypes();
 		foreach (string file in directories.ListFiles("interface", "*.gfx"))
 		{

@@ -31,7 +31,7 @@ public static class CDiplomacyReader
 	public static CDiplomacyHistory Apply(CDirectorySettings directories, CCountries countries, CDate date,
 		Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var history = new CDiplomacyHistory();
 		var unknownKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		var unknownTags = new SortedSet<string>(StringComparer.Ordinal);

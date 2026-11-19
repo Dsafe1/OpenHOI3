@@ -25,7 +25,7 @@ public static class CHistoricalModelReader
 		IReadOnlyDictionary<string, CSubUnitType> unitTypes, IReadOnlyDictionary<string, CTechnology> technologies,
 		int defaultCount, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var broken = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		var unknownTypes = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		var outOfOrder = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);

@@ -22,6 +22,12 @@ public static class CLogFiles
 	/// <summary>The logs folder of the player's folder of what is played.</summary>
 	public static string Folder(CDirectorySettings directories) => Path.Combine(directories.UserFolder, "logs");
 
+	/// <summary>
+	/// The validation log beside the run's: every fault found in the install's or the mods' own files, one to a line,
+	/// written afresh at each start (<c>docs/mechanics/logs.md</c>, section 4).
+	/// </summary>
+	public static string Validation(string folder) => Path.Combine(folder, "validation.log");
+
 	/// <summary>The file of a run: 0 this one, 1 the one before it, and so on.</summary>
 	public static string Of(string folder, int run) =>
 		Path.Combine(folder, run == 0 ? Name + ".log" : $"{Name}_{run}.log");

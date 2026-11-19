@@ -23,7 +23,7 @@ public static class CGovernmentReader
 	/// <summary>The cabinet posts, numbered from 1 in the file's order; <c>changeable = no</c> is a fixed one.</summary>
 	public static List<CGovernmentPosition> ReadPositions(CDirectorySettings directories, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var positions = new List<CGovernmentPosition>();
 		if (Parse(directories, PositionsFile, warn) is not { } root)
 		{
@@ -53,7 +53,7 @@ public static class CGovernmentReader
 	public static Dictionary<string, CGovernment> Read(CDirectorySettings directories, IEnumerable<string> ideologies,
 		IEnumerable<CGovernmentPosition> positions, Action<string>? warn = null)
 	{
-		warn ??= CDiagnostics.Warn;
+		warn ??= CDiagnostics.Problem;
 		var governments = new Dictionary<string, CGovernment>(StringComparer.OrdinalIgnoreCase);
 		if (Parse(directories, GovernmentsFile, warn) is not { } root)
 		{

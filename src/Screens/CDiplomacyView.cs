@@ -830,7 +830,7 @@ public sealed partial class CDiplomacyView : CCountryView
 		CGuiPoint? point = Context.Types.FindPosition(name)?.Position;
 		if (point is null)
 		{
-			CDiagnostics.Warn($"interface: no file declares a position named '{name}'");
+			CDiagnostics.Problem($"interface: no file declares a position named '{name}'");
 			return Vector2.Zero;
 		}
 		return new Vector2(point.Value.X, point.Value.Y);

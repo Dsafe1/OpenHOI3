@@ -84,7 +84,7 @@ public partial class CMinimapView : Control
 	{
 		if (_gui.Types.Find(name) is not CGuiIconType type)
 		{
-			Content.CDiagnostics.Warn($"interface: no file declares the minimap's icon '{name}'");
+			Content.CDiagnostics.Problem($"interface: no file declares the minimap's icon '{name}'");
 			return null;
 		}
 		var icon = new CGuiIcon();

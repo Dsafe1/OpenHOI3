@@ -36,7 +36,7 @@ public static class CBillboardMaterial
 			: gui.Effects.Get(file, CBillboardTypes.PlainTechnique, EShaderTarget.Canvas, DrawnTexture, device: States);
 		if (shader is null || translation is null)
 		{
-			CDiagnostics.Warn($"map: the billboards' effect '{written}' gives no '{CBillboardTypes.PlainTechnique}', so they are drawn plainly");
+			CDiagnostics.Problem($"map: the billboards' effect '{written}' gives no '{CBillboardTypes.PlainTechnique}', so they are drawn plainly");
 			return null;
 		}
 		var material = new ShaderMaterial { Shader = shader };
