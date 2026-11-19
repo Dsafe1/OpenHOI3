@@ -155,6 +155,11 @@ When a technology's progress reaches 1: `confirmed`
 
    so a full point while the ability is under the divisor - 10 in Their Finest Hour - and
    less and less above it. The ability is never below 0 or above `MAX_TECH_ABILITY`, 99.
+   **A technology whose `on_completion` names no category teaches the null one, `nocategory`** - the first of the
+   original's list, which no file declares - and it decays each month with the rest (section 6). *Measured* on BlackICE's
+   saves of 1936, whose OMG researches hidden technologies with none: its `nocategory` is 0 on 1 January, 5.000 by 16
+   January, 4.900 on 2 February and 4.802 in March. *Not established*: whether a unit or a building with no
+   `on_completion` teaches it too - here neither does.
 4. The technology leaves the queue. **If it has further levels and the next may be
    researched, it goes back on at the end** - after every technology has had its day.
 

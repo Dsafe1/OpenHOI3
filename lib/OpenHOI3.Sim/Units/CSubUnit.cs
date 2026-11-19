@@ -79,6 +79,13 @@ public sealed class CSubUnit
 	/// </summary>
 	public Countries.CCountryTag? Builder { get; set; }
 
+	/// <summary>
+	/// The province it was raised in, or none: a save's <c>home</c>. *Measured*: a headquarters made in play and a rebel army
+	/// give their brigades the province they are made in, and nothing in an order of battle has one; a ship or a wing a
+	/// save gives <c>home=0</c> keeps the nought. Nothing here reads it (<c>savegame.md</c>, section 5).
+	/// </summary>
+	public int? Home { get; set; }
+
 	/// <summary>A reserve is kept under strength until its country mobilises.</summary>
 	public bool IsReserve { get; set; }
 

@@ -335,6 +335,10 @@ public sealed class CSaveUnitReader
 				case "pride":
 					subUnit.IsPride = entry.Value == "yes";
 					break;
+				case "home":
+					// Where it was raised, held for the save alone (savegame.md, section 5).
+					subUnit.Home = (int)CSaveValues.Whole(entry.Value);
+					break;
 				case "builder":
 					// Whose models it is named by (units.md, section 5).
 					subUnit.Builder = new CCountryTag(entry.Value?.Trim('"') ?? "");

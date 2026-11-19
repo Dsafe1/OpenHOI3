@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
@@ -23,6 +24,12 @@ public static class CResearch
 	public const string BaseDecay = "BASE_TECH_DECAY";
 	public const string MostAbility = "MAX_TECH_ABILITY";
 	public const string AbilityGainDivisor = "TECH_ABILITY_GAIN_DIVISOR";
+
+	/// <summary>
+	/// The original's null category, the first of its list, which no file declares: a technology whose
+	/// <c>on_completion</c> names no category teaches it, and it decays with the rest (research.md, section 4).
+	/// </summary>
+	public const string NullCategory = "nocategory";
 
 	private const string Efficiency = "research_efficiency";
 	private const string NuclearResearch = "nuke_research";
@@ -261,7 +268,7 @@ public static class CResearch
 				continue;
 			}
 
-			GainAbility(state, country, technology.OnCompletion, CFixedPoint.One);
+			GainAbility(state, country, technology.OnCompletion.Length > 0 ? technology.OnCompletion : NullCategory, CFixedPoint.One);
 			// The country's player hears a level finished (sound.md, section 7).
 			state.RaiseSound(LevelSound, country.Tag);
 			country.ResearchQueue.Remove(name);
@@ -379,19 +386,20 @@ public static class CResearch
 		foreach (CCountry country in state.Countries)
 		{
 			long kept = CFixedPoint.Scale - DecaySlack(country);
-			foreach (CTechnologyCategory category in state.TechnologyCategories)
+			// The null category first, as the original's list has it (measured: OMG's in BlackICE, 5 to 4.9 to 4.802).
+			foreach (string category in state.TechnologyCategories.Select(category => category.Name).Prepend(NullCategory))
 			{
-				if (!country.Abilities.TryGetValue(category.Name, out CFixedPoint ability))
+				if (!country.Abilities.TryGetValue(category, out CFixedPoint ability))
 				{
 					continue;
 				}
-				long step = baseDecay * (CFixedPoint.Scale + DecayModifier(state, country, category.Name)) / CFixedPoint.Scale;
+				long step = baseDecay * (CFixedPoint.Scale + DecayModifier(state, country, category)) / CFixedPoint.Scale;
 				step = step * kept / CFixedPoint.Scale;
 				if (step > 0)
 				{
 					step = 0;                                  // a decay cannot be turned into a gain
 				}
-				country.Abilities[category.Name] = new CFixedPoint(ability.Raw * (CFixedPoint.Scale + step) / CFixedPoint.Scale);
+				country.Abilities[category] = new CFixedPoint(ability.Raw * (CFixedPoint.Scale + step) / CFixedPoint.Scale);
 			}
 		}
 	}

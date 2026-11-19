@@ -60,6 +60,7 @@ public static class CProvinceHands
 		// The new controller's policy towards the old, where it has none yet (occupation.md, section 2).
 		Occupation.COccupationPolicies.Capture(state, controller, old);
 		province.Controller = controller;
+		CProvinceHistory.Record(state, province, CProvinceHistory.Controller, controller);
 		// The holders' theatres, and every neighbour's owner's, are made again in their next hour (theatres.md, section 1).
 		Theatres.CTheatres.ControllerChanged(state, province, old, controller);
 		// A faction drops land the rebels lose, and takes land they win (rebels.md, section 10).
@@ -101,6 +102,11 @@ public static class CProvinceHands
 		{
 			province.Owner = owner;
 			province.Controller ??= owner;
+			// After its controller's, at the same hour (a save of 1938: add_core, controller and owner at 17:00).
+			if (old != owner)
+			{
+				CProvinceHistory.Record(state, province, CProvinceHistory.Owner, owner);
+			}
 		}
 		if (state.Country(old) is not null)
 		{

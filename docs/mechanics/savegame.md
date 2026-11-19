@@ -126,8 +126,17 @@ sets the owners, the laws and the technology levels beside the save's and runs t
 - ~~a country's own pools (`home`, `usage`, `to`, `back`, the traded ones)~~ - section 15 - ~~its politics (`organization`,
   `popularity`, `cabinet`, `election`, `last_election`, `duration`, `ministers`), its research queue (`research`)~~ -
   section 12 - ~~its spies and their missions~~ - section 13; its active missions, ~~alignment~~ - section 15 - war exhaustion, ~~AI (`ai`, `ai_hard_strategy`, `ai_event_strategy`)~~ - section 16 - statistics and the rest the
-  report lists; a province's `capital`, which the day makes again, and its `history`. A province's
+  report lists. A province's
   `out_of_supply_days` is read and written since 2026-11-14, and entering counts it once more (`supply.md`, section 18).
+  **A province's `capital`** is written since 2026-11-19 by the rule that makes it - its controller's capital or beside
+  it (`supply.md`, section 7) - and taken on a load without being held. **A province's `history`** is held, read and
+  written since the same day (`CProvinceHistory`): a dated block a change made in play, after the buildings - `controller`
+  and `owner` as a change of hands sets them, the owner's after the controller's at the same hour; `add_core` and
+  `remove_core` where an effect changed the list; `manpower` and `leadership` as an effect left them, the figure as it now
+  is. *Measured*: a start save holds none, so nothing is logged while a game is being made; the 189 `add_core` of a
+  BlackICE save of March 1936 are each a core the province had not; every history of that save and of Their Finest Hour's
+  of 7 January is written back byte for byte. *Not established*: whether a release's core (`war.md`) is logged - here it
+  is not - and whether anything else is.
 
 ## 5. What the second increment reads: the units
 
@@ -388,8 +397,15 @@ first for the finished unit's deployment - the original's own lines do so, from 
 going on to the next of a series here passes them over too now, and a finished unit's deployment takes the first
 (`buildqueue.md`, section 4); a deployment with no number could be found by nothing in the original, and never placed.
 
-**Not held, so not written**: a brigade's `home` (its `builder` is held since 2026-11-14 and given as the original
-gives it, `units.md` section 5), a unit's `country_intel` and a lent unit's
+**A brigade's, ship's and wing's `home`** - the province it was raised in - is held, read and written since 2026-11-19
+(`CSubUnit.Home`), after its `name`. *Measured* on Their Finest Hour's save of 7 January 1936 and BlackICE's of 16 March:
+every brigade of a headquarters made in play has one, its province as it was made - the theatres' on entering (86 and
+66), the agents' corps, armies and army groups (395, all) - and so does every rebel brigade, the province it rose in;
+nothing an order of battle made at the start has one, and so here. Six ships and three wings of the BlackICE save
+carry `home=0`, kept as read. *Not established*: whether a unit built and placed, one an event's `load_oob` makes in
+play (three militia brigades of REB in that save have one), `add_brigade` or a release gives one - here none does.
+
+**Not held, so not written**: a unit's `country_intel` and a lent unit's
 `expeditionary_owner` and `expeditionary_date`; a paradrop's `message` and a rebase to a carrier's `carrier_target`, in
 no save.
 
@@ -533,8 +549,10 @@ popularity allots and the last eleven another set. So a country keeps the list a
 and **a game loaded here writes the seats and then the save's list**, 22 figures for a save of 11, and 33 for that one -
 as the original's would.
 
-**Not held, so not written**: `nocategory` and `last_mission_cancel` - in every reference save `0.000` and
-`1.1.1.0`. `nukes` is held, read and written since 2026-11-09 (`nukes.md`). `war_exhaustion` is held, read and written since 2026-11-07 (`warexhaustion.md`, section
+**`nocategory`**, the null category's ability, is held, read and written since 2026-11-19, first of the abilities
+(`research.md`, section 4): 0.000 in every reference save but BlackICE's OMG, which its hidden technologies teach.
+**`last_mission_cancel`** is written as the null date every reference save holds, `"1.1.1.0"`, after `saved_templates`
+(section 13). `nukes` is held, read and written since 2026-11-09 (`nukes.md`). `war_exhaustion` is held, read and written since 2026-11-07 (`warexhaustion.md`, section
 6).
 
 **Checked** with `OpenHOI3.SaveCheck write` and each key's text set beside the save's. On 2026-11-06, in
@@ -563,8 +581,8 @@ first** - nought, its date the null date (`FINDINGS-savegame.md`, B.2, item 14) 
 | `spy_mission` | nine whole numbers a country, the missions in their order | the weights, and the shares worked out from them, which are not saved |
 | `covert_ops_points` | thousandths | its covert-ops points |
 
-A list that ends early leaves the rest nought. **Not held, so not written**: `last_mission_cancel`, which belongs to
-the active missions (`active_mission`, `last_mission`), not built - `1.1.1.0` in every reference save.
+A list that ends early leaves the rest nought. **Not held**: `last_mission_cancel`, which belongs to the active missions
+(`active_mission`, `last_mission`), not built - `1.1.1.0` in every reference save, and written so since 2026-11-19.
 
 **Checked** with `OpenHOI3.SaveCheck write` in the eleven saves of section 12, on 2026-11-06: **every country's spies
 the save's byte for byte**. `write <install> new <start save>` gives every key the start save's but `spy_allocation`,
@@ -625,8 +643,9 @@ Both ways, each where the original writes it in a country block [exe] (`FINDINGS
 **Until this increment a loaded government in exile was no exile**: eight in the 16 July 1941 saves, each using its
 host's stockpile where its own is the save's.
 
-**Not held, so not written**: `prov_vp`, the victory points the country controls, an hourly sum the game keeps only by
-faction (`progress`, section 14); `offmap_vp`; and lend-lease's `lend_lease_from_yesterday`,
+**`prov_vp`**, the victory points of the provinces the country controls, is written since 2026-11-19 by that sum, after
+`cabinet` - 107 of 107 in a BlackICE start save and in one of March 1936 - and **`offmap_vp`** after it as nought, its
+figure in every reference save. **Not held, so not written**: lend-lease's `lend_lease_from_yesterday`,
 `lend_lease_from_yesterday_values` and `lend_lease_income_yesterday`.
 
 **Checked** on 2026-11-06 with each key's text set beside the save's, in `Germany1936_01_01_00`, `_03_31_19` (the
@@ -819,9 +838,10 @@ Each of these was dropped here, most with no report, and is read and written bot
 - **The null technology's level**, `notech`, first in the technology block (`research.md`, section 9). Any other name the
   install has no technology for is reported, where it was passed over.
 
-**Still read by nothing here, each reported**: a province's `capital` and `history`; a country's `human`, `prov_vp`, `offmap_vp` (worked out again as a game is entered), `last_mission_cancel` (the null date
-in every save) and the three `lend_lease_*_yesterday`; `nocategory`; and a brigade's, ship's and wing's `home` (its
-`builder` and a line's are read since 2026-11-14, `units.md`, section 5). The original reads all of them.
+**Still read by nothing here, each reported**: a country's `human`, `prov_vp`, `offmap_vp` (worked out again as a game is
+entered - the writer makes the first two again, section 15), `last_mission_cancel` (the null date in every save, written
+so) and the three `lend_lease_*_yesterday`. The original reads all of them. A province's `capital` and `history`,
+`nocategory` and a brigade's, ship's and wing's `home` were on this list until 2026-11-19 (sections 4, 5 and 12).
 `out_of_supply_days` and the top level's three graph statistics were on this list until later the same day
 (`supply.md`, section 18; `statistics.md`, section 5), and a unit's `country_intel` until the next section.
 

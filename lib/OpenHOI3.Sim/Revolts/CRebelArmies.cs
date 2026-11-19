@@ -71,7 +71,7 @@ public static class CRebelArmies
 		CCountry? target = faction.Targets.Count > 0 ? state.Country(faction.Targets[0]) : null;
 		for (int made = 0; made < count; made++)
 		{
-			var brigade = new CSubUnit(type) { Id = ++state.LastUnitId, Unit = army };
+			var brigade = new CSubUnit(type) { Id = ++state.LastUnitId, Unit = army, Home = province.Id };
 			state.RebelSerials[brigade.Id] = ++state.LastRebelId;
 			brigade.Name = CUnitNames.ForSubUnit(state, namer, type);
 			CUnitNames.Register(namer, brigade.Name);

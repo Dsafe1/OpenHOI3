@@ -105,6 +105,9 @@ public sealed class CProvince
 	/// <summary>The countries that claim it as rightfully theirs, in the order the claims were made.</summary>
 	public List<CCountryTag> Cores { get; } = new();
 
+	/// <summary>The changes made to it in play, in order, each at its hour (<see cref="CProvinceHistory"/>).</summary>
+	public List<CProvinceChange> History { get; } = new();
+
 	/// <summary>What the province could yield in a day. Only resources are ever set.</summary>
 	public CGoodsPool MaxProducing { get; } = new();
 

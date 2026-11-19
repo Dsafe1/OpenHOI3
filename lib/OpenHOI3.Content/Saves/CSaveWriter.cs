@@ -21,6 +21,8 @@ public static class CSaveWriter
 	/// <summary>The key of the original's built-in null technology, which no file declares.</summary>
 	public const string NullTechnology = "notech";
 
+	/// <summary>What every save holds as a country's <c>last_mission_cancel</c>: the null date.</summary>
+	public const string NullMissionCancel = "1.1.1.0";
 	/// <summary>A province's goods in the order a save writes them, which is not the game's own.</summary>
 	private static readonly EGoods[] PoolOrder =
 	{
@@ -54,10 +56,16 @@ public static class CSaveWriter
 		writer.Int("seed", unchecked((int)state.Seed));
 		writer.Int("count", unchecked((int)state.Random.Draws));
 		// The last serial minted in play, after which the original goes on numbering: the game's own count, where the
-		// original gathers the highest of what it holds (savegame.md, section 9).
-		if (state.LastUnitId >= state.HistoryUnitNext)
+		// original gathers the highest of what it holds (savegame.md, section 9) - the rebels' numbers, which are on their own
+		// counter, passed over.
+		int last = state.LastUnitId;
+		while (last >= state.HistoryUnitNext && state.RebelSerials.ContainsKey(last))
 		{
-			writer.IdPair("id", CSaveUnitWriter.Pair(state, state.LastUnitId));
+			last--;
+		}
+		if (last >= state.HistoryUnitNext)
+		{
+			writer.IdPair("id", CSaveUnitWriter.Pair(state, last));
 		}
 		CSaveRebelFactions.Write(writer, state);
 		CSaveTop.WriteFiredEvents(writer, state);
@@ -153,6 +161,12 @@ public static class CSaveWriter
 		{
 			writer.Quoted("core", core.Value);
 		}
+		// Its controller's capital or beside it, which passes supplies without limit: the original's day works it out and
+		// its save writes it (supply.md, section 7).
+		if (Sim.Supply.CSupplyFigures.IsBesideCapital(state, province))
+		{
+			writer.Bool("capital", true);
+		}
 		if (province.Manpower.Raw > 0)
 		{
 			writer.Fixed("manpower", province.Manpower);
@@ -177,6 +191,25 @@ public static class CSaveWriter
 			{
 				writer.Pair(building.Key, working, built);
 			}
+		}
+		// The changes made in play, a dated block each, after the buildings (savegame.md, section 4).
+		if (province.History.Count > 0)
+		{
+			writer.Begin("history");
+			foreach (Sim.Provinces.CProvinceChange change in province.History)
+			{
+				writer.Begin(CSaveValues.HoursText(change.Hour));
+				if (change.Country is { } country)
+				{
+					writer.Quoted(change.Key, country.Value);
+				}
+				else
+				{
+					writer.Fixed(change.Key, change.Amount);
+				}
+				writer.End();
+			}
+			writer.End();
 		}
 		writer.Int("points", province.Points);
 		if (province.Nationalism.Raw != 0)
@@ -337,6 +370,8 @@ public static class CSaveWriter
 			writer.Line("{" + level.ToString(System.Globalization.CultureInfo.InvariantCulture) + " " + CSaveValues.FiveText(progress) + " 0.000}");
 		}
 		writer.End();
+		// Every ability, the null category's first (research.md, section 4).
+		writer.Fixed(Sim.Research.CResearch.NullCategory, country.Abilities.GetValueOrDefault(Sim.Research.CResearch.NullCategory));
 		foreach (Sim.Research.CTechnologyCategory category in state.TechnologyCategories)
 		{
 			writer.Fixed(category.Name, country.Abilities.GetValueOrDefault(category.Name));
@@ -400,6 +435,8 @@ public static class CSaveWriter
 		CSaveOffers.Write(writer, state, country);
 		CSavePolitics.WriteMinisters(writer, country);
 		CSaveLines.WriteTemplates(writer, country);
+		// The active missions are not built, and every save holds the null date here (savegame.md, section 13).
+		writer.Quoted("last_mission_cancel", NullMissionCancel);
 		// Its AI's strategies and theatres (savegame.md, section 16).
 		CSaveAiStrategy.Write(writer, state, country);
 		if (country.Mobilised)
@@ -430,6 +467,10 @@ public static class CSaveWriter
 		}
 		CSaveEspionage.Write(writer, state, country);
 		CSavePolitics.WriteCabinet(writer, country);
+		// The victory points of the provinces it controls - 107 of 107 in two BlackICE saves - and off the map's, nought in
+		// every save, not held (savegame.md, section 15).
+		writer.Fixed("prov_vp", CFixedPoint.FromInt(state.Provinces.Where(province => province.Controller == country.Tag).Sum(province => province.Points)));
+		writer.Fixed("offmap_vp", CFixedPoint.Zero);
 		CSaveLendLease.Write(writer, state, country);
 		writer.Fixed("effective_neutrality", country.EffectiveNeutrality);
 		writer.Quoted("highest_threat", country.MostThreatening?.Value ?? "---");

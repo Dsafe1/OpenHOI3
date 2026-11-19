@@ -40,6 +40,8 @@ public static class CSaveLoader
 		"owner", "controller", "core", "manpower", "leadership", "revolt_risk", "points", "nationalism", "pool",
 		"current_producing", "max_producing", "weather", "flags", "strategic_resource", "drawn", "last_drawn", "throughput",
 		"last_throughput", "modifier", "underground_owner", "underground_action", "last_convoy_attack", "out_of_supply_days",
+		// Whether it is its controller's capital or beside it, which the writer works out again (supply.md, section 7).
+		"capital", "history",
 	};
 
 	/// <param name="played">The country played; null, the one the save says was.</param>
@@ -374,6 +376,26 @@ public static class CSaveLoader
 		ReadPool(province.LastSupplyThroughput, node.Get("last_throughput"));
 		ReadWeather(state, province.Weather, node.Get("weather"));
 		province.OutOfSupplyDays = (int)CSaveValues.Whole(node, "out_of_supply_days");
+		// The changes made to it in play, a dated block each - a country quoted, a figure not (savegame.md, section 4).
+		province.History.Clear();
+		foreach (ClausewitzNode dated in node.Get("history")?.Children ?? new List<ClausewitzNode>())
+		{
+			if (!dated.IsBlock || !CSaveValues.TryHours(dated.Key, out long hour))
+			{
+				report.Unread("province", "a history entry with no date");
+				continue;
+			}
+			foreach (ClausewitzNode change in dated.Children)
+			{
+				if (change.Key is not { } key || change.Value is not { } value)
+				{
+					continue;
+				}
+				province.History.Add(change.IsQuoted
+					? new Sim.Provinces.CProvinceChange(hour, key, new CCountryTag(value.Trim('"')), CFixedPoint.Zero)
+					: new Sim.Provinces.CProvinceChange(hour, key, null, CSaveValues.Fixed(value)));
+			}
+		}
 		ReadFlags(province.Flags, node.Get("flags"));
 		ReadEventModifiers(state, province.EventModifiers, node, report);
 		// Every building: the level in working order first, what was built second; none written is none built.
@@ -464,12 +486,13 @@ public static class CSaveLoader
 		}
 		var categories = new HashSet<string>(StringComparer.Ordinal);
 		country.Abilities.Clear();
-		foreach (Sim.Research.CTechnologyCategory category in state.TechnologyCategories)
+		// The null category first, which a technology with no on_completion teaches (research.md, section 4).
+		foreach (string category in state.TechnologyCategories.Select(category => category.Name).Prepend(Sim.Research.CResearch.NullCategory))
 		{
-			categories.Add(category.Name);
-			if (node.Get(category.Name)?.Value is { } text)
+			categories.Add(category);
+			if (node.Get(category)?.Value is { } text)
 			{
-				country.Abilities[category.Name] = CSaveValues.Fixed(text);
+				country.Abilities[category] = CSaveValues.Fixed(text);
 			}
 		}
 		ReadShares(country.ProductionShares, node.Get("distribution"));

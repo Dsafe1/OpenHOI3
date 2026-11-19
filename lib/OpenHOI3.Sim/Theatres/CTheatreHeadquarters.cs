@@ -138,7 +138,7 @@ public static class CTheatreHeadquarters
 			return null;
 		}
 		var unit = new CUnit(EUnitKind.Theatre, country.Tag) { Id = state.LastUnitId + 1, Location = province.Id };
-		var brigade = new CSubUnit(type) { Id = state.LastUnitId + 2, Unit = unit };
+		var brigade = new CSubUnit(type) { Id = state.LastUnitId + 2, Unit = unit, Home = province.Id };
 		state.LastUnitId += 2;
 
 		brigade.Experience = new CFixedPoint(Math.Min(CUnits.MostExperience.Raw,

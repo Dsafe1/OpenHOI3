@@ -95,7 +95,7 @@ public sealed class CCreateHigherCommand : CCommand
 		var unit = new CUnit((EUnitKind)((int)top.Kind - 1), country.Tag) { Id = id, Location = place };
 		// Its technologies at the levels a new brigade is given - every one at nought - and not its country's: the
 		// original sets the type and applies the technologies with nothing between (theatres.md, section 10).
-		var brigade = new CSubUnit(type) { Id = id + 1, Unit = unit, Experience = CFixedPoint.Zero };
+		var brigade = new CSubUnit(type) { Id = id + 1, Unit = unit, Experience = CFixedPoint.Zero, Home = place };
 		CUnits.RebuildStats(brigade);
 		long most = brigade.Stats[CSubUnitType.MaxStrength].Raw;
 		brigade.Strength = new CFixedPoint(Math.Max(0, most * Twentieth / CFixedPoint.Scale));

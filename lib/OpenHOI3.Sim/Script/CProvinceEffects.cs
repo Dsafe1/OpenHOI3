@@ -23,9 +23,11 @@ public static class CProvinceEffects
 		{
 			case "change_manpower":
 				here.Manpower = Floored(here.Manpower + value);
+				Provinces.CProvinceHistory.Record(state, here, Provinces.CProvinceHistory.Manpower, here.Manpower);
 				return true;
 			case "leadership":
 				here.Leadership = Floored(here.Leadership + value);
+				Provinces.CProvinceHistory.Record(state, here, Provinces.CProvinceHistory.Leadership, here.Leadership);
 				return true;
 			case "revolt_risk":
 				// Added to the accumulator, never below nought (revolt.md, section 5).
@@ -90,13 +92,15 @@ public static class CProvinceEffects
 			return;
 		}
 		CProvince target = state.Province(province);
+		// Each core gained or lost goes into the province's history (savegame.md, section 4).
 		if (add && !target.Cores.Contains(core))
 		{
 			target.Cores.Add(core);
+			Provinces.CProvinceHistory.Record(state, target, Provinces.CProvinceHistory.AddCore, core);
 		}
-		else if (!add)
+		else if (!add && target.Cores.Remove(core))
 		{
-			target.Cores.Remove(core);
+			Provinces.CProvinceHistory.Record(state, target, Provinces.CProvinceHistory.RemoveCore, core);
 		}
 	}
 

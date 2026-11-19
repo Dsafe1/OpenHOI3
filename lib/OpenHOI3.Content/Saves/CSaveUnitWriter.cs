@@ -187,6 +187,10 @@ public static class CSaveUnitWriter
 		writer.Begin(keyword);
 		writer.IdPair("id", Pair(state, subUnit.Id));
 		writer.Quoted("name", subUnit.Name);
+		if (subUnit.Home is { } home)
+		{
+			writer.Int("home", home);
+		}
 		writer.Quoted("type", subUnit.Type.Key);
 		writer.Fixed("organisation", subUnit.Organisation);
 		writer.Fixed("strength", subUnit.Strength);
