@@ -2080,6 +2080,11 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 
 ## Loose ends
 
+- **A fleet's base check in its hour** (2026-11-19): the original ends every hour of a fleet's with the check that also
+  runs as a unit block is read - a base an enemy holds taken away and the nearest of the country's naval bases given, else
+  its faction's, else the fleet queued for removal (`fleetsandair.md`, section 2.1). Only the reading's half is built
+  (`CFleetBase`); in the hour nothing yet moves a fleet off a captured base, and the removal is not built at all.
+
 - **Read and not built** (2026-11-19, a pass over the readers for what they pass over unseen): the technology effects
   `escort_efficiency` (Their Finest Hour 1, BlackICE 13) and `radar_efficiency` (1 and 5) are kept and shown in a
   technology's tooltip, and nothing in the simulation asks them. Smaller, from the same pass: no reader reports an

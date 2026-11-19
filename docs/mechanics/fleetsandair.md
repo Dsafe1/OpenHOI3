@@ -88,6 +88,34 @@ sea province that is not a lake.** That sea province is the one its ships put ou
   under the continent `lake`.
 - A province with a naval base and no port can hold no fleet. The base game gives every
   coastal province a position in the water.
+- **A new game's history gives no naval base to a province with no port** (*measured*, 2026-11-19, in the running game
+  under BlackICE: the level is never written, and the start save holds none): BlackICE's Djibouti (9867, `naval_base = 5`),
+  New Zealand's 6617 and Oman's 14180 keep none. The rule is the naval base's - the building with its role
+  (`buildinglines.md`, section 1.1) - and not every `port = yes` building's: the nine provinces with no port that the history
+  gives a shipyard keep it. Where in the executable the line is dropped was not found.
+
+### 2.1 A fleet's base as it is read
+
+`confirmed` (`reversing/findings/FINDINGS-seaair.md`, section 3, read 2026-11-19 in the running game and on the listing).
+A unit block's `base` - an order of battle's, `load_oob`'s or a save's - **is kept only where that province has a naval base
+built**; otherwise the fleet is left with none. Then, as the block closes, the fleet's **base check** runs - the one that
+also ends every hour of a fleet's (*Ours:* not yet in the hour):
+
+1. A fleet with a base no enemy of its country holds keeps it.
+2. Otherwise its base is taken away, and **its country's naval bases** - the provinces it controls with a naval base
+   built, in the order it took them, which at a new game is the provinces' numbers - are measured by sea from where the
+   fleet lies (section 3), the first strictly nearer than 999,999 winning. **A province with no place in the table of
+   distances measures nought**, so from a coast with no port the first base of the list is taken.
+3. With none, its faction's members' bases are measured the same way, in the faction's order.
+4. With none at all, and no port left to the country, the original queues the fleet for removal. *Ours:* not built; it
+   keeps no base.
+
+*Measured* at BlackICE's start: the French fleet at Djibouti, which its file bases where the province has no naval base,
+gets Guadeloupe (485), France's first, as the save has it; Japan's "11 Kaigun", based by its file in a Chinese province,
+gets 5425, where it lies. With the Djibouti fleet drawing on Guadeloupe and not on British Somaliland's depot, Britain is
+no longer paid 0.325 supplies and 0.363 fuel a day for it - which over the 502 passes of a new game's filling had left
+Britain 163 supplies and 182 fuel above the save (`supply.md`, section 16). Britain's stockpile is the save's since, to
+0.065.
 
 ## 3. Range, and the distances by sea
 

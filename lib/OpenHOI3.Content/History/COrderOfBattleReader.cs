@@ -199,6 +199,8 @@ public static class COrderOfBattleReader
 		{
 			AddLent(unit, tag => state.Country(tag));
 		}
+		// Each fleet's base as the loader leaves it, as a new game's reading does (CFleetBase).
+		CheckFleets(state, country, made);
 		var waiting = new Stack<CUnit>(made);
 		while (waiting.Count > 0)
 		{
@@ -219,6 +221,29 @@ public static class COrderOfBattleReader
 			}
 		}
 		state.ForgetPositions();
+	}
+
+	/// <summary>The fleets among units just read, each given its base as the original's loader leaves it (<see cref="CFleetBase"/>).</summary>
+	public static void CheckFleets(CGameState state, CCountry country, IEnumerable<CUnit> units)
+	{
+		var waiting = new Stack<CUnit>(units);
+		while (waiting.Count > 0)
+		{
+			CUnit unit = waiting.Pop();
+			foreach (CUnit child in unit.Children)
+			{
+				waiting.Push(child);
+			}
+			if (unit.Kind != EUnitKind.Navy)
+			{
+				continue;
+			}
+			if (!CFleetBase.MayBeBase(state, unit.Base))
+			{
+				unit.Base = 0;
+			}
+			CFleetBase.Check(state, country, unit);
+		}
 	}
 
 	/// <param name="nameSubUnit">

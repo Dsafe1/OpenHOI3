@@ -745,6 +745,8 @@ public static class CSaveLoader
 			// The seats, from the popularity the save gave (savegame.md, section 12).
 			CCabinet.Allot(state, country);
 		}
+		// Each fleet's base as the original's unit loader leaves it, a save's as a file's (CFleetBase).
+		CGameStateLoader.CheckFleetBases(state, state.Countries);
 		CGameStateLoader.RegisterUnitNames(state);
 		state.ForgetPositions();
 		CProvinceModifiers.Rebuild(state);

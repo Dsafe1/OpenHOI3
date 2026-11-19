@@ -492,8 +492,22 @@ public static class CGameStateLoader
 		state.LastUnitId = COrderOfBattleReader.Read(directories, reading, state.SubUnitTypes,
 			state.Technologies, state.Provinces.Count, warn,
 			(country, type) => CUnitNames.ForSubUnit(state, country, type), unnamed, state.Leaders, state);
+		CheckFleetBases(state, reading);
 		RegisterUnitNames(state);
 		NameUnnamedUnits(state, unnamed);
+	}
+
+	/// <summary>
+	/// Each fleet's base as the original's unit loader leaves it as the block closes: a base with no naval base dropped, and
+	/// a fleet with none given the nearest of its country's (<see cref="CFleetBase"/>) - BlackICE's French fleet at
+	/// Djibouti, whose province has none, gets Guadeloupe, the first of France's.
+	/// </summary>
+	public static void CheckFleetBases(CGameState state, IEnumerable<CCountry> countries)
+	{
+		foreach (CCountry country in countries)
+		{
+			COrderOfBattleReader.CheckFleets(state, country, country.Units);
+		}
 	}
 
 	/// <summary>
@@ -701,6 +715,8 @@ public static class CGameStateLoader
 		{
 			buildingByKey.TryAdd(building.Key, building);
 		}
+		// The building with the naval base's role, which the history never gives a province with no port (CBuildingRoles).
+		CBuilding? navalBase = CBuildingRoles.Find(buildings, Sim.Movement.CMovementRules.NavalBase);
 		int badLevels = 0;
 		var terrainByName = new Dictionary<string, CTerrain>(StringComparer.OrdinalIgnoreCase);
 		foreach (CTerrain terrain in terrains)
@@ -752,7 +768,7 @@ public static class CGameStateLoader
 				bool changedBefore = province.ControllerChanged;
 				province.ControllerChanged = false;
 				badLevels += Apply(province, passes[pass], countries, unknownTags,
-					terrainByName, unknownTerrains, buildingByKey, nationalism, captures, unknownKeys);
+					terrainByName, unknownTerrains, buildingByKey, nationalism, captures, unknownKeys, navalBase);
 				if (province.ControllerChanged)
 				{
 					lastPass[id] = pass + 1;
@@ -812,7 +828,7 @@ public static class CGameStateLoader
 	private static int Apply(CProvince province, List<ClausewitzNode> entries, CCountries countries,
 		SortedSet<string> unknownTags, Dictionary<string, CTerrain> terrainByName,
 		SortedSet<string> unknownTerrains, Dictionary<string, CBuilding> buildingByKey, CFixedPoint nationalism,
-		List<(CCountryTag Taker, CCountryTag From)>? captures, SortedSet<string> unknownKeys)
+		List<(CCountryTag Taker, CCountryTag From)>? captures, SortedSet<string> unknownKeys, CBuilding? navalBase)
 	{
 		int badLevels = 0;
 		foreach (ClausewitzNode entry in entries)
@@ -921,12 +937,17 @@ public static class CGameStateLoader
 				continue;
 			}
 
-			// A building's key sets its level here. A later line replaces an earlier one.
+			// A building's key sets its level here. A later line replaces an earlier one. The naval base is never given to a
+			// province with no port on the map, where a shipyard is (measured: BlackICE's Djibouti, 9867, and two more keep
+			// none; buildinglines.md, section 1.1).
 			if (buildingByKey.TryGetValue(entry.Key, out CBuilding? building))
 			{
 				if (CFixedPoint.TryParse(entry.Value, out CFixedPoint level))
 				{
-					province.SetBuildingLevel(building, level);
+					if (!ReferenceEquals(building, navalBase) || province.PortSea > 0)
+					{
+						province.SetBuildingLevel(building, level);
+					}
 				}
 				else
 				{

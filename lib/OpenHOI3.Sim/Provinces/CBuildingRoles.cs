@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace OpenHOI3.Sim.Provinces;
 
@@ -25,14 +26,17 @@ public static class CBuildingRoles
 	/// The building a rule asking for <paramref name="key"/> means: for one of the five roles' names the building that has
 	/// the role, otherwise the building of that name. Null where there is none.
 	/// </summary>
-	public static CBuilding? Find(CGameState state, string key)
+	public static CBuilding? Find(CGameState state, string key) => Find(state.Buildings, key);
+
+	/// <summary>The same over the buildings as the file declares them, for a reading done before there is a game.</summary>
+	public static CBuilding? Find(IReadOnlyList<CBuilding> buildings, string key)
 	{
 		foreach ((string name, string modifier) in Roles)
 		{
 			if (name.Equals(key, StringComparison.OrdinalIgnoreCase))
 			{
 				CBuilding? role = null;
-				foreach (CBuilding building in state.Buildings)
+				foreach (CBuilding building in buildings)
 				{
 					if (building.ModifierKey.Equals(modifier, StringComparison.OrdinalIgnoreCase))
 					{
@@ -48,7 +52,7 @@ public static class CBuildingRoles
 				break;
 			}
 		}
-		foreach (CBuilding building in state.Buildings)
+		foreach (CBuilding building in buildings)
 		{
 			if (building.Key.Equals(key, StringComparison.OrdinalIgnoreCase))
 			{

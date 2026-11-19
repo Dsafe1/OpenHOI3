@@ -350,10 +350,15 @@ is the save's for 52 of 80 countries where it was 32, the start's supply stockpi
 since a unit on ground that draws on nothing pays the null country as the original's does (`supply.md`, section 13),
 which Shanxi's does through the two days, its government sitting in China's Beiping. What is left
 is mostly a new game's weather, drawn afresh with its mud elsewhere: given the save's mud and frost before the two days,
-67 of 80 shares and 51 of 79 supply stockpiles, the Netherlands' supply share 0.20410 to the save's 0.20419. Britain's
-supply stockpile, 163 above the save's, and its fuel, 183 above, stay open, and with them its share, which the stockpile
-weighs: its second day is the save's line for line and its home network's provinces hold what the save's do, so the two
-went out of London's pool on the first day, which no save keeps. What also stays open: the manpower of Ethiopia and China Yunnan
+67 of 80 shares and 51 of 79 supply stockpiles, the Netherlands' supply share 0.20410 to the save's 0.20419. **Britain's
+stockpile was settled in the running game** (2026-11-19: the original launched with BlackICE, a new game started as Ireland
+and Britain's stockpile logged at its day's head and end and at the filling's start): ours was the original's up to the
+filling and gained 163 supplies and 182 fuel more across it, paid a quarter over by a French fleet at Djibouti that the
+original bases at Guadeloupe - the history gives no naval base to a province with no port, and a fleet with no base is
+given its country's first (`fleetsandair.md`, sections 2 and 2.1). Since then Britain's stockpile is the save's to 0.065,
+the supply stockpiles 54 of 79, fuel 70 and every brigade's strength 10,918 of 10,918 - New Zealand's Samoa garrisons,
+whose 6617 also keeps no naval base. The Soviet Union's moves the other way, 153 short where it was 98 over: its day,
+Moscow's network the worst of the supply pass, turns on small things upstream. What also stays open: the manpower of Ethiopia and China Yunnan
 (`manpower.md`, *not established*), and 432 brigades' organisation a thousandth off - each country's one way, which a
 single rule of rounding a positive figure would not give, and so not chased without a reading.
 
