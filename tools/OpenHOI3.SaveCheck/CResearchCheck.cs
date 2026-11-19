@@ -178,7 +178,8 @@ internal static class CResearchCheck
 		Console.WriteLine();
 
 		// ---- one day's gain for everything being researched, from the earlier save's own state
-		var expected = new List<(CCountry Country, CTechnology Technology, int Level, long From, long Gain, string LaterLevel, string LaterProgress, bool SameLeadership)>();
+		// Each project's day's gain as the earlier save stands, and after each month's decay in between (Gains[k], k decays).
+		var expected = new List<(CCountry Country, CTechnology Technology, int Level, long From, List<long> Gains, CFixedPoint Leadership, string LaterLevel, string LaterProgress, bool SameLeadership)>();
 		int notResearched = 0;
 		foreach ((CCountry country, ClausewitzNode before, ClausewitzNode after) in pairs)
 		{
@@ -208,7 +209,7 @@ internal static class CResearchCheck
 				}
 				int level = (int)Number(entry.Children[0].Value).ToInt();
 				long gain = CResearch.Gain(state, country, technology, level + 1, leadership).Raw;
-				expected.Add((country, technology, level, Share(entry.Children[1].Value).Raw, gain,
+				expected.Add((country, technology, level, Share(entry.Children[1].Value).Raw, new List<long> { gain }, leadership,
 					then.Children[0].Value ?? "", then.Children[1].Value ?? "",
 					Number(then.Children[2].Value) == leadership));
 			}
@@ -234,9 +235,16 @@ internal static class CResearchCheck
 				country.ProductionShares[i] = Share(shares[i].Value);
 			}
 		}
+		// A month's decay raises the cost of what is being researched from the next day on: the 1st's research is the old
+		// month's, the decay coming in the month's pass after the day's (tick.md, section 3). So each project's day's gain is
+		// worked again after each decay, for the days that follow it.
 		for (int month = 0; month < months; month++)
 		{
 			CResearch.DecayMonthly(state);
+			foreach (var entry in expected)
+			{
+				entry.Gains.Add(CResearch.Gain(state, entry.Country, entry.Technology, entry.Level + 1, entry.Leadership).Raw);
+			}
 		}
 		var moved = new HashSet<(string Tag, string Category)>();
 		foreach ((CCountry country, ClausewitzNode _, ClausewitzNode after) in pairs)
@@ -271,9 +279,17 @@ internal static class CResearchCheck
 		int finished = 0;
 		int leadershipChanged = 0;
 		int abilityChanged = 0;
-		foreach ((CCountry country, CTechnology technology, int level, long start, long gain, string laterLevel, string laterProgress, bool sameLeadership) in expected)
+		foreach ((CCountry country, CTechnology technology, int level, long start, List<long> gains, CFixedPoint _, string laterLevel, string laterProgress, bool sameLeadership) in expected)
 		{
-			long total = start + gain * days;
+			// Each midnight's gain, by how many months began before its day.
+			long total = start;
+			int fromMonth = from.Year * 12 + from.Month;
+			for (int day = 1; day <= days; day++)
+			{
+				CDate before = from.AddDays(day - 1);
+				total += gains[Math.Min(before.Year * 12 + before.Month - fromMonth, gains.Count - 1)];
+			}
+			long gain = gains[0];
 			if (laterLevel != level.ToString(CultureInfo.InvariantCulture))
 			{
 				finished++;

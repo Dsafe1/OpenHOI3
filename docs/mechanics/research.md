@@ -282,6 +282,14 @@ The few that do not are countries whose queue or shares the AI moved between the
 saves. Technologies that finished a level in between, or whose leadership or cost changed,
 are left out and counted.
 
+- **A month's decay inside the stretch raises the cost from the next day on** (since 2026-11-19 the tool works each
+  day's gain again after each decay): the 1st's research is the old month's, the month's pass coming after the day's
+  (`tick.md`, section 3), so the days from the 2nd on gain what the decayed abilities allow - a unit or two of 32768 less
+  a day. Holding the earlier save's gain for the whole stretch had left one project in two ahead by exactly the days
+  after the 1st: the Ireland game's 5 July to 4 August 1937, 110 of 224 the same, and 223 of 224 so worked; BlackICE's
+  18 January to 2 February 1936, 895 and 985 of 1,059, what is left there whole countries researching slower in the
+  original, their efficiency moved in between.
+
 - **`neutrality` is needed to get there.** `common/triggered_modifiers.txt` has a
   modifier, `neutrality`, that takes 5% off the research efficiency of every country in
   none of the three factions - ninety of them in early 1936. Until triggered modifiers were

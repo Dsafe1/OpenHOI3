@@ -305,14 +305,15 @@ January:
 | --- | --- | --- |
 | a fleet's progress along its edge | 4 of 12 | 17 of 18 |
 | a division's progress, weather and fuel the same | 234 of 256 | 252 of 257 |
-| research over the fortnight to 2 February | 630 of 1,081 | 895 of 1,059 |
+| research over the fortnight to 2 February | 630 of 1,081 | 985 of 1,059 |
 | a building line's days | 37 of 77 | 56 of 77 |
 
 What is left in them is the AI's - projects started and orders given in between - or the original's own figures moving
 in between: a building line's price is set when it is made and again only on a day a line finishes, and a training
 modifier comes on as BlackICE's variable passes its day mid-way (Latvia's `basic_training_days_active` 18 to 34, its
 +3 starting experience from 30), both of which a check that holds the earlier save's figures for the whole stretch
-counts as misses. The research check now leaves the rebels out, who divide no leadership (`leadership.md`, section 2)
+counts as misses. The research check works each day's gain again after a month's decay since 2026-11-19 (`research.md`,
+section 8) - it was 895 of 1,059 before, one project in twelve a unit ahead for 2 February - and leaves the rebels out, who divide no leadership (`leadership.md`, section 2)
 and to whose projects a BlackICE save gives some.
 
 **A technology declared twice** (2026-11-19, `research.md`, section 1): BlackICE's `cag_design_hidden` is two technologies
