@@ -247,11 +247,9 @@ public static class CLandBlock
 			{
 				continue;
 			}
-			int destination = unit.Path[^1];
-			if (unit.AiBound > 0 && unit.AiBound != destination)
-			{
-				continue;
-			}
+			// Where the AI sent it, which this same pass may have changed while its command waits; the way walked below is the
+			// one it still has (FINDINGS-liveread.md, section 148).
+			int destination = CAgentUnits.Destination(unit);
 			if (unit.Order != EUnitOrder.StrategicRedeployment && !unit.IsFighting
 				&& CAiMoves.ShouldRedeploy(state, country, unit, destination))
 			{

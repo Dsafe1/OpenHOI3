@@ -311,9 +311,13 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    and 1440 ours makes and those originals decline are at stance 4 in ours and in every entering made without
    `probes/hoidraws.lua` - the target weights logged live are ours to the thousandth, and those enterings attack as ours
    does - while `hoidraws.lua`'s breakpoints put Smolensk HQ's other front (779) at the head of its area, which moves the
-   ramp's depot. Not a rule of ours.
-   Open: (a) the orders the draws leave: `wr14`'s from hour 32 - Soviet divisions; `wr20`'s four land orders of its last
-   hours; `wr21` 440 of 468 and `wr11` 464 of 488, both from that entering on, so to be measured only past it;
+   ramp's depot. Not a rule of ours. **And the march check looks at a unit the same pass has just reordered** (`moving.md`,
+   section 9; section 148, on the listing): by its new destination and its old way, so the Soviet 15. Tankovaya, sent to 2509
+   by the line at `wr20`'s hour 42, is cut to 2770, its old way crossing 2390, Germany's since that hour - ours had passed
+   over such a unit. `wr20` 523 of 523 land orders (520), the others unchanged.
+   Open: (a) the orders the draws leave: `wr14`'s from hour 32 - Soviet divisions; `wr20`'s one of ours alone at hour 47, the
+   German 6th H Arm Division sent at 2275 at odds 1.693 over a bar of 1.5 where the original makes no attack (no odds probe in
+   that recording); `wr21` 440 of 468 and `wr11` 464 of 488, both from that entering on, so to be measured only past it;
    `wr11`'s twenty fleets are its recording's, which has no patrol
    draws (`P` lines, `probes/hoidraws.lua` since `wr14`), so its patrols roll ours: the US Cruiser Fleet 5's way at hour
    6 is every other recording's. A hook naming each `math.random` caller is in the session scratchpad as

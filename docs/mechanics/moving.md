@@ -371,6 +371,13 @@ and the distance at least the unit's speed x 0.25 x (200 at war, 600 at peace) -
 attack, whose way is the one province attacked, is left alone; a headquarters whose way crosses enemy land in an area of
 more than 3 provinces is stood down, a division cut to its next step.
 
+**A unit the same pass has just sent elsewhere is looked at too** (`reversing/findings/FINDINGS-liveread.md`, section 148,
+on the listing and the recording `wr20`): "a destination" is the AI's - where this pass sent it, its command still waiting -
+and the redeployment is asked of it; the way walked is the one the unit still has, the old one, so a division whose old way
+crosses enemy land is cut to that way's next step after its new order, and the cut, run second, stands. The Soviet 15.
+Tankovaya Diviziya at 01:00 on 18 July 1941: the line sends it to 2509, its old way to 2275 crosses 2390, Germany's since
+that hour, and it is cut to 2770.
+
 ### 9.1 Paradrops (`CAIUnit_PlanParadrops`, `CEU3AI_RebuildWeakEnemyPorts`; `FINDINGS-liveread.md`, section 127)
 
 Built 2026-11-18. **The targets** are made again once a day, at the country's hour of the day (`id % 24`), beside the
@@ -1116,10 +1123,9 @@ months on) - at least three hours left, and the order ends then.
 - **A move with no way** (section 10): the AI posts nothing for a unit that has no way to where it is sent, and the move
   counts as none - so a step that only tried an impossible move does not stand in for one that moves. The original's
   `MoveUnit` posts its command whatever; the reach tests the reading has (7.3, steps 6 and 7) are asked as well.
-- **The march check** (section 9) passes over a unit the same pass has just sent somewhere else. The original's later
-  steps see the AI's destination at once while its posted command has not yet run; the march check reads the old way,
-  so a halt it posts would follow the new march, leave the unit where it stands and keep it marked retreating - for good,
-  as only arriving clears the mark. Whether the original reaches that state was not settled (`FINDINGS-moving.md` A.4b).
+- ~~**The march check** (section 9) passes over a unit the same pass has just sent somewhere else.~~ Gone 2026-11-19: the
+  original looks at it, by its new destination and its old way, and a cut it posts runs after the new order and stands;
+  the unit is sent on normally after (section 9; `FINDINGS-liveread.md`, section 148).
 - **The areas a plan keeps** - its theatre's areas and fronts, an agent's focus areas, the areas its attack failed in or
   ranked - are made again whenever the supply network is (`supply.md`; at any change of hands, and daily), and each kept
   area is carried over to the new area holding its first province under the same holder, or dropped. How the original's
