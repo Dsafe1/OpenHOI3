@@ -531,3 +531,17 @@ section 10). A handful of BlackICE's files name a country other than their folde
 GER, POL or SOV among them - whose brigades would here take the loading country's models where the original takes the
 named country's. A new game's reading has the same gap.
 
+**A `building_construction` and a `convoy_construction` in such a file** - built 2026-11-19 - go on the end of the queue
+the same way [exe]: the original reads the file through its country's own save keys (`CCountry::LoadKey`,
+`reversing/findings/FINDINGS-effecttext.md`, "What load_oob actually does"), so a building's and a convoy's line are as
+good there as a unit's, read as a save's are (`savegame.md`, section 5). A building's line names its building by its
+place in `common/buildings.txt` counted from one, and is built at its `location`; a convoy's second `status`, `yes`,
+makes it escorts. Cost, duration and progress are the file's. **85 of BlackICE's order of battle files** have one,
+every one loaded by an event, none a start file: event 95584's `GER_Peenemuende.txt` puts Peenemünde's
+`rocket_test` (building 24) in Wolgast. Until then both were passed over without a word, and the event's option queued
+nothing. *Ours*: each takes one number; how many the original's line takes was not read. *Mod-able*: every figure, in
+the file.
+
+A block such a file holds that nothing reads is listed in the validation log with the file's name (`logs.md`, section 4),
+where the original drops it.
+

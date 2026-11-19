@@ -71,6 +71,19 @@ public static class COrderOfBattleReader
 
 	private const string Construction = "military_construction";
 
+	/// <summary>
+	/// A building's line of the queue and a convoy's: the original reads an order of battle through its country's own
+	/// save keys, so a file may hold either (BlackICE's 85 do, every one loaded by an event's <c>load_oob</c>).
+	/// </summary>
+	private const string BuildingConstruction = "building_construction";
+	private const string ConvoyConstruction = "convoy_construction";
+
+	/// <summary>What a building's or a convoy's line may also carry, and that is not kept from a file.</summary>
+	private static readonly HashSet<string> OtherLineKeysNotKept = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"id", "country", "builder",
+	};
+
 	/// <summary>What a unit under construction may also carry in the original, and that is not kept here.</summary>
 	private static readonly HashSet<string> ConstructionKeysNotKept = new(StringComparer.OrdinalIgnoreCase)
 	{
@@ -93,7 +106,8 @@ public static class COrderOfBattleReader
 	/// A file of units read into a country as a game runs, for <c>load_oob</c>: placed at once, each brigade held to its
 	/// ceiling and its experience left as the file gives it, and no leader chosen. A unit with no place is left out. A line of
 	/// the build queue in such a file goes on the end of the country's queue as the file gives it - its cost, its duration
-	/// and how far it has got kept, nothing priced again - and numbered in the file's order with the units; a brigade's
+	/// and how far it has got kept, nothing priced again - and numbered in the file's order with the units, a building's
+	/// line and a convoy's as well (<see cref="CReading.ReadOtherLine"/>); a brigade's
 	/// <c>historical_model</c> is turned into its model as it is read (<c>docs/mechanics/units.md</c>, "A file of units as
 	/// a game runs").
 	/// </summary>
@@ -106,7 +120,10 @@ public static class COrderOfBattleReader
 			return;
 		}
 		ClausewitzNode root = ClausewitzParser.ParseFile(path);
-		var reading = new CReading(state.SubUnitTypes, state.Technologies, state.Provinces.Count) { Leaders = state.Leaders };
+		var reading = new CReading(state.SubUnitTypes, state.Technologies, state.Provinces.Count)
+		{
+			Leaders = state.Leaders, Buildings = state.Buildings,
+		};
 		reading.StartAfter(state.LastUnitId);
 		var made = new List<CUnit>();
 		foreach (ClausewitzNode entry in Entries(root))
@@ -141,8 +158,19 @@ public static class COrderOfBattleReader
 					}
 				}
 			}
+			else if (entry.IsBlock && reading.ReadOtherLine(entry, country))
+			{
+				// A building's or a convoy's line, onto the queue's end as the file has it, as a unit's is.
+			}
+			else
+			{
+				// Said, where the original drops it: a building's line passed over so made an event do nothing unseen.
+				reading.UnknownKeys.Add(entry.Key);
+			}
 		}
 		state.LastUnitId = reading.LastId;
+		Report(warn, reading.UnknownKeys, $"keys in the order of battle {file} are not understood");
+		Report(warn, reading.BadNumbers, $"figures in the order of battle {file} are not numbers and were ignored");
 		Report(warn, reading.UnknownLeaders, UnknownLeadersReport);
 		foreach (CUnit unit in made)
 		{
@@ -192,7 +220,7 @@ public static class COrderOfBattleReader
 		warn ??= CDiagnostics.Problem;
 		var reading = new CReading(unitTypes, technologies, provinceCount)
 		{
-			NameSubUnit = nameSubUnit, Unnamed = unnamed, Leaders = leaders,
+			NameSubUnit = nameSubUnit, Unnamed = unnamed, Leaders = leaders, Buildings = state?.Buildings,
 		};
 
 		foreach (CCountry country in countries)
@@ -239,6 +267,10 @@ public static class COrderOfBattleReader
 				else if (entry.IsBlock && entry.Key.Equals(Construction, StringComparison.OrdinalIgnoreCase))
 				{
 					reading.ReadConstruction(entry, country);
+				}
+				else if (entry.IsBlock && reading.ReadOtherLine(entry, country))
+				{
+					// A building's or a convoy's line - none of the base game's or BlackICE's start files has one.
 				}
 				else if (entry.Key.Equals("last_election", StringComparison.OrdinalIgnoreCase)
 					&& CDate.TryParse(entry.Value, out CDate lastElection))
@@ -537,6 +569,85 @@ public static class COrderOfBattleReader
 		/// unit whatever an earlier line gave it. None takes every number at its word.
 		/// </summary>
 		public IReadOnlyDictionary<int, Sim.Leaders.CLeader>? Leaders { get; init; }
+
+		/// <summary>The game's buildings in their file's order, which a building's line names by place; none reads no such line.</summary>
+		public IReadOnlyList<Sim.Provinces.CBuilding>? Buildings { get; init; }
+
+		/// <summary>
+		/// A <c>building_construction</c> or a <c>convoy_construction</c> block put on the end of its country's queue as the
+		/// file gives it, as a save's are read (<c>docs/mechanics/savegame.md</c>, section 5): a building's by its place in
+		/// <c>common/buildings.txt</c>, counted from one, and a convoy's escorts by a second <c>status</c> of yes. Its cost,
+		/// duration and progress are the file's. It takes the next number. Answers false for any other block.
+		/// </summary>
+		public bool ReadOtherLine(ClausewitzNode block, CCountry owner)
+		{
+			bool building = block.Key!.Equals(BuildingConstruction, StringComparison.OrdinalIgnoreCase);
+			if (!building && !block.Key.Equals(ConvoyConstruction, StringComparison.OrdinalIgnoreCase))
+			{
+				return false;
+			}
+			CConstruction line;
+			if (building)
+			{
+				int index = Whole(block.Get("building")?.Value) - 1;
+				if (Buildings is null || index < 0 || index >= Buildings.Count)
+				{
+					UnknownKeys.Add($"a {block.Key} of no building known, left out");
+					return true;
+				}
+				line = new CConstruction(owner.Tag) { Building = Buildings[index] };
+			}
+			else
+			{
+				bool escorts = false;
+				foreach (ClausewitzNode status in block.Children)
+				{
+					if (status.Key == "status" && status.Value is "yes" or "no")
+					{
+						escorts = status.Value == "yes";
+					}
+				}
+				line = new CConstruction(owner.Tag) { IsConvoy = true, IsEscorts = escorts };
+			}
+			foreach (ClausewitzNode entry in block.Children)
+			{
+				switch (entry.Key?.ToLowerInvariant())
+				{
+					case null:
+					case "building":
+						break;
+					case "size":
+						line.Size = Math.Max(1, Whole(entry.Value));
+						break;
+					case "cost":
+						line.Cost = Number(entry, line.Cost);
+						break;
+					case "duration":
+						line.Duration = Number(entry, line.Duration);
+						break;
+					case "progress":
+						line.Progress = Number(entry, line.Progress);
+						break;
+					case "status" when entry.Value is not ("yes" or "no"):
+						line.Status = Number(entry, line.Status);
+						break;
+					case "status":
+						break;
+					case "location":
+						line.Location = Whole(entry.Value);
+						break;
+					default:
+						if (!OtherLineKeysNotKept.Contains(entry.Key!))
+						{
+							UnknownKeys.Add($"{entry.Key} in a {block.Key}");
+						}
+						break;
+				}
+			}
+			line.Id = ++LastId;
+			owner.Constructions.Add(line);
+			return true;
+		}
 
 		public CUnit ReadUnit(ClausewitzNode block, EUnitKind kind, CCountry owner, CUnit? parent, CSubUnit? carriedBy)
 		{

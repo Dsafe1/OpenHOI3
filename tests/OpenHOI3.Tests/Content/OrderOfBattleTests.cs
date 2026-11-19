@@ -658,6 +658,65 @@ public class OrderOfBattleTests : IDisposable
 	}
 
 	[Fact]
+	public void ABuildingsLineAndAConvoysInAFileReadAsAGameRunsGoOnTheQueuesEndAsTheFileHasThem()
+	{
+		Dictionary<string, CSubUnitType> types = Types();
+		Dictionary<string, CTechnology> technologies = Technologies(types);
+		CCountries countries = ReadModels(types, technologies);
+		CCountry a = countries.Find("AAA")!;
+		var provinces = new List<OpenHOI3.Sim.Provinces.CProvince>();
+		for (int id = 0; id < 10; id++)
+		{
+			provinces.Add(new OpenHOI3.Sim.Provinces.CProvince(id, $"p{id}", isSea: false));
+		}
+		var buildings = new[]
+		{
+			new OpenHOI3.Sim.Provinces.CBuilding(0, "industry", 10, "industry", CFixedPoint.One),
+			new OpenHOI3.Sim.Provinces.CBuilding(1, "rocket_test", 10, "", CFixedPoint.Zero),
+		};
+		var state = new CGameState(new CDate(1936, 1, 1), provinces, countries.Declared, technologies: technologies.Values,
+			buildings: buildings)
+		{
+			SubUnitTypes = types,
+			LastUnitId = 40,
+		};
+		// BlackICE's Peenemünde file, the building by its place in buildings.txt counted from one, and a convoy's line.
+		Write("history/units/late.txt", """
+			building_construction = {
+				id = { type = 4713 }
+				size = 1
+				cost = 23
+				progress = 179
+				duration = 180
+				location = 7
+				country = "AAA"
+				building = 2
+			}
+			convoy_construction = { size = 3 cost = 1.5 duration = 40 progress = 4 status = 1.000 status = yes }
+			nonsense = { }
+			""");
+
+		COrderOfBattleReader.ReadInto(Directories, state, a, "late.txt", _warnings.Add);
+
+		Assert.Equal(2, a.Constructions.Count);
+		CConstruction building = a.Constructions[0];
+		Assert.Same(buildings[1], building.Building);
+		Assert.Equal(7, building.Location);
+		Assert.Equal(CFixedPoint.FromInt(23), building.Cost);
+		Assert.Equal(CFixedPoint.FromInt(180), building.Duration);
+		Assert.Equal(CFixedPoint.FromInt(179), building.Progress);
+		Assert.Equal(41, building.Id);
+		CConstruction convoy = a.Constructions[1];
+		Assert.True(convoy.IsConvoy);
+		Assert.True(convoy.IsEscorts);
+		Assert.Equal(3, convoy.Size);
+		Assert.Equal(42, convoy.Id);
+		Assert.Equal(42, state.LastUnitId);
+		// A block nothing reads is said, where the original drops it.
+		Assert.Contains(_warnings, warning => warning.Contains("nonsense") && warning.Contains("late.txt"));
+	}
+
+	[Fact]
 	public void ADivisionsReserveLineMakesReservesOfTheRegimentsAfterIt()
 	{
 		(CCountry country, _, _) = Read("""
