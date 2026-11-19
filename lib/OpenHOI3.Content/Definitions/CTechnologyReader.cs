@@ -130,6 +130,8 @@ public static class CTechnologyReader
 	/// adds to that type, and each type is told which technologies improve it; without,
 	/// such blocks are skipped.
 	/// </param>
+	/// <returns>Every declaration in the files' order, the earlier of a name declared twice marked
+	/// <see cref="CTechnology.IsShadowed"/>.</returns>
 	public static List<CTechnology> Read(CDirectorySettings directories, Action<string>? warn = null,
 		IReadOnlyCollection<CTechnologyCategory>? categories = null,
 		IReadOnlyDictionary<string, CSubUnitType>? unitTypes = null, IEnumerable<string>? terrains = null)
@@ -146,8 +148,9 @@ public static class CTechnologyReader
 
 		// Every block first, in the files' order. A name declared twice is two technologies in the original, each in its
 		// place: a save lists both under the one name, and each unit type's levels by position count both, while every look
-		// by name finds the later. So the earlier is kept for its unit types alone and only the later is listed (measured
-		// on a BlackICE start save, whose one technology declared twice is cag_design_hidden; research.md, section 1).
+		// by name finds the later. So the earlier is kept, marked IsShadowed, for its unit types and the save alone - the game
+		// state lists only the later (measured on a BlackICE start save, whose one technology declared twice is
+		// cag_design_hidden; research.md, section 1).
 		var blocks = new List<ClausewitzNode>();
 		var shadowed = new HashSet<ClausewitzNode>();
 		var names = new Dictionary<string, ClausewitzNode>(StringComparer.OrdinalIgnoreCase);
@@ -236,11 +239,9 @@ public static class CTechnologyReader
 				Change = !block.GetString("change").Equals("no", StringComparison.OrdinalIgnoreCase),
 				CanUpgrade = !block.GetString("can_upgrade").Equals("no", StringComparison.OrdinalIgnoreCase),
 				Stealable = !block.GetString("stealable").Equals("no", StringComparison.OrdinalIgnoreCase),
+				IsShadowed = shadowed.Contains(block),
 			};
-			if (!shadowed.Contains(block))
-			{
-				technologies.Add(technology);
-			}
+			technologies.Add(technology);
 
 			// A block named after a mission is what a level adds to how well it is carried out.
 			foreach (ClausewitzNode entry in block.Children)

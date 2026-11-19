@@ -195,11 +195,17 @@ public class GameDataLoadingTests : IDisposable
 
 		List<OpenHOI3.Sim.Research.CTechnology> technologies = CTechnologyReader.Read(Directories, _warnings.Add, unitTypes: types);
 
-		Assert.Equal(new[] { "first_after", "cag_design_hidden" }, technologies.Select(technology => technology.Name));
-		Assert.Equal(1960, technologies[1].StartYear);
+		// Every declaration in the files' order, the earlier marked; the game state lists the later alone.
+		Assert.Equal(new[] { "cag_design_hidden", "first_after", "cag_design_hidden" }, technologies.Select(technology => technology.Name));
+		Assert.Equal(new[] { true, false, false }, technologies.Select(technology => technology.IsShadowed));
+		var state = new OpenHOI3.Sim.CGameState(new OpenHOI3.Sim.CDate(1936, 1, 1), new List<OpenHOI3.Sim.Provinces.CProvince>(),
+			new List<CCountry>(), technologies: technologies);
+		Assert.Equal(1960, state.Technologies["cag_design_hidden"].StartYear);
+		Assert.Equal(new[] { "first_after", "cag_design_hidden" }, state.TechnologiesInOrder.Select(technology => technology.Name));
+		Assert.Equal(3, state.TechnologyDeclarations.Count);
 		// Each declaration is in its own unit types' lists, the earlier only there.
-		Assert.Equal(1918, wing.Technologies.Single().StartYear);
-		Assert.Same(technologies[1], carrier.Technologies.Single());
+		Assert.Same(technologies[0], wing.Technologies.Single());
+		Assert.Same(technologies[2], carrier.Technologies.Single());
 		Assert.Contains(_warnings, warning => warning.Contains("the last is the one a name finds"));
 	}
 

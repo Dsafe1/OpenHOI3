@@ -297,7 +297,10 @@ closes one, so the file ends with one too many; a list of numbers stands at colu
 brace closing on the same line; a building's pair puts a space before each figure; a country's shares are a list
 indented at its block's depth, with five places; `faction={` is written with no line's end, so the first faction's
 key follows it on the line. The text goes out byte for byte as it was read: the readers take Windows-1252 as Latin-1,
-which keeps every byte.
+which keeps every byte. **A country's `variables`** are its tree walked in order - by name, the case folded down - and
+**a variable at exactly nought is left out** [exe] (`reversing/findings/FINDINGS-negatives.md`, section 7): asking
+`check_variable` for one a country does not have makes it, at nought, for the session alone. BlackICE's triggered
+modifiers ask for dozens, and the save of 16 March 1936 holds none at nought and every block in that order, 106 of 106.
 
 **What it writes**, in the original's order and each key where the original writes it:
 

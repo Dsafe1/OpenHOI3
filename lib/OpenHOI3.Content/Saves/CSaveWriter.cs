@@ -287,8 +287,13 @@ public static class CSaveWriter
 			writer.Word("human", "yes");
 		}
 		WriteFlags(writer, country.Flags);
+		// The original's tree of variables walked in order - by name, the case folded down - and a variable at nought left
+		// out, which a condition asking for one it does not have makes (reversing/findings/FINDINGS-negatives.md, section 7;
+		// savegame.md, section 8).
 		writer.Begin("variables");
-		foreach ((string name, CFixedPoint value) in country.Variables)
+		foreach ((string name, CFixedPoint value) in country.Variables
+			.Where(variable => variable.Value != CFixedPoint.Zero)
+			.OrderBy(variable => variable.Key.ToLowerInvariant(), StringComparer.Ordinal))
 		{
 			writer.Fixed(name, value);
 		}
@@ -319,10 +324,13 @@ public static class CSaveWriter
 		// The original's built-in null technology stands first in its database.
 		writer.Key(NullTechnology);
 		writer.Line("{" + country.NullTechnologyLevel.ToString(System.Globalization.CultureInfo.InvariantCulture) + " 0.00000 0.000}");
-		foreach (string technology in state.Technologies.Keys)
+		// Every declaration, the earlier of a name declared twice at its place under the name and at nought - no look by name
+		// reaches it (research.md, section 1).
+		foreach (Sim.Research.CTechnology declaration in state.TechnologyDeclarations)
 		{
-			int level = country.TechnologyLevels.GetValueOrDefault(technology);
-			CFixed15 progress = country.ResearchProgress.GetValueOrDefault(technology);
+			string technology = declaration.Name;
+			int level = declaration.IsShadowed ? 0 : country.TechnologyLevels.GetValueOrDefault(technology);
+			CFixed15 progress = declaration.IsShadowed ? default : country.ResearchProgress.GetValueOrDefault(technology);
 			// The third figure is the leadership put into it, which the game does not hold.
 			writer.Key(technology);
 			writer.Line("{" + level.ToString(System.Globalization.CultureInfo.InvariantCulture) + " " + CSaveValues.FiveText(progress) + " 0.000}");

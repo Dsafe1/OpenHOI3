@@ -91,6 +91,13 @@ public sealed class CTechnology
 	public bool Stealable { get; init; } = true;
 
 	/// <summary>
+	/// The earlier of two declarations of one name: a technology of its own in the original, whose name finds the later, so
+	/// reached only through the unit types it names and saved under the name at nought (<c>research.md</c>, section 1).
+	/// Held off <see cref="CGameState.Technologies"/> and <see cref="CGameState.TechnologiesInOrder"/>.
+	/// </summary>
+	public bool IsShadowed { get; init; }
+
+	/// <summary>
 	/// The unit types a level of it gives the country the use of, by key: each
 	/// <c>activate_unit</c> of its block.
 	/// </summary>

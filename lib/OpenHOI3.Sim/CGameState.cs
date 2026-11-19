@@ -45,6 +45,8 @@ public sealed class CGameState
 
 	private readonly List<CTechnology> _technologiesInOrder = new();
 
+	private readonly List<CTechnology> _technologyDeclarations = new();
+
 	private readonly Dictionary<string, CModifier> _strategicResources =
 		new(StringComparer.OrdinalIgnoreCase);
 
@@ -75,7 +77,8 @@ public sealed class CGameState
 		}
 		foreach (CTechnology technology in technologies ?? Array.Empty<CTechnology>())
 		{
-			if (_technologies.TryAdd(technology.Name, technology))
+			_technologyDeclarations.Add(technology);
+			if (!technology.IsShadowed && _technologies.TryAdd(technology.Name, technology))
 			{
 				_technologiesInOrder.Add(technology);
 			}
@@ -181,6 +184,12 @@ public sealed class CGameState
 
 	/// <summary>The technologies in the order they were read, which is the original's database order (research.md, section 9).</summary>
 	public IReadOnlyList<CTechnology> TechnologiesInOrder => _technologiesInOrder;
+
+	/// <summary>
+	/// Every declaration in the files' order, a name declared twice twice - the earlier <see cref="CTechnology.IsShadowed"/>.
+	/// What a save lists; nothing else asks it (<c>research.md</c>, section 1).
+	/// </summary>
+	public IReadOnlyList<CTechnology> TechnologyDeclarations => _technologyDeclarations;
 
 	/// <summary>The theories and practicals there are, in the order the file lists them.</summary>
 	public IReadOnlyList<CTechnologyCategory> TechnologyCategories { get; }

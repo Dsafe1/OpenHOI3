@@ -133,7 +133,9 @@ public static class CGameStateLoader
 		}
 
 		List<CTechnologyCategory> categories = CTechnologyReader.ReadCategories(directories, warn);
-		List<CTechnology> technologies = CTechnologyReader.Read(directories, warn, categories, unitTypes, terrainNames);
+		// Every declaration goes to the game state, which lists a name declared twice by its later; the history names the later.
+		List<CTechnology> declarations = CTechnologyReader.Read(directories, warn, categories, unitTypes, terrainNames);
+		List<CTechnology> technologies = declarations.Where(technology => !technology.IsShadowed).ToList();
 		Dictionary<string, Dictionary<string, CLaw>> lawBook = CModifierReader.ReadLaws(directories, warn);
 		List<COccupationPolicy> occupationPolicies = CModifierReader.ReadOccupationPolicies(directories, warn);
 		var ministerTypes = new List<CMinisterType>();
@@ -166,7 +168,7 @@ public static class CGameStateLoader
 			ideologyNames.AddRange(group.IdeologyOrder);
 		}
 		CUnitUpgradeReader.Read(directories, unitTypes, warn);
-		var state = new CGameState(at, provinces, countries.Declared, buildings, technologies, staticModifiers,
+		var state = new CGameState(at, provinces, countries.Declared, buildings, declarations, staticModifiers,
 			defines, wars, strategicResources, categories)
 		{
 			TechnologyFolders = CTechnologyReader.ReadFolders(directories),
