@@ -2044,11 +2044,11 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 
 - **Read and not built** (2026-11-19, a pass over the readers for what they pass over unseen): the technology effects
   `escort_efficiency` (Their Finest Hour 1, BlackICE 13) and `radar_efficiency` (1 and 5) are kept and shown in a
-  technology's tooltip, and nothing in the simulation asks them; and `common/country_colors.txt` - three colours for each
-  country, 279 in the base game and 45 in BlackICE - has no reader, where the original reads it (the fact base's
-  `FINDINGS-startup.md`, row 16; what for is not in the fact base, the file calling them "unit colors"). Smaller, from
-  the same pass: no reader reports an `objectTypes` kind none of them takes - the plan marker's `animatedmaptext` is
-  hard-coded, its file's figures unread - and the fonts pass over `color_override`.
+  technology's tooltip, and nothing in the simulation asks them. Smaller, from the same pass: no reader reports an
+  `objectTypes` kind none of them takes - the plan marker's `animatedmaptext` is hard-coded, its file's figures unread,
+  and the original's list of kinds is not read. ~~`common/country_colors.txt` has no reader~~ - the original stores its
+  three colours on the country and reads them nowhere (`FINDINGS-fontterrain.md`, section 3), so none is needed. The
+  fonts' `colorcodes` and `color_override` wait on compatibility entry 5.
 
 - **The validation log's lines** (2026-11-19, `logs.md`, section 4): the script's problems and the localisation's each
   have a line of their own at file and line; the other loaders keep their old wording, most naming their file and no

@@ -87,7 +87,47 @@ public sealed class CCountries
 		}
 
 		countries._all.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCulture));
+		CheckCultures(directories, countries._declared, warn);
 		return countries;
+	}
+
+	/// <summary>
+	/// A country's <c>graphical_culture</c> against <c>common/graphicalculturetype.txt</c>, a plain list of names. The
+	/// original matches the name exactly, case and all, drops one it does not hold without a word, and gives a country
+	/// with none <c>Generic</c>, logging "No gfxculturetype set"; it names only the 3D unit figures, which are not drawn
+	/// here (<c>reversing/findings/FINDINGS-fontterrain.md</c>, section 4). Both are said (clausewitz.md, section 3).
+	/// </summary>
+	private static void CheckCultures(CDirectorySettings directories, IEnumerable<CCountry> countries, Action<string> warn)
+	{
+		string path = directories.Resolve("common/graphicalculturetype.txt");
+		if (!System.IO.File.Exists(path))
+		{
+			return;
+		}
+		var cultures = new HashSet<string>(StringComparer.Ordinal);
+		foreach (ClausewitzNode entry in ClausewitzParser.ParseFile(path).Children)
+		{
+			if (entry.Key is null && entry.Value is { } name)
+			{
+				cultures.Add(name);
+			}
+			else
+			{
+				warn($"'{path}': '{entry.Key ?? entry.Value}' is no name of a culture; passed over");
+			}
+		}
+		foreach (CCountry country in countries)
+		{
+			if (country.GraphicalCulture.Length == 0)
+			{
+				warn($"'{country.DefinitionFile}': {country.Tag} has no graphical_culture; the original gives it Generic");
+			}
+			else if (!cultures.Contains(country.GraphicalCulture))
+			{
+				warn($"'{country.DefinitionFile}': {country.Tag}'s graphical_culture '{country.GraphicalCulture}' is no culture " +
+					"of graphicalculturetype.txt; the original drops it");
+			}
+		}
 	}
 
 	private static CCountry Read(CDirectorySettings directories, CLocalisation localisation,

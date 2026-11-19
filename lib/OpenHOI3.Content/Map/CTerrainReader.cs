@@ -37,10 +37,13 @@ public static class CTerrainReader
 		"movement_cost", "attack", "defence", "humidity", "attrition", "precipitation", "temperature",
 	};
 
-	/// <summary>What a terrain colour entry holds.</summary>
+	/// <summary>
+	/// What a terrain colour entry holds. <c>has_texture</c> and <c>altitude</c> the original stores and nothing of it
+	/// reads (<c>reversing/findings/FINDINGS-fontterrain.md</c>, section 2), so they are taken and passed over unsaid.
+	/// </summary>
 	private static readonly HashSet<string> EntryKeys = new(StringComparer.OrdinalIgnoreCase)
 	{
-		"type", "color", "tree", "tree_density", "priority", "has_texture",
+		"type", "color", "tree", "tree_density", "priority", "has_texture", "altitude",
 	};
 
 	/// <summary>What the terrain definition file declares.</summary>

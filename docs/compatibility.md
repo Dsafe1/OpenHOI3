@@ -105,12 +105,12 @@ now** is the decision's own word: this one is expected to be looked at again.
 
 | | |
 | --- | --- |
-| the original | takes the colour of each escape letter from a `colorcodes` block in the font's own `bitmapfont` declaration, font by font, and from a table of its own for a font with none |
-| here | seven letters have a colour fixed in the code, the same for every font: `R`, `G`, `Y`, `B`, `W`, `b`, `g`. The block is not read |
-| the difference today | the base game's red is the same to a point, and its white, black and grey the same; its green is brighter (0 255 0 against ours, about 26 204 26), its yellow deeper (255 189 0 against 255 217 0) and its blue pure (0 0 255 against about 64 128 255); it also has a dark red, `r`, which is not one of our seven and so draws in the font's own colour |
-| a mod loses | any colour it changed, any letter it added, and any font it gave colours of its own |
+| the original | takes an escape letter's colour from the font's own **`color_override`** block, else from **one table every font's `colorcodes` fills** - the first value given for a letter winning in each, the `.gfx` files in their listing's order - else changes nothing (corrected 2026-11-19, `reversing/findings/FINDINGS-fontterrain.md`, section 1; this row said until then that `colorcodes` was each font's own). So in Their Finest Hour `chatfonts.gfx`, listed before `core.gfx`, would give the shared table its green (0 159 3) and a `P`, and BlackICE's edits to `core.gfx`'s `colorcodes` would change nothing but where `chatfonts.gfx` has no letter - inferred, the listing's order not read |
+| here | seven letters have a colour fixed in the code, the same for every font: `R`, `G`, `Y`, `B`, `W`, `b`, `g`. Neither block is read |
+| the difference today | the base game's red is the same to a point, and its white, black and grey the same; its green differs (0 159 3 shared and 0 255 0 on the `_black` fonts, against ours, about 26 204 26), its yellow deeper (255 189 0 against 255 217 0) and its blue pure (0 0 255 against about 64 128 255); it also has a dark red, `r`, and a `P`, which are not among our seven and so change nothing |
+| a mod loses | any colour it changed in a `color_override` - BlackICE's five fonts' - any letter it added, and a shared colour where its file is parsed first |
 | why | the colours were chosen by eye before anyone knew where the original kept them, and they look right |
-| to undo | read `colorcodes` into the font as the original does, and keep ours as the table for a font with none. Small: the reading is `reversing/findings/FINDINGS-textdraw.md`, section 4 |
+| to undo | read `colorcodes` into one shared table and `color_override` into each font, the first value per letter winning, the `.gfx` files in their listing's order - `reversing/findings/FINDINGS-fontterrain.md`, section 1 |
 
 `docs/mechanics/interface.md`, section 6.
 
