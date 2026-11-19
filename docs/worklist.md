@@ -277,9 +277,19 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    midnight's sliders 0.10193 where the original's is 0.12134 - ours weighed every country's sliders after every
    country's day, the original weighs each in its own, before the later countries' days trade with it, so its supply need
    counts 0.814 supplies traded for where the day ends with 145.633 (`ministers.md`, section 5; section 141, read on the
-   running game). Open: (a) the one draw left of the four, a Soviet draw of the AI's generator the original makes and ours
-   does not at hour 36 of `wr11`; a hook naming each `math.random` caller is in the session scratchpad as
-   `dbg7-luarand.patch` (`OHDBG_LUARAND=TAG`); (b) **every fleet order of `wr19`, `wr15` and `wr14` is the original's since 2026-11-19**, none
+   running game). Open: (a) the one draw left of the four, at hour 36 of `wr11`: the naval body's raid draw
+   (`CAIUnit_ManageNavalUnits` phase 7) for the Soviet 4th Navy, a submarine flotilla lying at its base 782. `wr11`'s
+   Soviet pass at 19:00 on 17 July draws twice, the 13th Navy and the 4th; `wr14`'s, `wr15`'s and `wr19`'s draw nothing
+   then - that pass is the run's own. What every run shares: the 4th is given a raid at 10:00 (the five draws of that
+   hour are ours too) and **has none by 11:00, in all four runs' hourly saves**, staying at 782 for the 48 hours; ours
+   keeps the 10:00 raid on it, never moving, so at 19:00 it is busy and not drawn for. Nothing read says what drops the
+   original's: the raid's own hour (`navalmissions.md`, section 4) keeps an order with no way, and phase 4 cancels a raid
+   at its own base with no pending destination (`reversing/findings/FINDINGS-liveread.md`, section 65) - which would
+   leave it free for phase 7's draw in the same pass, and no run draws for it between 10:00 and 19:00. **The running game could not show it**: loaded from `wr11`'s 09:00 save the 4th
+   is given no raid at 10:00, and from the 16 July 23:00 save of `wr14` it keeps its raid and finds a way - a load
+   changes what the AI does there. Next: a recording run of the original from `Ireland1941_07_16_07` unbroken, with the
+   4th Navy's `+0xB0`, `+0x2CC` and `+0x140` watched for writes from 10:00 (the session scratchpad's `fieldwatch.lua`).
+   A hook naming each `math.random` caller is in the session scratchpad as `dbg7-luarand.patch` (`OHDBG_LUARAND=TAG`); (b) **every fleet order of `wr19`, `wr15` and `wr14` is the original's since 2026-11-19**, none
    of ours alone (the British 31st and 41st Navies were a submarine fleet sent raiding that ours left free for the
    intercept, `moving.md` section 14; the German 33. Unterseebootsflottille, 5th and 6th Navy the sea targets' undeclared
    war and capital-area fifth and a fleet's share counted out of its own agent, `moving.md` section 12 and `agents.md`
