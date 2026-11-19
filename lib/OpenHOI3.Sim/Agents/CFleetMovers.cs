@@ -21,6 +21,9 @@ public static class CFleetMovers
 
 	private const long Nobody = -10_000 * Whole;
 
+	/// <summary>The surface score a fleet's best starts from.</summary>
+	private const float NobodyScore = -10_000f;
+
 	public static void Distribute(CGameState state, CCountry country)
 	{
 		var agents = new List<CAgent>();
@@ -107,13 +110,18 @@ public static class CFleetMovers
 			}
 			else if (sum > 0 && total > 0)
 			{
+				// Every agent with a unit is asked, one with no ports wanting nought; its share is what it holds with the fleet's
+				// ships added - or taken away where the fleet is already its - over the country's ships, in single precision as the
+				// original works it (FINDINGS-liveread.md, section 138).
 				long n = fleet.SubUnits.Count;
-				long most = Nobody;
-				foreach ((CAgent agent, long want) in wants)
+				float most = NobodyScore;
+				foreach (CAgent agent in agents)
 				{
-					long held = holding.GetValueOrDefault(agent) + (ReferenceEquals(agent, current) ? 0 : n);
-					long score = want * Whole / sum - held * Whole / total;
-					if (score > most)
+					long held = holding.GetValueOrDefault(agent) + (ReferenceEquals(agent, current) ? -n : n);
+					float share = (float)((double)(float)held / (double)(float)total);
+					float wanted = (float)((double)(float)wants.GetValueOrDefault(agent) / (double)(float)sum);
+					float score = (float)((double)wanted - (double)share);
+					if ((double)score > (double)most)
 					{
 						most = score;
 						best = agent;

@@ -52,7 +52,7 @@ public static class CSeaTargets
 			return;
 		}
 		var wants = new Dictionary<CAgent, long>();
-		foreach (CCountry enemy in CThreatenedProvinces.Hostile(state, country))
+		foreach (CCountry enemy in Targets(state, country))
 		{
 			foreach (CConvoy convoy in enemy.Convoys)
 			{
@@ -134,7 +134,10 @@ public static class CSeaTargets
 	{
 		CAgent? best = null;
 		long least = long.MaxValue;
-		int capitalTheatre = state.Province(country.ActingCapital).TheatreId;
+		// The fifth is for a theatre with the acting capital's area among its areas - the original walks the theatre's list
+		// for it - and not for the one theatre the capital province is filed under: Germany's Berlin HQ holds Berlin's area,
+		// the province being Ob.kdo. des Heeres' (FINDINGS-liveread.md, section 138).
+		Supply.CSupplyArea? capitalArea = country.ActingCapital > 0 ? Supply.CSupplyNetworks.Refresh(state).AreaOf(country.ActingCapital) : null;
 		foreach ((CAgent agent, CTheatre theatre) in agents)
 		{
 			long distances = 0;
@@ -163,7 +166,7 @@ public static class CSeaTargets
 				long ships = Ships(agent.EnemyFleets) + fleet.SubUnits.Count;
 				score = System.Math.Max(ships * Whole / bases, Whole) * distances / count;
 			}
-			if (theatre.Id == capitalTheatre)
+			if (capitalArea is not null && theatre.Areas.Contains(capitalArea))
 			{
 				score = score * CapitalTheatre / Whole;
 			}
@@ -236,6 +239,37 @@ public static class CSeaTargets
 		{
 			if (!ReferenceEquals(other, country) && CCountryLists.FightingTogether(state, country.Tag, other.Tag)
 				&& !CCountryLists.IsEnemy(state, country, other.Tag))
+			{
+				list.Add(other);
+			}
+		}
+		return list;
+	}
+
+	/// <summary>
+	/// Whose convoys and fleets are handed out: the country's enemies, then those it has a war nobody declared with, then its
+	/// strategy's war targets, each once - the original's enemies and <c>undeclared_war_opponents</c> appended, then the
+	/// WarTargets (FINDINGS-moving.md, D.1). The undeclared war's are what puts the USA's fleets near Germany's ports on
+	/// Germany's agents in July 1941 (FINDINGS-liveread.md, section 138).
+	/// </summary>
+	private static List<CCountry> Targets(CGameState state, CCountry country)
+	{
+		List<CCountry> list = CCountryLists.Enemies(state, country);
+		foreach (Wars.CUndeclaredWar war in state.UndeclaredWars)
+		{
+			List<CCountryTag>? others = war.Attackers.Contains(country.Tag) ? war.Defenders
+				: war.Defenders.Contains(country.Tag) ? war.Attackers : null;
+			foreach (CCountryTag tag in others ?? new List<CCountryTag>())
+			{
+				if (state.Country(tag) is { } other && !list.Contains(other))
+				{
+					list.Add(other);
+				}
+			}
+		}
+		foreach (Ai.CWarTarget target in country.WarTargets)
+		{
+			if (state.Country(target.Target) is { } other && !list.Contains(other))
 			{
 				list.Add(other);
 			}

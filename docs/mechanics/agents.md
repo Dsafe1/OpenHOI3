@@ -569,8 +569,11 @@ chain: **one holding a submarine** goes to the agent with the most (submarine wa
 agent's want - what it holds + the fleet's ships), only agents with a want counting and the current one's term -10000 with
 none, above nought; **a surface fleet**, where the agents with ports face enemy ships at all (their wants: the ships of the
 enemy fleets handed to them, `moving.md` section 12), goes to the agent with the most want / all the wants - (what it
-holds, with the fleet's ships where it is another's) / the country's ships, from -10000. **At peace nothing moves**: no
-enemy ship is handed to anyone.
+holds, **with the fleet's ships added where it is another's and taken away where it is its own**) / the country's ships,
+from -10000, in single precision, every agent with a unit asked and one with no ports wanting nought
+(`reversing/findings/FINDINGS-liveread.md`, section 138: Germany's 5th Navy to Ob.kdo. des Heeres at 18:00 on 17 July
+1941, its transports and the 6th and 3rd Navies staying, figure for figure the running game's). **At peace nothing
+moves**: no enemy ship is handed to anyone.
 
 **Transports**, at (number + 8) % 24, for each agent with troops listed for the sea (`moving.md`, section 15) and a sealift
 port - its theatre's largest area's largest naval base: while their weight is above what its transport fleets can carry,

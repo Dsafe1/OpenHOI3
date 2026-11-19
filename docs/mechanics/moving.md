@@ -602,7 +602,10 @@ battle has an order that is neither a plain move nor none, stood down (`FINDINGS
 
 Once a day, at the country's hour (its number % 24), for the played country too, with **no sighting asked**:
 
-1. **The hostile**: the countries at war with it, and those it prepares war on.
+1. **The hostile**: the countries at war with it, then those it has a war nobody declared with, then those it prepares war
+   on, each once (`reversing/findings/FINDINGS-liveread.md`, section 138: the USA's 17th and 29th Navies, near Germany's
+   ports, handed to Berlin HQ through the Atlantic's undeclared war in July 1941). Other AI passes that list the enemy ask
+   the enemies and the prepared wars alone.
 2. Every agent's lists are emptied; an agent's theatre gives its ports.
 3. **Their convoys**: for each agent whose theatre has ports, over every pair of a step of the convoy's way and a port within
    3000 by sea: the ports' naval base levels summed and the distances summed. Every agent with a level or more is given the
@@ -610,14 +613,16 @@ Once a day, at the country's hour (its number % 24), for the played country too,
    adds the convoy's transports to its want.
 4. **Their fleets**, wherever they are: over each agent's ports within 2000 by sea of the fleet, the distances, the levels
    and their number, a level or more needed; the least `max((the ships handed it so far + the fleet's) / levels, 1) x
-   distances / number` - a fifth where the theatre holds the country's capital - is handed the fleet.
+   distances / number` - a fifth **where the acting capital's area is among the theatre's areas**, which need not be the
+   theatre the capital province is filed under, and may be more than one (section 138: Berlin HQ's fifth, Berlin being Ob.kdo.
+   des Heeres' province) - is handed the fleet.
 5. **The raided waters**: the province of each finished battle that was a raid on a convoy, its defender a real country
    other than the rebels and on our side (ourselves, our overlord or its subjects, or fighting beside us and no enemy),
    ended within the month, goes to every agent with a port within 2000 by sea and an open way to it, once
    (`reversing/findings/FINDINGS-liveread.md`, section 115). A neutral whose convoys nobody raided has none, so it sends
    no patrol over another country's raided waters.
-6. **Its own fleets** and its fellow fighters': each to the agent with the least mean distance from its ports - a fifth for
-   the capital's theatre - **over its ports within 2000 by sea, with a naval base level or more among them**, as the enemy's
+6. **Its own fleets** and its fellow fighters': each to the agent with the least mean distance from its ports - the same
+   fifth - **over its ports within 2000 by sea, with a naval base level or more among them**, as the enemy's
    (and 2000 itself within reach for both; `confirmed` on the listing, `reversing/findings/FINDINGS-liveread.md`, section 78).
 7. Each agent's **submarine want** is its want / 20.
 

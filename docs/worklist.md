@@ -252,10 +252,10 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    **Then sections 131 and 132** (2026-11-18): a strategic redeployment's supplies (`upkeep.md`, section 1), which had
    pushed Moscow's stockpile over the line the production script shuts supplies off at, and the submarines' raidable
    tonnage counted over every step of a convoy's way (`moving.md`, section 14), which had made the Soviet raids one draw out.
-   **Open, in order**, measured against `wr19` (48 hours from `Ireland1941_07_16_07`, every probe): 468 of 469 land orders
-   the same, none of ours alone, fleets 163 of 165, air units 25 of 26; `wr15` 467 of 467 (one of ours alone, that run's
-   original keeping the 3. Infanterie-Division off to 38) and fleets 162 of 164, `wr14` 466 of 484 and 159 of 163, `wr11`
-   453 of 488 and 146 of 167. **Every hour of `wr19` agrees draw for draw before its first battle, and no battle's dice
+   **Open, in order**, measured against `wr19` (48 hours from `Ireland1941_07_16_07`, every probe) on 2026-11-19: 468 of
+   469 land orders the same, none of ours alone, fleets 165 of 165 (one of ours alone), air units 26 of 26; `wr15` 467 of
+   467 (one of ours alone, that run's original keeping the 3. Infanterie-Division off to 38), fleets 164 of 164 and air 28
+   of 28, `wr14` 466 of 484, 160 of 163 and 27 of 27, `wr11` 453 of 488, 147 of 167 and 26 of 26. **Every hour of `wr19` agrees draw for draw before its first battle, and no battle's dice
    part in its 47 hours**, so what is left of it is orders no draw shows - and the AI's own draws, which the playback
    counts by country. **Every `math.random` draw of `wr19` is the original's since 2026-11-19**: Cuba's and Haiti's two
    beyond at hours 27 and 31 were a puppet's debt revoke ours let through, which cost Britain the influence that pays
@@ -266,9 +266,10 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    (`reversing/findings/FINDINGS-liveread.md`, section 134), so a playback reports them as ours beyond. Open: (a) the
    offers the AI answers one draw out in `wr15`, `wr14` and `wr11` (`CPactPasses.Answer`), and Sweden's Lua draw at 46
    of `wr11` - a hook naming each `math.random` caller is in the session scratchpad as `dbg7-luarand.patch`
-   (`OHDBG_LUARAND=TAG`); (b) the fleets ours orders otherwise - the German 33. Unterseebootsflottille, 5th and 6th Navy
-   at hour 36 and the Soviet Cernoje Flote at 46 (the British 31st and 41st Navies were a submarine fleet sent raiding that
-   ours left free for the intercept: `moving.md`, section 14). **Every air order of `wr19` is the original's since
+   (`OHDBG_LUARAND=TAG`); (b) the Soviet Cernoje Flote at hour 46, the one fleet order of `wr19` ours gives alone (the
+   British 31st and 41st Navies were a submarine fleet sent raiding that ours left free for the intercept, `moving.md`
+   section 14; the German 33. Unterseebootsflottille, 5th and 6th Navy the sea targets' undeclared war and capital-area
+   fifth and a fleet's share counted out of its own agent, `moving.md` section 12 and `agents.md` 10.4). **Every air order of `wr19` is the original's since
    2026-11-19**: the Omani dive bombers' rebase was Britain's waiting carrier groups, which ours had put on an airfield
    (`ministers.md`, section 6), and the German 26th Air wing's a multi-role wing ours let bar a bomber's move to a war
    candidate's front (`agents.md`, section 10.3); (c) `wr14`, whose dice part at hour 13, and `wr11`.
