@@ -20,8 +20,8 @@ As measured, with `OpenHOI3.SaveCheck profile` and the headless run, both in Rel
 - **A game year of the headless run about 190 to 280 seconds**, as more of the AI was built (`docs/mechanics/headless.md`).
 - **Of thirty days of 1936, the unit agents 10.8 s and the AI's trading in Lua 7.7 s** - about seventy per cent of the
   hour, which is why a replay, which skips them, runs 224 s where its recording ran 584 s (`docs/replay.md`, section 1).
-- **The Lua is already C.** It is the original's interpreter, Lua 5.1.4, built from `native/lua` into
-  `openhoi3_lua.dll`. A rewrite of the C# around it changes only what crosses between the two: the boxed `float` handed
+- **The Lua is already C.** It is LuaJIT's interpreter, built from `native/luajit` into `openhoi3_lua.dll` - the
+  original's Lua 5.1.4 until 2026-11-19, and behind a switch since (below). A rewrite of the C# around it changes only what crosses between the two: the boxed `float` handed
   over for each figure, the strings, the fields.
 - **The runtime was tried on 2026-11-04 and is not the lever**: .NET 9 and 10, Server GC, the GC's budgets and the JIT's
   tiering all came out within the noise. **Allocation was**: the route finder's scratch arrays kept (`CRouteScratch`) and
@@ -62,6 +62,22 @@ As measured, with `OpenHOI3.SaveCheck profile` and the headless run, both in Rel
   four fifths is native - the original's Lua running the install's scripts - and our side of the crossing, the pushes
   and the calls, about a twentieth. The collector is not it either: its pause at 1000 in place of 200 gave about 4 per
   cent, so it was left. A userdata a push stays, as luabind's: two pushes of one object are two values to a script.
+- **So the interpreter was changed: LuaJIT's runs the scripts since 2026-11-19** (`native/luajit/readme.md`). Measured
+  that day on thirty days of BlackICE with Germany played, the ministers' and the trading's Lua a day, the base game's
+  in brackets: Lua 5.1.4 300 ms (101), the same built with profile-guided optimisation 246 (65), **LuaJIT's
+  interpreter 201 (56)**, LuaJIT with its compiler on 223 (63) - the day 1,232, 1,066, 992 and 1,035 ms. A second round
+  ran beside another session's work and is left out; an earlier one gave profile-guided optimisation 6 per cent and the
+  base game's 13. The compiler loses to the interpreter because the scripts call into our classes all the time and
+  every call ends what it is compiling; it is left off. Profile-guided optimisation was not taken up: its profile
+  comes from a run on an install and fits one compiler's version alone. **As built, set beside 5.1.4 on the same build
+  with `lua=5.1.4`, two rounds each run back to back**: BlackICE's Lua 254 and 259 ms a day against LuaJIT's 194 and 204,
+  the day 1,075 and 1,102 against 1,005 and 1,064; the base game's Lua 70 against 57 and 59 (5.1.4's second round, 115,
+  ran beside other work). So **about a fifth of the Lua, some 55 ms of BlackICE's day** - the first round's 300 for
+  5.1.4 was high. **The price is the order of `pairs`**: within
+  a new game's first days the ministers post the same commands in another order and the production minister picks other
+  brigades among equals, so a game plays otherwise from the same seed - each interpreter the same every run, and every
+  check against the start save's figures the same under both. Lua 5.1.4 stays behind a switch for the comparisons that
+  want the original's order (`docs/mechanics/lua.md`, section 1; `docs/compatibility.md`, entry 30).
 - **The walk of a country's units made one enumerator** (`CUnitWalk`) where it was two nested ones and a new stack a
   walk - the same units in the same order, as live as before: a unit's units are read only as the walk is asked for the
   next, so what a caller does to a unit as it meets it is what the walk then finds. Every walk gains, the AI's among them

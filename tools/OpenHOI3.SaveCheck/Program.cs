@@ -27,6 +27,19 @@ using OpenHOI3.Sim.Units;
 // mod=<name> anywhere lays that mod of tfh/mod over the install for whatever command runs (CToolDirectories).
 args = CToolDirectories.TakeMod(args);
 
+// lua=5.1.4 anywhere runs the install's Lua on the original's interpreter and not on LuaJIT, for whatever command runs
+// (CLuaInterpreter; docs/mechanics/lua.md, section 1); lua=luajit, the default, says so.
+if (args.LastOrDefault(argument => argument.StartsWith("lua=", StringComparison.Ordinal)) is { } luaSwitch)
+{
+	if (!OpenHOI3.Lua.Native.CLuaInterpreter.Choose(luaSwitch["lua=".Length..]))
+	{
+		Console.Error.WriteLine($"{luaSwitch} names no interpreter; it may be lua=luajit or lua=5.1.4.");
+		return 2;
+	}
+	Console.Error.WriteLine($"the install's Lua on {OpenHOI3.Lua.Native.CLuaInterpreter.Description}");
+	args = args.Where(argument => !argument.StartsWith("lua=", StringComparison.Ordinal)).ToArray();
+}
+
 // Research is checked against two later saves of one game: see CResearchCheck.
 if (args.Length > 0 && args[0] == "research")
 {

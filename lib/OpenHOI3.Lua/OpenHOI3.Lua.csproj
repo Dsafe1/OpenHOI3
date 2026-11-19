@@ -1,12 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    The install's Lua scripts, run on the simulation: the original's interpreter, Lua 5.1.4, built
-    from its source in native/lua, the classes the original hands its scripts, and the calls the
-    game makes into them. See docs/mechanics/lua.md.
+    The install's Lua scripts, run on the simulation: LuaJIT, built from its source in native/luajit and
+    answering the C interface as the original's Lua 5.1.4 does, the classes the original hands its
+    scripts, and the calls the game makes into them. See docs/mechanics/lua.md.
 
-    The interpreter is native code, openhoi3_lua.dll. It is built here whenever it is missing or older
-    than its sources, and copied beside whatever references this project.
+    The interpreter is native code: openhoi3_lua.dll, LuaJIT, and beside it openhoi3_lua514.dll, the
+    original's Lua 5.1.4 built from native/lua, which the switch CLuaInterpreter reads chooses instead
+    (docs/mechanics/lua.md, section 1). Both are built here whenever they are missing or older than their
+    sources, and copied beside whatever references this project.
   -->
 
   <PropertyGroup>
@@ -23,18 +25,27 @@
 
   <PropertyGroup>
     <LuaSourceDirectory>$(MSBuildThisFileDirectory)../../native/lua/</LuaSourceDirectory>
+    <LuaJitSourceDirectory>$(MSBuildThisFileDirectory)../../native/luajit/</LuaJitSourceDirectory>
     <LuaBuildDirectory>$(MSBuildThisFileDirectory)obj/native/win-x64/</LuaBuildDirectory>
-    <LuaLibrary>$(LuaBuildDirectory)openhoi3_lua.dll</LuaLibrary>
+    <LuaLibrary>$(LuaBuildDirectory)openhoi3_lua514.dll</LuaLibrary>
+    <LuaJitLibrary>$(LuaBuildDirectory)openhoi3_lua.dll</LuaJitLibrary>
   </PropertyGroup>
 
   <ItemGroup>
     <LuaSource Include="$(LuaSourceDirectory)src/*.c;$(LuaSourceDirectory)src/*.h;$(LuaSourceDirectory)ohoi/*.c;$(LuaSourceDirectory)build.ps1" />
-    <None Include="$(LuaLibrary)" Link="openhoi3_lua.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+    <LuaJitSource Include="$(LuaJitSourceDirectory)src/**/*;$(LuaJitSourceDirectory)dynasm/*;$(LuaJitSourceDirectory)build.ps1;$(LuaJitSourceDirectory).relver;$(LuaSourceDirectory)ohoi/*.c" />
+    <None Include="$(LuaLibrary)" Link="openhoi3_lua514.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+    <None Include="$(LuaJitLibrary)" Link="openhoi3_lua.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
   </ItemGroup>
 
   <Target Name="BuildLua" BeforeTargets="BeforeBuild" Inputs="@(LuaSource)" Outputs="$(LuaLibrary)"
           Condition="$([MSBuild]::IsOSPlatform('Windows'))">
     <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(LuaSourceDirectory)build.ps1&quot; -OutDir &quot;$(LuaBuildDirectory)&quot;" />
+  </Target>
+
+  <Target Name="BuildLuaJit" BeforeTargets="BeforeBuild" Inputs="@(LuaJitSource)" Outputs="$(LuaJitLibrary)"
+          Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(LuaJitSourceDirectory)build.ps1&quot; -OutDir &quot;$(LuaBuildDirectory)&quot;" />
   </Target>
 
 </Project>

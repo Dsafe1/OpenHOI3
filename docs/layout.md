@@ -170,8 +170,10 @@ lib/OpenHOI3.Lua/       the install's Lua, run on the simulation: the state the 
                         makes, its searcher and autoexec, and what the game asks it
     Native/             the interpreter's C API, the trampoline, a state, a call, a class
     Api/                the classes the original hands its scripts, on the simulation
+native/luajit/          LuaJIT's source, its licence and the build of openhoi3_lua.dll, the interpreter
+                        the install's Lua runs on, which the Lua project runs
 native/lua/             Lua 5.1.4's source, its licence, our trampoline and the build of
-                        openhoi3_lua.dll, which the Lua project runs
+                        openhoi3_lua514.dll, the original's interpreter, behind a switch
 tools/OpenHOI3.SaveCheck/   checks the libraries against a savegame the original wrote
 tools/build_*.ps1       the builds: build_engine the standalone engine, build_launcher the launcher, build_both
                         the launcher with the engine in its engine folder (docs/launcher.md, section 7)

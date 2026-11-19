@@ -2,9 +2,10 @@
 
 The original's AI is written in Lua - `script/` in an install, a mod's own over it - and the game
 asks it questions: what relations a new game gives, which laws a country wants, what the AI makes of
-an offer. This is how those scripts are run here: on **the original's own interpreter, Lua 5.1.4,
-built from its source** - chosen on 2026-10-12, over a C# interpreter of our own
-and over MoonSharp - with the classes the original hands them, built one at a time on the
+an offer. This is how those scripts are run here: on **LuaJIT's interpreter, answering the C interface
+as the original's Lua 5.1.4 does** - since 2026-11-19, for speed; the original's own Lua 5.1.4, built
+from its source and chosen on 2026-10-12 over a C# interpreter of our own and over MoonSharp, ran them
+until then and stays behind a switch (section 1) - with the classes the original hands them, built one at a time on the
 simulation. The first slice was what a new game's relations need (`diplomacy.md`, section 2); the
 second, on 2026-10-13, what the AI answers an offer with (section 6).
 
@@ -13,19 +14,49 @@ the methods, `==`, the x87; read 2026-10-12), `reversing/findings/FINDINGS-diplo
 `reversing/findings/FINDINGS-luaapi.md` (the offer's call, what the scripts reach of the API and what
 each part answers; read 2026-10-13; section 11, what BlackICE's scripts reach besides, read 2026-11-16),
 `reversing/findings/FINDINGS-diplomacy.md` and
-`reversing/findings/FINDINGS-survivors.md` (which offers ask which function). The interpreter's
-source and what was changed in it: `native/lua/readme.md`.
+`reversing/findings/FINDINGS-survivors.md` (which offers ask which function). The interpreters'
+sources and what was changed in them: `native/luajit/readme.md` and `native/lua/readme.md`.
 
 ## 1. The interpreter
 
-Lua 5.1.4 - the version the original ships - numbers as doubles, built for 64-bit Windows from the
-tarball's source. Two settings follow the original's 32-bit build where a 64-bit one would differ:
+**Two interpreters, one at a time, for the whole process.** By default **LuaJIT's interpreter**, built
+from `native/luajit` into `openhoi3_lua.dll`, its compiler never switched on - about a fifth less time on
+the AI's scripts (`docs/performance.md`, section 2). Behind a switch **the original's own Lua 5.1.4**,
+built from the tarball's source in `native/lua` into `openhoi3_lua514.dll`: `OPENHOI3_LUA=5.1.4` in the
+environment, `--lua=5.1.4` to the client, `lua=5.1.4` to the savegame tool (`CLuaInterpreter`). Both are
+built by `dotnet build`, and the C# side calls either through the same imports.
+
+Both are numbers as doubles, built for 64-bit Windows, and both are set to follow the original's 32-bit
+build where a 64-bit one would differ:
 
 - **a number turns into an integer to the nearest, ties to even** (`lua_tointeger`, what
   `string.rep`, `string.sub` and the C API's integer reads use) - the original's build converts with
   the x87's `fistp`, and a 64-bit one would cut toward nought. `string.format('%d')` cuts in both,
-  being a plain C cast.
+  being a plain C cast. Under LuaJIT the interpreter's own fast paths for a few library functions -
+  `string.sub` and `string.byte` among them - still cut a fraction toward nought; no script of the
+  base game's or BlackICE's was found to give them one.
 - **the integer type is 32 bits wide.**
+- **5.1.4's compatibility names** `math.mod` and `string.gfind`, which the base game's scripts call,
+  are given LuaJIT too.
+
+**What differs between them is the order `pairs` and `next` walk a table in**, which is 5.1.4's - the
+original's - only under 5.1.4: LuaJIT lays out a table otherwise. A string key starts at 5.1.4's
+place, LuaJIT's string ID being made 5.1.4's hash of the string (`native/luajit/readme.md`), but a
+number's hash, the growing of a table and the moving of a key that collides are LuaJIT's. Lua leaves
+that order unspecified, but a script that keeps the first of several equal choices makes another under
+LuaJIT. So from the same seed the two play different games: a new game of the base game is the same
+for its first three days and parts on the fourth, BlackICE's from the second - the ministers posting
+the same commands in another order, the production minister picking other brigades among equals.
+Each plays the same game on every run - LuaJIT's randomisations are built off, and **a table's layout
+does not hang on what its state ran before**, which the trading's eight states side by side need: with
+LuaJIT's own string IDs, a count of the strings made, BlackICE's game came out otherwise each run. Every check
+against the start save comes out the same under both: relations, threat, neutrality and alignment
+(`diplomacy`), the government (`politics`), the spies (`espionage`), the first days (`firstdays`),
+the intelligence minister's priorities at 110 days (`espionageai`) and the theatres' ladders at four
+days (`agents`), on 2026-11-19. **Use 5.1.4 where a run is set beside one of the original's** - the
+recorded draws of `docs/replay.md`, section 9, above all - since only there are the draws spent on
+the same choices. Decided 2026-11-19: "Since the pairs order is unspecified, no code should rely on
+it." (`docs/compatibility.md`, entry 30.)
 
 ## 2. Calling in and out
 

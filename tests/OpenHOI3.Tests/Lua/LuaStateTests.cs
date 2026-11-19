@@ -38,6 +38,38 @@ public class LuaStateTests
 		Assert.Equal("Lua 5.1", Ask(lua, "_VERSION"));
 		Assert.Equal(4.0, Ask(lua, "table.getn({1, 2, 3, 4})"));
 		Assert.Equal(1.0, Ask(lua, "math.mod(7, 3)"));
+		Assert.Equal("ab", Ask(lua, "(function() local s = '' for w in string.gfind('a b', '%a') do s = s .. w end return s end)()"));
+	}
+
+	[Fact]
+	public void The_interpreter_loaded_is_the_one_chosen()
+	{
+		// LuaJIT parses Lua 5.2's goto, which 5.1.4 does not: the one tell between the two a script can see but the order of pairs.
+		using CLuaState lua = Open();
+		Assert.Equal(CLuaInterpreter.Chosen == ELuaInterpreter.LuaJit, Ask(lua, "loadstring('goto a ::a::') ~= nil"));
+	}
+
+	[Fact]
+	public void The_interpreters_are_chosen_by_name()
+	{
+		Assert.True(CLuaInterpreter.TryParse("5.1.4", out ELuaInterpreter old));
+		Assert.Equal(ELuaInterpreter.Lua514, old);
+		Assert.True(CLuaInterpreter.TryParse("LuaJIT", out ELuaInterpreter jit));
+		Assert.Equal(ELuaInterpreter.LuaJit, jit);
+		Assert.False(CLuaInterpreter.TryParse("5.2", out _));
+	}
+
+	[Fact]
+	public void A_table_walks_its_string_keys_in_the_same_order_whatever_the_state_ran_before()
+	{
+		// The trading runs the countries on several states side by side, each taking whichever country is next, so where a
+		// key stands must not hang on the strings a state made earlier (native/luajit/readme.md, lj_str.c).
+		const string walk = "(function() local t = {} for i = 1, 64 do t['key' .. i] = i end "
+			+ "local s = '' for k in pairs(t) do s = s .. k .. ' ' end return s end)()";
+		using CLuaState fresh = Open();
+		using CLuaState used = Open();
+		Run(used, "local junk = {} for i = 1, 5001 do junk[i] = 'other' .. i .. 'string' end");
+		Assert.Equal(Ask(fresh, walk), Ask(used, walk));
 	}
 
 	[Fact]

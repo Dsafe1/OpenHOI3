@@ -545,6 +545,20 @@ but for this one fix, which the normal engine keeps for every game - "Keep the f
 | why | so that BlackICE plays without its DLL, the normal engine giving none of BiceLib (`docs/enhanced.md`, *Asked for*) |
 | to undo | store the last building written's figure in `CSupplyFigures.MostInfrastructure` |
 
+## 30. The install's Lua runs on LuaJIT, and `pairs` walks a table in LuaJIT's order
+
+**Decided** 2026-11-19, on a measurement of both interpreters: "I think the 'pairs' issue is not that big of a deal.
+Since the pairs order is unspecified, no code should rely on it" - and the original's Lua kept "with a switch".
+
+| | |
+| --- | --- |
+| the original | runs its scripts on Lua 5.1.4, its `lua5.1.dll`, whose tables hand `pairs` and `next` their entries in an order that follows from 5.1.4's hashing and layout |
+| here | LuaJIT's interpreter, set to answer the C interface and the scripts as 5.1.4 does - integers 32 bits wide and rounded to even, `math.mod` and `string.gfind` - but laying out its tables its own way (`native/luajit/readme.md`; `mechanics/lua.md`, section 1) |
+| the difference today | a script that keeps the first of several equal choices may make another: within a new game's first days - the fourth in the base game, the second in BlackICE - the ministers post the same commands in another order and the production minister picks other brigades among equals, so a game plays otherwise from the same seed. Every check against the start save comes out the same under both. A fraction given to `string.sub`, `string.byte` and a few others is cut where 5.1.4 rounds it, which no script was found to do |
+| a mod loses | nothing a script may rely on - Lua leaves the order unspecified - but a mod's AI may choose otherwise among equals than it does in the original |
+| why | about a fifth of the AI's Lua time: about 256 ms of a BlackICE day to 199, measured back to back on one build (`docs/performance.md`, section 2) |
+| to undo | `OPENHOI3_LUA=5.1.4`, the client's `--lua=5.1.4` or the savegame tool's `lua=5.1.4` runs the original's Lua 5.1.4, still built beside it (`CLuaInterpreter`); making it the default is `CLuaInterpreter.Chosen`'s fallback |
+
 ## Stricter, with the same meaning
 
 Not departures - a file means what it meant - but a mod's author will see them, so they

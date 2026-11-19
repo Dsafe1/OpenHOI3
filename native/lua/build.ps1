@@ -1,5 +1,5 @@
 <#
-  Builds openhoi3_lua.dll - Lua 5.1.4 and OpenHOI3's trampoline (ohoi/ohoi.c) - for 64-bit Windows,
+  Builds openhoi3_lua514.dll - Lua 5.1.4 and OpenHOI3's trampoline (ohoi/ohoi.c) - for 64-bit Windows,
   with the Visual Studio C++ tools found through vswhere. The CRT is linked statically (/MT), so
   the DLL needs nothing installed beside it.
 
@@ -29,7 +29,7 @@ New-Item -ItemType Directory -Force -Path $objDir | Out-Null
 $sources = @(Get-ChildItem (Join-Path $here 'src\*.c')) + @(Get-ChildItem (Join-Path $here 'ohoi\*.c'))
 $list = ($sources | ForEach-Object { '"' + $_.FullName + '"' }) -join ' '
 $include = Join-Path $here 'src'
-$dll = Join-Path $OutDir 'openhoi3_lua.dll'
+$dll = Join-Path $OutDir 'openhoi3_lua514.dll'
 
 # vcvars64.bat looks vswhere.exe up on the PATH itself.
 $env:PATH = (Split-Path -Parent $vswhere) + ';' + $env:PATH

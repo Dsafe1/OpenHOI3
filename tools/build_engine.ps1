@@ -1,6 +1,6 @@
 <#
   Builds the standalone game: export/OpenHOI3/, which holds OpenHOI3.exe (the game's resources packed into it),
-  its .NET folder data_OpenHOI3_windows_x86_64 with openhoi3_lua.dll, and OpenHOI3_licences with the licences of
+  its .NET folder data_OpenHOI3_windows_x86_64 with openhoi3_lua.dll and openhoi3_lua514.dll, and OpenHOI3_licences with the licences of
   what it ships.
 
   The build plays the install it is placed in - the folder holding the exe - so it is used by copying the whole of
@@ -53,17 +53,21 @@ if (-not (Test-Path $exe)) {
 }
 
 $data = Join-Path $out 'data_OpenHOI3_windows_x86_64'
-$lua = Get-ChildItem -Path $data -Recurse -Filter 'openhoi3_lua.dll' -ErrorAction SilentlyContinue | Select-Object -First 1
-if (-not $lua) {
-    throw "openhoi3_lua.dll is not in $data; the install's Lua would not run."
+# LuaJIT, which the install's Lua runs on, and the original's Lua 5.1.4 the --lua=5.1.4 switch chooses (docs/mechanics/lua.md).
+foreach ($name in 'openhoi3_lua.dll', 'openhoi3_lua514.dll') {
+    $lua = Get-ChildItem -Path $data -Recurse -Filter $name -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $lua) {
+        throw "$name is not in $data; the install's Lua would not run."
+    }
 }
 
-# What is shipped is shipped with its licence: the typefaces under the SIL Open Font License and Lua's MIT terms.
+# What is shipped is shipped with its licence: the typefaces under the SIL Open Font License, LuaJIT's and Lua's MIT terms.
 # Prefixed, as the .NET folder is, because the whole folder is copied into an install beside the original's own files.
 $licences = Join-Path $out 'OpenHOI3_licences'
 New-Item -ItemType Directory -Force -Path $licences | Out-Null
 Copy-Item (Join-Path $root 'fonts\*.txt') $licences
 Copy-Item (Join-Path $root 'fonts\readme.md') (Join-Path $licences 'fonts.md')
+Copy-Item (Join-Path $root 'native\luajit\COPYRIGHT') (Join-Path $licences 'LuaJIT-COPYRIGHT.txt')
 Copy-Item (Join-Path $root 'native\lua\COPYRIGHT') (Join-Path $licences 'Lua-COPYRIGHT.txt')
 
 # Breitkopf Fraktur is not in the repository, its licence forbidding that it be published there: each builder downloads it

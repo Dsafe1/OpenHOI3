@@ -4,6 +4,11 @@ The interpreter the original runs its scripts on, built from its own source - ch
 on 2026-10-12, over a C# interpreter of our own and over MoonSharp: "Real Lua 5.1.4,
 native". `docs/mechanics/lua.md` says how the game uses it.
 
+**Since 2026-11-19 it is the switch's, not the default**: the scripts run on LuaJIT (`native/luajit`), taking about a fifth less time,
+and this is kept for what wants a table's `pairs` in the original's order - a comparison with a run of the
+original's, above all - chosen with `OPENHOI3_LUA=5.1.4`, the client's `--lua=5.1.4` or the savegame tool's
+`lua=5.1.4` (`docs/mechanics/lua.md`, section 1; `docs/compatibility.md`, entry 30).
+
 **Where it came from**: `https://www.lua.org/ftp/lua-5.1.4.tar.gz`, fetched 2026-10-12, md5
 `d0870f2de55d59c1c8419f36e8fac150`, sha256
 `b038e225eaf2a5b57c9bcc35cd13aa8c6c8288ef493d52970c9545074098af3a`. `src/` is the tarball's `src/`
@@ -21,9 +26,10 @@ without `lua.c`, `luac.c` and `print.c`, the stand-alone programs. `COPYRIGHT` i
   would make it 64.
 
 `ohoi/ohoi.c` is ours: a trampoline, so that a function written in C# never raises a Lua error
-itself - a Lua error is a `longjmp`, and a `longjmp` through a .NET frame is undefined.
+itself - a Lua error is a `longjmp`, and a `longjmp` through a .NET frame is undefined. LuaJIT's build
+compiles the same file.
 
-**Building**: `build.ps1 -OutDir <folder>` builds `openhoi3_lua.dll` - a name no other Lua on a machine has - for 64-bit Windows with the Visual
+**Building**: `build.ps1 -OutDir <folder>` builds `openhoi3_lua514.dll` - a name no other Lua on a machine has - for 64-bit Windows with the Visual
 Studio C++ tools, found through `vswhere`, the C runtime linked in. `lib/OpenHOI3.Lua` runs it
 whenever the DLL is missing or older than a source here, so `dotnet build` is enough; the DLL is
 built output and is not committed. Other platforms are not built yet.

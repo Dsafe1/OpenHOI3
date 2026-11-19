@@ -71,7 +71,7 @@ was added on 2026-10-08 with the interface, for the same reason, the fifth on
 | `lib/OpenHOI3.Sim` | the model and the simulation | **nothing** - not Godot, not `Content` |
 | `lib/OpenHOI3.Content` | reading an install: the Clausewitz format, layering, localisation, the loaders, the `.gui` declarations | `Sim` |
 | `lib/OpenHOI3.Interface` | what the screens show, with no engine: the text of each figure as the original writes it, colour escapes, where an element goes | `Sim`, `Content` |
-| `lib/OpenHOI3.Lua` | the install's Lua scripts on the original's interpreter, Lua 5.1.4 built from `native/lua`, and the classes they are handed | `Sim`, `Content` |
+| `lib/OpenHOI3.Lua` | the install's Lua scripts on LuaJIT's interpreter built from `native/luajit` - or, behind a switch, the original's Lua 5.1.4 from `native/lua` - and the classes they are handed | `Sim`, `Content` |
 | `OpenHOI3.csproj`, with `src/` | the Godot client: scenes, drawing, input, texture decoding, typefaces, the live interface | all four |
 | `launcher/OpenHOI3.Launcher` | the launcher, in Avalonia: lists the mods and starts the engine a choice is played on - what it decides is `Content/Launch`, under test | `Sim`, `Content` - **not Godot, and never an engine at run time**: it speaks to one by `CLaunchContract`'s command line alone |
 
@@ -79,9 +79,13 @@ was added on 2026-10-08 with the interface, for the same reason, the fifth on
 `OpenHOI3.Lua` answers and the caller hands to `CGameStateLoader.LoadStart` - so `Sim` still
 references nothing. **Lua code runs only inside a protected call, and a C# function never
 raises a Lua error itself** (the trampoline in `native/lua/ohoi` does): a Lua error is a
-`longjmp`, and one through a .NET frame is undefined. `native/lua/build.ps1` builds
-`openhoi3_lua.dll` with the Visual Studio C++ tools on `dotnet build`; it is built output and
-never committed (`docs/mechanics/lua.md`, `native/lua/readme.md`).
+`longjmp`, and one through a .NET frame is undefined. `native/luajit/build.ps1` builds
+`openhoi3_lua.dll`, LuaJIT, and `native/lua/build.ps1` `openhoi3_lua514.dll`, the original's Lua
+5.1.4, both with the Visual Studio C++ tools on `dotnet build`; they are built output and never
+committed (`docs/mechanics/lua.md`, `native/luajit/readme.md`, `native/lua/readme.md`). **LuaJIT is
+the default since 2026-11-19, and `pairs` walks a table in its order, not the original's**:
+`OPENHOI3_LUA=5.1.4`, the client's `--lua=5.1.4` or the tool's `lua=5.1.4` runs 5.1.4 instead -
+use it for anything set beside a run of the original's (`docs/compatibility.md`, entry 30).
 
 **A screen is two halves.** What it says is a class in `OpenHOI3.Interface` - `CTopBarText` -
 tested against the original's own strings; the class in `src/Screens/` finds the elements by

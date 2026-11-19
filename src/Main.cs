@@ -85,6 +85,7 @@ public partial class Main : Control
 
 		GD.Print("OpenHOI3 starting.");
 		MouseFilter = MouseFilterEnum.Ignore;
+		ChooseLua();
 		if (CSession.UserArguments().FirstOrDefault(a => a.StartsWith(Debug.CShaderCompileCheck.Switch)) is { } shaderCheck)
 		{
 			Debug.CShaderCompileCheck.Run(shaderCheck[Debug.CShaderCompileCheck.Switch.Length..], GetTree());
@@ -139,7 +140,7 @@ public partial class Main : Control
 			// The game's switches want a game, which nothing has said to play; the front end plays only the clicks.
 			string[] unused = CSession.UserArguments()
 				.Where(argument => argument.StartsWith("--") && !FrontEndSwitches.Any(argument.StartsWith) && !CModSwitch.Is(argument)
-					&& !CLaunchContract.Is(argument))
+					&& !CLaunchContract.Is(argument) && !argument.StartsWith(LuaSwitch))
 				.ToArray();
 			if (unused.Length > 0)
 			{
@@ -147,6 +148,23 @@ public partial class Main : Control
 			}
 			ShowFrontEnd();
 		}
+	}
+
+	/// <summary>The developer's switch that runs the install's Lua on the original's interpreter: <c>--lua=5.1.4</c>.</summary>
+	private const string LuaSwitch = "--lua=";
+
+	/// <summary>
+	/// The interpreter the install's Lua runs on, for the whole run: LuaJIT, or the original's Lua 5.1.4 that
+	/// <c>--lua=5.1.4</c> or <c>OPENHOI3_LUA=5.1.4</c> chooses (docs/mechanics/lua.md, section 1). Before anything loads Lua.
+	/// </summary>
+	private static void ChooseLua()
+	{
+		if (CSession.UserArguments().LastOrDefault(argument => argument.StartsWith(LuaSwitch)) is { } lua
+			&& !OpenHOI3.Lua.Native.CLuaInterpreter.Choose(lua[LuaSwitch.Length..]))
+		{
+			GD.PushError($"{lua} names no interpreter; it may be --lua=luajit or --lua=5.1.4. LuaJIT runs the scripts.");
+		}
+		GD.Print($"Lua: {OpenHOI3.Lua.Native.CLuaInterpreter.Description}");
 	}
 
 	/// <summary>

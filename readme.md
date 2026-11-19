@@ -25,8 +25,9 @@ content and no modders. So OpenHOI3 reads an install **as it is**:
   recognises is reported, where the original drops it without a word.
 - **The interface is built from the original's `.gui` and `.gfx` files**, laid out by our own runtime
   on a canvas that scales to any screen.
-- **The AI is the install's own Lua**, run on the original's interpreter - Lua 5.1.4, built from its
-  source - with the classes the original hands its scripts.
+- **The AI is the install's own Lua**, run on LuaJIT's interpreter set to answer as the original's
+  Lua 5.1.4 does - the original's own interpreter is built too, behind a switch - with the classes the
+  original hands its scripts.
 - **The map is drawn through the install's own effect files**, translated to Godot shaders as they
   load, so a mod that changes a shader changes the picture.
 - **Saves are the original's `.hoi3` format**, read and written.
@@ -186,6 +187,8 @@ fixture taken from an install.
 OpenHOI3 was started in 2021 by [Dozed12](https://github.com/Dozed12) as a Unity project, and was
 rebuilt on Godot from 2026.
 
+- [LuaJIT](https://luajit.org/) 2.1, in [`native/luajit`](native/luajit), under the MIT licence
+  ([`native/luajit/COPYRIGHT`](native/luajit/COPYRIGHT)).
 - [Lua](https://www.lua.org/) 5.1.4, in [`native/lua`](native/lua), under the MIT licence
   ([`native/lua/COPYRIGHT`](native/lua/COPYRIGHT)).
 - The typefaces in [`fonts/`](fonts/), each under its own licence, listed in
