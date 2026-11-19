@@ -45,7 +45,7 @@ public sealed class CGuiTypes
 
 	private static readonly string[] ButtonKeys =
 	{
-		"quadtexturesprite", "position", "tooltip", "tooltiptext", "delayedtooltiptext", "buttonfont", "buttontext",
+		"quadtexturesprite", "spritetype", "position", "tooltip", "tooltiptext", "delayedtooltiptext", "buttonfont", "buttontext",
 		"orientation", "shortcut", "clicksound", "parent", "rotation", "size", "scale", "format",
 		"oversound", "upsound", "downsound", "bordersize",
 	};
@@ -221,7 +221,9 @@ public sealed class CGuiTypes
 					Keyword = kind,
 					Position = Point(node, "position"),
 					Orientation = Orientation(node),
-					Sprite = node.GetString("quadTextureSprite"),
+					// One field to the original, so the later of the two names stands (FINDINGS-guikeys.md, section 1).
+					Sprite = Later(node, "quadTextureSprite", "spriteType"),
+					Parent = node.GetString("parent"),
 					Text = node.GetString("buttonText"),
 					Font = node.GetString("buttonFont"),
 					Shortcut = node.GetString("shortcut"),
@@ -244,7 +246,8 @@ public sealed class CGuiTypes
 					Keyword = kind,
 					Position = Point(node, "position"),
 					Orientation = Orientation(node),
-					Sprite = node.GetString("spriteType"),
+					// buttonMesh is spriteType under another name to the original (FINDINGS-guikeys.md, section 4).
+					Sprite = Later(node, "spriteType", "buttonMesh"),
 					Frame = node.GetInt("frame"),
 					Scale = node.GetFloat("scale", 1f),
 					Rotation = node.GetFloat("rotation"),
@@ -398,7 +401,64 @@ public sealed class CGuiTypes
 				Complain($"{node.Key} does not take '{child.Key}'");
 			}
 		}
+		InheritSprites(window.Children, window.Name);
 		return window;
+	}
+
+	/// <summary>
+	/// A button's <c>parent</c>, settled once its container's elements are all read, as the original resolves it: a
+	/// button with no sprite takes its parent's - the sibling of that name, without case - and where that has none, its
+	/// parent's, until one has a sprite or the chain ends or comes straight back. Field by field: nothing else is
+	/// inherited here, the tooltips the original also passes down being no part of how this draws a button. A parent the
+	/// container does not hold is reported; the original reads through nothing and falls
+	/// (<c>reversing/findings/FINDINGS-guikeys.md</c>, section 1).
+	/// </summary>
+	private void InheritSprites(List<CGuiType> children, string container)
+	{
+		foreach (CGuiButtonType button in children.OfType<CGuiButtonType>())
+		{
+			string at = button.Parent;
+			if (button.Sprite.Length > 0 || at.Length == 0)
+			{
+				continue;
+			}
+			while (at.Length > 0)
+			{
+				CGuiType? parent = children.Find(child => child.Name.Equals(at, StringComparison.OrdinalIgnoreCase));
+				if (parent is null)
+				{
+					Complain($"'{button.Name}' in '{container}' names a parent '{at}' it does not hold; the original reads " +
+						"through nothing there");
+					break;
+				}
+				if (parent is not CGuiButtonType from)
+				{
+					break;
+				}
+				if (from.Sprite.Length > 0)
+				{
+					button.Sprite = from.Sprite;
+					break;
+				}
+				at = from.Parent.Equals(button.Name, StringComparison.OrdinalIgnoreCase) ? "" : from.Parent;
+			}
+		}
+	}
+
+	/// <summary>The later of two keys that are one field to the original, or an empty string.</summary>
+	private static string Later(ClausewitzNode node, string first, string second)
+	{
+		string found = "";
+		foreach (ClausewitzNode child in node.Children)
+		{
+			if (child.Key is not null && child.Value is not null
+				&& (child.Key.Equals(first, StringComparison.OrdinalIgnoreCase)
+					|| child.Key.Equals(second, StringComparison.OrdinalIgnoreCase)))
+			{
+				found = child.Value;
+			}
+		}
+		return found;
 	}
 
 	/// <summary>A scrollbar, with the buttons and icons declared inside it.</summary>
@@ -435,6 +495,7 @@ public sealed class CGuiTypes
 				scrollbar.Children.Add(element);
 			}
 		}
+		InheritSprites(scrollbar.Children, scrollbar.Name);
 		return scrollbar;
 	}
 

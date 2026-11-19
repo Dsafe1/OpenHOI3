@@ -479,4 +479,49 @@ public class GuiTypesTests
 		Assert.Equal(new CGuiPoint(-16, -14), screen.Find<CGuiListBoxType>("moved")!.Offset);
 		Assert.Equal(new CGuiPoint(0, 0), screen.Find<CGuiListBoxType>("plain")!.Offset);
 	}
+
+	[Fact]
+	public void AButtonWithNoSpriteTakesItsParentsAndItsParentsParents()
+	{
+		var warnings = new List<string>();
+		CGuiTypes types = Read("""
+			guiTypes = {
+				windowType = {
+					name = "screen"
+					guiButtonType = { name = "base" spriteType = "GFX_base" }
+					guiButtonType = { name = "middle" parent = "BASE" }
+					guiButtonType = { name = "child" parent = "middle" }
+					guiButtonType = { name = "own" parent = "base" quadTextureSprite = "GFX_own" }
+					guiButtonType = { name = "orphan" parent = "nobody" }
+				}
+			}
+			""", warnings);
+
+		CGuiWindowType screen = types.FindWindow("screen")!;
+		// spriteType and quadTextureSprite are one field; a parent is found without case, and its parent after it.
+		Assert.Equal("GFX_base", screen.Find<CGuiButtonType>("base")!.Sprite);
+		Assert.Equal("GFX_base", screen.Find<CGuiButtonType>("middle")!.Sprite);
+		Assert.Equal("GFX_base", screen.Find<CGuiButtonType>("child")!.Sprite);
+		Assert.Equal("GFX_own", screen.Find<CGuiButtonType>("own")!.Sprite);
+		Assert.Equal("", screen.Find<CGuiButtonType>("orphan")!.Sprite);
+		Assert.Contains(warnings, warning => warning.Contains("'orphan'") && warning.Contains("'nobody'"));
+	}
+
+	[Fact]
+	public void AnIconsButtonMeshIsItsSpriteTypeTheLaterStanding()
+	{
+		CGuiTypes types = Read("""
+			guiTypes = {
+				windowType = {
+					name = "screen"
+					iconType = { name = "mesh" buttonMesh = "GFX_mesh" }
+					iconType = { name = "both" spriteType = "GFX_first" buttonMesh = "GFX_second" }
+				}
+			}
+			""");
+
+		CGuiWindowType screen = types.FindWindow("screen")!;
+		Assert.Equal("GFX_mesh", screen.Find<CGuiIconType>("mesh")!.Sprite);
+		Assert.Equal("GFX_second", screen.Find<CGuiIconType>("both")!.Sprite);
+	}
 }

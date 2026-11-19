@@ -182,6 +182,19 @@ does neither.
     2026-11-19 (`reversing/findings/FINDINGS-listbox.md`, section 5). The base game's five `offset`s are all nought;
     BlackICE moves seven bars with it, among them the diplomacy screen's (y -14 and -6) and the outliner's (x -16).
     *Mod-able*: the `.gui` file.
+  - **A list box's `priority` and `step` (or `spacing`, the same field) do nothing**, and **`allwaystransparent`**
+    keeps the box's background off the original's list of pictures the mouse is found on - inferred, that list's reader
+    not found. Here a list box's background never takes the mouse, whatever the file says, which is the original's with
+    the key - *Ours* for a box without it. Read 2026-11-19 (`reversing/findings/FINDINGS-guikeys.md`, section 5).
+  - **A button's sprite** is `quadTextureSprite` or `spriteType` - one field, the later standing - and **`parent`**
+    fills one left empty from the sibling of that name in the same window or scrollbar, found without case, and that
+    one's parent after it, until one has a sprite or the chain comes straight back; a parent the container does not
+    hold is reported, where the original reads through nothing. The original also passes down an empty tooltip text in
+    the same way and ends a chain still empty with "Please add Text" - the scrollbars' end buttons, every one of the 22
+    `parent`s in the base game, come by it - which is no part of how this shows a tooltip. A button's **`scale`** is
+    applied only to a picture code hands it later, so its own sprite is drawn at full size; it is read and not used
+    here. An icon's **`buttonMesh`** is its `spriteType` under another name, and a scrollbar's **`priority`** is read by
+    nothing. `confirmed` (`reversing/findings/FINDINGS-guikeys.md`, sections 1 to 4).
   - **A line wider than the box is drawn whole, past its edge** - and past its window's: nothing in the original's
     interface clips one object to another (read 2026-11-15, `reversing/findings/FINDINGS-listbox.md`, section 4).
     Its draw list can scissor an object, but the rectangle it would cut to is only ever zeroed and no object is

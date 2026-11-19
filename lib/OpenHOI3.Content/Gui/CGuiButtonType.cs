@@ -7,8 +7,18 @@ namespace OpenHOI3.Content.Gui;
 /// </summary>
 public sealed class CGuiButtonType : CGuiType
 {
-	/// <summary>The sprite's name in the <c>.gfx</c> files.</summary>
-	public string Sprite { get; init; } = "";
+	/// <summary>
+	/// The sprite's name in the <c>.gfx</c> files: <c>quadTextureSprite</c> or <c>spriteType</c>, one field to the
+	/// original, the later of the two standing; where the file gives none, its <see cref="Parent"/>'s, once the container
+	/// is read (<c>docs/mechanics/interface.md</c>, section 2).
+	/// </summary>
+	public string Sprite { get; set; } = "";
+
+	/// <summary>
+	/// <c>parent</c>: a sibling in the same window or scrollbar whose sprite this one takes where it has none, and that
+	/// one's parent after it (<c>reversing/findings/FINDINGS-guikeys.md</c>, section 1).
+	/// </summary>
+	public string Parent { get; init; } = "";
 
 	/// <summary>A localisation key, or text to show as it is when no table has it.</summary>
 	public string Text { get; init; } = "";
