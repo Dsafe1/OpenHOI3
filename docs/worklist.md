@@ -320,8 +320,15 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    on the running game): the German 71. Infanterie-Division, standing in 2443 on a strategic redeployment to 2700, is taken
    by 2443's pull twice, where ours took it and then the 56., whose way then moved the 4th Corps' pick on entering. `wz3`
    238 of 241 land orders (237), 2 of ours alone (8), fleets 128 of 137 (124); the July recordings unchanged.
-   Open: (a) the orders the draws leave: `wz3`'s - its draws part at hours 16 (Belgium's Lua drawing 28 on the AI's
-   generator ours alone), 19, 26 and 43, and its fleets, the British 1st Destroyer Squadron from hour 1 among them;
+   Open: (a) the orders the draws leave: `wz3`'s - its draws part at hours 16 and 43, where ours' Belgian and Luxembourg
+   politics ministers, rolling into `Mobilization` as the original's do (Belgium's draw 1159696909, a multiple of 7), find
+   Germany threatening, ask `CalculateWarDesirability(GER, them)` and its `CAIIntel` draws a unit, which the original's never
+   do - `CanDeclareWar(GER, BEL)` is true in ours, every condition of `CDeclareWarAction::IsSelectable` on the listing passes
+   on the save's figures (threat 96.714, alignment distance about 302, Germany's effective neutrality 0, no German unit on
+   Belgian ground), and Germany's strategy has no `befriend` for Belgium (only `protect` 50); not found where the original
+   stops, and in four days of a live run nobody's `CanDeclareWar` (VA `0x89B239`) or `CAIIntel` (VA `0x89F240`) was logged at
+   all - and at 19 and 26, an offer the AI answers one draw out (Turkey's trade to Germany answered in ours, Yugoslavia's
+   draw in the original's); its fleets and air from hour 15 (the RAF's Strategic Bomber Command);
    `wr14`'s from hour 32 - Soviet divisions; `wr20`'s one of ours alone at hour 47, the
    German 6th H Arm Division sent at 2275 at odds 1.693 over a bar of 1.5 where the original makes no attack (no odds probe in
    that recording); `wr21` 440 of 468 and `wr11` 464 of 488, both from that entering on, so to be measured only past it;
