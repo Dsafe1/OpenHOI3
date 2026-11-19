@@ -40,7 +40,7 @@ public static class CUnitUpgradeReader
 		{
 			if (top.Key is null || !top.Key.Equals("unit_upgrades", StringComparison.OrdinalIgnoreCase))
 			{
-				warn(CDiagnostics.Located(UpgradeFile, top.Line, $"'{top.Key ?? top.Value}' is no key of the file; passed over"));
+				warn(CDiagnostics.Located(path, top.Line, $"'{top.Key ?? top.Value}' is no key of the file; passed over"));
 			}
 		}
 		foreach (ClausewitzNode list in root.All("unit_upgrades"))
@@ -49,7 +49,7 @@ public static class CUnitUpgradeReader
 			{
 				if (other.Key is null || !other.Key.Equals("upgrade", StringComparison.OrdinalIgnoreCase))
 				{
-					warn(CDiagnostics.Located(UpgradeFile, other.Line, $"'{other.Key ?? other.Value}' in unit_upgrades is no upgrade; passed over"));
+					warn(CDiagnostics.Located(path, other.Line, $"'{other.Key ?? other.Value}' in unit_upgrades is no upgrade; passed over"));
 				}
 			}
 			foreach (ClausewitzNode entry in list.All("upgrade"))
@@ -60,7 +60,7 @@ public static class CUnitUpgradeReader
 				{
 					if (setting.Key is null || setting.Value is null)
 					{
-						warn(CDiagnostics.Located(UpgradeFile, setting.Line, $"'{setting.Key ?? setting.Value}' in an upgrade is no key of one; passed over"));
+						warn(CDiagnostics.Located(path, setting.Line, $"'{setting.Key ?? setting.Value}' in an upgrade is no key of one; passed over"));
 						continue;
 					}
 					if (setting.Key.Equals("base", StringComparison.OrdinalIgnoreCase))
@@ -73,7 +73,7 @@ public static class CUnitUpgradeReader
 					}
 					else
 					{
-						warn(CDiagnostics.Located(UpgradeFile, setting.Line, $"'{setting.Key}' in an upgrade is no key of one; passed over"));
+						warn(CDiagnostics.Located(path, setting.Line, $"'{setting.Key}' in an upgrade is no key of one; passed over"));
 					}
 				}
 				if (types.TryGetValue(from, out CSubUnitType? source) && types.TryGetValue(to, out CSubUnitType? target))
@@ -82,7 +82,7 @@ public static class CUnitUpgradeReader
 				}
 				else
 				{
-					warn(CDiagnostics.Located(UpgradeFile, entry.Line, $"an upgrade from '{from}' to '{to}' names no type."));
+					warn(CDiagnostics.Located(path, entry.Line, $"an upgrade from '{from}' to '{to}' names no type."));
 				}
 			}
 		}

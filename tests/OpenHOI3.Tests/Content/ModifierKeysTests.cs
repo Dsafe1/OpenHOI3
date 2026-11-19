@@ -124,8 +124,8 @@ public class ModifierKeysTests : IDisposable
 		Assert.Equal(CFixedPoint.Parse("-0.1"), groups[1].FactionModifier["suseptibility_axis"]);
 		// One line for each, at the line of the key.
 		Assert.Equal(2, _warnings.Count);
-		Assert.Contains("common/ideologies.txt:5: modifier: suseptibility_axis", _warnings[0]);
-		Assert.Contains("common/ideologies.txt:10: social_liberal: bogus_kind", _warnings[1]);
+		Assert.Contains("ideologies.txt:5: modifier: suseptibility_axis", _warnings[0]);
+		Assert.Contains("ideologies.txt:10: social_liberal: bogus_kind", _warnings[1]);
 	}
 
 	[Fact]

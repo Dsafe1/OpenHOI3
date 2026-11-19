@@ -30,17 +30,17 @@ public static class CIdeologyReader
 			warn(CDiagnostics.Located(path, 0, $"could not be read: {e.Message}"));
 			return new List<CIdeologyGroup>();
 		}
-		return Read(root, warn);
+		return Read(root, warn, path);
 	}
 
-	public static List<CIdeologyGroup> Read(ClausewitzNode root, Action<string> warn)
+	public static List<CIdeologyGroup> Read(ClausewitzNode root, Action<string> warn, string file = IdeologiesFile)
 	{
 		var groups = new List<CIdeologyGroup>();
 		// The kinds of modifier known as each group is read: a faction's own kind is made once its block is read, so a
 		// group's blocks know only the factions before it (modifiers.md, section 2).
 		var factions = new List<string>();
 		const string what = "ideologies and faction modifiers";
-		void Passed(ClausewitzNode node, string message) => warn(CDiagnostics.Located(IdeologiesFile, node.Line, message));
+		void Passed(ClausewitzNode node, string message) => warn(CDiagnostics.Located(file, node.Line, message));
 		foreach (ClausewitzNode block in root.Children)
 		{
 			if (block.Key is null || !block.IsBlock)
@@ -85,9 +85,9 @@ public static class CIdeologyReader
 				FactionNeutrality = Number(faction?.GetString("neutrality")),
 				Influence = faction?.GetString("influence") ?? "",
 				FactionIcon = int.TryParse(faction?.GetString("icon"), out int icon) ? icon : 0,
-				FactionModifier = modifier is { IsBlock: true } ? ReadModifier(modifier, block.Key, kinds, warn) : new(),
+				FactionModifier = modifier is { IsBlock: true } ? ReadModifier(modifier, block.Key, kinds, warn, file) : new(),
 			};
-			ReadRules(faction?.Get("rule"), group, warn);
+			ReadRules(faction?.Get("rule"), group, warn, file);
 			foreach (ClausewitzNode ideology in block.Children)
 			{
 				if (ideology.Key is not null && ideology.IsBlock && ideology != position && ideology != faction)
@@ -97,7 +97,7 @@ public static class CIdeologyReader
 					group.IdeologyColours[ideology.Key] = ideology.GetRgb("color", CColor.Gray);
 					// An ideology is a modifier with a colour of its own; what of it is a kind is read and not kept.
 					CModifierReader.ReadBlock(ideology, IdeologyKeys, kinds,
-						entry => warn(CModifierReader.Unknown(IdeologiesFile, what, ideology, entry)));
+						entry => warn(CModifierReader.Unknown(file, what, ideology, entry)));
 				}
 			}
 			groups.Add(group);
@@ -111,7 +111,7 @@ public static class CIdeologyReader
 	/// value is reported and leaves the rule unset; a key that is no rule is reported, as the original
 	/// logs "unknown rule".
 	/// </summary>
-	private static void ReadRules(ClausewitzNode? block, CIdeologyGroup group, Action<string> warn)
+	private static void ReadRules(ClausewitzNode? block, CIdeologyGroup group, Action<string> warn, string file)
 	{
 		if (block is not { IsBlock: true })
 		{
@@ -125,7 +125,7 @@ public static class CIdeologyReader
 			}
 			if (!CFactionRules.IsRule(entry.Key))
 			{
-				warn(CDiagnostics.Located(IdeologiesFile, entry.Line, $"unknown rule '{entry.Key}' in the group '{group.Name}'"));
+				warn(CDiagnostics.Located(file, entry.Line, $"unknown rule '{entry.Key}' in the group '{group.Name}'"));
 			}
 			else if (string.Equals(entry.Value, "yes", StringComparison.OrdinalIgnoreCase))
 			{
@@ -133,7 +133,7 @@ public static class CIdeologyReader
 			}
 			else if (!string.Equals(entry.Value, "no", StringComparison.OrdinalIgnoreCase))
 			{
-				warn(CDiagnostics.Located(IdeologiesFile, entry.Line, $"the rule '{entry.Key}' of the group '{group.Name}' is neither yes nor no"));
+				warn(CDiagnostics.Located(file, entry.Line, $"the rule '{entry.Key}' of the group '{group.Name}' is neither yes nor no"));
 			}
 		}
 	}
@@ -148,11 +148,11 @@ public static class CIdeologyReader
 	};
 
 	private static Sim.Modifiers.CModifier ReadModifier(ClausewitzNode block, string group,
-		Sim.Modifiers.CModifierKeys kinds, Action<string> warn)
+		Sim.Modifiers.CModifierKeys kinds, Action<string> warn, string file)
 	{
 		return CModifierReader.ReadBlock(block, new HashSet<string>(), kinds,
-			entry => warn(CModifierReader.Unknown(IdeologiesFile, "ideologies and faction modifiers", block, entry)),
-			entry => warn(CDiagnostics.Located(IdeologiesFile, entry.Line,
+			entry => warn(CModifierReader.Unknown(file, "ideologies and faction modifiers", block, entry)),
+			entry => warn(CDiagnostics.Located(file, entry.Line,
 				$"{entry.Key} = {entry.Value} in the group '{group}''s faction modifier is no number")));
 	}
 

@@ -58,7 +58,7 @@ public sealed class CProjectionTypes
 				foreach (ClausewitzNode node in container.Children.Where(child => child.IsBlock
 					&& string.Equals(child.Key, "projectionType", StringComparison.OrdinalIgnoreCase)))
 				{
-					if (Read(node, Path.GetFileName(file), warn) is { } type)
+					if (Read(node, file, warn) is { } type)
 					{
 						// The last declaration wins: files come base layer first.
 						types._types[type.Name] = type;

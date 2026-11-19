@@ -52,11 +52,11 @@ public static class CGainableTraitReader
 			warn(CDiagnostics.Located(path, 0, $"could not be read: {e.Message}"));
 			return CGainableTraits.Empty;
 		}
-		return Read(root, traits, warn);
+		return Read(root, traits, warn, path);
 	}
 
 	/// <summary>The gainable traits of a file already parsed.</summary>
-	public static CGainableTraits Read(ClausewitzNode root, IReadOnlyList<CTrait> traits, Action<string>? warn = null)
+	public static CGainableTraits Read(ClausewitzNode root, IReadOnlyList<CTrait> traits, Action<string>? warn = null, string file = GainableFile)
 	{
 		warn ??= CDiagnostics.Problem;
 		var byName = new Dictionary<string, CTrait>(StringComparer.OrdinalIgnoreCase);
@@ -67,7 +67,7 @@ public static class CGainableTraitReader
 
 		var gainable = new List<CGainableTrait>();
 		Action<string> report = warn;
-		void UnknownCondition(ClausewitzNode entry, string text) => report(CDiagnostics.Located(GainableFile, entry.Line,
+		void UnknownCondition(ClausewitzNode entry, string text) => report(CDiagnostics.Located(file, entry.Line,
 			$"'{text}' is a condition of a gainable trait's trigger block that is not understood and never holds"));
 		foreach (ClausewitzNode block in root.Children)
 		{
@@ -77,7 +77,7 @@ public static class CGainableTraitReader
 			}
 			if (!block.Key.Equals("gainable_trait", StringComparison.OrdinalIgnoreCase) || !block.IsBlock)
 			{
-				warn(CDiagnostics.Located(GainableFile, block.Line, $"'{block.Key}' is a key that is not understood"));
+				warn(CDiagnostics.Located(file, block.Line, $"'{block.Key}' is a key that is not understood"));
 				continue;
 			}
 
@@ -102,14 +102,14 @@ public static class CGainableTraitReader
 						condition = CCombatConditionReader.ReadGroup(entry, ECombatCondition.All, UnknownCondition);
 						break;
 					default:
-						warn(CDiagnostics.Located(GainableFile, entry.Line,
+						warn(CDiagnostics.Located(file, entry.Line,
 							$"'{(entry.Value is null ? entry.Key ?? "" : $"{entry.Key} = {entry.Value}")}' is a key that is not understood"));
 						break;
 				}
 			}
 			if (combat is null || trait is null)
 			{
-				warn(CDiagnostics.Located(GainableFile, block.Line,
+				warn(CDiagnostics.Located(file, block.Line,
 					"a gainable_trait with no trait or kind of battle it knows; it is dropped"));
 				continue;
 			}

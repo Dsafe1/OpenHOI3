@@ -39,7 +39,7 @@ public static class CCombinedArmsReader
 
 		Action<string> report = warn;
 		void Unknown(ClausewitzNode node, string text) =>
-			report(CDiagnostics.Located(GroupFile, node.Line, $"'{text}' is a key of the groups that is not understood"));
+			report(CDiagnostics.Located(path, node.Line, $"'{text}' is a key of the groups that is not understood"));
 		foreach (ClausewitzNode top in root.Children)
 		{
 			// Said, where it was passed over (clausewitz.md, section 3).

@@ -40,7 +40,7 @@ public static class CGovernmentReader
 			bool changeable = !block.GetString("changeable").Equals("no", StringComparison.OrdinalIgnoreCase);
 			positions.Add(new CGovernmentPosition(block.Key, positions.Count + 1, changeable));
 			CModifierReader.ReadBlock(block, PositionKeys, kinds,
-				entry => warn(CModifierReader.Unknown(PositionsFile, "government positions", block, entry)));
+				entry => warn(CModifierReader.Unknown(directories.Resolve(PositionsFile), "government positions", block, entry)));
 		}
 		return positions;
 	}
@@ -54,6 +54,7 @@ public static class CGovernmentReader
 	{
 		warn ??= CDiagnostics.Problem;
 		var governments = new Dictionary<string, CGovernment>(StringComparer.OrdinalIgnoreCase);
+		string file = directories.Resolve(GovernmentsFile);
 		if (Parse(directories, GovernmentsFile, warn) is not { } root)
 		{
 			return governments;
@@ -75,8 +76,8 @@ public static class CGovernmentReader
 				continue;
 			}
 			var government = new CGovernment(block.Key, CModifierReader.ReadBlock(block, ownKeys, kinds,
-				entry => warn(CModifierReader.Unknown(GovernmentsFile, "governments", block, entry)),
-				entry => warn(CDiagnostics.Located(GovernmentsFile, entry.Line,
+				entry => warn(CModifierReader.Unknown(file, "governments", block, entry)),
+				entry => warn(CDiagnostics.Located(file, entry.Line,
 					$"{block.Key}: {entry.Key} = {entry.Value} is neither an ideology, a post nor a number"))));
 			foreach (ClausewitzNode entry in block.Children)
 			{
@@ -114,7 +115,7 @@ public static class CGovernmentReader
 				if (!int.TryParse(entry.Value, out _))
 				{
 					// Said, where it was read as nought (clausewitz.md, section 3).
-					warn(CDiagnostics.Located(GovernmentsFile, entry.Line,
+					warn(CDiagnostics.Located(file, entry.Line,
 						$"{block.Key}: duration = {entry.Value} is no whole number; read as nought"));
 				}
 				}

@@ -42,11 +42,11 @@ public static class CTraitReader
 			warn(CDiagnostics.Located(path, 0, $"could not be read: {e.Message}"));
 			return new List<CTrait>();
 		}
-		return Read(root, warn);
+		return Read(root, warn, path);
 	}
 
 	/// <summary>The traits of a file already parsed.</summary>
-	public static List<CTrait> Read(ClausewitzNode root, Action<string>? warn = null)
+	public static List<CTrait> Read(ClausewitzNode root, Action<string>? warn = null, string file = TraitFile)
 	{
 		warn ??= CDiagnostics.Problem;
 		var traits = new List<CTrait>();
@@ -59,7 +59,7 @@ public static class CTraitReader
 			}
 			if (!names.Add(block.Key))
 			{
-				warn(CDiagnostics.Located(TraitFile, block.Line,
+				warn(CDiagnostics.Located(file, block.Line,
 					$"the trait '{block.Key}' is declared more than once; the first declaration stands"));
 				continue;
 			}
@@ -91,7 +91,7 @@ public static class CTraitReader
 						}
 						else
 						{
-							warn(CDiagnostics.Located(TraitFile, kind.Line,
+							warn(CDiagnostics.Located(file, kind.Line,
 								$"{block.Key}: 'allowed_leader {word}' is a key nothing reads"));
 						}
 					}
@@ -99,7 +99,7 @@ public static class CTraitReader
 				}
 				if (!EffectKeys.TryGetValue(entry.Key, out ETraitEffect effect))
 				{
-					warn(CDiagnostics.Located(TraitFile, entry.Line, $"{block.Key}: '{entry.Key}' is a key nothing reads"));
+					warn(CDiagnostics.Located(file, entry.Line, $"{block.Key}: '{entry.Key}' is a key nothing reads"));
 					continue;
 				}
 
@@ -112,13 +112,13 @@ public static class CTraitReader
 				}
 				if (!CFixedPoint.TryParse(figure, out CFixedPoint value))
 				{
-					warn(CDiagnostics.Located(TraitFile, entry.Line,
+					warn(CDiagnostics.Located(file, entry.Line,
 						$"{block.Key}: '{entry.Key}' is not a number, and nothing reads it"));
 					continue;
 				}
 				if (trait.Effects.Count == CTrait.MostEffects)
 				{
-					warn(CDiagnostics.Located(TraitFile, entry.Line, $"the trait '{trait.Key}' has more than " +
+					warn(CDiagnostics.Located(file, entry.Line, $"the trait '{trait.Key}' has more than " +
 						$"{CTrait.MostEffects} effects, and this one is dropped as the original drops it"));
 					continue;
 				}

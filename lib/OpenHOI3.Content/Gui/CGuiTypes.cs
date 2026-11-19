@@ -123,7 +123,7 @@ public sealed class CGuiTypes
 				warn(CDiagnostics.Located(file, 0, $"could not be read: {e.Message}"));
 				continue;
 			}
-			types.AddFile(root, Path.GetFileName(file));
+			types.AddFile(root, file);
 		}
 		types.Report(warn);
 		return types;

@@ -41,19 +41,19 @@ public static class CCombatTacticReader
 			warn(CDiagnostics.Located(path, 0, $"could not be read: {e.Message}"));
 			return tactics;
 		}
-		return Read(root, warn);
+		return Read(root, warn, path);
 	}
 
 	/// <summary>The tactics of a file already parsed.</summary>
-	public static List<CCombatTactic> Read(ClausewitzNode root, Action<string>? warn = null)
+	public static List<CCombatTactic> Read(ClausewitzNode root, Action<string>? warn = null, string file = TacticFile)
 	{
 		warn ??= CDiagnostics.Problem;
 		var tactics = new List<CCombatTactic>();
 		var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		Action<string> report = warn;
 		void UnknownKey(ClausewitzNode entry, string text) =>
-			report(CDiagnostics.Located(TacticFile, entry.Line, $"'{text}' is a key of a tactic that is not understood"));
-		void UnknownCondition(ClausewitzNode entry, string text) => report(CDiagnostics.Located(TacticFile, entry.Line,
+			report(CDiagnostics.Located(file, entry.Line, $"'{text}' is a key of a tactic that is not understood"));
+		void UnknownCondition(ClausewitzNode entry, string text) => report(CDiagnostics.Located(file, entry.Line,
 			$"'{text}' is a condition of a tactic's trigger block that is not understood and never holds"));
 		foreach (ClausewitzNode block in root.Children)
 		{
@@ -63,7 +63,7 @@ public static class CCombatTacticReader
 			}
 			if (!names.Add(block.Key))
 			{
-				warn(CDiagnostics.Located(TacticFile, block.Line,
+				warn(CDiagnostics.Located(file, block.Line,
 					$"the tactic '{block.Key}' is declared more than once; the first declaration stands"));
 				continue;
 			}
@@ -126,7 +126,7 @@ public static class CCombatTacticReader
 		}
 
 		// The game state's link knows no file or line, so what it says is placed in the file alone.
-		CCombatTactics.Link(tactics, text => report(CDiagnostics.Located(TacticFile, 0, text)));
+		CCombatTactics.Link(tactics, text => report(CDiagnostics.Located(file, 0, text)));
 		return tactics;
 	}
 }

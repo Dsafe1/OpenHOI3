@@ -76,7 +76,7 @@ public sealed class CBillboardTypes
 					&& (string.Equals(child.Key, "billboardType", StringComparison.OrdinalIgnoreCase)
 						|| string.Equals(child.Key, "weatherBillboardType", StringComparison.OrdinalIgnoreCase))))
 				{
-					if (Read(node, Path.GetFileName(file), warn) is { } type)
+					if (Read(node, file, warn) is { } type)
 					{
 						// The last declaration wins: files come base layer first.
 						types._types[type.Name] = type;
