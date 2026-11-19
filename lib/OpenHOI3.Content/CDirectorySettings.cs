@@ -412,20 +412,34 @@ public sealed class CDirectorySettings
 	public IReadOnlyList<string> ReplacedFolders => Mods.SelectMany(m => m.ReplacePaths).ToList();
 
 	/// <summary>
-	/// Files matching a pattern across every layer.
-	///
-	/// A name present in more than one layer resolves to the highest priority copy, so
-	/// an expansion replacing a script does not leave the base version to be loaded as
-	/// well. The results are ordered base layer first, because the registries built
-	/// from them resolve conflicts by load order and the expansion has to win. In a
-	/// folder a mod replaces, a file is listed only where its first copy is that mod's
-	/// or in front of it.
+	/// Files matching a pattern across every layer, as the original lists a folder (<c>docs/mechanics/mods.md</c>,
+	/// section 2): every name over all the layers once, <b>sorted by byte with case</b> - not layer by layer - each
+	/// read from its frontmost copy. The pattern is <c>*</c> and a tail, and a name is kept where it ends in the tail
+	/// case and all; a name with a character past 0x7F is left out and reported, as the original logs and leaves it.
+	/// Two names that differ only in case are two names, and both are read from the frontmost copy the file system
+	/// finds. In a folder a mod replaces, a file is listed only where its first copy is that mod's or in front of it.
 	/// </summary>
 	public string[] ListFiles(string gameRelativeDirectory, string searchPattern)
 	{
+		return Listing(gameRelativeDirectory, searchPattern, directories: false);
+	}
+
+	/// <summary>
+	/// The original's two listings, of files (<c>ListFilesWithExtension</c>) and of folders (<c>ListSubdirectories</c>):
+	/// names over every layer once, deduplicated and sorted by byte with case, a name with a byte of 0x80 or more left
+	/// out. Only the files' listing asks <c>replace_path</c>.
+	/// </summary>
+	private string[] Listing(string gameRelativeDirectory, string searchPattern, bool directories)
+	{
+		if (!searchPattern.StartsWith('*') || searchPattern.IndexOfAny(['*', '?'], 1) >= 0)
+		{
+			throw new ArgumentException($"'{searchPattern}': a listing's pattern is '*' and a tail", nameof(searchPattern));
+		}
+		string tail = searchPattern[1..];
 		string normalised = Normalise(gameRelativeDirectory);
-		var chosen = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-		var layerOf = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+		var names = new SortedSet<string>(StringComparer.Ordinal);
+		// The frontmost copy of a name, which the file system finds without case.
+		var frontmost = new Dictionary<string, (string Path, int Layer)>(StringComparer.OrdinalIgnoreCase);
 
 		for (int layerIndex = 0; layerIndex < _layers.Length; layerIndex++)
 		{
@@ -434,40 +448,48 @@ public sealed class CDirectorySettings
 			{
 				continue;
 			}
-			foreach (string file in Directory.GetFiles(dir, searchPattern))
+			IEnumerable<string> entries = directories ? Directory.EnumerateDirectories(dir) : Directory.EnumerateFiles(dir);
+			foreach (string entry in entries)
 			{
-				string name = Path.GetFileName(file);
-				if (chosen.TryAdd(name, file))
+				string name = Path.GetFileName(entry);
+				if (!name.EndsWith(tail, StringComparison.Ordinal))
 				{
-					layerOf[name] = layerIndex;
+					continue;
 				}
-			}
-		}
-		if (_replaceLimit.Count > 0)
-		{
-			foreach (string name in new List<string>(chosen.Keys))
-			{
-				if (Hidden(layerOf[name], gameRelativeDirectory))
-				{
-					chosen.Remove(name);
-				}
+				frontmost.TryAdd(name, (entry, layerIndex));
+				names.Add(name);
 			}
 		}
 
-		var names = new List<string>(chosen.Keys);
-		names.Sort((a, b) =>
+		var result = new List<string>(names.Count);
+		foreach (string name in names)
 		{
-			// Higher layer index is lower priority, so it loads first.
-			int byLayer = layerOf[b].CompareTo(layerOf[a]);
-			return byLayer != 0 ? byLayer : string.Compare(a, b, StringComparison.OrdinalIgnoreCase);
-		});
-
-		var result = new string[names.Count];
-		for (int i = 0; i < names.Count; i++)
-		{
-			result[i] = chosen[names[i]];
+			if (HasHighByte(name))
+			{
+				CDiagnostics.Problem($"{AsListed(gameRelativeDirectory)}/{name}: a {(directories ? "folder" : "file")} name " +
+					"with a character past 0x7F, left out as the original leaves it");
+				continue;
+			}
+			(string path, int layer) = frontmost[name];
+			if (!directories && Hidden(layer, gameRelativeDirectory))
+			{
+				continue;
+			}
+			result.Add(directories ? name : path);
 		}
-		return result;
+		return result.ToArray();
+	}
+
+	private static bool HasHighByte(string name)
+	{
+		foreach (char c in name)
+		{
+			if (c > 0x7F)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/// <summary>A file found under a game-relative directory, and where it sits inside it.</summary>
@@ -479,52 +501,33 @@ public sealed class CDirectorySettings
 	/// Here a file is identified by its path below the directory rather than by its
 	/// name alone, because that is how the history folders layer: the expansion
 	/// replaces <c>africa/9785 - Mekele.txt</c> with a file at the same place, and two
-	/// folders are free to hold files of the same name. The results are ordered by
-	/// that relative path, compared without regard to case, so the order does not
-	/// depend on which layer a file came from or on how the disk lists a folder.
+	/// folders are free to hold files of the same name.
 	///
-	/// Each folder is listed by its own <c>replace_path</c>: the original lists a folder's
-	/// subfolders with no replace test and then lists each, so replacing a folder does
-	/// not replace the folders inside it - which is why BlackICE names
-	/// <c>history\provinces</c> and each of its subfolders.
+	/// The order is the original's history loader's: it lists <c>history/provinces</c>'s subfolders - every name over
+	/// the layers once, sorted by byte with case, so <c>Mongolia</c> comes before <c>africa</c> - and then lists each
+	/// as a folder of its own, by <see cref="ListFiles"/>. Each folder is so listed by its own <c>replace_path</c>, the
+	/// subfolders' listing having no replace test, so replacing a folder does not replace the folders inside it -
+	/// which is why BlackICE names <c>history\provinces</c> and each of its subfolders. <i>Ours</i>: a folder's own
+	/// files come before its subfolders', and a subfolder's subfolders are walked the same way; the original's history
+	/// goes one level down and no install has a file at its top.
 	/// </summary>
 	public LayeredFile[] ListFilesRecursive(string gameRelativeDirectory, string searchPattern)
 	{
-		string normalised = Normalise(gameRelativeDirectory);
-		string listed = AsListed(gameRelativeDirectory);
-		var chosen = new Dictionary<string, (string File, int Layer)>(StringComparer.OrdinalIgnoreCase);
+		var result = new List<LayeredFile>();
+		ListInto(AsListed(gameRelativeDirectory), "", searchPattern, result);
+		return result.ToArray();
+	}
 
-		for (int layerIndex = 0; layerIndex < _layers.Length; layerIndex++)
+	private void ListInto(string folder, string relativePrefix, string searchPattern, List<LayeredFile> result)
+	{
+		foreach (string file in ListFiles(folder, searchPattern))
 		{
-			string dir = InLayer(layerIndex, normalised);
-			if (!Directory.Exists(dir))
-			{
-				continue;
-			}
-			foreach (string file in Directory.GetFiles(dir, searchPattern, SearchOption.AllDirectories))
-			{
-				string relative = Path.GetRelativePath(dir, file).Replace('\\', '/');
-				chosen.TryAdd(relative, (file, layerIndex));            // the first layer to have it wins
-			}
+			result.Add(new LayeredFile(relativePrefix + Path.GetFileName(file), file));
 		}
-
-		var relatives = new List<string>();
-		foreach ((string relative, (string _, int layer)) in chosen)
+		foreach (string sub in Listing(folder, "*", directories: true))
 		{
-			int slash = relative.LastIndexOf('/');
-			if (!Hidden(layer, slash < 0 ? listed : listed + "/" + relative[..slash]))
-			{
-				relatives.Add(relative);
-			}
+			ListInto(folder.TrimEnd('/') + "/" + sub, relativePrefix + sub + "/", searchPattern, result);
 		}
-		relatives.Sort(StringComparer.OrdinalIgnoreCase);
-
-		var result = new LayeredFile[relatives.Count];
-		for (int i = 0; i < relatives.Count; i++)
-		{
-			result[i] = new LayeredFile(relatives[i], chosen[relatives[i]].File);
-		}
-		return result;
 	}
 
 	/// <summary>A file's path relative to the install, written with '/', for a report: a mod's file begins with its folder.</summary>

@@ -16,7 +16,7 @@ Moveable, not modal, pausing nothing. A map click still selects, unless a tool t
 
 ## 3. The tabs
 
-Current (the player's plans in their order, then each other country's shared one whose allies hold the player), Historical (`battleplans/historical/<TAG>`, the highest layer that has it; a file whose header fails is left out, which is how the `#empty` files go) and Saved (`battle plans/<TAG>` beside the save games; a bad header stays a row). Which row of buttons shows is the tab's, or the name box in save or rename mode. A tab's frame is 1 chosen and 2 not. `tab_saved` has no title text: its art has the words.
+Current (the player's plans in their order, then each other country's shared one whose allies hold the player), Historical (`battleplans/historical/<TAG>`, every file of it over the layers by the original's lister, names sorted by byte with case - `mods.md`, section 2; a file whose header fails is left out, which is how the `#empty` files go) and Saved (`battle plans/<TAG>` beside the save games; a bad header stays a row). Which row of buttons shows is the tab's, or the name box in save or rename mode. A tab's frame is 1 chosen and 2 not. `tab_saved` has no title text: its art has the words.
 
 ## 4. The rows
 

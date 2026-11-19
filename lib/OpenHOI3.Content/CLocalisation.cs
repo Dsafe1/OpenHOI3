@@ -41,12 +41,10 @@ public sealed class CLocalisation
 	{
 		warn ??= CDiagnostics.Problem;
 		var localisation = new CLocalisation();
-		// The original reads its tables in the order PhysFS lists them: every name over all the layers once, each its
-		// frontmost copy, sorted by byte with case - not the base layer first (reversing/findings/FINDINGS-localisation.md,
+		// The original reads its tables in the order PhysFS lists them, which ListFiles gives: every name over all the
+		// layers once, each its frontmost copy, sorted by byte with case (reversing/findings/FINDINGS-localisation.md,
 		// section 3).
-		string[] files = directories.ListFiles("localisation", "*.csv");
-		Array.Sort(files, (a, b) => string.CompareOrdinal(Path.GetFileName(a), Path.GetFileName(b)));
-		foreach (string file in files)
+		foreach (string file in directories.ListFiles("localisation", "*.csv"))
 		{
 			localisation.LoadFile(file, (int)language, warn);
 		}

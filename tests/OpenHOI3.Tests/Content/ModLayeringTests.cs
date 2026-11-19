@@ -164,8 +164,8 @@ public class ModLayeringTests : IDisposable
 
 		Assert.Equal("mod", File.ReadAllText(directories.Resolve("interface\\core.gfx")));
 		Assert.Equal("base only", File.ReadAllText(directories.Resolve("interface/only_base.gfx")));
-		// Listed once each, the mod's copy loaded last so that it wins.
-		Assert.Equal(new[] { "base only", "mod" }, directories.ListFiles("interface", "*.gfx").Select(File.ReadAllText));
+		// Listed once each, the mod's copy, in the order of the names and not of the layers.
+		Assert.Equal(new[] { "mod", "base only" }, directories.ListFiles("interface", "*.gfx").Select(File.ReadAllText));
 	}
 
 	[Fact]
@@ -284,7 +284,7 @@ public class ModLayeringTests : IDisposable
 
 		Assert.Equal(new[] { "alpha.txt" }, directories.ListFiles("events", "*.txt").Select(Path.GetFileName));
 		// Beta replaces decisions: what is in it or in front of it - Alpha - stays.
-		Assert.Equal(new[] { "beta.txt", "alpha.txt" }, directories.ListFiles("decisions", "*.txt").Select(Path.GetFileName));
+		Assert.Equal(new[] { "alpha.txt", "beta.txt" }, directories.ListFiles("decisions", "*.txt").Select(Path.GetFileName));
 	}
 
 	[Fact]
@@ -347,6 +347,44 @@ public class ModLayeringTests : IDisposable
 	{
 		Assert.Equal("OpenHOI3 (OXLS)    Mod: BlackICE GitHub", OpenHOI3.Interface.Screens.CVersionText.Label(1599539514, "BlackICE GitHub"));
 		Assert.Equal("OpenHOI3 (GSKH)", OpenHOI3.Interface.Screens.CVersionText.Label(1499173604));
+	}
+
+	[Fact]
+	public void AFolderIsListedByItsNamesSortedByByteWithCase()
+	{
+		Write("events/b.txt", "base");
+		Write("events/Zulu.txt", "base");
+		Write("tfh/events/a.txt", "expansion");
+		Write("tfh/mod/Test/events/c.txt", "mod");
+		Write("tfh/mod/Test/events/B.txt", "mod");
+		Write("events/upper.TXT", "base");
+		Write("events/café.txt", "base");
+
+		CDirectorySettings directories = WithMod();
+
+		// Not the base layer first: every name over the layers once, upper case before lower, as strcmp sorts them. A tail
+		// in another case is no match, and a name with a character past 0x7F is left out, both as the original's lister.
+		// b.txt and B.txt are two names, and the file system opens both from the frontmost copy, the mod's B.txt.
+		string[] listed = directories.ListFiles("events", "*.txt");
+		Assert.Equal(new[] { "B.txt", "Zulu.txt", "a.txt", "B.txt", "c.txt" }, listed.Select(Path.GetFileName));
+		Assert.Equal(new[] { "mod", "base", "expansion", "mod", "mod" }, listed.Select(File.ReadAllText));
+	}
+
+	[Fact]
+	public void TheHistoryIsListedASubfolderAtATimeInTheOrderOfTheirNames()
+	{
+		Write("history/provinces/africa/2 - B.txt", "base");
+		Write("history/provinces/Mongolia/1 - A.txt", "base");
+		Write("history/provinces/asia-x/3 - C.txt", "base");
+		Write("history/provinces/asia/4 - D.txt", "base");
+		Write("tfh/history/provinces/asia/4 - D.txt", "expansion");
+
+		CDirectorySettings.LayeredFile[] files = Plain.ListFilesRecursive("history/provinces", "*.txt");
+
+		// The subfolders by byte - Mongolia before africa, asia before asia-x - and each folder's files after it.
+		Assert.Equal(new[] { "Mongolia/1 - A.txt", "africa/2 - B.txt", "asia/4 - D.txt", "asia-x/3 - C.txt" },
+			files.Select(f => f.RelativePath));
+		Assert.Equal("expansion", File.ReadAllText(files[2].AbsolutePath));
 	}
 
 	[Fact]

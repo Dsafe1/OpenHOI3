@@ -31,8 +31,8 @@ public static class CSongReader
 	public static List<CSong> ReadAll(CDirectorySettings directories, CScriptContext context)
 	{
 		var songs = new List<CSong>();
-		IEnumerable<string> files = directories.ListFiles("music", "*.txt")
-			.OrderBy(path => System.IO.Path.GetFileName(path), StringComparer.OrdinalIgnoreCase);
+		// In the original's listing order, names sorted by byte with case (mods.md, section 2).
+		IEnumerable<string> files = directories.ListFiles("music", "*.txt");
 		foreach (string path in files)
 		{
 			context.Problems.File = System.IO.Path.GetRelativePath(directories.GameRoot, path).Replace('\\', '/');

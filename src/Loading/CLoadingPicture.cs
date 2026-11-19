@@ -68,9 +68,8 @@ public partial class CLoadingPicture : Control
 		SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
 		MouseFilter = MouseFilterEnum.Stop;
 		_textures = new CTextureManager(_directories);
-		// Every file ending dds, over the layers, one a name, in name order.
-		_files = _directories.ListFiles(Folder, "*dds")
-			.OrderBy(path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase).ToArray();
+		// Every file ending dds, over the layers, one a name, sorted by byte with case as the original's lister gives them.
+		_files = _directories.ListFiles(Folder, "*dds");
 		_pictures = new CLoadingPictures(_files.Length, _firstOnly);
 		_textBackground = _textures.LoadFromGamePath(TextBackground);
 		FindFont();

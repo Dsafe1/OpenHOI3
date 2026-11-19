@@ -154,9 +154,10 @@ public static class CTechnologyReader
 		var blocks = new List<ClausewitzNode>();
 		var shadowed = new HashSet<ClausewitzNode>();
 		var names = new Dictionary<string, ClausewitzNode>(StringComparer.OrdinalIgnoreCase);
-		// The files in the original's order: every name over all the layers once, sorted by byte with case (mods.md,
-		// section 2) - so BlackICE's Aircraft_Armament before its Aircraftsystems, as its save lists their technologies.
-		foreach (string file in directories.ListFiles(TechnologyDirectory, "*.txt").OrderBy(Path.GetFileName, StringComparer.Ordinal))
+		// The files in the original's order, which ListFiles gives: every name over all the layers once, sorted by byte
+		// with case (mods.md, section 2) - so BlackICE's Aircraft_Armament before its Aircraftsystems, as its save lists
+		// their technologies.
+		foreach (string file in directories.ListFiles(TechnologyDirectory, "*.txt"))
 		{
 			ClausewitzNode root;
 			try

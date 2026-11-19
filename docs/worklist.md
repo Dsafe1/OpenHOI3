@@ -2101,13 +2101,10 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   a, b, c, ..."). Still to do: a line for every fault, and the line it is at - which wants the Clausewitz reader to keep
   each node's line number.
 
-- **The order a folder is listed in** (2026-11-19, `mods.md`, section 2): the original lists every name over all the
-  layers once, sorted by byte with case; `CDirectorySettings.ListFiles` lists the base layer first, then by name without
-  case. The localisation sorts its tables the original's way since that day, and the technology files since the same
-  evening - BlackICE's save lists its technologies so, `Aircraft_Armament` before `Aircraftsystems` (a technology's place
-  is each unit type's place for it, and a save's order); Their Finest Hour's eleven come out the same either way. The other
-  readers of a listing - the `.gfx` and `.gui` files, events, decisions, history, music - were written against ours, and
-  whether one of them settles a name given twice by its order, and so would read differently, was not looked into.
+- ~~**The order a folder is listed in**~~ - every folder read whole is listed as the original's lister lists it since
+  2026-11-20, the history's provinces a subfolder at a time (`mods.md`, section 2). Left: the saved battle plans' folder
+  and the music's fallback tracks keep an order of ours, neither listing read; Lua's `lfs` walks a folder in the file
+  system's order, which is the library's own.
 
 
 - **The launcher - built 2026-11-18, what is left** (`docs/launcher.md`). Built: the Avalonia window

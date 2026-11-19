@@ -265,9 +265,8 @@ public partial class CBattlePlanWindow : Control
 	private void Rescan()
 	{
 		_historical = new List<CBattlePlan>();
-		string relative = "battleplans/historical/" + _player.Tag.Value;
-		string? folder = _directories.LayerFolders(relative).FirstOrDefault(Directory.Exists);
-		foreach (string file in Files(folder))
+		// Every file of the folder over the whole search path, by the original's lister - names sorted by byte with case.
+		foreach (string file in _directories.ListFiles("battleplans/historical/" + _player.Tag.Value, "*"))
 		{
 			CBattlePlan plan = CBattlePlanFile.ReadHeader(file);
 			if (plan.HeaderGood)

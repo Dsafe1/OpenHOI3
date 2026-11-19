@@ -94,9 +94,27 @@ until 2026-11-19, kept one text for both. A line with fewer columns than the lan
 takes another of the line's fields in the original - very likely the English - where this takes nothing: not read, and
 English, the column read here, is never short.
 
-*Ours*: `ListFiles` itself still lists the base layer first, then by name without case, which the registries built from
-it were written against; which of them the original's order would change is in `docs/worklist.md`, *Loose ends*. The
-localisation and, since 2026-11-19, the technology files sort their listing by byte with case.
+**Every folder read whole is listed so since 2026-11-20** (`CDirectorySettings.ListFiles`): the original has one lister,
+`ListFilesWithExtension`, and with `ListSubdirectories` it is the only caller of PhysFS's enumeration outside PhysFS
+(`reversing/findings/FINDINGS-modlayer.md`, section 6), so the interface files, the localisation, the units and models,
+the technologies, the history, the events, the decisions, the music, the loading screens and the historical battle plans
+all come in that order. With it, as the lister does (`confirmed`, the record's `ListFilesWithExtension`): a name is kept
+only where it **ends in the extension case and all** - `upper.TXT` is not a `.txt` - and **a name with a byte of 0x80 or
+more is left out**, logged by the original and reported here; two names that differ only in case are two names, each
+opened from the frontmost copy the file system finds. **The history's provinces** are listed a subfolder at a time -
+the subfolders' names over the layers once, sorted by byte with case (`ListSubdirectories`, no `replace_path` test), each
+then listed as a folder of its own - so `Mongolia` comes before `africa`. *Ours*: a folder's own files before its
+subfolders', and deeper subfolders walked the same way; the original's history goes one level down and neither install has
+a file at its top.
+
+What it changed, measured 2026-11-20 against the build before: every folder of both installs but a few came out in
+another order and none gained or lost a file; the start-date checks of Their Finest Hour and of BlackICE - diplomacy,
+politics, espionage, strategy, theatres, technology, the save written - are as they were, and **BlackICE's leaders in
+service come out in its start save's order for all 107 countries**, Germany's the one that had not; what moved is what
+runs in the order things were read, the events asked in their files' order first among it, so the events trial's draws
+fall otherwise. Names given in two files are few in either install - three windows of the `.gui` files, two of
+BlackICE's leaders, and 52 of Their Finest Hour's provinces with two history files - and each pair is read in the same
+order either way.
 
 *Ours*: `CDirectorySettings` is made with the selected mods (`Mods`, front first) and the Documents folder; a session is
 made with one, so the mods are a property of the game being made and nothing static. `Resolve`, `ResolveTexture`,
