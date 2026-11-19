@@ -272,9 +272,13 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    original's cannot, Hungary then offering Germany a trade the original never makes (section 140, read on the running
    game: the Soviet money country by country). The economy now runs a country at a time (`tick.md`, section 3), the
    savegame checks of it - `firstdays`, `supplypass`, `research`, `politics` - line for line as before, and a day no
-   slower; the land, fleet and air scores of all four unchanged. Open: (a) the two draws left in `wr14` and `wr11`: a
-   Soviet `math.random` draw of ours beyond at hour 26 of `wr14`, and a Soviet draw of the AI's generator the original
-   makes and ours does not at hour 36 of `wr11`; a hook naming each `math.random` caller is in the session scratchpad as
+   slower; the land, fleet and air scores of all four unchanged. **And every draw of `wr14`**: the Soviet `math.random`
+   draw beyond at hour 26 was a tenth unit its production minister made, its supply share having come out of the
+   midnight's sliders 0.10193 where the original's is 0.12134 - ours weighed every country's sliders after every
+   country's day, the original weighs each in its own, before the later countries' days trade with it, so its supply need
+   counts 0.814 supplies traded for where the day ends with 145.633 (`ministers.md`, section 5; section 141, read on the
+   running game). Open: (a) the one draw left of the four, a Soviet draw of the AI's generator the original makes and ours
+   does not at hour 36 of `wr11`; a hook naming each `math.random` caller is in the session scratchpad as
    `dbg7-luarand.patch` (`OHDBG_LUARAND=TAG`); (b) **every fleet order of `wr19`, `wr15` and `wr14` is the original's since 2026-11-19**, none
    of ours alone (the British 31st and 41st Navies were a submarine fleet sent raiding that ours left free for the
    intercept, `moving.md` section 14; the German 33. Unterseebootsflottille, 5th and 6th Navy the sea targets' undeclared

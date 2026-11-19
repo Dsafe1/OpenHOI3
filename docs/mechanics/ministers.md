@@ -128,6 +128,16 @@ precision, `production.md`'s needs; **the lend-lease figure always 0**, the lend
 anyone, **`BalanceLendLeaseSliders(ai, country, tags, values)`** then follows. A Lua error is reported and skips the rest
 of that country's day, the lend-lease call with it. What they post counts from the next day's shares.
 
+`confirmed` **It is that country's own day, before the later countries' days** [exe]: the countries' days run one after
+another, the whole of one before the next (`tick.md`, section 3), and a trade route is exchanged in its `from`'s day - so
+the supply need's `traded_for` and `traded_away` hold what the countries before it and its own day traded, and nothing of
+the routes the later countries run with it. Read on the running game at the first midnight after a load: the Soviet
+Union's need reads 0.814 supplies traded for, where the day ends at 145.633 (`reversing/findings/FINDINGS-liveread.md`,
+section 141). *Ours:* it is weighed at the end of the country's economy in its day; the original's comes after the
+country's later stretch too - its shares of leadership to its cabinet, its alignment and surrender, its convoys and the
+manpower it has to spare - of which nothing was found to change what the weighing reads, the needs, the stockpile, the
+dissent and the IC.
+
 **A played country's own sliders** (built 2026-11-06, `frontend.md`, section 4.3): where production is the player's and
 his slider automation is above nought, the same call is made for it at the end of its day with **his level, 1 to 3, and
 his lend-lease share as it stands** - its fifteen binary places as a number, never below nought - and no

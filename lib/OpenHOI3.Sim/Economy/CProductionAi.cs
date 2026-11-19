@@ -90,24 +90,31 @@ public static class CProductionAi
 	/// </summary>
 	public static void BalanceDaily(CGameState state)
 	{
-		if (state.AiScripts is not { } scripts)
+		foreach (CCountry country in state.Countries)
+		{
+			BalanceCountry(state, country);
+		}
+	}
+
+	/// <summary>
+	/// One country's sliders, at the end of its own day: what the later countries' days trade with it is not counted yet,
+	/// as the original's call stands last in each country's daily pass (<c>reversing/findings/FINDINGS-liveread.md</c>,
+	/// section 141).
+	/// </summary>
+	public static void BalanceCountry(CGameState state, CCountry country)
+	{
+		if (state.AiScripts is not { } scripts
+			|| country.AiPaused || country.Tag.Value == "REB" || COwnedCounts.Of(state).Count(country.Tag) == 0)
 		{
 			return;
 		}
-		foreach (CCountry country in state.Countries)
+		if (!Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Production))
 		{
-			if (country.AiPaused || country.Tag.Value == "REB" || COwnedCounts.Of(state).Count(country.Tag) == 0)
-			{
-				continue;
-			}
-			if (!Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Production))
-			{
-				BalancePlayer(state, country);
-			}
-			else if (scripts.BalanceProductionSliders(state, country) && country.LendLeaseGiving.Count > 0)
-			{
-				scripts.BalanceLendLeaseSliders(state, country);
-			}
+			BalancePlayer(state, country);
+		}
+		else if (scripts.BalanceProductionSliders(state, country) && country.LendLeaseGiving.Count > 0)
+		{
+			scripts.BalanceLendLeaseSliders(state, country);
 		}
 	}
 

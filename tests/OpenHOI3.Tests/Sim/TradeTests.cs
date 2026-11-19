@@ -31,6 +31,22 @@ public class TradeTests
 		public int OfferTradeScore(CGameState state, COffer offer) => Score;
 	}
 
+	/// <summary>What each country had traded for of metal when its sliders were weighed.</summary>
+	private sealed class WeighingScripts : IAiScripts
+	{
+		public readonly Dictionary<string, CFixedPoint> TradedFor = new();
+
+		public int DiploScore(CGameState state, string function, CCountry actor, CCountry recipient, CCountry observer) => 0;
+
+		public int? NonHistoricalRelation(CGameState state, CCountry country, CCountry other) => null;
+
+		public bool BalanceProductionSliders(CGameState state, CCountry country, int level = 0, double lendLease = 0)
+		{
+			TradedFor[country.Tag.Value] = country.TradedFor[EGoods.Metal];
+			return true;
+		}
+	}
+
 	private static CGameState World()
 	{
 		CGameState state = ScriptWorld.State();
@@ -284,5 +300,22 @@ public class TradeTests
 		Assert.Equal(EGoods.Money, own.InactiveGoods);
 		// Poland, with no energy, has no IC to make money of: what it holds is Germany's payment alone.
 		Assert.Equal(CFixedPoint.Parse("0.75"), state.Stockpile(C(state, Pol))![EGoods.Money]);
+	}
+
+	[Fact]
+	public void A_countrys_sliders_are_weighed_in_its_own_day_before_the_later_countries_trade_with_it()
+	{
+		// Germany buys 10 metal of Poland in its own day, and Poland sells it 10 more in Poland's, after Germany's.
+		CGameState state = World();
+		var scripts = new WeighingScripts();
+		state.AiScripts = scripts;
+		CTradeRoutes.Make(state, BuyMetal(state, Pol, "10").Deal!, state.TotalHours);
+		CTradeTerms sale = CTradeRules.SetTrading(state, CTradeTerms.None, C(state, Pol), C(state, Ger),
+			-CFixedPoint.FromInt(10).Raw, EGoods.Metal);
+		CTradeRoutes.Make(state, new CTradeDeal(Pol, Ger, sale), state.TotalHours);
+
+		CTick.RunEconomy(state);
+		Assert.Equal(CFixedPoint.FromInt(10), scripts.TradedFor["GER"]);
+		Assert.Equal(CFixedPoint.FromInt(20), C(state, Ger).TradedFor[EGoods.Metal]);
 	}
 }

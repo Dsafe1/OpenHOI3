@@ -201,8 +201,7 @@ public static class CTick
 		Step(state, s => RunAlignmentAndSurrender(s, icAtDayStart), "CAlignment.RunDaily and CSurrender.RunDaily");
 		Step(state, Wars.CExile.ReturnDaily);                     // and an exile leading its faction coming home
 		Step(state, CConvoyDay.Maintain);                         // late in a country's day
-		Step(state, Economy.CSpareManpower.UpdateDaily);          // at the very end of it, what it has to spare,
-		AiStep(state, Economy.CProductionAi.BalanceDaily);          // and the AI's sliders (ministers.md, section 5)
+		Step(state, Economy.CSpareManpower.UpdateDaily);          // at the very end of it, what it has to spare
 		// Each province's own day, after every country's: what was bombed comes back, the suppression, the revolt risk's
 		// step and land at peace back to its owner, a province at a time; and then the pool is held.
 		Step(state, Weather.CClimate.RunDaily);                   // a province's day begins with its season (weather.md, 1)
@@ -475,6 +474,18 @@ public static class CTick
 			CIndustrialCapacity.Apply(state, ic, country);
 			CProduction.RunCountry(state, country);
 			Wars.CExile.HoldPool(country);
+			// Then its sliders, before the later countries' days trade with it (ministers.md, section 5). Ours: the
+			// original weighs them last in the country's day, after its later stretches too, none of which was found to
+			// change what the weighing reads.
+			if (state.Replay is { } replay)
+			{
+				replay.RunCalledStep(state, "CProductionAi.BalanceCountry " + country.Tag.Value,
+					s => Economy.CProductionAi.BalanceCountry(s, country));
+			}
+			else
+			{
+				Economy.CProductionAi.BalanceCountry(state, country);
+			}
 		}
 	}
 
