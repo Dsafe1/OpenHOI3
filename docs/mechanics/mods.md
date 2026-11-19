@@ -5,7 +5,8 @@ the player's folder, the command line that selects a mod, and the survey of what
 `reversing/findings/FINDINGS-modlayer.md` (2026-11-16), with the checksum's account of the search path in
 `reversing/findings/FINDINGS-checksum.md`, section 3, which that reading corrects. Built 2026-11-16
 (`lib/OpenHOI3.Content/Mods`, `CDirectorySettings`); **stage 1 of mod compatibility** - the layer, the launch and the
-survey. Stage 2, a BlackICE new game set beside a BlackICE save, and stage 3, playing it, are the worklist's *Next up*.
+survey. Stage 2, a BlackICE new game set beside a BlackICE save, is begun (section 7), and stage 3, playing it, is the
+worklist's *Next up*.
 
 Every rule below is the executable's [exe]; what is in a `.mod` file and the folders it names is the mod's [mod].
 
@@ -246,8 +247,47 @@ the test around them.
 
 *Measured*, 2026-11-16, the same way, once the Lua API of section 5's item 5 was built: the survey's ours 6,578 to 5,837,
 none of it the calls of the game into the scripts; and `headless` to 1 February 1936 under BlackICE, the AI's Lua **7,626
-errors to 39** - every one `IsUnitAvailable` handed nil for a unit type BlackICE's scripts name and its `units` folder
-does not declare, which the original's process would not survive (`lua.md`, *Ours*).
+errors to 39** - every one `IsUnitAvailable` handed nil for a unit type BlackICE's scripts named and its `units` folder
+does not declare, which the original's process would not survive (`lua.md`, *Ours*). The mod renamed them the same
+day; on 2026-11-19 the month gives **no Lua error**.
+
+## 7. Stage 2: a BlackICE new game beside a BlackICE save
+
+Begun 2026-11-19. **The reference saves** are `Documents\Paradox Interactive\Hearts of Iron III\BlackICE GitHub\save
+games\Ireland1936_01_01_00.hoi3` and ten more of the same game to `Ireland1936_03_16_04.hoi3`, made that day by the
+original with BlackICE GitHub as installed then and **BiceLib loaded with only `fixMaxInfrastructure` on** - the fix this
+game makes for every game (`docs/compatibility.md`, entry 29) - so the original's own rules otherwise. A save made with
+BiceLib's other patches on is no reference here: each changes a rule. **The checks are the base game's, given
+`mod="BlackICE GitHub"`**, run with `OPENHOI3_WORKDIR` set to a scratch folder whose `tfh` links to the install's, so that
+the mod's Lua writes nothing into the install (section 6).
+
+**Mended on the way**, both of rules the base game cannot show:
+
+- **A new game's look at the laws comes before its manpower** (`politics.md`, section 12): BlackICE's
+  `conscription_law_two` script divides manpower by divisions, and with the pool counted it moved 17 countries to
+  `volunteer_recruitment` - Germany's reserves at 70% to the save's 80%. Laws 839 to **856 of 856**, brigades' strength
+  9,219 to **10,916 of 10,918**, the queue's prices 93 to **152 of 152**.
+- **A new game's most manpower reads the provinces as the entry first made them** (`manpower.md`, section 4), with no
+  country's `global_revolt_risk` in their `revolt_risk` static: `free_press` alone had cost Czechoslovakia a third.
+  Manpower 40 to **77 of 79** and the player's.
+
+**Where it stands**, against the start save as a player gets the new game (`firstdays`, `load`, `politics`, `diplomacy`,
+`espionage`, `aistrategy`, `theatres`, `supplypass`), Their Finest Hour's own figures unchanged by either mending:
+
+| | |
+| --- | --- |
+| loaded as a game here | every unit, brigade, leader and line, 2,815, 10,933, 8,819 and 154; the wars, pacts and convoys; technology levels 125,828 of 125,832. Not loaded yet: a province's `capital` (403), the country keys `nocategory`, `last_mission_cancel`, `prov_vp`, `offmap_vp` and `human`, 8 ships' technology not of their type, 69 brigades' `home` |
+| a new game's two days | abilities, officers, influence, money and crude oil whole; strength 10,916 of 10,918 (New Zealand's two Samoa garrisons, by thousandths); organisation 10,486 of 10,918 (the Royal Navy's battleships 100.160 to 100.159 and the like); technology 92,900 of 92,904 (`cag_design_hidden` at 1 for four countries, 0 in the save); energy, metal and rare materials 77 of 79 (Germany's a few, Spain's hundredths); fuel 68 and supplies 43 of 79 |
+| politics | laws, government, ruling party, elections, unity and organisation whole; posts 1,167 of 1,177 and dissent 106 of 107 (the Russian rebels, `RUR`); the cabinet and popularity the rebels' (`REB`) |
+| diplomacy | relation and threat 8,560 of 8,560 pairs, neutrality 107 of 107, alignment 105 of 107 |
+| spies | everything but the level abroad, 11,252 of 11,342 |
+| the AI's strategy | 79 of 79 in all but `defend_prov` 74 and three lists 78, Shanxi's (`CSX`) |
+| theatres | 115 of 115 in every figure, the headquarters' brigades 66 of 66 |
+| the supply pass | 199 of 262 networks the save's in every province and figure |
+
+**Next**: the manpower of Ethiopia and China Yunnan (`manpower.md`, *not established*); the stockpiles and supplies; the
+technology `cag_design_hidden`; the keys a load leaves; and then the later saves, by the base game's checks that play
+forward (`load` with a later save, `research`, `march`).
 
 ## Not established
 

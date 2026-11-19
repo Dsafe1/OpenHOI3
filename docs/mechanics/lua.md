@@ -455,10 +455,11 @@ whatever the odds", from a signed draw, was corrected by this reading.
 - **A script that hands a method nil for a unit type gets a Lua error** - `bad argument #2 (CSubUnitDefinition expected,
   got nil)` - and the call it is part of fails, reported. The original passes nil on as a null pointer, and
   `IsUnitAvailable`, `CountMaxUnitsStillBuildable` and `country:GetBuildCostIC` each read through it at once, which is an
-  access violation in its process: nothing it does can be followed. BlackICE's production scripts do it - they name
-  `armored_engineers_brigade`, `ss_armored_engineers_brigade`, `improved_police_brigade` and `mot_aa_brigade`, which its
-  `units` folder does not declare, and `CSubUnitDataBase.GetSubUnit` answers nil for each - 39 times in a month of a new
-  game, all of them `IsUnitAvailable` (*measured* 2026-11-16, `headless` to 1 February 1936).
+  access violation in its process: nothing it does can be followed. BlackICE's production scripts did it - they named
+  `armored_engineers_brigade` and `ss_armored_engineers_brigade`, which its `units` folder does not declare, and
+  `CSubUnitDataBase.GetSubUnit` answered nil for each - 39 times in a month of a new game, all of them `IsUnitAvailable`
+  (*measured* 2026-11-16, `headless` to 1 February 1936). The mod named them `armored_engineer_brigade` the same day, and
+  the month gives no Lua error since (*measured* 2026-11-19).
 - **`GetMinisters()` begins with the null minister** for the null post: the original's first element was not read, and a
   null one would end its iterator before any post, which BlackICE's `ai_variable.lua` - skipping the first as
   `noMinisterType` - shows it does not.

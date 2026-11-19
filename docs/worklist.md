@@ -43,9 +43,13 @@ the order of their dependencies - by `--mod=<name>`, by the original launcher's 
 OpenHOI3 (mod)* and by the savegame tool's `mod=`; the file checksum is the original's for Their Finest Hour and for two
 BlackICE builds; and `OpenHOI3.SaveCheck modsurvey`, which on BlackICE GitHub makes a new game and finds what the mod asks
 that is not answered - LuaFileSystem first, without which none of BlackICE's AI loads, then `remove_brigade`, wxLua,
-BiceLib's 42 functions and the original's country variables in Lua. **Next: stage 2**, a BlackICE new game set beside a
-BlackICE save, and **stage 3**, playing it; the survey's list is where stage 2 starts. Awaiting the user's decision:
-`docs/compatibility.md`, entry 28.
+BiceLib's 42 functions and the original's country variables in Lua. **Stage 2 - begun 2026-11-19** (`mods.md`, section
+7): a BlackICE new game set beside a BlackICE start save the original made with BiceLib's infrastructure fix alone, by the
+base game's checks given `mod=`. Two rules the base game cannot show were mended - a new game's look at the laws comes
+before its manpower, and its most manpower reads the provinces without any country's revolt risk - and laws, theatres,
+relations, threat and neutrality are the save's whole, manpower 77 of 79. Next in it: Ethiopia's manpower, the stockpiles,
+the keys a load leaves, and the ten later saves of the same game. **Stage 3**, playing it, waits for the user's word and
+the AI work.
 
 **Next, set 2026-11-09: checking the original's running game against ours, through Cheat Engine.** The balancing was settled this
 way: the original is read live, its AI's picks logged, and ours run from the same start and set beside them
@@ -2112,8 +2116,8 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   folder (`mods.md`, section 6) - but its old utility needs `wx` (wxLua) and its overlay BiceLib, neither of them here.
   The original's Lua API it called that ours lacked - the variables and `CSetVariableCommand`, the unit list, the shares,
   `CMinisterTypeDataBase`, the `CModifier` constants and the rest of `modsurvey`'s list - is built since 2026-11-16 (`lua.md`,
-  sections 4 to 5.1); a month of its AI leaves 39 Lua errors, each `IsUnitAvailable` handed nil for a unit type its scripts
-  name and its files do not declare, which the original would not survive (`lua.md`, *Ours*).
+  sections 4 to 5.1); a month of its AI gives no Lua error since the mod renamed the two unit types its scripts named and
+  its files did not declare (2026-11-19; `lua.md`, *Ours*).
 
 - **Script still unbuilt**: `add_division` (unused by TFH and BlackICE, its starting strength not read through), `remove_fow`, the four mission conditions (an Europa Universalis III leftover, no mission file in either install), `has_hostile_spy_mission` (the original compares against an unset byte) and the AI's `add_ai_strategy` / `fixed_ai_strategy`. Built on 2026-11-16, for BlackICE's layer above all: `remove_brigade` with the original's end-of-hour removal queue, `military_construction` in a running game's `load_oob`, `total_of_ours_sunk`, `total_sunk_by_us`, `surrender_inherit`'s surrender mode and `release_vassal = REB` (`effects.md`, section 8), and `lost_IC`, the four war-record counters and the six `last_*_losses` (`triggers.md`, sections 5.1 and 5.2). **The undeclared war's** hostility is asked at battles, convoy raids and air and fleet targets, not at the AI's war-time gates or the land's movement (`war.md`, section 15).
 - **A unit taken out of the game, everywhere but the new paths**: the original's `RemoveUnit` leaves the removed unit's
