@@ -551,11 +551,16 @@ plane or a paratrooper brigade goes to the theatre of the capital**; otherwise *
 by its group's entry of the plans' group difference (section 7, `CPlanWants.GroupDifference`, taken as the pass begins): the sum of
 (the receiver's difference - what the pass has moved to it - the unit's count) - (its current agent's difference + the
 count - what the pass has moved to that one), the current agent's difference -1000 where it has none - the first agent
-that qualifies taking it; or, holding a tactical bomber and no interceptor, multi-role or CAS, it goes to an agent whose
-frontier faces a war candidate from one whose does not. On such a move the pass's tally is kept for every listed type; on
-the capital's pull it is not (`reversing/findings/FINDINGS-agents.md`, F.4; built 2026-11-13 - Japan's naval bomber group
-then goes to the Kwantung Army and Italy's to Africa, every theatre's air units 106 of 106 against the played save of 4
-January).
+that qualifies taking it; or, holding a tactical bomber, it goes to an agent whose frontier faces a war candidate from one
+whose does not - **whatever else it holds**: an interceptor, a multi-role fighter or a CAS wing beside the bomber goes with
+it, those types counting only in that they are not among the listed (`reversing/findings/FINDINGS-liveread.md`, section
+136: Germany's Luftflotte III and 26th Air wing, each a multi-role wing and tactical bombers, go to Ob.kdo. des Heeres at
+18:00 on 16 July 1941, and the 21st Air wing to Berlin HQ by the gain their tallies leave). On such a move the pass's tally
+is kept for every listed type; on the capital's pull it is not (`reversing/findings/FINDINGS-agents.md`, F.4; built
+2026-11-13 - Japan's naval bomber group then goes to the Kwantung Army and Italy's to Africa, every theatre's air units 106
+of 106 against the played save of 4 January). **Ours**: a unit's current agent is its nearest up the chain, the unit's own
+included; the original passes over a unit with an agent of its own and takes the topmost agent above it (section 136) -
+the same wherever agents stand only at theatres.
 
 ### 10.4 Fleets and transports (`FINDINGS-agents.md` F.3, F.5)
 

@@ -18,8 +18,10 @@ public static class CAirDistribution
 {
 	private static readonly string[] Pulled = { "transport_plane", "paratrooper_brigade" };
 
-	private static readonly string[] NeverMoved = { "interceptor", "multi_role", "cas" };
-
+	/// <summary>
+	/// What the war-candidate move asks a unit to hold. Nothing else it holds bars it: an interceptor, a multi-role fighter or
+	/// a CAS wing beside the bomber goes with it (FINDINGS-liveread.md, section 136).
+	/// </summary>
 	private const string Tactical = "tactical_bomber";
 
 	/// <summary>The types the gain is summed over; each counted by its group's entry of the plan's difference.</summary>
@@ -84,7 +86,7 @@ public static class CAirDistribution
 						gain += mine - theirs;
 					}
 					goes = gain > 1;
-					if (!goes && unit.Kind == EUnitKind.Air && Holds(unit, new[] { Tactical }) && !Holds(unit, NeverMoved)
+					if (!goes && unit.Kind == EUnitKind.Air && Holds(unit, new[] { Tactical })
 						&& agent.FrontierWarCandidate && current is { FrontierWarCandidate: false })
 					{
 						goes = true;

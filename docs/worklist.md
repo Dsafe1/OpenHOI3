@@ -266,10 +266,11 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    (`reversing/findings/FINDINGS-liveread.md`, section 134), so a playback reports them as ours beyond. Open: (a) the
    offers the AI answers one draw out in `wr15`, `wr14` and `wr11` (`CPactPasses.Answer`), and Sweden's Lua draw at 46
    of `wr11` - a hook naming each `math.random` caller is in the session scratchpad as `dbg7-luarand.patch`
-   (`OHDBG_LUARAND=TAG`); (b) the fleets and air units ours orders otherwise -
-   the British 31st and 41st Navies, the German 33. Unterseebootsflottille, 5th and 6th Navy, the Soviet Cernoje Flote,
-   the German 26th Air wing (the Omani dive bombers' rebase was Britain's waiting carrier groups, which ours had put on an
-   airfield: `ministers.md`, section 6); (c) `wr14`, whose dice part at hour 13, and `wr11`.
+   (`OHDBG_LUARAND=TAG`); (b) the fleets ours orders otherwise - the British 31st and 41st Navies, the German 33.
+   Unterseebootsflottille, 5th and 6th Navy, the Soviet Cernoje Flote. **Every air order of `wr19` is the original's since
+   2026-11-19**: the Omani dive bombers' rebase was Britain's waiting carrier groups, which ours had put on an airfield
+   (`ministers.md`, section 6), and the German 26th Air wing's a multi-role wing ours let bar a bomber's move to a war
+   candidate's front (`agents.md`, section 10.3); (c) `wr14`, whose dice part at hour 13, and `wr11`.
 
 **Noticed in testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces

@@ -117,6 +117,48 @@ public class MovingTests
 	}
 
 	[Fact]
+	public void A_tactical_bomber_goes_to_a_war_candidates_front_with_the_multi_role_wing_beside_it()
+	{
+		CGameState state = World();
+		CCountry germany = state.Country(Ger)!;
+		var multi = new CSubUnitType("multi_role", EUnitBranch.Air);
+		var tactical = new CSubUnitType("tactical_bomber", EUnitBranch.Air);
+		var types = (Dictionary<string, CSubUnitType>)state.SubUnitTypes;
+		types["multi_role"] = multi;
+		types["tactical_bomber"] = tactical;
+		int index = 0;
+		foreach (CSubUnitType type in state.SubUnitTypes.Values)
+		{
+			type.DatabaseIndex = index++;
+		}
+		CUnit Theatre(int id, int location, bool candidate)
+		{
+			var theatre = new CUnit(EUnitKind.Theatre, Ger) { Id = id, Location = location, Name = $"t{id}" };
+			theatre.Plan.Active = true;
+			theatre.Agent = new CAgent(Ger, id) { Unit = theatre, FrontierWarCandidate = candidate };
+			germany.Units.Add(theatre);
+			germany.UnitAi.Agents.Add(theatre.Agent);
+			return theatre;
+		}
+		CUnit east = Theatre(1, 11, candidate: true);
+		CUnit west = Theatre(2, 2, candidate: false);
+		var wing = new CUnit(EUnitKind.Air, Ger) { Id = 3, Location = 2, Name = "air" };
+		wing.SubUnits.Add(new CSubUnit(multi) { Id = 4, Unit = wing });
+		wing.SubUnits.Add(new CSubUnit(tactical) { Id = 5, Unit = wing });
+		germany.Units.Add(wing);
+		Assert.True(CAgentUnits.Attach(state, wing, west));
+		state.Outbox.Clear();
+
+		CAirDistribution.Run(state, germany);
+
+		// No plan wants anything, so nothing gains; the bomber's war-candidate front takes it, its fighter wing with it.
+		CAttachUnitCommand attach = Assert.IsType<CAttachUnitCommand>(Assert.Single(state.Outbox));
+		Assert.True(attach.MayExecute(state));
+		attach.Execute(state);
+		Assert.Same(east, wing.Parent);
+	}
+
+	[Fact]
 	public void A_lone_garrison_brigade_is_a_whole_garrison_and_three_infantry_brigades_hardly_one()
 	{
 		CGameState state = World();
