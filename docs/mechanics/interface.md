@@ -567,7 +567,7 @@ files, with nothing in it placed by hand.
   the colour in force stays, and is what runs on over a line break. A section sign and `!` goes
   back to the font's own colour. The shared table is filled in the order the `.gfx` files are
   listed - by name, byte for byte, over every layer (`mods.md`, section 2) - and each file's fonts
-  in theirs; that the fonts are read in that one listing is `inferred`. So in Their Finest Hour
+  in theirs - `confirmed` live, below. So in Their Finest Hour
   `chatfonts.gfx` comes first and gives every font without a `color_override` its `G`, 0 159 3,
   and a `P`, 200 30 170, where `core.gfx`'s seven blocks say `G` 0 255 0; the rest are
   `core.gfx`'s - `W` 255 255 255, `B` 0 0 255, `R` 255 50 50, `r` 160 50 50, `b` 0 0 0, `g` 176
@@ -575,8 +575,10 @@ files, with nothing in it placed by hand.
   BlackICE, which has no `chatfonts.gfx`, Their Finest Hour's is listed first all the same, so
   BlackICE's own `colorcodes` - `G` 13 128 13, `R` 179 32 32, `Y` 37 37 15 - change nothing, and
   only its five fonts with a `color_override` show its colours. Seen so on 2026-11-19: both games'
-  top bar tooltip in 255 189 0 and 0 159 3. The check of the order is a live read of the shared
-  table in BlackICE: `§Y` is 255 189 0 if it holds and 37 37 15 if `core.gfx` comes first.
+  top bar tooltip in 255 189 0 and 0 159 3. **And so in the original**: the shared table read
+  live in a running BlackICE game on 2026-11-19 holds `Y` 255 189 0, `G` 0 159 3, `P` 200 30 170
+  and `R` 255 50 50 - Their Finest Hour's, none of BlackICE's own
+  (`reversing/findings/FINDINGS-fontterrain.md`, section 1).
   *Ours*: a line that is not a letter and three numbers, or a key past the 128 plain characters,
   is passed over and listed in the validation log; a `font = { }` entry's typeface takes the
   shared table, which the original's Direct3D font was not read to do. Until 2026-11-19 seven
@@ -1072,8 +1074,8 @@ is; where the caret goes across a space a line was cut at.
 
 1. ~~**The table of colours a font with no `colorcodes` falls back to**: who fills it, and
    with what.~~ Read on 2026-11-19 (section 6): every font's `colorcodes`, the first value for
-   a letter standing. Still open: whether the fonts are read in the one listing that puts
-   `chatfonts.gfx` first.
+   a letter standing, the files in the one listing that puts `chatfonts.gfx` first - read live
+   in BlackICE the same day.
 2. **How a text box lays its text out**, beyond section 6 (where a line breaks, the cut of a
    `fixedsize` box, how the two kinds of text box differ in breaking, and where a `textBoxType`
    places its lines and cuts them off are read since 2026-11-14, and so are the line an edit box

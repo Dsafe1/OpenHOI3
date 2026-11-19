@@ -61,7 +61,8 @@ public sealed class CFontColourTable
 	/// The table every font shares: each <c>bitmapfont</c>'s <c>colorcodes</c>, the files in the original's listing order -
 	/// by name, byte for byte, over every layer (<c>docs/mechanics/mods.md</c>, section 2) - and each file's fonts in their
 	/// order. So Their Finest Hour's <c>chatfonts.gfx</c> comes before its <c>core.gfx</c> and gives the shared green its
-	/// (0, 159, 3); that the fonts are read in that one listing is inferred.
+	/// (0, 159, 3) - as a live read of the original's table in BlackICE shows (<c>reversing/findings/FINDINGS-fontterrain.md</c>,
+	/// section 1).
 	/// </summary>
 	public static CFontColourTable Shared(IEnumerable<(string FileName, ClausewitzNode Root)> files, Action<string>? passedOver = null)
 	{
