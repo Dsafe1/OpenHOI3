@@ -49,7 +49,10 @@ with the later in its own place in their lists. *Ours*: the earlier is kept for 
 the later would read the later's level - BlackICE's named carrier air groups with the United States' `cag_design_hidden`,
 where the original's would read the earlier's nought; whether any is in play was not looked at. The writer writes both,
 the earlier at its place and at nought (`CGameState.TechnologyDeclarations`), and a load reads both entries into the
-later, the second standing, as a look by name does. Their Finest Hour declares none twice.
+later, the second standing, as a look by name does. Their Finest Hour declares none twice, and BlackICE's repository
+none since 2026-11-19, when its two `cag_design_hidden` were made one in `unique_ships_techs.txt` - a slip of the mod's,
+by its maintainer's word - so the rule rests on that one save, made with the files before. A save of then loaded into
+the mod as it is now reads both of its entries into the one technology, the second standing.
 
 **A country's history file** sets its ability in a category with the category's name -
 `infantry_theory = 10` - and its level of a technology with the technology's.

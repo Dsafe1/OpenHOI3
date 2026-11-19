@@ -316,7 +316,8 @@ and to whose projects a BlackICE save gives some.
 
 **A technology declared twice** (2026-11-19, `research.md`, section 1): BlackICE's `cag_design_hidden` is two technologies
 under one name in the original, a look by name finding the later, and is so here; it had been the earlier alone, and the
-checks had set ours beside the save's first entry of the two.
+checks had set ours beside the save's first entry of the two. The mod made the two one the same day, a slip of its own;
+the rule stays, the original's for any mod that declares a name twice.
 
 **Next**: the manpower of Ethiopia and China Yunnan (`manpower.md`, *not established*); the stockpiles and supplies; the
 keys a load leaves; and the writer, which a BlackICE save shows short - each brigade's `home`, a duplicated technology's
