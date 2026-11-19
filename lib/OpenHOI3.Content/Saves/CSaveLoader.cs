@@ -126,6 +126,9 @@ public static class CSaveLoader
 				case "unit":
 				case "id":
 					break;
+				case "rebel_faction" when node.IsBlock:
+					CSaveRebelFactions.Read(state, node, ids, report);
+					break;
 				case "faction":
 					ReadFactions(state, node);
 					break;
@@ -187,7 +190,15 @@ public static class CSaveLoader
 		units.Finish();
 		Sim.Units.CBrigadeUpgrades.RegisterLines(state);
 		state.LastUnitId = Math.Max(state.LastUnitId, ids.Highest);
-		var convoys = state.Countries.SelectMany(country => country.Convoys).ToDictionary(convoy => convoy.Id);
+		// The rebels' armies and brigades, numbered on their counter, keep that number for the save (rebels.md, section 6).
+		foreach (((int serial, int type), int id) in ids.Others)
+		{
+			if (type == CSaveRebelFactions.RebelIdType)
+			{
+				state.RebelSerials[id] = serial;
+			}
+		}
+		var convoys =state.Countries.SelectMany(country => country.Convoys).ToDictionary(convoy => convoy.Id);
 		foreach ((Sim.Trade.CTradeRoute route, int convoy) in routes)
 		{
 			route.Convoy = convoys.GetValueOrDefault(convoy);

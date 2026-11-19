@@ -287,8 +287,11 @@ the mod's Lua writes nothing into the install (section 6).
 
 **The later saves** (2026-11-19). **Every one loads whole**: the units, brigades, leaders and lines, the wars, pacts,
 trade routes, convoys and battles of the 16 January, 17 January and 16 March saves all the save's, their battles'
-modifiers as entered too; the keys not loaded are the start save's and a province's `history`, three `rebel_faction`
-blocks and six ships' `home`.
+modifiers as entered too; the keys not loaded are the start save's and a province's `history` and six ships' `home`.
+The 16 March save's three risings - the first rebel factions of any reference save - are read since 2026-11-19 and
+written back byte for byte, armies numbered on the rebels' counter (`rebels.md`, section 6; `savegame.md`, section 14).
+**The writer** leaves out a variable at nought and walks the rest by name as the original's (`savegame.md`, section 8),
+and writes a technology declared twice at both places.
 
 **A check that plays forward is taken from the save as loaded, under BlackICE**: `march ... loaded` and `research ...
 loaded` (since 2026-11-19). Their plain run makes a new game and gives it the save's laws, levels and units, which is

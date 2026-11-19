@@ -578,7 +578,8 @@ writes it [exe] (`FINDINGS-savegame.md`, B.2):
 | key | what | read | written |
 | --- | --- | --- | --- |
 | `automate_trade` | the local player's switch | given to the country played, whoever that is | after `player`, where one is played |
-| `rebel`, `theatre` | the next rebel faction's and theatre's numbers | the game's counters | `rebel` before `convoy`, `theatre` after it |
+| `rebel`, `theatre` | the next number of the rebels' counter and of the theatres' | the game's counters | `rebel` before `convoy`, `theatre` after it |
+| `rebel_faction` | a block a faction, in the order they rose: its `id` on the rebels' counter (type 39), `type`, `name`, `country`, a `target` each, `independence` (`---` none), `government`, the `province` it rose in, an `army` pair each - the army's number on the same counter - and the `provinces` it has taken, indented | the factions; every type-39 pair a load meets, the armies and their brigades in the REB block too, keeps its number for the save | after `id`, before `fired_events` |
 | `flags` | the game's own flags, each `yes` | each set | after `unit` |
 | `victory_conditions` | a `faction` list a faction - each chosen condition's name and date, `0.1.0.0` none, then the faction's name - and `game_finished` | as the original's loader sets them (`reversing/findings/FINDINGS-factionplay.md`, C.5): each named chosen, with its date, and **met where it has one**; the faction's others not chosen; a name the faction has not is left out and reported | after `flags` |
 | `fired_events` | an `id = { id = N type = 40 }` an event that fires once and has fired | found by its number | after `id`, **by number** - the original's is its table's bucket order, *inferred* the same: no save has more than two |

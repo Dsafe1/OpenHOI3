@@ -66,10 +66,13 @@ public static class CRebelArmies
 		};
 		ownerCountry.Units.Add(army);
 		faction.Armies.Add(army.Id);
+		// The army and each brigade also take the next numbers of the rebels' counter, after the faction's.
+		state.RebelSerials[army.Id] = ++state.LastRebelId;
 		CCountry? target = faction.Targets.Count > 0 ? state.Country(faction.Targets[0]) : null;
 		for (int made = 0; made < count; made++)
 		{
 			var brigade = new CSubUnit(type) { Id = ++state.LastUnitId, Unit = army };
+			state.RebelSerials[brigade.Id] = ++state.LastRebelId;
 			brigade.Name = CUnitNames.ForSubUnit(state, namer, type);
 			CUnitNames.Register(namer, brigade.Name);
 			CFixedPoint efficiency = target?.Modifier[Efficiency] ?? CFixedPoint.Zero;

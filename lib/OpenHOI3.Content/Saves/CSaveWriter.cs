@@ -59,6 +59,7 @@ public static class CSaveWriter
 		{
 			writer.IdPair("id", CSaveUnitWriter.Pair(state, state.LastUnitId));
 		}
+		CSaveRebelFactions.Write(writer, state);
 		CSaveTop.WriteFiredEvents(writer, state);
 		foreach (CProvince province in state.Provinces)
 		{

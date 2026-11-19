@@ -547,8 +547,15 @@ public sealed class CGameState
 	/// <summary>The rebel factions, in the order they were made (<c>rebels.md</c>, section 6).</summary>
 	public List<Revolts.CRebelFaction> RebelFactions { get; } = new();
 
-	/// <summary>The last number given to a rebel faction; the next takes the one after it.</summary>
+	/// <summary>The last number given on the rebels' counter, to a faction, an army or a brigade; the next takes the one after it.</summary>
 	public int LastRebelId { get; set; }
+
+	/// <summary>
+	/// A rebel army's and a rebel brigade's number on the rebels' counter, by its number here: the original numbers a faction,
+	/// its army and each brigade of it on that one counter, in that order - a save's type 39 - where a unit here has its
+	/// number from the units' (<c>rebels.md</c>, section 6; <c>savegame.md</c>, section 14).
+	/// </summary>
+	public Dictionary<int, int> RebelSerials { get; } = new();
 
 	/// <summary>The law group of that name, or null.</summary>
 	public CLawGroup? LawGroup(string name)

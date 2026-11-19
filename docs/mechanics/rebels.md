@@ -117,7 +117,11 @@ for the province (section 4) **and not tested again**. With no type, nothing is 
   first target's - "Ethiopian Partisans", "Manchu Nationalists";
 - no armies and no provinces;
 
-and then its first army is made (section 7).
+and then its first army is made (section 7). **The faction, its army and each brigade of it take the next numbers of the
+rebels' one counter, in that order** - *measured* on a BlackICE save of 16 March 1936, whose three risings are 16, 17
+and 18; 53, 54 and 55 to 57; 72, 73 and on, written as type 39. *Ours*: a unit's number here is the units' count's, and
+a rebel army's and brigade's number on the rebels' counter is kept beside it (`CGameState.RebelSerials`) for the save,
+which writes and reads it back (`savegame.md`, section 14).
 
 ## 7. The army
 
@@ -309,7 +313,10 @@ owner:
 ## 14. Against the saves
 
 All twelve of the reference saves hold `rebel=1` and no `rebel_faction` block: **nothing has risen in that game by 20
-April 1936**, which is what the roll's one in 365 on top of the risk's one in thousands leads to. There is nothing to
+April 1936**, which is what the roll's one in 365 on top of the risk's one in thousands leads to. (A BlackICE game of
+2026-11-19 has three disgruntled rabbles risen by 16 March 1936 - in Spain, the Soviet Union and Australia, one to
+three brigades each - which a load reads and the writer gives back byte for byte; nothing yet sets their rising beside
+ours.) There is nothing to
 set a rising beside, so `OpenHOI3.SaveCheck rebels <install> [occupier] [occupied] [days] [seed]` is a trial, as the
 battles' are: the occupier at war with the occupied and holding ten of its provinces away from its capital, a rising
 of three in the first of them and another in the occupier's own land where no unit stands, and the days run.

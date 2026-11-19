@@ -270,9 +270,13 @@ public static class CSaveUnitWriter
 		writer.End();
 	}
 
-	/// <summary>A number of this game as the save's pair.</summary>
+	/// <summary>A number of this game as the save's pair: a rebel army's or brigade's on the rebels' counter.</summary>
 	public static (int Serial, int Type) Pair(CGameState state, int id)
 	{
+		if (state.RebelSerials.TryGetValue(id, out int serial))
+		{
+			return (serial, CSaveRebelFactions.RebelIdType);
+		}
 		return CSaveIds.Pair(id, state.HistoryUnitNext);
 	}
 

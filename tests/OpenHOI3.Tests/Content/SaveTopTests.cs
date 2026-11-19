@@ -158,6 +158,38 @@ public class SaveTopTests
 	}
 
 	[Fact]
+	public void A_rebel_faction_is_read_and_written_back_to_the_byte_its_army_on_the_rebels_counter()
+	{
+		// BlackICE's Spanish rising of 16 March 1936, as its save writes it.
+		const string block = "rebel_faction=\r\n{\r\n\tid=\r\n\t{\r\n\t\tid=16\r\n\t\ttype=39\r\n\t}\r\n" +
+			"\ttype=\"disgruntled_rabble\"\r\n\tname=\"Striking workers and political agitators\"\r\n\tcountry=\"GER\"\r\n" +
+			"\ttarget=\"GER\"\r\n\tindependence=\"---\"\r\n\tgovernment=\"social_democracy\"\r\n\tprovince=4294\r\n" +
+			"\tarmy=\r\n\t{\r\n\t\tid=17\r\n\t\ttype=39\r\n\t}\r\n\tprovinces=\r\n\t{\r\n\t\t4294 5066 \t}\r\n}\r\n";
+		CGameState state = World();
+		state.RebelTypes = new[] { new OpenHOI3.Sim.Revolts.CRebelType("disgruntled_rabble", 0) };
+		state.Governments["social_democracy"] = new OpenHOI3.Sim.Politics.CGovernment("social_democracy");
+		var ids = new CSaveIds();
+		ids.SetHistoryNext(100);
+
+		CSaveRebelFactions.Read(state, Top(block, "rebel_faction"), ids, new CSaveReport());
+		// What the loader does once every unit is read: the army keeps its number on the rebels' counter.
+		foreach (((int serial, int type), int id) in ids.Others)
+		{
+			state.RebelSerials[id] = serial;
+		}
+
+		OpenHOI3.Sim.Revolts.CRebelFaction faction = Assert.Single(state.RebelFactions);
+		Assert.Equal((16, 4294, "Striking workers and political agitators"), (faction.Id, faction.Province, faction.Name));
+		Assert.Equal(new[] { new CCountryTag("GER") }, faction.Targets);
+		Assert.Null(faction.Independence);
+		Assert.Equal(new[] { 4294, 5066 }, faction.Provinces);
+		var writer = new CSaveTextWriter();
+		writer.OpenRoot();
+		CSaveRebelFactions.Write(writer, state);
+		Assert.Equal(block, writer.Text);
+	}
+
+	[Fact]
 	public void The_strategic_warfare_managers_null_tag_is_no_player()
 	{
 		CGameState state = World();

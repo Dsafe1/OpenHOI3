@@ -24,6 +24,9 @@ public sealed class CSaveIds
 	/// <summary>The highest number given.</summary>
 	public int Highest { get; private set; }
 
+	/// <summary>Every pair of a type but the history's and the player's met so far, with the number it was given.</summary>
+	public IEnumerable<KeyValuePair<(int Serial, int Type), int>> Others => _others;
+
 	/// <summary>The highest number the history's and the player's minting can take: a number above it is free.</summary>
 	public int Reserved => _historyNext - 1 + _playedHighest;
 
