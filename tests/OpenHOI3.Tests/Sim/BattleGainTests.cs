@@ -1,3 +1,4 @@
+﻿using System.Linq;
 using System.Collections.Generic;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
@@ -230,13 +231,13 @@ public class BattleGainTests
 
 		leader.TraitProgress.Duration = 355;
 		CTraitGain.Count(state, combat, combat.Attacker);
-		Assert.Equal(50000, leader.TraitProgress.Of(fox));
+		Assert.Equal(50000, leader.TraitProgress.Of(state.GainableTraits.All.Single(gainable => gainable.Trait == fox)));
 		Assert.Equal(0, leader.TraitProgress.Duration);
 		Assert.DoesNotContain(fox, leader.Traits);
 
 		leader.TraitProgress.Duration = 400;
 		CTraitGain.Count(state, combat, combat.Attacker);
-		Assert.Equal(CTraitProgress.Whole, leader.TraitProgress.Of(fox));
+		Assert.Equal(CTraitProgress.Whole, leader.TraitProgress.Of(state.GainableTraits.All.Single(gainable => gainable.Trait == fox)));
 		Assert.Contains(fox, leader.Traits);
 	}
 
@@ -252,7 +253,7 @@ public class BattleGainTests
 
 		CTraitGain.Count(state, combat, combat.Attacker);
 
-		Assert.Equal(0, leader.TraitProgress.Of(fox));
+		Assert.Equal(0, leader.TraitProgress.Of(state.GainableTraits.All.Single(gainable => gainable.Trait == fox)));
 		Assert.Equal(0, leader.TraitProgress.Duration);
 		Assert.Empty(state.GainableTraits.For(ECombatKind.Land, ELeaderType.Sea));
 	}

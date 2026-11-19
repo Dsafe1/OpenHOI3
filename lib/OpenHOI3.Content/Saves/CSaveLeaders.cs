@@ -87,9 +87,11 @@ public static class CSaveLeaders
 			writer.Key("current_experience");
 			writer.Line(CSaveValues.FiveText(leader.Experience));
 			writer.Begin("gainable_trait");
-			foreach ((CTrait trait, int progress) in leader.TraitProgress.Progress)
+			// Each definition's progress under its trait's name, in the order it was made: a trait two definitions give is
+			// written twice.
+			foreach ((CGainableTrait gainable, int progress) in leader.TraitProgress.Progress)
 			{
-				writer.Fixed(trait.Key, new CFixedPoint(progress));
+				writer.Fixed(gainable.Trait.Key, new CFixedPoint(progress));
 			}
 			writer.Int("duration", leader.TraitProgress.Duration);
 			writer.Int("current", leader.TraitProgress.CurrentHour);
@@ -121,9 +123,12 @@ public static class CSaveLeaders
 					progress.CurrentHour = (int)CSaveValues.Whole(entry.Value);
 					break;
 				default:
-					if (state.Traits.FirstOrDefault(trait => trait.Key == entry.Key) is { } trait)
+					// The first definition of the trait, in the file's order, that this leader has no progress in yet: a
+					// trait written twice is two definitions' (savegame.md, section 5).
+					if (state.GainableTraits.All.FirstOrDefault(gainable => gainable.Trait.Key == entry.Key
+						&& !progress.Progress.ContainsKey(gainable)) is { } definition)
 					{
-						progress.Progress[trait] = (int)CSaveValues.Fixed(entry.Value).Raw;
+						progress.Progress[definition] = (int)CSaveValues.Fixed(entry.Value).Raw;
 					}
 					else
 					{

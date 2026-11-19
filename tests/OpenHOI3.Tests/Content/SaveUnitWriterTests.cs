@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Content.Saves;
@@ -264,7 +264,7 @@ public class SaveUnitWriterTests
 		var leader = new CLeader(8) { Rank = 1, Skill = 3, StartingSkill = 2, Experience = new CFixed15(2000L * CFixed15.Scale) };
 		leader.Traits.Add(state.Traits[0]);
 		leader.Traits.Add(state.Traits[1]);
-		leader.TraitProgress.Progress[state.Traits[1]] = 16400;
+		leader.TraitProgress.Progress[new OpenHOI3.Sim.Leaders.CGainableTrait(OpenHOI3.Sim.Combat.ECombatKind.Land, state.Traits[1])] = 16400;
 		germany.ActiveLeaders.Add(leader);
 		var line = new CConstruction(Ger)
 		{

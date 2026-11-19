@@ -320,9 +320,18 @@ under one name in the original, a look by name finding the later, and is so here
 checks had set ours beside the save's first entry of the two. The mod made the two one the same day, a slip of its own;
 the rule stays, the original's for any mod that declares a name twice.
 
-**Next**: the manpower of Ethiopia and China Yunnan (`manpower.md`, *not established*); the stockpiles and supplies; the
-keys a load leaves; and the writer, which a BlackICE save shows short - each brigade's `home`, a duplicated technology's
-second entry, the variables it writes that the save leaves out (`OpenHOI3.SaveCheck write`).
+**The writer, set beside the March save** (2026-11-19, evening): nothing it holds is left out but one Saudi event
+modifier whose date had passed at midnight - the original drops such a modifier when it next makes the country's
+modifier, which entering a loaded game does, so a save it wrote after loading this one would leave it out too
+(`modifiers.md`, section 4). Brought in on the way: a province's history and `capital`, a brigade's `home`, `prov_vp`,
+`offmap_vp`, `last_mission_cancel`, the null category (`savegame.md`, sections 4, 5, 12 and 15), the technology files'
+order, a leader's progress towards a trait two definitions give (`savegame.md`, section 5) and the posts the history
+fills with another country's ministers (`politics.md`, section 2) - Reichskommissariat Ural's, which also brings the
+start's posts to 1,177 of 1,177 and its dissent to 107 of 107. What still differs is held nowhere here - the leadership
+put into each technology, `out_of_supply_days` counted once more on entering - or the order of `fired_events`, the
+original's table's.
+
+**Next**: the manpower of Ethiopia and China Yunnan (`manpower.md`, *not established*); the stockpiles and supplies.
 
 ## Not established
 

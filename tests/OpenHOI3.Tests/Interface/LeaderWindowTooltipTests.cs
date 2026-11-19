@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
@@ -140,7 +140,7 @@ public class LeaderWindowTooltipTests
 		Assert.Equal("Currently no traits to gain.", CLeaderWindowTooltips.TraitsToGain(Localise, state, leader));
 		Assert.Equal("Currently no traits to gain.", CLeaderWindowTooltips.TraitsToGain(Localise, state, null));
 
-		leader.TraitProgress.Progress[winter] = 2500;
+		leader.TraitProgress.Progress[new OpenHOI3.Sim.Leaders.CGainableTrait(OpenHOI3.Sim.Combat.ECombatKind.Land, winter)] = 2500;
 
 		Assert.Equal("Traits to gain:\n- §G2.50%§! progress toward trait §YWinter Specialist§!",
 			CLeaderWindowTooltips.TraitsToGain(Localise, state, leader));

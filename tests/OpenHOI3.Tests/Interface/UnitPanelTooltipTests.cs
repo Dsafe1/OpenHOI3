@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
@@ -145,8 +145,8 @@ public class UnitPanelTooltipTests
 			Name = "Heinz Guderian", Rank = 2, Skill = 3, MaxSkill = 3, Experience = CFixed15.FromInt(6000),
 		};
 		leader.Traits.Add(panzer);
-		leader.TraitProgress.Progress[trickster] = CTraitProgress.Whole;    // earned: no line
-		leader.TraitProgress.Progress[winter] = 2500;
+		leader.TraitProgress.Progress[new OpenHOI3.Sim.Leaders.CGainableTrait(OpenHOI3.Sim.Combat.ECombatKind.Land, trickster)] = CTraitProgress.Whole;    // earned: no line
+		leader.TraitProgress.Progress[new OpenHOI3.Sim.Leaders.CGainableTrait(OpenHOI3.Sim.Combat.ECombatKind.Land, winter)] = 2500;
 		CLeaders.SetLeader(state, army, leader, false, false);
 
 		Assert.Equal(

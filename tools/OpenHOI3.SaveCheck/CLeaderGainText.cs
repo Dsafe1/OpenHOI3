@@ -32,7 +32,7 @@ public static class CLeaderGainText
 		}
 		var towards = leader.TraitProgress.Progress
 			.Where(pair => pair.Value > 0)
-			.Select(pair => $"{pair.Key.Key} {new CFixedPoint(pair.Value)}%")
+			.Select(pair => $"{pair.Key.Trait.Key} {new CFixedPoint(pair.Value)}%")
 			.ToList();
 		if (towards.Count > 0)
 		{

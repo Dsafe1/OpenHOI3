@@ -73,6 +73,8 @@ public static class CCountryHistory
 		var unknownKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		int unknownMinisters = 0;
 		int unseated = 0;
+		// Every country's ministers by id, made the first time a history names a minister its own file has not.
+		Dictionary<int, CMinister>? anyMinister = null;
 		foreach (string file in directories.ListFiles(HistoryDirectory, "*.txt"))
 		{
 			// The country a file belongs to is the tag its name starts with.
@@ -342,8 +344,13 @@ public static class CCountryHistory
 				}
 				else if (positions.Contains(entry.Key))
 				{
+					// The original's history takes the id as it stands, with no look at whose minister it is: BlackICE's
+					// Reichskommissariat Ural is given Ukraine's 900004 to 900006, and its save holds them. Here the minister
+					// is the country's own, or else the first country's in the declared order with that id (politics.md,
+					// section 2).
 					if (int.TryParse(entry.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int id)
-						&& country.Ministers.TryGetValue(id, out CMinister? minister))
+						&& (country.Ministers.TryGetValue(id, out CMinister? minister)
+							|| (anyMinister ??= AnyMinister(countries)).TryGetValue(id, out minister)))
 					{
 						country.Government[entry.Key] = minister;
 						if (minister.TypeIn(entry.Key) is null)
@@ -393,6 +400,20 @@ public static class CCountryHistory
 	/// Reads the <c>ministers</c> block of a country's own file. Each minister has one
 	/// line per position he could hold, naming the minister type he would be in it.
 	/// </summary>
+	/// <summary>Every country's ministers by id, the first country in the declared order winning an id two declare.</summary>
+	private static Dictionary<int, CMinister> AnyMinister(CCountries countries)
+	{
+		var ministers = new Dictionary<int, CMinister>();
+		foreach (CCountry country in countries.Declared)
+		{
+			foreach ((int id, CMinister minister) in country.Ministers)
+			{
+				ministers.TryAdd(id, minister);
+			}
+		}
+		return ministers;
+	}
+
 	private static void ReadMinisters(CDirectorySettings directories, CCountry country,
 		HashSet<string> positions, Dictionary<string, CMinisterType> ministerTypes,
 		SortedSet<string> unknownTypes)

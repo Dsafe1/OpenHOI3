@@ -41,7 +41,12 @@ Figures are thousandths unless said otherwise; a party's figure is thousandths o
    and the parties: `popularity = { ... }` and `organization = { ... }` - each figure goes in **raw**,
    x1000, into tally slot 2; a party the history does not name keeps 0; a negative figure is ignored;
    **nothing is normalised**. Germany's organisation history sums to 230. A country whose history gives
-   no national unity has 0, which its first day lifts to the floor of 1.0.
+   no national unity has 0, which its first day lifts to the floor of 1.0. **A post** is given the minister of the id the
+   history names, **with no look at whose minister he is** [exe] - the history loader's change takes the id as the line
+   gives it: BlackICE's Reichskommissariat Ural is given Ukraine's 900004 to 900006, and its start save holds them in every
+   post (*measured*, 2026-11-19: posts 1,177 of 1,177, where they were 1,167 with Ural's seats refilled from its own file).
+   *Ours*: the minister is the country's own of that id, else the first country's in the declared order; a save's post is
+   read the same way.
 2. **The pool** is made (section 7) and the empty posts are filled (section 7) - empty posts only.
 3. **The election dates**: `last_election` from the country's own file in `common/countries/`, or a
    `last_election` in its order of battle. A date before today is moved forward by whole terms to the

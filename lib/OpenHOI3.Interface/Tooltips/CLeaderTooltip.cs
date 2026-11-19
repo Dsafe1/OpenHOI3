@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using OpenHOI3.Interface.Text;
 using OpenHOI3.Sim;
@@ -102,42 +103,34 @@ public static class CLeaderTooltip
 	}
 
 	/// <summary>
-	/// A line for each trait he is part of the way to - above nothing and short of the whole -
-	/// with the progress as a percentage to two places. The original walks a map keyed by
-	/// where each trait lies in memory; here they come in the order of the traits file.
+	/// A line for each gainable trait he is part of the way to - above nothing and short of the whole -
+	/// with the progress as a percentage to two places; a trait two definitions give, each its own line. The original
+	/// walks a map keyed by where each definition lies in memory; here they come in the order of the traits file, a
+	/// trait's definitions in the order he began them.
 	/// </summary>
 	public static string Progress(Func<string, string> localise, CGameState state, CLeader leader)
 	{
 		var lines = new List<string>();
-		foreach (CTrait trait in Ordered(state, leader))
+		foreach ((CGainableTrait gainable, int progress) in Ordered(state, leader))
 		{
-			int progress = leader.TraitProgress.Of(trait);
 			if (progress <= 0 || progress >= CTraitProgress.Whole)
 			{
 				continue;
 			}
 			lines.Add("- " + CTextTemplate.Fill(localise("TRAIT_GAIN_PROGRESS"),
-				("PROG", CNumberText.Format(new CFixedPoint(progress), 2)), ("TRAIT", localise(trait.Key))));
+				("PROG", CNumberText.Format(new CFixedPoint(progress), 2)), ("TRAIT", localise(gainable.Trait.Key))));
 		}
 		return string.Join("\n", lines);
 	}
 
-	private static IEnumerable<CTrait> Ordered(CGameState state, CLeader leader)
+	private static IEnumerable<KeyValuePair<CGainableTrait, int>> Ordered(CGameState state, CLeader leader)
 	{
-		var seen = new HashSet<CTrait>();
+		var order = new Dictionary<CTrait, int>();
 		foreach (CTrait trait in state.Traits)
 		{
-			if (leader.TraitProgress.Progress.ContainsKey(trait) && seen.Add(trait))
-			{
-				yield return trait;
-			}
+			order.TryAdd(trait, order.Count);
 		}
-		foreach (CTrait trait in leader.TraitProgress.Progress.Keys)
-		{
-			if (seen.Add(trait))
-			{
-				yield return trait;
-			}
-		}
+		// A stable sort: a trait the file does not have last, each trait's definitions in the order he began them.
+		return leader.TraitProgress.Progress.OrderBy(entry => order.GetValueOrDefault(entry.Key.Trait, int.MaxValue));
 	}
 }

@@ -68,7 +68,7 @@ public static class CTraitGain
 			{
 				continue;
 			}
-			int sofar = progress.Of(gainable.Trait);
+			int sofar = progress.Of(gainable);
 			if (sofar >= CTraitProgress.Whole)
 			{
 				continue;
@@ -86,12 +86,12 @@ public static class CTraitGain
 			long now = sofar + step;
 			if (now >= CTraitProgress.Whole)
 			{
-				progress.Progress[gainable.Trait] = CTraitProgress.Whole;
+				progress.Progress[gainable] = CTraitProgress.Whole;
 				leader.Traits.Add(gainable.Trait);
 			}
 			else
 			{
-				progress.Progress[gainable.Trait] = (int)now;
+				progress.Progress[gainable] = (int)now;
 			}
 		}
 		progress.Duration = 0;

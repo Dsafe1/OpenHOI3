@@ -442,13 +442,20 @@ public static class CSaveLoader
 				country.Laws[group.Name] = law;
 			}
 		}
-		// The posts: a minister of the country's by the id the save gives, none where it gives none.
+		// The posts: a minister of the country's by the id the save gives - or, as the history may seat another country's
+		// (politics.md, section 2), the first country's of that id - none where it gives none.
 		var posts = new HashSet<string>(StringComparer.Ordinal);
 		country.Government.Clear();
 		foreach (CGovernmentPosition position in state.GovernmentPositions)
 		{
 			posts.Add(position.Name);
-			if (country.Ministers.TryGetValue((int)CSaveValues.Whole(node, position.Name), out CMinister? minister))
+			int id = (int)CSaveValues.Whole(node, position.Name);
+			CMinister? minister = country.Ministers.GetValueOrDefault(id);
+			if (minister is null && id > 0)
+			{
+				minister = state.Countries.Select(other => other.Ministers.GetValueOrDefault(id)).FirstOrDefault(found => found is not null);
+			}
+			if (minister is not null)
 			{
 				country.Government[position.Name] = minister;
 			}
