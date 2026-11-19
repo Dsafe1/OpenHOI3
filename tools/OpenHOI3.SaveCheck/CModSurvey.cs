@@ -40,7 +40,9 @@ internal static class CModSurvey
 	private static readonly Regex QuotedFile = new(@"'([^'\r\n]+?\.(?:txt|csv|gui|gfx|lua|mod|bmp|dds|tga|png|fnt|map|fx|inc|ttf|otf))'",
 		RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-	private static readonly Regex LeadingFile = new(@"^((?:[A-Za-z]:)?[^:'\r\n]+?\.(?:txt|csv|gui|gfx|lua|mod)):\d+",
+	// A problem's place as CDiagnostics.Located writes it: "file:line: message", or "file: message" for a whole file.
+	private static readonly Regex LeadingFile = new(
+		@"^((?:[A-Za-z]:)?[^:'\r\n]+?\.(?:txt|csv|gui|gfx|lua|mod|sfx|fx|dds|tga|bmp|fnt|wav|ttf|otf))(?::\d+)?(?=: )",
 		RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 	private static readonly Regex Quoted = new(@"'[^'\r\n]*'|""[^""\r\n]*""", RegexOptions.Compiled);
