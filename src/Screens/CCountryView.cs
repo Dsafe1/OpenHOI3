@@ -193,6 +193,20 @@ public abstract partial class CCountryView : Control
 
 	public bool IsOpen => Visible;
 
+	/// <summary>
+	/// Puts the screen away behind a window of its own - the production screen's builders - or brings it back: its main
+	/// window hidden, the one behind it left up, the screen still up. So the picture behind country screens stays, the
+	/// minimap stays down and the outliner shut, as the original's view still answers that it is shown while a builder is
+	/// (<c>docs/mechanics/builders.md</c>, section 1).
+	/// </summary>
+	protected void PutAway(bool away)
+	{
+		if (Window is not null)
+		{
+			Window.Visible = !away;
+		}
+	}
+
 	public void Open()
 	{
 		Make();

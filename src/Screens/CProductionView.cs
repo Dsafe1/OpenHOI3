@@ -68,14 +68,6 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 	private CBrigadeBuilderView _brigades = null!;
 	private readonly List<CBuilderWindow> _builders = new();
 
-	/// <summary>What is left of the screen's own window while a builder window is up.</summary>
-	private static readonly string[] FrameIcons = { "bg_countryskin", "bg_mainshadow", "production_topitem" };
-	private static readonly string[] FrameButtons = { "close_button", "mode_arrow_right", "mode_arrow_left" };
-	private static readonly string[] FrameTexts = { "headline_prod", "automation_setting" };
-
-	/// <summary>The parts of the window put away for a builder, to be brought back.</summary>
-	private readonly List<Godot.CanvasItem> _hidden = new();
-
 	protected override string WindowName => "country_production";
 	protected override string TopColourName => "topcolor_production";
 
@@ -298,13 +290,12 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 		builder.Setup(Context, Simulation, Player);
 		AddChild(builder);
 		_builders.Add(builder);
-		// The screen's own window is put away while one of them is up, and comes back
-		// when it goes.
+		// The screen is put away while one of them is up, and comes back when it goes.
 		builder.Closed += () =>
 		{
 			if (!_builders.Any(other => other.IsOpen))
 			{
-				ShowWholeWindow();
+				PutAway(false);
 			}
 		};
 		if (window.FindButton(button) is { } open)
@@ -313,7 +304,11 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 		}
 	}
 
-	/// <summary>One window at a time: the one that was up comes down.</summary>
+	/// <summary>
+	/// One window at a time: the one that was up comes down. The screen's own window is hidden whole - the original hides
+	/// it and then shows eight of its elements, which stay unseen inside it - so the builder stands alone on the picture
+	/// behind country screens, which BlackICE's leaves see-through to the map (docs/mechanics/builders.md, section 1).
+	/// </summary>
 	private void OpenBuilder(CBuilderWindow builder)
 	{
 		foreach (CBuilderWindow other in _builders)
@@ -327,61 +322,8 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 		builder.Open();
 		if (builder.IsOpen)
 		{
-			ShowFrameOnly();
+			PutAway(true);
 		}
-	}
-
-	/// <summary>
-	/// With a builder window up, the screen's own window shows nothing but its frame:
-	/// the country's picture, the shadow, the top piece, the close button, the headline
-	/// and the automation line with its arrows. The builders' own art is drawn to go
-	/// over exactly that.
-	/// </summary>
-	private void ShowFrameOnly()
-	{
-		if (Window is null || _hidden.Count > 0)
-		{
-			return;
-		}
-		var kept = new HashSet<Godot.Node>();
-		foreach (string icon in FrameIcons)
-		{
-			if (Window.TryFindIcon(icon) is { } found)
-			{
-				kept.Add(found);
-			}
-		}
-		foreach (string button in FrameButtons)
-		{
-			if (Window.TryFindButton(button) is { } found)
-			{
-				kept.Add(found);
-			}
-		}
-		foreach (string text in FrameTexts)
-		{
-			if (Window.FindTextBox(text) is { } found)
-			{
-				kept.Add(found);
-			}
-		}
-		foreach (Godot.Node child in Window.GetChildren())
-		{
-			if (child is Godot.CanvasItem { Visible: true } item && !kept.Contains(child))
-			{
-				item.Visible = false;
-				_hidden.Add(item);
-			}
-		}
-	}
-
-	private void ShowWholeWindow()
-	{
-		foreach (Godot.CanvasItem item in _hidden)
-		{
-			item.Visible = true;
-		}
-		_hidden.Clear();
 	}
 
 	/// <summary>

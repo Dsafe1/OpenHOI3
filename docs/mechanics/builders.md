@@ -27,13 +27,29 @@ would settle.
 
 They belong to the production screen, and one is up at a time. `confirmed`
 
-**A builder window stands on the production screen's frame.** Bringing one up hides
-everything in the production screen's own window and then shows eight of its elements
-again, by name: the icons `bg_countryskin`, `bg_mainshadow` and `production_topitem`, the
-button `close_button`, the texts `headline_prod` and `automation_setting`, and the buttons
-`mode_arrow_right` and `mode_arrow_left`. The builders' own art is nearly all transparent
-and is drawn to go over exactly that. Closing the builder brings the screen back.
-`confirmed` for what is shown; that closing restores it is how the game is remembered.
+**A builder window stands alone, with the production screen put away.** Bringing one up
+hides the production screen's main window whole - the `topcolor_production` window behind
+it stays up (`countryviews.md`, section 6) - and then shows
+eight of its elements by name: the icons `bg_countryskin`, `bg_mainshadow` and
+`production_topitem`, the button `close_button`, the texts `headline_prod` and
+`automation_setting`, and the buttons `mode_arrow_right` and `mode_arrow_left`. **They stay
+unseen**, being inside a hidden window. `confirmed`
+- **The screen is still up**: its `IsShown` answers yes while any builder is open, so the
+  picture behind country screens (`bg_main_menus`, `countryviews.md` section 6) stays, the
+  minimap stays down and the outliner shut - nothing on the way touches them. `confirmed`
+- **So in the base game a builder stands on that picture, an old map, and in BlackICE on the
+  map itself**: BlackICE's `gfx/interface/background_map.dds` is transparent through and
+  through. Measured: its alpha is nought in every block. A screenshot of the original under
+  BlackICE (2026-11-19) shows the builder over the map with nothing of the production screen
+  but BlackICE's `topcolor_production`, which dims the map and the map modes' buttons seen
+  through the picture. *Mod-able*: the picture and the window behind the screen.
+- **Closing a builder** - `cancel`, or `accept` once the order is given - hides it and asks
+  the in-game screen to show the country screen that is up again, which brings the whole
+  production screen back. `confirmed`
+
+Until 2026-11-19 this section said the builder stood on the production screen's frame,
+reading the eight elements as shown; the screenshot corrected it
+(`reversing/findings/FINDINGS-builders.md`, section 7).
 
 Each window is filled again on every frame it is up. `confirmed`
 
