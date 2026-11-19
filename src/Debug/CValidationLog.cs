@@ -58,11 +58,18 @@ public sealed class CValidationLog
 		Tell();
 	}
 
-	/// <summary>One fault, as <c>CDiagnostics</c> hands it over.</summary>
+	/// <summary>The faults written, each once: a file several readers parse - an interface file - says its faults once.</summary>
+	private readonly HashSet<string> _written = new(StringComparer.Ordinal);
+
+	/// <summary>One fault, as <c>CDiagnostics</c> hands it over; one already written is not written again.</summary>
 	public void Write(string problem)
 	{
 		lock (_lock)
 		{
+			if (!_written.Add(problem))
+			{
+				return;
+			}
 			Count++;
 			if (_writer is null)
 			{

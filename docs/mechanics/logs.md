@@ -36,7 +36,9 @@ A crash's file is named by its time and never overwritten. Godot's own copy of i
 
 *Ours*, asked for on 2026-11-19 - "a log file that acts as a validator for people": **`openhoi3_validation.log`**, beside the
 run's log, lists **every fault found in the install's or the mods' own files**, one to a line, so that whoever writes a
-mod has one list to work through. It is written afresh at each start, and the run's log says once where it is.
+mod has one list to work through. It is written afresh at each start, and the run's log says once where it is. **A line
+is written once**: a file several readers parse - an interface file read for its sprites, its fonts and its objects - says
+each of its faults once, however often it is read.
 
 Each line is where the fault is and what it is, in the form compilers write, which editors and terminals open at the
 place (`CDiagnostics.Located`):

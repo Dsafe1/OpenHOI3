@@ -704,6 +704,7 @@ public static class CGameStateLoader
 		var unknownTerrains = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		var filesRead = new int[provinces.Length];
 		var unknownTags = new SortedSet<string>(StringComparer.Ordinal);
+		var unknownKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		int unreadable = 0;
 
 		foreach (CDirectorySettings.LayeredFile file in
@@ -745,7 +746,7 @@ public static class CGameStateLoader
 				bool changedBefore = province.ControllerChanged;
 				province.ControllerChanged = false;
 				badLevels += Apply(province, passes[pass], countries, unknownTags,
-					terrainByName, unknownTerrains, buildingByKey, nationalism, captures);
+					terrainByName, unknownTerrains, buildingByKey, nationalism, captures, unknownKeys);
 				if (province.ControllerChanged)
 				{
 					lastPass[id] = pass + 1;
@@ -771,6 +772,12 @@ public static class CGameStateLoader
 		if (badLevels > 0)
 		{
 			warn($"{badLevels} building levels and amounts in province history are not numbers and were ignored");
+		}
+		if (unknownKeys.Count > 0)
+		{
+			// Said, where nothing was: the original takes any key it does not name for a building's (clausewitz.md, 3).
+			warn($"province history has {unknownKeys.Count} keys that are no key of a province's and no building, " +
+				$"passed over: {string.Join(", ", unknownKeys)}");
 		}
 		if (unknownTerrains.Count > 0)
 		{
@@ -799,7 +806,7 @@ public static class CGameStateLoader
 	private static int Apply(CProvince province, List<ClausewitzNode> entries, CCountries countries,
 		SortedSet<string> unknownTags, Dictionary<string, CTerrain> terrainByName,
 		SortedSet<string> unknownTerrains, Dictionary<string, CBuilding> buildingByKey, CFixedPoint nationalism,
-		List<(CCountryTag Taker, CCountryTag From)>? captures)
+		List<(CCountryTag Taker, CCountryTag From)>? captures, SortedSet<string> unknownKeys)
 	{
 		int badLevels = 0;
 		foreach (ClausewitzNode entry in entries)
@@ -812,6 +819,7 @@ public static class CGameStateLoader
 				{
 					if (part.Key is null || part.Value is null)
 					{
+						unknownKeys.Add($"revolt/{part.Key ?? part.Value ?? "{ }"}");
 						continue;
 					}
 					if (part.Key.Equals("type", StringComparison.OrdinalIgnoreCase))
@@ -822,11 +830,22 @@ public static class CGameStateLoader
 					{
 						province.RevoltSize = int.TryParse(part.Value, out int size) ? size : 0;
 					}
+					else if (!part.Key.Equals("name", StringComparison.OrdinalIgnoreCase)
+						&& !part.Key.Equals("leader", StringComparison.OrdinalIgnoreCase))
+					{
+						unknownKeys.Add($"revolt/{part.Key}");
+					}
 				}
 				continue;
 			}
-			if (entry.Key is null || entry.Value is null)
+			if (entry.Key is null)
 			{
+				// A bare word: the parser has said where it is (clausewitz.md, section 2).
+				continue;
+			}
+			if (entry.Value is null)
+			{
+				unknownKeys.Add($"{entry.Key} = {{ }}");
 				continue;
 			}
 
@@ -889,6 +908,10 @@ public static class CGameStateLoader
 				{
 					province.Points = points;
 				}
+				else
+				{
+					badLevels++;
+				}
 				continue;
 			}
 
@@ -928,6 +951,7 @@ public static class CGameStateLoader
 			bool isRemoveCore = entry.Key.Equals("remove_core", StringComparison.OrdinalIgnoreCase);
 			if (!isOwner && !isController && !isAddCore && !isRemoveCore)
 			{
+				unknownKeys.Add(entry.Key);
 				continue;
 			}
 

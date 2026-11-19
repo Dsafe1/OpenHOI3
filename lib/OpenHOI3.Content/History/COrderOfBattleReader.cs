@@ -140,6 +140,10 @@ public static class COrderOfBattleReader
 					country.Units.Add(unit);
 					made.Add(unit);
 				}
+				else
+				{
+					reading.Nowhere.Add($"{country.Tag} {unit.Name}");
+				}
 			}
 			else if (ReadPairBlock(state, country, entry, reading))
 			{
@@ -171,6 +175,11 @@ public static class COrderOfBattleReader
 		state.LastUnitId = reading.LastId;
 		Report(warn, reading.UnknownKeys, $"keys in the order of battle {file} are not understood");
 		Report(warn, reading.BadNumbers, $"figures in the order of battle {file} are not numbers and were ignored");
+		Report(warn, reading.UnknownTypes, $"brigades in the order of battle {file} are of a type that is not defined and were left out");
+		Report(warn, reading.NoType, $"brigades in the order of battle {file} have no type and were left out");
+		Report(warn, reading.Nowhere, $"units at the top of the order of battle {file} have no location and were left out");
+		Report(warn, reading.BadLocations,
+			$"units in the order of battle {file} are in a province that does not exist and were put in province 1");
 		Report(warn, reading.UnknownLeaders, UnknownLeadersReport);
 		foreach (CUnit unit in made)
 		{

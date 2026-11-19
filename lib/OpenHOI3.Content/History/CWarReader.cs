@@ -21,6 +21,12 @@ public static class CWarReader
 {
 	private const string WarsDirectory = "history/wars";
 
+	/// <summary>What a <c>war_goal</c> block may hold.</summary>
+	private static readonly HashSet<string> GoalKeys = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"actor", "receiver", "casus_belli", "country", "region",
+	};
+
 	/// <summary>Keys a war file has that are not about who is in it.</summary>
 	private static readonly HashSet<string> ReadPast = new(StringComparer.OrdinalIgnoreCase)
 	{
@@ -263,18 +269,43 @@ public static class CWarReader
 			}
 			foreach (ClausewitzNode entry in CHistory.Fold(root, state.Date))
 			{
-				if (entry.Key is not { } key || !key.Equals("war_goal", StringComparison.OrdinalIgnoreCase) || !entry.IsBlock
-					|| !CCountryTag.TryParse(entry.GetString("actor"), out CCountryTag actor)
-					|| !CCountryTag.TryParse(entry.GetString("receiver"), out CCountryTag receiver))
+				if (entry.Key is not { } key || !key.Equals("war_goal", StringComparison.OrdinalIgnoreCase) || !entry.IsBlock)
 				{
 					continue;
 				}
+				// A goal the file gets wrong is said, where it would be left off the war unseen (clausewitz.md, section 3);
+				// one whose is_valid fails is left off silently, as the original's design and not the file's fault.
+				foreach (ClausewitzNode part in entry.Children)
+				{
+					if (part.Key is null || !GoalKeys.Contains(part.Key))
+					{
+						CDiagnostics.Problem($"'{file}': war_goal: '{part.Key ?? part.Value}' is no key of a war goal; passed over");
+					}
+				}
+				if (!CCountryTag.TryParse(entry.GetString("actor"), out CCountryTag actor)
+					|| !CCountryTag.TryParse(entry.GetString("receiver"), out CCountryTag receiver))
+				{
+					CDiagnostics.Problem($"'{file}': a war_goal's actor '{entry.GetString("actor")}' or receiver " +
+						$"'{entry.GetString("receiver")}' is no country's tag; the goal is left off");
+					continue;
+				}
+				string regionName = entry.GetString("region");
 				var goal = new CWarGoal(CCasusBellis.Find(state, entry.GetString("casus_belli")), actor, receiver)
 				{
 					Country = CCountryTag.TryParse(entry.GetString("country"), out CCountryTag third) ? third : null,
-					Region = state.Regions.FirstOrDefault(r => r.Name == entry.GetString("region")),
+					Region = state.Regions.FirstOrDefault(r => r.Name == regionName),
 				};
-				if (!goal.Type.IsReal || !CCasusBellis.IsValid(state, actor, receiver, goal.Type))
+				if (regionName.Length > 0 && goal.Region is null)
+				{
+					CDiagnostics.Problem($"'{file}': a war_goal's region '{regionName}' is no region; the goal has none");
+				}
+				if (!goal.Type.IsReal)
+				{
+					CDiagnostics.Problem($"'{file}': a war_goal's casus_belli '{entry.GetString("casus_belli")}' is no casus " +
+						"belli type; the goal is left off");
+					continue;
+				}
+				if (!CCasusBellis.IsValid(state, actor, receiver, goal.Type))
 				{
 					continue;
 				}

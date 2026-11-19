@@ -64,6 +64,7 @@ public static class CCountryHistory
 		}
 
 		var unknownLaws = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+		var unknownKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		int unknownMinisters = 0;
 		int unseated = 0;
 		foreach (string file in directories.ListFiles(HistoryDirectory, "*.txt"))
@@ -136,8 +137,14 @@ public static class CCountryHistory
 					}
 					continue;
 				}
-				if (entry.Key is null || entry.Value is null)
+				if (entry.Key is null)
 				{
+					// A bare word: the parser has said where it is (clausewitz.md, section 2).
+					continue;
+				}
+				if (entry.Value is null)
+				{
+					unknownKeys.Add($"{entry.Key} = {{ }}");
 					continue;
 				}
 				if (entry.Key.Equals("dissent", StringComparison.OrdinalIgnoreCase))
@@ -189,6 +196,10 @@ public static class CCountryHistory
 						country.Capital = capital;
 						country.ActingCapital = capital;
 					}
+					else
+					{
+						badAmounts++;
+					}
 				}
 				else if (entry.Key.Equals("national_unity", StringComparison.OrdinalIgnoreCase))
 				{
@@ -196,6 +207,10 @@ public static class CCountryHistory
 					if (CFixedPoint.TryParse(entry.Value, out CFixedPoint unity))
 					{
 						country.NationalUnity = CFixedPoint.Clamp(unity, CFixedPoint.One, CFixedPoint.FromInt(100));
+					}
+					else
+					{
+						badAmounts++;
 					}
 				}
 				else if (entry.Key.Equals("government", StringComparison.OrdinalIgnoreCase))
@@ -314,6 +329,10 @@ public static class CCountryHistory
 					{
 						country.TechnologyLevels[entry.Key] = level;
 					}
+					else
+					{
+						badAmounts++;
+					}
 				}
 				else if (positions.Contains(entry.Key))
 				{
@@ -331,9 +350,19 @@ public static class CCountryHistory
 						unknownMinisters++;
 					}
 				}
+				else
+				{
+					// Said, where nothing was: no law group, position, technology, category, good or key of a country's.
+					unknownKeys.Add(entry.Key);
+				}
 			}
 		}
 
+		if (unknownKeys.Count > 0)
+		{
+			warn($"country history has {unknownKeys.Count} keys that name nothing a country's history sets, passed over: " +
+				string.Join(", ", unknownKeys));
+		}
 		if (unknownLaws.Count > 0)
 		{
 			warn($"country history names {unknownLaws.Count} laws that are not defined: " +

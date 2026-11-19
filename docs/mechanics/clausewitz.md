@@ -43,3 +43,22 @@ Every case goes to the validation log (`logs.md`, section 4) at its file and lin
 `docs/enhanced.md` lists reading the value written instead.
 
 *Ours*: the word followed by `=` or `}` - none in either data set - is passed over rather than followed out of step.
+
+## 3. What a reader passes over, said
+
+A key a reader does not know is reported, where the original drops it without a word (`CLAUDE.md`, *Settled
+decisions*). Four readers did not, and since 2026-11-19 do - none of their files in Their Finest Hour or BlackICE trips
+one today, so each is a net for a mod's mistake:
+
+- **Province history** (`CGameStateLoader.ApplyProvinceHistory`): a key that is none of the province's and no building
+  - the original takes it for a building's and finds none - a block other than `revolt`, a `revolt` key other than
+  `type`, `size`, `name` and `leader`, and `points` that is no whole number.
+- **Country history** (`CCountryHistory`): a key that is no law group, policy, technology, category, position, good or
+  key of a country's, a block other than `alignment`, `popularity` and `organization`, and a `capital`, `national_unity`
+  or technology level that is no number.
+- **War goals** (`CWarReader.ReadGoals`): a key a `war_goal` does not take, an actor or receiver that is no tag, a
+  `casus_belli` that names no type and a `region` that names none. A goal whose `is_valid` fails at the date is left
+  off silently: that is the original's design, not the file's fault.
+- **A file `load_oob` reads** (`units.md`, "A file of units as a game runs"): a brigade of no type or of a type not
+  defined, a unit at the top with no location, and one in a province that does not exist - as a new game's reading
+  of the same files already said.
