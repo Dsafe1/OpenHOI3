@@ -398,6 +398,7 @@ public static class CLandAttack
 			bool stay = MustStay(state, country, agent, unit, attackers, p.Id, effStance);
 			attackers.Add(unit);
 			long trial = CAttackOdds.Of(state, attackers, defenders, p);
+			refused.Append($" t{trial}");
 			if (odds > trial)
 			{
 				attackers.Remove(unit);

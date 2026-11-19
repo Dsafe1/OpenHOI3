@@ -66,8 +66,12 @@ province's number throw the country away, so a country condition inside them is 
 (section 4) - `123 = { war = yes }` does not ask about the province's owner.
 
 **A country's allies** are every country it has an alliance with that owns a province, in the
-order the countries were declared, and then every other member of its faction that is not on the
-list already. **The draw** takes two steps of the original's generator on the scope's state of
+order the countries were declared - **a faction member is none for being one** (`CCountry`'s list
+of allies, filled by its daily rebuild from the alliance alone, which the Lua's `GetAllies` and
+`GetNumOfAllies` and `num_of_allies` read too: `reversing/findings/FINDINGS-scopetriggers.md`,
+section 1; `reversing/findings/FINDINGS-liveread.md`, section 145). Until 2026-11-19 ours added
+every other member of its faction, which had Germany's foreign minister call Italy, an Axis member
+with no alliance, into its war on Mongolia, where the original's list is empty. **The draw** takes two steps of the original's generator on the scope's state of
 chance - MSVC's `rand`: the state times 214013 plus 2531011, kept to 32 bits - multiplies the two
 steps' fifteen-bit outputs (bits 16 to 30 of each), and takes the entry that product leaves over
 the count, counted from the first (`reversing/findings/FINDINGS-effectrun.md`, section 3.2). It

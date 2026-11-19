@@ -157,6 +157,10 @@ public static class CForeignAi
 			{
 				return error ?? $"ForeignMinister_EvaluateDecision failed for {decision.Name}";
 			}
+			if (state.AiTrace is { } trace && trace.Country == country.Tag)
+			{
+				trace.Write($"{state.Date}.{state.Hour} diplomatic decision {decision.Name} put to the Lua: {score}");
+			}
 			if (score > 0)
 			{
 				scripts.Post(state, new CExecuteDecisionCommand(decision.Name, scope.Detached()));

@@ -85,7 +85,7 @@ public static class CRelationConditions
 				answer = (country is null ? 0 : CCountryLists.VassalCount(state, country)) >= Written(value, whole);
 				return true;
 			case "num_of_allies":
-				answer = (country is null ? 0 : CCountryLists.Allies(state, country).Count) >= Written(value, whole);
+				answer = (country is null ? 0 : CCountryLists.Allied(state, country).Count) >= Written(value, whole);
 				return true;
 			case "is_in_any_faction":
 				answer = CConditions.Is(trigger, (country?.Faction ?? "").Length > 0);

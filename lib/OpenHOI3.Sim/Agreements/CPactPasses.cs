@@ -76,7 +76,12 @@ public static class CPactPasses
 					{
 						continue;
 					}
-					EOfferStage answer = Answer(state, offer);
+					EOfferStage answer = Answer(state, offer, out int score);
+					if (state.AiTrace is { } trace && (trace.Country == country.Tag || trace.Country == offer.Actor))
+					{
+						trace.Write($"{state.Date}.{state.Hour} offer {offer.Kind} {offer.Actor.Value} to {offer.Recipient.Value}: " +
+							$"score {score}, {answer}");
+					}
 					if (offer.Kind == EOfferKind.Trade && answer == EOfferStage.Accepted)
 					{
 						if (tradeAccepted)
@@ -95,9 +100,12 @@ public static class CPactPasses
 	}
 
 	/// <summary>The AI's answer to an offer: its score from the Lua, then a draw.</summary>
-	public static EOfferStage Answer(CGameState state, COffer offer)
+	public static EOfferStage Answer(CGameState state, COffer offer) => Answer(state, offer, out _);
+
+	/// <summary>The AI's answer to an offer, with the score it was drawn against.</summary>
+	public static EOfferStage Answer(CGameState state, COffer offer, out int score)
 	{
-		int score = Score(state, offer);
+		score = Score(state, offer);
 		if (score <= DeclinedAtOrBelow)
 		{
 			return EOfferStage.Declined;

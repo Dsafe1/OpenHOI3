@@ -292,10 +292,21 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    company halves the enemy's units in whole numbers** (`moving.md`, section 7.5; section 144, on the listing): the
    German 206. Infanterie-Division in 1808 had two idle divisions beside it against five Soviet units, which ours took
    as outnumbered and the original as enough, sending it to the ring at `wr14`'s hour 17. `wr14` 477, `wr11` 464.
-   Open: (a) the orders the draws leave: `wr14`'s from hour 32 - Soviet divisions - and `wr11`'s, which part on entering: the Soviet attacks on 1576 and 1440 ours makes at odds 1.278 and 1.259
-   against a bar of 1.1 and the original does not, every German defender's cached half nought in that run's memory where
-   ours, given the same, takes the attacks on 1749 and 2508 the original made at odds 50 - asking the running game for
-   the original's odds with defenders' halves nought; `wr11`'s twenty fleets are its recording's, which has no patrol
+   **Three new recordings, 2026-11-19, every probe** (48 hours each from `Ireland1941_07_16_07`, beside `wr19` in session
+   eb4eed6b's scratchpad): `wr20`, `wr21` and `wr22`, the last with `probes/hoiodds.lua` (every attack estimate, look by look).
+   **And the Lua's `GetAllies` is the alliances alone** (`triggers.md`, section 2; section 145): `wr20` parted at hour 33,
+   ours having Germany's foreign minister call Italy, an Axis member with no alliance, into its war on Mongolia, which the
+   original's list - empty, Germany having no alliance - never does; `GetNumOfAllies`, the `ally` scope and `num_of_allies`
+   read the same list (`CCountryLists.Allied`). `wr20` 520 of 523 land orders (476), one of ours alone (59), fleets 170 of
+   170, air 34 of 34; the five others unchanged. The other readers of `CCountryLists.Allies`, which keeps the faction's
+   members, were not looked at. **Ours' attack estimates are the original's look for look** (section 146: `wr22`'s every
+   Soviet look on entering to the thousandth, clean defenders among them).
+   Open: (a) the orders the draws leave: `wr14`'s from hour 32 - Soviet divisions - and `wr11`'s and `wr21`'s, which part on
+   entering alike: the Soviet attacks on 1576 and 1440 ours makes and the original does not - **not the halves**: an entering
+   with the same halves (`et4`) attacks both as ours does, so most likely the target's stance, 4 at a weight of 500 (1440's
+   533) - to settle with the original's target weights logged in a run that declines (`wr20`'s and `wr22`'s do not, the
+   defenders' halves worked out there); `wr20`'s four land orders of its last hours; `wr21` 440 of 468 from that entering on;
+   `wr11`'s twenty fleets are its recording's, which has no patrol
    draws (`P` lines, `probes/hoidraws.lua` since `wr14`), so its patrols roll ours: the US Cruiser Fleet 5's way at hour
    6 is every other recording's. A hook naming each `math.random` caller is in the session scratchpad as
    `dbg7-luarand.patch` (`OHDBG_LUARAND=TAG`); (b) **every fleet order of `wr19`, `wr15` and `wr14` is the original's since 2026-11-19**, none

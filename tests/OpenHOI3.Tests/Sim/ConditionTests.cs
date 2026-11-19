@@ -226,13 +226,25 @@ public class ConditionTests
 		Assert.False(Holds(state, "faction = none", Pol));
 		Assert.False(Holds(state, "4 = { faction = axis }"));
 		Assert.True(Holds(state, "ITA = { faction = this }"));
-		Assert.True(Holds(state, "num_in_faction = 2 num_of_allies = 1 is_in_any_faction = yes"));
+		Assert.True(Holds(state, "num_in_faction = 2 is_in_any_faction = yes"));
+	}
+
+	[Fact]
+	public void An_ally_is_a_country_with_an_alliance_and_a_faction_member_for_being_one_is_none()
+	{
+		CGameState state = State();
+
+		Assert.False(Holds(state, "num_of_allies = 1"));
+		Assert.False(Holds(state, "ally = { tag = ITA }"));
+		state.Alliances.Add(new CAlliance(Ger, ScriptWorld.Ita));
+		Assert.True(Holds(state, "num_of_allies = 1"));
 	}
 
 	[Fact]
 	public void Ally_draws_by_chance_and_moves_the_state_of_the_scope_it_was_asked_in()
 	{
 		CGameState state = State();
+		state.Alliances.Add(new CAlliance(Ger, ScriptWorld.Ita));
 		CEventScope scope = CEventScope.Start(Ger, randomState: 7);
 
 		Assert.True(Holds(state, "ally = { tag = ITA }", scope));
