@@ -218,7 +218,17 @@ is cleared - on every pass that runs the dispatcher, full or every third hour, a
    Tannu Tuva's pass began 43rd and the Soviet Union's 98th, so Kyzyl HQ counted the three Soviet divisions in 2390
    standing and gave no order. Here the passes run one after another and the Soviet Union's comes first, so its orders of
    that hour sent them away first and Tuva marched its army into 2390. Both July 1941 recordings agree with the hour's
-   start (`reversing/findings/FINDINGS-liveread.md`, section 111). A country's own units are read as they are.
+   start (`reversing/findings/FINDINGS-liveread.md`, section 111). **But Germany's orders of the hour are read as given**:
+   the main thread runs the list's first six - `---`, REB, Germany, Britain, the Soviet Union, the United States - and
+   Germany's pass begins about eighth of 102 every hour, Britain's about 81st, the Soviet Union's about 92nd and the
+   United States' about last (192 hours of four recordings). At 09:00 on 16 July Germany's pull sent the 169.
+   Infanterie-Division, the 6. SS 'Nord' and the 1. Gebirgsjäger to 1306, and in both runs that hour gave it the Slovak
+   2. Pesi divize's count saw them, sending it to 2508 where the hour's start sent it to 1306; Slovakia's pass began
+   before Germany's ended in one of the two and after it in the other (section 143). So **ours**: the countries of the
+   list up to Germany are read as their orders stand, the rest as the hour began. It is a race all the same - Hungary and
+   Bulgaria, whose passes begin soon after Germany's, often give their own orders before Germany's first - and a
+   country whose pass begins at once on a worker thread may count before Germany's orders are given. A country's own
+   units are read as they are.
 4. **The rest**: nothing given out - every position wants 1; otherwise while the carry is
    over 0.1, +1 to the position with the least want (an over-cap one sorted after), one scoring under 1 left out where the scores come to 1 or more.
    The original gives 2 where a unit standing there has an entry on a list of the unit's own, **not where it is dug in**

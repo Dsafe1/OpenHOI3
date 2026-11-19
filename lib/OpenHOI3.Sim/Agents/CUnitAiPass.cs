@@ -26,8 +26,9 @@ public static class CUnitAiPass
 				revolting.Add(owner);
 			}
 		}
-		// The original runs the countries' passes side by side, and a small country's is done before a great power's orders
-		// are given; so what one pass reads of another country's units is where the AI had them bound as the hour began.
+		// The original runs the countries' passes side by side, and a small country's is done before most of a great power's
+		// orders are given; so what one pass reads of another country's units is where the AI had them bound as the hour
+		// began - but for Germany's, given before the worker threads' countries count (ShowOrdersOfTheHour).
 		foreach (CCountry country in state.Countries)
 		{
 			foreach (Units.CUnit unit in country.AllUnits())
@@ -44,6 +45,32 @@ public static class CUnitAiPass
 				continue;
 			}
 			Run(state, country, hour);
+			ShowOrdersOfTheHour(country);
+		}
+	}
+
+	/// <summary>
+	/// The list's first countries, REB and Germany, the original's main thread runs before the worker threads are under way;
+	/// the main thread's other three, Britain, the Soviet Union and the United States, begin after nearly every worker's
+	/// country (<c>reversing/findings/FINDINGS-liveread.md</c>, sections 111 and 143).
+	/// </summary>
+	private const int FirstOnMainThread = 1;
+
+	/// <summary>
+	/// After a country's pass: whether the later countries' passes read the orders it gave this hour, or where its units
+	/// were bound as the hour began. The first countries of the original's main thread give theirs while the worker
+	/// threads' countries are still to count, so those are read as given; every other country's are read as the hour began,
+	/// its pass running side by side with the rest (<c>docs/mechanics/moving.md</c>, section 7.3).
+	/// </summary>
+	public static void ShowOrdersOfTheHour(CCountry country)
+	{
+		if (country.Index > FirstOnMainThread)
+		{
+			return;
+		}
+		foreach (Units.CUnit unit in country.AllUnits())
+		{
+			unit.AiBoundAtHour = unit.AiBound;
 		}
 	}
 

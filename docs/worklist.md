@@ -255,7 +255,8 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    **Open, in order**, measured against `wr19` (48 hours from `Ireland1941_07_16_07`, every probe) on 2026-11-19: 468 of
    469 land orders the same, none of ours alone, fleets 165 of 165 (none of ours alone), air units 26 of 26; `wr15` 467 of
    467 (one of ours alone, that run's original keeping the 3. Infanterie-Division off to 38), fleets 164 of 164 and air 28
-   of 28, `wr14` 466 of 484, 160 of 163 and 27 of 27, `wr11` 453 of 488, 147 of 167 and 26 of 26. **Every hour of `wr19` agrees draw for draw before its first battle, and no battle's dice
+   of 28, `wr14` 476 of 484 (4 of ours alone), 160 of 163 and 27 of 27, `wr11` 463 of 488 (27 alone), 147 of 167 and 26
+   of 26 - `wr14` 466 and `wr11` 453 until Germany's orders of the hour were read as given (below). **Every hour of `wr19` agrees draw for draw before its first battle, and no battle's dice
    part in its 47 hours**, so what is left of it is orders no draw shows - and the AI's own draws, which the playback
    counts by country. **Every `math.random` draw of `wr19` is the original's since 2026-11-19**: Cuba's and Haiti's two
    beyond at hours 27 and 31 were a puppet's debt revoke ours let through, which cost Britain the influence that pays
@@ -282,12 +283,25 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    that found no way - the original's next pass cancels such a raid, standing in port with no pending destination, and
    frees the flotilla for the pass after; ours kept a raid out of that test (`moving.md`, section 14; section 142, watched
    on an unbroken run of the original - a load from one of a recording's own saves changes what the AI does there).
-   Open: (a) the orders the draws leave: the land orders of `wr14` and `wr11` and `wr11`'s twenty fleets - a hook naming each `math.random` caller is in the session scratchpad as `dbg7-luarand.patch` (`OHDBG_LUARAND=TAG`); (b) **every fleet order of `wr19`, `wr15` and `wr14` is the original's since 2026-11-19**, none
+   **And Germany's orders of the hour are read as given by the later countries' counts** (`moving.md`, section 7.3; section
+   143, from the recordings' logs): `wr14` and `wr11` part at hour 5 because the Slovak 2. Pesi divize's count at hour 2
+   saw Germany's three pulls to 1306 in both runs, which ours read as the hour began; the 6. SS 'Nord' was then pulled
+   again from an over-full 1306 and the reserves Germany places at hour 5 waited three hours. `wr14` 476 of 484 (466),
+   `wr11` 463 of 488 (453), `wr19` and `wr15` unchanged, every draw as before.
+   Open: (a) the orders the draws leave: `wr14`'s from hour 17 - the 206. Infanterie-Division, then Soviet divisions from
+   hour 32 - and `wr11`'s, which part on entering: the Soviet attacks on 1576 and 1440 ours makes at odds 1.278 and 1.259
+   against a bar of 1.1 and the original does not, every German defender's cached half nought in that run's memory where
+   ours, given the same, takes the attacks on 1749 and 2508 the original made at odds 50 - asking the running game for
+   the original's odds with defenders' halves nought; `wr11`'s twenty fleets are its recording's, which has no patrol
+   draws (`P` lines, `probes/hoidraws.lua` since `wr14`), so its patrols roll ours: the US Cruiser Fleet 5's way at hour
+   6 is every other recording's. A hook naming each `math.random` caller is in the session scratchpad as
+   `dbg7-luarand.patch` (`OHDBG_LUARAND=TAG`); (b) **every fleet order of `wr19`, `wr15` and `wr14` is the original's since 2026-11-19**, none
    of ours alone (the British 31st and 41st Navies were a submarine fleet sent raiding that ours left free for the
    intercept, `moving.md` section 14; the German 33. Unterseebootsflottille, 5th and 6th Navy the sea targets' undeclared
    war and capital-area fifth and a fleet's share counted out of its own agent, `moving.md` section 12 and `agents.md`
    10.4; the Soviet Cernoje Flote an invasion's fleet under an order sailing an hour too soon, `moving.md` section 16) -
-   what is left is `wr14`'s three and `wr11`'s twenty. The one land order of `wr19` ours gives otherwise, Tannu Tuva's 1ya
+   what is left is `wr14`'s three - Britain's patrols there drawing from lists of two where the other runs' have one,
+   its world having parted by then - and `wr11`'s twenty. The one land order of `wr19` ours gives otherwise, Tannu Tuva's 1ya
    Tunska Armiya at hour 2, is the runs' own: `wr19`'s and `wr11`'s originals send it to 2390, `wr15`'s and `wr14`'s keep it
    bound for 2275 as ours does - what a line counts of an ally's orders depends on the threads (`docs/enhanced.md`).
    **Every air order of `wr19` is the original's since

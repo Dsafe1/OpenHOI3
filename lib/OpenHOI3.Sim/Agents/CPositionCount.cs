@@ -75,7 +75,8 @@ public static class CPositionCount
 				}
 			}
 			// An ally's unit where its country's AI had it bound as the hour began: the original's passes run side by side,
-			// and a smaller country's count is done before a great power's orders of the hour are given.
+			// and a smaller country's count is done before a great power's orders of the hour are given - Germany's apart,
+			// which are given first (CUnitAiPass.ShowOrdersOfTheHour).
 			int bound = ally ? CAgentUnits.MovementDestinationAtHour(unit) : CAgentUnits.MovementDestination(unit);
 			for (int index = 0; index < positions.Count; index++)
 			{
