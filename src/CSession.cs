@@ -2323,6 +2323,8 @@ public partial class CSession : Node
 	/// <c>--mod=BlackICE GitHub</c> lays that mod of the install's <c>tfh/mod</c> over the install - and so does the original
 	/// launcher's own <c>-mod=</c> - the main menu included, a game or none (read before anything is, by <c>Main</c>, not
 	/// here; <c>docs/mechanics/mods.md</c>, section 3),
+	/// <c>--nocull</c> draws every mesh of the map's surface, the camera seeing it or not, to set beside the culled picture
+	/// (read as the surface is made; <c>docs/mechanics/mapdraw.md</c>, section 6),
 	/// <c>--lua=5.1.4</c> runs the install's Lua on the original's Lua 5.1.4 and not on LuaJIT, for the comparisons that want
 	/// a table's <c>pairs</c> in the original's order (read before anything is, by <c>Main</c>; <c>docs/mechanics/lua.md</c>, section 1),
 	/// <c>--install=C:\Games\Hearts of Iron 3</c> plays that install, wherever the engine stands - how the launcher starts it

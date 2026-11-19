@@ -92,6 +92,21 @@ As measured, with `OpenHOI3.SaveCheck profile` and the headless run, both in Rel
   only twice: the pass is its provinces' memory being read, a few lines of it a province, not arithmetic; the
   arithmetic was already the original's integers in a tight loop. It is the first of the simulation's own steps run on
   more than one thread - the trading's Lua was until then the only one.
+- **The frame, measured on 2026-11-19** with the client's `--perf` log (the fast build, Germany, a window of 1760 by
+  990, another session's work on the machine): paused, 100 frames a second, 7.3 ms of each the rendering server's own
+  CPU and under a millisecond of the GPU's; at the top speed Their Finest Hour 77 frames and 73 days a minute, BlackICE
+  70 and 35. Two things held it, and both were changed that day:
+  - **every mesh of the map's surface was drawn every frame** - 10,010 draw calls wherever the camera was, the effects
+    placing the vertices so that Godot could not cull them. They are culled by our own test now (`CMapCulling`;
+    `docs/mechanics/mapdraw.md`, section 6), the picture the same to the pixel: 1,617 draw calls at the start's view and
+    2.5 ms;
+  - **at the top speed the worker sat idle for most of each hour's cycle** - an hour started only after the frame that
+    collected the last was drawn, so an hour of 14 ms took about 35. It runs hours back to back now, a twentieth of a
+    second at a time (`docs/mechanics/tick.md`, section 2).
+
+  Together: paused 144 frames a second, which the screen holds it to; at the top speed **Their Finest Hour 138 frames
+  and 138 days a minute, BlackICE 138 frames and 48 days a minute**. BlackICE's top speed is the hour's own time now,
+  its worker busy most of the minute.
 - **Drawing is already C++** - it is Godot's renderer. The client's C# builds and sets nodes.
 
 ## 3. What C++ would buy, part by part

@@ -343,6 +343,21 @@ showed the surface upside down**, Godot's clip y running the other way to Direct
   of its use**: each way made ahead was drawn under the one shown for two frames to warm it, which flickered the map as a
   game began (reported in testing, 2026-11-07) and, measured, made a first switch no faster; without the warming of
   the other height a first zoom inwards costs about 50 ms instead of 35.
+- **What the camera does not see is not drawn** (`CMapCulling`, *ours*, 2026-11-19). The effects place every vertex
+  themselves, so Godot cannot tell what is on screen and drew every tile's land, beaches, borders, water borders, rivers
+  and surf each frame - 10,010 draw calls and 7 ms of the rendering server's time at the start's view, wherever the
+  camera was. Each of those meshes now has the rectangle of the map its vertices reach - a tile's land is the whole of
+  the provinces it was given, not its square of 50 - and is drawn only where that rectangle, moved to the copy of the
+  map its tile is drawn at, meets what the camera sees: hanging straight down, it sees a rectangle of the ground, and what
+  stands above the ground is drawn further out, never nearer. At the start's view 1,617 draw calls and 2.5 ms. **A mesh is
+  hidden by taking its render layers away**: hiding the node took it out of the rendering server's tree of bounds, which
+  with every mesh's bounds the whole world made the first zoom outwards run a second at a quarter of its frames. A mesh is
+  left drawn for its first three frames. **The meshes are drawn in the order they were made**, the tiles' order, by
+  each one's sorting offset: with every mesh's bounds the same, Godot's sort had no depth for the transparent ones and
+  drew overlapping rivers, surf and borders in an order that changed with what was drawn - which culling would have
+  made change as the camera moved. Set beside the uncull'd picture with the clock of the water and the rivers stopped,
+  six views - the start's, near, far across the map's seam, and three others - came out the same to the pixel.
+  `--nocull` draws every mesh, for setting the two beside each other.
 - **A surface gives back everything it made as it leaves the tree** - its meshes, its some 4,500 materials and their
   textures - where until then each lived on until the managed side's collector took its wrapper. Under the debugger that
   was long enough for the lobby's surfaces, one for each world it shows, to still hold their texture sets when the game's

@@ -58,6 +58,12 @@ public partial class CMapSurface : Node3D
 	/// <summary>The sea's quads, one for each way of drawing it.</summary>
 	private readonly List<MeshInstance3D> _seas = new();
 
+	/// <summary>
+	/// The tiles' meshes hidden where the camera does not see them - every one drawn with <c>--nocull</c>, the developer's
+	/// switch for setting the two beside each other.
+	/// </summary>
+	private readonly CMapCulling _culling = new() { Enabled = !CSession.UserArguments().Contains("--nocull") };
+
 	private readonly Dictionary<string, Texture2D?> _files = new(StringComparer.OrdinalIgnoreCase);
 	private readonly Image _lookup0 = Image.CreateEmpty(LookupSize, LookupSize, false, Image.Format.Rgba8);
 	private readonly Image _lookup1 = Image.CreateEmpty(LookupSize, LookupSize, false, Image.Format.Rgba8);
@@ -398,12 +404,16 @@ public partial class CMapSurface : Node3D
 		{
 			var landMaterial = new ShaderMaterial { Shader = land.Shader };
 			part.Land[way] = landMaterial;
-			node.AddChild(Instance($"Land{part.Tile.Index}", part.LandMesh, landMaterial, WayLayer(way)));
+			MeshInstance3D landInstance = Instance($"Land{part.Tile.Index}", part.LandMesh, landMaterial, WayLayer(way));
+			node.AddChild(landInstance);
+			_culling.AddTile(landInstance, part.Tile.Middle(_columns), part.Tile.LandPositions, 2);
 			if (part.BeachMesh is { } beachMesh)
 			{
 				var beachMaterial = new ShaderMaterial { Shader = beach.Shader };
 				part.Beach[way] = beachMaterial;
-				node.AddChild(Instance($"Beach{part.Tile.Index}", beachMesh, beachMaterial, WayLayer(way)));
+				MeshInstance3D beachInstance = Instance($"Beach{part.Tile.Index}", beachMesh, beachMaterial, WayLayer(way));
+				node.AddChild(beachInstance);
+				_culling.AddTile(beachInstance, part.Tile.Middle(_columns), part.Tile.BeachPositions, 2);
 			}
 			foreach (ShaderMaterial material in part.Materials(way))
 			{
@@ -580,6 +590,7 @@ public partial class CMapSurface : Node3D
 		ApplyBorderHeight(_camera.Height);
 		ApplyWaterBorderView(_camera);
 		ApplyCopies(_camera);
+		_culling.Apply(_camera, _screen);
 		ApplyTrees();
 		ApplyHierarchyView(_camera);
 		ApplyFrontView(_camera);
@@ -753,6 +764,7 @@ public partial class CMapSurface : Node3D
 		// The rivers' and the surf's vTime: the original's clock, whose unit was not read - seconds here, ours. Its wrap at a
 		// hundred moves the rivers' flow 30 repeats and the surf's 20, whole, so nothing jumps.
 		RenderingServer.GlobalShaderParameterSet(SharedTime, (float)_clock);
+		_culling.Frame();
 		StepMarks();
 		// The trees shown the frame their planting is done, where the camera already wants them.
 		if (_planting is { IsCompleted: true } && !_plantingSeen)
@@ -823,7 +835,9 @@ public partial class CMapSurface : Node3D
 				{
 					borderMesh.SurfaceSetMaterial(0, borderMaterial);
 				}
-				_borders.AddChild(Instance($"Border{tile.Index}", borderMesh, null, BorderLayer));
+				MeshInstance3D borderInstance = Instance($"Border{tile.Index}", borderMesh, null, BorderLayer);
+				_borders.AddChild(borderInstance);
+				_culling.AddTile(borderInstance, tile.Middle(_columns), tile.BorderShorts, 4);
 			}
 			_parts.Add(new CSurfaceTile(tile, landMesh, beachMesh, borderMaterial));
 		}
@@ -910,6 +924,16 @@ public partial class CMapSurface : Node3D
 			instance.MaterialOverride = _waterBorderMaterials[1];
 			_waterBorders.AddChild(instance);
 			_waterBorderTiles.Add((instance, index % columns * CQuadTile.Size + CQuadTile.Size / 2, 1));
+			// The quads' own corners, which are the map's: (x − 1, y − 1) to (x, y).
+			float x0 = float.MaxValue, z0 = float.MaxValue, x1 = float.MinValue, z1 = float.MinValue;
+			foreach (CWaterBorderQuad quad in quads)
+			{
+				x0 = MathF.Min(x0, quad.X - 1);
+				x1 = MathF.Max(x1, quad.X);
+				z0 = MathF.Min(z0, quad.Y - 1);
+				z1 = MathF.Max(z1, quad.Y);
+			}
+			_culling.Add(instance, x0, z0, x1, z1, index % columns * CQuadTile.Size + CQuadTile.Size / 2);
 		}
 	}
 
@@ -971,12 +995,31 @@ public partial class CMapSurface : Node3D
 		return materials;
 	}
 
-	/// <summary>An instance drawn through the middle copy's material until the camera says otherwise.</summary>
-	private void AddCopied(Node3D parent, string name, Mesh mesh, ShaderMaterial[] materials, int middleX, uint layer)
+	/// <summary>
+	/// An instance drawn through the middle copy's material until the camera says otherwise, and hidden where the camera
+	/// does not see x0..x1 and z0..z1 of the map, what it covers (<see cref="CMapCulling"/>).
+	/// </summary>
+	private void AddCopied(Node3D parent, string name, Mesh mesh, ShaderMaterial[] materials, int middleX, uint layer,
+		(float X0, float Z0, float X1, float Z1) covers)
 	{
 		MeshInstance3D instance = Instance(name, mesh, materials[1], layer);
 		parent.AddChild(instance);
 		_copied.Add((instance, middleX, 1, materials));
+		_culling.Add(instance, covers.X0, covers.Z0, covers.X1, covers.Z1, middleX);
+	}
+
+	/// <summary>The rectangle of the map a river mesh's vertices cover, in the world's x and z.</summary>
+	private static (float X0, float Z0, float X1, float Z1) Covers(List<CRiverVertex> vertices)
+	{
+		float x0 = float.MaxValue, z0 = float.MaxValue, x1 = float.MinValue, z1 = float.MinValue;
+		foreach (CRiverVertex vertex in vertices)
+		{
+			x0 = MathF.Min(x0, vertex.Position.X);
+			x1 = MathF.Max(x1, vertex.Position.X);
+			z0 = MathF.Min(z0, vertex.Position.Z);
+			z1 = MathF.Max(z1, vertex.Position.Z);
+		}
+		return (x0, z0, x1, z1);
 	}
 
 	/// <summary>Each river and surf instance given the copy of the map nearest the camera.</summary>
@@ -1065,7 +1108,8 @@ public partial class CMapSurface : Node3D
 			{
 				if (indices.Count > 0)
 				{
-					AddCopied(_rivers, $"River{tile}_{part++}", RiverMesh(vertices, indices, effect.Translation), bodies, middleX, BaseLayer);
+					AddCopied(_rivers, $"River{tile}_{part++}", RiverMesh(vertices, indices, effect.Translation), bodies, middleX, BaseLayer,
+						Covers(vertices));
 				}
 				vertices.Clear();
 				indices.Clear();
@@ -1091,7 +1135,8 @@ public partial class CMapSurface : Node3D
 					Common(material);
 					SetTexture(material, translations, "tex0", exitPicture);
 				});
-				AddCopied(_rivers, $"RiverMouths{tile}", RiverMesh(exitVertices, exitIndices, effect.Translation), mouths, middleX, BaseLayer);
+				AddCopied(_rivers, $"RiverMouths{tile}", RiverMesh(exitVertices, exitIndices, effect.Translation), mouths, middleX, BaseLayer,
+					Covers(exitVertices));
 			}
 		}
 	}
@@ -1173,8 +1218,19 @@ public partial class CMapSurface : Node3D
 				? new Vector4(shorts[4 * v] + 2 * midX, shorts[4 * v + 1] + 2 * midY, shorts[4 * v + 2], shorts[4 * v + 3])
 				: null);
 			_surfMeshes.Add(mesh);
-			AddCopied(_surf, $"SurfNear{tile.Index}", mesh, nearMaterials, midX, SurfNearLayer);
-			AddCopied(_surf, $"SurfFar{tile.Index}", mesh, farMaterials, midX, SurfFarLayer);
+			// What the quads cover, their half pixels halved.
+			float x0 = float.MaxValue, z0 = float.MaxValue, x1 = float.MinValue, z1 = float.MinValue;
+			for (int v = 0; v < quads * 4; v++)
+			{
+				float x = (shorts[4 * v] + 2 * midX) / 2f;
+				float z = (shorts[4 * v + 1] + 2 * midY) / 2f;
+				x0 = MathF.Min(x0, x);
+				x1 = MathF.Max(x1, x);
+				z0 = MathF.Min(z0, z);
+				z1 = MathF.Max(z1, z);
+			}
+			AddCopied(_surf, $"SurfNear{tile.Index}", mesh, nearMaterials, midX, SurfNearLayer, (x0, z0, x1, z1));
+			AddCopied(_surf, $"SurfFar{tile.Index}", mesh, farMaterials, midX, SurfFarLayer, (x0, z0, x1, z1));
 		}
 		if (skipped > 0)
 		{
