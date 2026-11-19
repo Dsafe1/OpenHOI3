@@ -80,7 +80,7 @@ public partial class CTooltipBox : Control
 		float wrap = CTooltipText.WrapWidth(_type.MaxWidth, _type.BorderSize.X);
 		IEnumerable<string> laidOut = _font is null ? text.Split('\n') : CTextLayoutLineBreak.Break(text, wrap, Measure);
 		float widest = 0f;
-		foreach (string line in CColouredText.CarryColour(laidOut))
+		foreach (string line in CColouredText.CarryColour(laidOut, _font is null ? null : _font.ChangesColour))
 		{
 			List<CTextRun> runs = CColouredText.Parse(line);
 			_lines.Add(runs);
@@ -127,9 +127,10 @@ public partial class CTooltipBox : Control
 		foreach (List<CTextRun> line in _lines)
 		{
 			float x = _type.BorderSize.X;
+			Color colour = _font.Color;
 			foreach (CTextRun run in line)
 			{
-				Color colour = CTextColours.TryGet(run.Colour, out CColor named) ? named.ToGodot() : _font.Color;
+				colour = _font.RunColour(run.Colour, colour, _font.Color);
 				x = _context.TextIcons.Draw(this, _font, run.Text, x, top, colour);
 			}
 			top += _font.LineHeight;

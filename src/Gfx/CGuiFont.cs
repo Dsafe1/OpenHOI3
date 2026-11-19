@@ -1,6 +1,9 @@
 using System;
 using Godot;
+using OpenHOI3.Content.Gui;
 using OpenHOI3.Interface;
+using OpenHOI3.Interface.Text;
+using OpenHOI3.Sim;
 
 namespace OpenHOI3.Gfx;
 
@@ -39,6 +42,32 @@ public sealed class CGuiFont
 	/// from the declaration, and some carry it themselves.
 	/// </summary>
 	public Color Color { get; set; } = Colors.White;
+
+	/// <summary>Its entry's <c>color_override</c>: what an escape letter stands for in this font before the shared table.</summary>
+	public CFontColourTable? OwnColours { get; init; }
+
+	/// <summary>The table every font's <c>colorcodes</c> fills, set as the font is handed out.</summary>
+	public CFontColourTable? SharedColours { get; set; }
+
+	/// <summary>
+	/// The colour of a run of text after the escape letter given: <paramref name="plain"/> before any escape and after
+	/// <c>§!</c>, the letter's where this font or the shared table has it, and <paramref name="current"/> - the colour in
+	/// force - where neither does (<see cref="CTextColours"/>).
+	/// </summary>
+	public Color RunColour(char letter, Color current, Color plain)
+	{
+		if (CTextColours.IsPlain(letter))
+		{
+			return plain;
+		}
+		return CTextColours.TryGet(letter, OwnColours, SharedColours, out CColor colour) ? colour.ToGodot() : current;
+	}
+
+	/// <summary>Whether an escape letter changes the colour in this font: <c>§!</c>, or a letter one of its tables has.</summary>
+	public bool ChangesColour(char letter)
+	{
+		return CTextColours.IsPlain(letter) || CTextColours.TryGet(letter, OwnColours, SharedColours, out _);
+	}
 
 	/// <summary>The typeface. Null until the font is first asked for, and after that only when it could not be made.</summary>
 	public Font? Font { get; set; }

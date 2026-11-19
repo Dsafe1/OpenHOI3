@@ -106,7 +106,7 @@ public partial class CGuiCaption : Control
 	{
 		_text = text;
 		_lines.Clear();
-		foreach (string line in CColouredText.CarryColour(Lines(text)))
+		foreach (string line in CColouredText.CarryColour(Lines(text), _font is null ? null : _font.ChangesColour))
 		{
 			_lines.Add(CColouredText.Parse(line));
 		}
@@ -180,9 +180,10 @@ public partial class CGuiCaption : Control
 				x = Mathf.Round(x);
 				y = Mathf.Round(y);
 			}
+			Color colour = _font.Color;
 			foreach (CTextRun run in line)
 			{
-				Color colour = CTextColours.TryGet(run.Colour, out CColor named) ? named.ToGodot() : _font.Color;
+				colour = _font.RunColour(run.Colour, colour, _font.Color);
 				_font.Draw(this, new Vector2(x, y), run.Text, colour);
 				x += _font.Width(run.Text);
 			}

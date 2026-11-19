@@ -758,9 +758,10 @@ public partial class CUnitCounters : Node2D
 		// Through the font, as the original's: a colour escape changes the colour of what follows and draws nothing, so
 		// BlackICE's `§Y7th Cavalry Brigade (Mechanized)§W` is a yellow "7th Cava" on its counter.
 		float x = 0f;
+		Color colour = kind.Font.Color;
 		foreach (CTextRun run in CColouredText.Parse(text))
 		{
-			Color colour = CTextColours.TryGet(run.Colour, out CColor named) ? named.ToGodot() : kind.Font.Color;
+			colour = kind.Font.RunColour(run.Colour, colour, kind.Font.Color);
 			string shown = CWindows1252.ToDisplay(run.Text);
 			typeface.DrawString(item, new Vector2(x, 0f), shown, HorizontalAlignment.Left, -1f, kind.Font.Size, colour);
 			x += typeface.GetStringSize(shown, HorizontalAlignment.Left, -1f, kind.Font.Size).X;

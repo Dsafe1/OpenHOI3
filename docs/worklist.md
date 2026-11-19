@@ -2047,8 +2047,10 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   technology's tooltip, and nothing in the simulation asks them. Smaller, from the same pass: no reader reports an
   `objectTypes` kind none of them takes - the plan marker's `animatedmaptext` is hard-coded, its file's figures unread,
   and the original's list of kinds is not read. ~~`common/country_colors.txt` has no reader~~ - the original stores its
-  three colours on the country and reads them nowhere (`FINDINGS-fontterrain.md`, section 3), so none is needed. The
-  fonts' `colorcodes` and `color_override` wait on compatibility entry 5.
+  three colours on the country and reads them nowhere (`FINDINGS-fontterrain.md`, section 3), so none is needed. ~~The
+  fonts' `colorcodes` and `color_override` wait on compatibility entry 5~~ - read since 2026-11-19, the entry struck
+  (`interface.md`, section 6); whether the fonts are read in the one listing that puts `chatfonts.gfx` first is open,
+  and a live read of the shared table in BlackICE would settle it.
 
 - **The validation log's lines** (2026-11-19, `logs.md`, section 4): the script's problems and the localisation's each
   have a line of their own at file and line; the other loaders keep their old wording, most naming their file and no

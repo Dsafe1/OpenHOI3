@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -60,19 +61,25 @@ public static class CColouredText
 	/// ended: the original's font keeps the colour an escape set until the next escape, across a line break and a newline
 	/// alike. A line that begins with an escape of its own is left as it is.
 	/// </summary>
-	public static List<string> CarryColour(IEnumerable<string> lines)
+	/// <param name="changes">
+	/// Whether a letter changes the colour in the font the lines are drawn in. One that does not - neither the font's
+	/// tables nor the shared one has it - leaves the colour as it was (<see cref="CTextColours"/>), so it is not what is
+	/// carried, and a line beginning with it does not have a colour of its own. None takes every letter as a change.
+	/// </param>
+	public static List<string> CarryColour(IEnumerable<string> lines, Func<char, bool>? changes = null)
 	{
+		changes ??= _ => true;
 		var carried = new List<string>();
 		char colour = NoColour;
 		foreach (string line in lines)
 		{
-			bool own = line.Length > 1 && line[0] == Escape;
+			bool own = line.Length > 1 && line[0] == Escape && changes(line[1]);
 			carried.Add(colour == NoColour || own ? line : In(colour) + line);
 			for (int index = 0; index + 1 < line.Length; index++)
 			{
-				if (line[index] == Escape)
+				if (line[index] == Escape && changes(line[++index]))
 				{
-					colour = line[++index];
+					colour = line[index];
 				}
 			}
 		}

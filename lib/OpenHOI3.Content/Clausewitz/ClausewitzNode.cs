@@ -133,8 +133,13 @@ public sealed class ClausewitzNode
 	/// </summary>
 	public CColor GetInterfaceColor(string key, CColor fallback = default)
 	{
-		ClausewitzNode? node = Get(key);
-		if (node is null || !node.IsBlock)
+		return Get(key) is { } node ? InterfaceColor(node, fallback) : fallback;
+	}
+
+	/// <summary><see cref="GetInterfaceColor"/> of a block in hand, for a list whose keys differ only by case.</summary>
+	public static CColor InterfaceColor(ClausewitzNode node, CColor fallback = default)
+	{
+		if (!node.IsBlock)
 		{
 			return fallback;
 		}

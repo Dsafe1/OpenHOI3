@@ -1,47 +1,37 @@
-
+using OpenHOI3.Content.Gui;
 using OpenHOI3.Sim;
 
 namespace OpenHOI3.Interface.Text;
 
 /// <summary>
-/// The colour each escape letter stands for.
-///
-/// These are ours, and fixed. The original takes each font's from a <c>colorcodes</c>
-/// block in the font's own declaration, which a mod can change; that block is not read
-/// here. The red, green and yellow were looked at beside the top bar and
-/// kept, and kept again once it was learned where the original's are - for now. See
-/// <c>docs/compatibility.md</c>, entry 5.
+/// The colour an escape letter gives what follows, as the original's font draws it: <c>§!</c> back to the font's own
+/// colour; any other letter the font's <c>color_override</c> colour for it, else the shared <c>colorcodes</c> table's,
+/// else **no change** - the letter is swallowed and the colour in force stays (<c>docs/mechanics/interface.md</c>,
+/// section 6; <c>reversing/findings/FINDINGS-fontterrain.md</c>, section 1).
 /// </summary>
 public static class CTextColours
 {
-	public static bool TryGet(char letter, out CColor colour)
+	/// <summary>The letter that goes back to the font's own colour.</summary>
+	public const char Reset = '!';
+
+	/// <summary>Whether a run is in the font's own colour: before any escape, or after <c>§!</c>.</summary>
+	public static bool IsPlain(char letter)
 	{
-		switch (letter)
+		return letter == CColouredText.NoColour || letter == Reset;
+	}
+
+	/// <summary>The colour a letter stands for, or false where neither table has it and the colour does not change.</summary>
+	public static bool TryGet(char letter, CFontColourTable? own, CFontColourTable? shared, out CColor colour)
+	{
+		if (own is not null && own.TryGet(letter, out colour))
 		{
-			case 'R':
-				colour = new CColor(1f, 0.2f, 0.2f);
-				return true;
-			case 'G':
-				colour = new CColor(0.1f, 0.8f, 0.1f);
-				return true;
-			case 'Y':
-				colour = new CColor(1f, 0.85f, 0f);
-				return true;
-			case 'B':
-				colour = new CColor(0.25f, 0.5f, 1f);
-				return true;
-			case 'W':
-				colour = CColor.White;
-				return true;
-			case 'b':
-				colour = new CColor(0f, 0f, 0f);
-				return true;
-			case 'g':
-				colour = new CColor(0.69f, 0.69f, 0.69f);
-				return true;
-			default:
-				colour = CColor.White;
-				return false;
+			return true;
 		}
+		if (shared is not null && shared.TryGet(letter, out colour))
+		{
+			return true;
+		}
+		colour = CColor.White;
+		return false;
 	}
 }

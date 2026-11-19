@@ -261,7 +261,7 @@ public partial class CGuiTextBox : CGuiObject
 	private void Relayout()
 	{
 		_lines.Clear();
-		foreach (string line in CColouredText.CarryColour(Lines(_text)))
+		foreach (string line in CColouredText.CarryColour(Lines(_text), _font is null ? null : _font.ChangesColour))
 		{
 			_lines.Add(CColouredText.Parse(line));
 		}
@@ -497,9 +497,11 @@ public partial class CGuiTextBox : CGuiObject
 	/// <summary>One laid-out line, its colour escapes obeyed, from its left end and its top.</summary>
 	private void DrawLine(CanvasItem item, List<CTextRun> line, float x, float top)
 	{
+		Color plain = Colour ?? _font!.Color;
+		Color colour = plain;
 		foreach (CTextRun run in line)
 		{
-			Color colour = CTextColours.TryGet(run.Colour, out CColor named) ? named.ToGodot() : Colour ?? _font!.Color;
+			colour = _font!.RunColour(run.Colour, colour, plain);
 			x = _context is null ? x : _context.TextIcons.Draw(item, _font!, run.Text, x, top, colour);
 		}
 	}

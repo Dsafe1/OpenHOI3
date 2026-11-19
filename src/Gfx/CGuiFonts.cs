@@ -50,6 +50,8 @@ public sealed class CGuiFonts
 	public static CGuiFonts Load(CDirectorySettings directories)
 	{
 		var registry = new CGuiFonts(directories);
+		var read = new List<(string FileName, ClausewitzNode Root)>();
+		var passedOver = new SortedSet<string>(StringComparer.Ordinal);
 		foreach (string file in directories.ListFiles("interface", "*.gfx"))
 		{
 			ClausewitzNode root;
@@ -61,6 +63,7 @@ public sealed class CGuiFonts
 			{
 				continue;                             // already reported by the sprite pass
 			}
+			read.Add((Path.GetFileName(file), root));
 			foreach (ClausewitzNode container in root.All("bitmapfonts"))
 			{
 				foreach (ClausewitzNode entry in container.All("bitmapfont"))
@@ -71,6 +74,7 @@ public sealed class CGuiFonts
 						FontName = entry.GetString("fontname"),
 						Color = entry.GetColor("color", CColor.White).ToGodot(),
 						Effect = !string.Equals(entry.GetString("effect"), "no", StringComparison.OrdinalIgnoreCase),
+						OwnColours = CFontColourTable.Own(entry, key => passedOver.Add($"{Path.GetFileName(file)}: {key}")),
 					};
 					if (font.Name.Length != 0)
 					{
@@ -81,8 +85,17 @@ public sealed class CGuiFonts
 			}
 			CTrueTypeFontReader.Read(root, registry._trueType);
 		}
+		registry._shared = CFontColourTable.Shared(read, key => passedOver.Add($"colorcodes: {key}"));
+		if (passedOver.Count > 0)
+		{
+			CDiagnostics.Problem($"{passedOver.Count} lines of a font's colours are not a letter and three numbers and were "
+				+ "passed over: " + string.Join(", ", passedOver));
+		}
 		return registry;
 	}
+
+	/// <summary>What an escape letter stands for in a font with no colour of its own for it.</summary>
+	private CFontColourTable _shared = new();
 
 	/// <summary>
 	/// Resolves a font as named by the GUI. A name with a <c>bitmapfont</c> entry is that; one with a <c>font = { }</c>
@@ -100,12 +113,16 @@ public sealed class CGuiFonts
 		{
 			if (_trueType.TryGetValue(name, out CTrueTypeFont? entry) && MakeTrueType(entry) is { } trueType)
 			{
+				// The shared table is the bitmap fonts'; whether the original's Direct3D font draws escapes from it was not
+				// read - ours.
+				trueType.SharedColours = _shared;
 				_fonts[name] = trueType;
 				return trueType;
 			}
 			font = new CGuiFont { Name = name, FontName = name };
 			_fonts[name] = font;
 		}
+		font.SharedColours = _shared;
 		if (font.Font is null)
 		{
 			// Fonts that share a descriptor share its typeface and its size.

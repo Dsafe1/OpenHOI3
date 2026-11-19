@@ -96,7 +96,12 @@ machine it runs on.
 
 `fonts/readme.md` has which typeface stands for which.
 
-## 5. The colours of coloured text are fixed
+## 5. ~~The colours of coloured text are fixed~~
+
+**Reversed 2026-11-19** ("Yes, lets implement the colours now."): the colours are the files', read as the original reads
+them - each font's `color_override`, then one table every font's `colorcodes` fills, the first value per letter standing,
+the `.gfx` files in the listing's order - and a letter neither has changes nothing (`docs/mechanics/interface.md`,
+section 6). What follows is kept as it was decided, for the record.
 
 **Decided** 2026-10-08, twice: first of the red, green and yellow as
 they looked ("Good guess. They can stay that way."), and again the same day once it was

@@ -153,8 +153,9 @@ box, `messagelog`, a close button and the button that opens it again, and six ca
 ## Not established
 
 - How long a message's text stays on the map.
-- What colour `§b` is in the original's table for the popup's fonts; here it is black, as everywhere
-  (`CTextColours`, `docs/compatibility.md`, entry 5).
+- ~~What colour `§b` is in the original's table for the popup's fonts; here it is black, as everywhere
+  (`CTextColours`, `docs/compatibility.md`, entry 5).~~ The font's own `color_override`, else the shared
+  `colorcodes` table, as everywhere since 2026-11-19 (`interface.md`, section 6): black in both games.
 - Which popup draws on top of which.
 - Whether the first post of the government is a placeholder, which the variables begin after.
 

@@ -1,5 +1,7 @@
-using System.Linq;
+using OpenHOI3.Content.Clausewitz;
+using OpenHOI3.Content.Gui;
 using OpenHOI3.Interface.Text;
+using OpenHOI3.Sim;
 
 namespace OpenHOI3.Tests.Interface;
 
@@ -45,18 +47,38 @@ public class ColouredTextTests
 	}
 
 	[Fact]
-	public void KnowsTheLettersAndSaysWhenItDoesNot()
+	public void ALetterThatChangesNothingIsNotCarriedOnToTheNextLine()
 	{
-		Assert.True(CTextColours.TryGet('R', out _));
-		Assert.True(CTextColours.TryGet('G', out _));
-		Assert.True(CTextColours.TryGet('Y', out _));
-		Assert.False(CTextColours.TryGet(CColouredText.NoColour, out _));
-		Assert.False(CTextColours.TryGet('?', out _));
+		static bool Known(char letter) => letter is 'R' or '!';
 
-		// Red is redder than it is green, and green the other way about.
-		CTextColours.TryGet('R', out var red);
-		CTextColours.TryGet('G', out var green);
-		Assert.True(red.R > red.G && green.G > green.R);
-		Assert.Equal(2, new[] { red, green }.Distinct().Count());
+		Assert.Equal(new[] { "§Raa§X", "§Rbb" }, CColouredText.CarryColour(new[] { "§Raa§X", "bb" }, Known));
+		Assert.Equal(new[] { "§Raa", "§R§Xbb" }, CColouredText.CarryColour(new[] { "§Raa", "§Xbb" }, Known));
+	}
+
+	[Fact]
+	public void ALetterIsTheFontsOwnColourThenTheSharedTablesAndOtherwiseNothing()
+	{
+		CFontColourTable own = Table("G = { 0 255 0 }");
+		CFontColourTable shared = Table("G = { 0 159 3 } R = { 255 50 50 }");
+
+		Assert.True(CTextColours.TryGet('G', own, shared, out CColor green));
+		Assert.Equal(new CColor(0f, 1f, 0f), green);
+		Assert.True(CTextColours.TryGet('R', own, shared, out CColor red));
+		Assert.Equal(new CColor(1f, 50f / 255f, 50f / 255f), red);
+		Assert.True(CTextColours.TryGet('G', null, shared, out CColor sharedGreen));
+		Assert.Equal(new CColor(0f, 159f / 255f, 3f / 255f), sharedGreen);
+		// A letter neither has changes nothing; the original swallows it.
+		Assert.False(CTextColours.TryGet('X', own, shared, out _));
+		Assert.False(CTextColours.TryGet('R', null, null, out _));
+		Assert.True(CTextColours.IsPlain('!'));
+		Assert.True(CTextColours.IsPlain(CColouredText.NoColour));
+		Assert.False(CTextColours.IsPlain('W'));
+	}
+
+	private static CFontColourTable Table(string lines)
+	{
+		var table = new CFontColourTable();
+		table.Add(ClausewitzParser.Parse(lines));
+		return table;
 	}
 }
