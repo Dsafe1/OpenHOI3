@@ -40,7 +40,12 @@ public sealed class CFrameLog
 		double now = _wall.Elapsed.TotalSeconds;
 		if (now - _lastWritten >= 1)
 		{
-			GD.Print("--perf " + _second.Line(now - _lastWritten));
+			// What the engine drew in the last frame, by its own count: what the drawing's CPU time is spent on.
+			ulong calls = RenderingServer.GetRenderingInfo(RenderingServer.RenderingInfo.TotalDrawCallsInFrame);
+			ulong objects = RenderingServer.GetRenderingInfo(RenderingServer.RenderingInfo.TotalObjectsInFrame);
+			ulong primitives = RenderingServer.GetRenderingInfo(RenderingServer.RenderingInfo.TotalPrimitivesInFrame);
+			GD.Print("--perf " + _second.Line(now - _lastWritten)
+				+ $"; last frame {calls} draw calls, {objects} objects, {primitives} primitives");
 			_second.Clear();
 			_lastWritten = now;
 		}

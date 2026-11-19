@@ -85,6 +85,13 @@ As measured, with `OpenHOI3.SaveCheck profile` and the headless run, both in Rel
   of who stands where 20. A list of each country's units kept between walks was weighed and not built: the tree's lists
   are changed in some hundreds of places, and a kept list would be exact only for callers that change nothing as they
   walk.
+- **The hour's weather runs its provinces side by side** (2026-11-19, `CWeatherPass`): a province's hour reads only its
+  own figures, the clock, the map's size, its terrain and the defines, and writes only its own, so the order does not
+  matter and the state's hash is the same every midnight, base game and BlackICE. The pass went from 1.28 ms an hour to
+  0.58 under BlackICE - about 31 ms of the day to 14 - and a new game's 96 hours of weather with it. Eight cores give
+  only twice: the pass is its provinces' memory being read, a few lines of it a province, not arithmetic; the
+  arithmetic was already the original's integers in a tight loop. It is the first of the simulation's own steps run on
+  more than one thread - the trading's Lua was until then the only one.
 - **Drawing is already C++** - it is Godot's renderer. The client's C# builds and sets nodes.
 
 ## 3. What C++ would buy, part by part
