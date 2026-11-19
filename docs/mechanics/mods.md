@@ -331,7 +331,15 @@ start's posts to 1,177 of 1,177 and its dissent to 107 of 107. What still differ
 put into each technology, `out_of_supply_days` counted once more on entering - or the order of `fired_events`, the
 original's table's.
 
-**Next**: the manpower of Ethiopia and China Yunnan (`manpower.md`, *not established*); the stockpiles and supplies.
+**The stockpiles of the start** (2026-11-19): what differs follows the shares of IC the AI sets in the two days, not a
+rule of the day - `supplypass ... country=ENG` and `country=HOL` give each country's day the save's but for its
+supplies share, Britain's 0.087 to the save's 0.04202, the Netherlands' 0.049 to its 0.20419, the other shares to the
+fifth place; what makes and uses supplies agrees with the save's figures under each. So they wait on BlackICE's
+production minister in Lua, the AI's side. What also stays open: the manpower of Ethiopia and China Yunnan
+(`manpower.md`, *not established*), and 432 brigades' organisation a thousandth off - each country's one way, which a
+single rule of rounding a positive figure would not give, and so not chased without a reading.
+
+**Next**: stage 3, playing BlackICE, which waits for the user's word and the AI work.
 
 ## Not established
 
