@@ -34,7 +34,7 @@ A crash's file is named by its time and never overwritten. Godot's own copy of i
 
 ## 4. The validation log
 
-*Ours*, asked for on 2026-11-19 - "a log file that acts as a validator for people": **`validation.log`**, beside the
+*Ours*, asked for on 2026-11-19 - "a log file that acts as a validator for people": **`openhoi3_validation.log`**, beside the
 run's log, lists **every fault found in the install's or the mods' own files**, one to a line, so that whoever writes a
 mod has one list to work through. It is written afresh at each start, and the run's log says once where it is.
 

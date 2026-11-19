@@ -8,7 +8,7 @@ namespace OpenHOI3.Debug;
 
 /// <summary>
 /// Every fault found in the install's or the mods' own files (<c>OpenHOI3.Content.CDiagnostics.Problem</c>), one to a line,
-/// written to <c>validation.log</c> beside the run's log - a list for whoever writes a mod to work through
+/// written to <c>openhoi3_validation.log</c> beside the run's log - a list for whoever writes a mod to work through
 /// (<c>docs/mechanics/logs.md</c>, section 4). It is made afresh at each start. As with the run's log, the folder is known
 /// only once the install and the mod are, so what is reported before that is kept and written first, and each line is
 /// flushed as it is written. The run's log is told once where the list is. Loaders may report from any thread, so it locks.

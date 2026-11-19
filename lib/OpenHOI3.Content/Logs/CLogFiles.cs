@@ -26,7 +26,7 @@ public static class CLogFiles
 	/// The validation log beside the run's: every fault found in the install's or the mods' own files, one to a line,
 	/// written afresh at each start (<c>docs/mechanics/logs.md</c>, section 4).
 	/// </summary>
-	public static string Validation(string folder) => Path.Combine(folder, "validation.log");
+	public static string Validation(string folder) => Path.Combine(folder, Name + "_validation.log");
 
 	/// <summary>The file of a run: 0 this one, 1 the one before it, and so on.</summary>
 	public static string Of(string folder, int run) =>

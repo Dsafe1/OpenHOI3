@@ -12,7 +12,7 @@ namespace OpenHOI3.Content;
 ///
 /// <b>Two kinds of report.</b> A <see cref="Problem(string)"/> is a fault in the install's or a mod's own files - a key
 /// nothing reads, a name nothing declares, a localisation key given twice - which a modder can mend, and the client writes
-/// them one to a line into <c>validation.log</c> (<c>docs/mechanics/logs.md</c>, section 4). A <see cref="Warn"/> is about
+/// them one to a line into <c>openhoi3_validation.log</c> (<c>docs/mechanics/logs.md</c>, section 4). A <see cref="Warn"/> is about
 /// this program or this run - what is not built, a deliberate departure, a file that could not be written - and goes to
 /// the run's own log.
 /// </summary>
