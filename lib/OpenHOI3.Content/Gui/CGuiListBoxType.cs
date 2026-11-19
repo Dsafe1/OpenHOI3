@@ -19,4 +19,10 @@ public sealed class CGuiListBoxType : CGuiType
 
 	/// <summary>The sprite drawn behind the entries, or an empty string.</summary>
 	public string Background { get; init; } = "";
+
+	/// <summary>
+	/// Where the scrollbar stands from the box's top right corner: the original puts it at the box's width plus x, and at
+	/// y (<c>docs/mechanics/interface.md</c>, section 2). Nought where the file gives none - the box's right edge at its top.
+	/// </summary>
+	public CGuiPoint Offset { get; init; }
 }

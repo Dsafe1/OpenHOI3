@@ -327,6 +327,7 @@ public sealed class CGuiTypes
 					Scrollbar = node.GetString("scrollbartype"),
 					BorderSize = Point(node, "borderSize"),
 					Background = node.GetString("background"),
+					Offset = Point(node, "offset"),
 				};
 
 			case "scrollbartype":

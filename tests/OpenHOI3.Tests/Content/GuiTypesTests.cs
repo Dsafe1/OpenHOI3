@@ -460,4 +460,23 @@ public class GuiTypesTests
 		Assert.Equal(EGuiTextFormat.Right, row.Format);
 		Assert.Empty(warnings);
 	}
+
+	[Fact]
+	public void AListBoxsOffsetIsReadAndNoughtWhereNotGiven()
+	{
+		// BlackICE's country_diplomacy.gui moves a list's scrollbar 14 up with it.
+		CGuiTypes types = Read("""
+			guiTypes = {
+				windowType = {
+					name = "screen"
+					listboxType = { name = "moved" size = { x = 200 y = 100 } offset = { x = -16 y = -14 } }
+					listboxType = { name = "plain" size = { x = 200 y = 100 } }
+				}
+			}
+			""");
+
+		CGuiWindowType screen = types.FindWindow("screen")!;
+		Assert.Equal(new CGuiPoint(-16, -14), screen.Find<CGuiListBoxType>("moved")!.Offset);
+		Assert.Equal(new CGuiPoint(0, 0), screen.Find<CGuiListBoxType>("plain")!.Offset);
+	}
 }

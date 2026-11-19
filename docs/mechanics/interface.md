@@ -177,6 +177,11 @@ does neither.
     mouse, a list's bar and the wheel still move it. `confirmed` (the record's
     `GuiListbox_SetTakesMouse`; `reversing/findings/FINDINGS-frontend.md`, C.4). Here the bar is
     never greyed through the list (compatibility.md, entry 19).
+  - **The scrollbar stands at the box's top right, moved by `offset`**: at x = the box's width + the
+    declaration's `offset` x, y = its `offset` y; with no `offset`, at the right edge and the top. `confirmed`, read
+    2026-11-19 (`reversing/findings/FINDINGS-listbox.md`, section 5). The base game's five `offset`s are all nought;
+    BlackICE moves seven bars with it, among them the diplomacy screen's (y -14 and -6) and the outliner's (x -16).
+    *Mod-able*: the `.gui` file.
   - **A line wider than the box is drawn whole, past its edge** - and past its window's: nothing in the original's
     interface clips one object to another (read 2026-11-15, `reversing/findings/FINDINGS-listbox.md`, section 4).
     Its draw list can scissor an object, but the rectangle it would cut to is only ever zeroed and no object is

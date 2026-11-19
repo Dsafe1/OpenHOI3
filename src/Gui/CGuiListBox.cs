@@ -89,7 +89,8 @@ public partial class CGuiListBox : CGuiObject
 		}
 		_scrollbar = new CGuiScrollbar();
 		_scrollbar.Initialise(scrollbarType, _context, length);
-		_scrollbar.Position = new Vector2(_type.Size.X, 0f);
+		// At the box's top right, moved by the file's `offset`, as the original places it (interface.md, section 2).
+		_scrollbar.Position = new Vector2(_type.Size.X + _type.Offset.X, _type.Offset.Y);
 		_scrollbar.Visible = false;
 		// Never greyed by what holds the list: the original's list hands whether to take the mouse to its rows alone, so
 		// its bar - and the wheel - still move it where a screen's automation stops the rest (interface.md, section 2).
