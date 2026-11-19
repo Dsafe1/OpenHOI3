@@ -65,6 +65,7 @@ public static class CAiDeployment
 	{
 		// What this pass has sent each unit already, which counts against its room.
 		var sent = new Dictionary<CUnit, List<CSubUnitType>>();
+		bool posted = false;
 		foreach (CUnit unit in country.Deployments)
 		{
 			if (unit.SubUnits.Count == 1 && Join(state, country, unit, sent) is { } target)
@@ -75,11 +76,13 @@ public static class CAiDeployment
 				}
 				types.Add(unit.SubUnits[0].Type);
 				state.Outbox.Add(new CDeployUnitCommand(country.Tag, unit.Id, target.Location, target.Id));
+				posted = true;
 				continue;
 			}
-			if (Place(state, country, unit) is { } province)
+			if (Place(state, country, unit, posted) is { } province)
 			{
 				state.Outbox.Add(new CDeployUnitCommand(country.Tag, unit.Id, province));
+				posted = true;
 			}
 		}
 	}
@@ -187,20 +190,31 @@ public static class CAiDeployment
 	/// <summary>
 	/// Where a unit that joins nothing goes: the province of the acting capital's area, in the area's order, with the
 	/// strictly highest <c>local_ic / 1000 + 2 x whole forts + 2 x whole coastal forts</c>, ten more for the capital,
-	/// from -1, where it may be placed - a carrier's group the province of the first fleet with a carrier that has none
-	/// aboard. Null for none: it waits for the next day.
+	/// from -1, where it may be placed. A carrier's group goes only to the province of the first fleet with a carrier
+	/// that has none aboard, and never to an airfield: with none it waits. **Once this pass has posted anything, it looks
+	/// at the first fleet alone** - the original's flag of a posting, which nothing clears between its deployments
+	/// (FINDINGS-liveread.md, section 135). Null for none: it waits for the next day.
 	/// </summary>
-	public static int? Place(CGameState state, CCountry country, CUnit unit)
+	public static int? Place(CGameState state, CCountry country, CUnit unit, bool posted = false)
 	{
 		if (CCarriers.IsCarrierAirGroup(unit))
 		{
 			foreach (CUnit fleet in country.UnitsInOrder())
 			{
-				if (fleet.Kind == EUnitKind.Navy && !fleet.IsRemoved && CarrierWithNoGroup(fleet))
+				if (fleet.Kind != EUnitKind.Navy || fleet.IsRemoved)
+				{
+					continue;
+				}
+				if (CarrierWithNoGroup(fleet))
 				{
 					return fleet.Location;
 				}
+				if (posted)
+				{
+					return null;
+				}
 			}
+			return null;
 		}
 		if (country.ActingCapital <= 0)
 		{

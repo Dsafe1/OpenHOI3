@@ -277,6 +277,10 @@ What the enhanced engine's own save would have to hold, and what its load would 
 
 - **The AI loses multi-level research** from its queue the moment a level finishes. `ministers.md`, 9. *Bug.* Risk: AI research.
 - **The lend-lease figure given to the script is always 0.** `ministers.md`, 9. *Bug.* Risk: AI lend-lease.
+- **A finished carrier air group placed after anything else that day looks at the first fleet alone.** The placing's flag
+  of a posting is never cleared between deployments, so the walk for a fleet with an empty carrier stops at the first
+  fleet once anything has been posted; a group with no empty carrier is never put on an airfield either, and may wait for
+  ever. `ministers.md`, 6. *Bug.* Risk: AI carriers.
 - **`GetRandomUnderGroundTarget` is a fixed pick.** `ministers.md`, 9. *Bug.* Risk: small.
 - **The foreign minister's targets never come off.** `foreignminister.md`, 11. *Oversight.* Risk: AI diplomacy.
 - **An agent with no unit ends the stance pass** for the hour. `agents.md`, 11. *Bug.* Risk: AI land.

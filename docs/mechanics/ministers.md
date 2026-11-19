@@ -199,8 +199,13 @@ placed - a fleet needs a naval base, an air unit an air base. **The area is walk
 network's (`supply.md`, section 2), so of equals the first found wins: Germany's 214. Infanterie-Division, waiting in the
 July 1941 save, goes to Danzig, its land fort of 5 tying Berlin's 10 as the capital, Danzig being found first - as in all
 three runs (`confirmed` on the listing, `reversing/findings/FINDINGS-liveread.md`, section 97). Ours had walked the area
-outwards from the capital, which put Berlin first. A carrier's air group goes to the province of the first fleet
-with a carrier that has none aboard. A unit nothing suits waits for the next day. *Hardcoded*: every figure here.
+outwards from the capital, which put Berlin first. **A carrier's air group goes only to the province of the first fleet
+with a carrier that has none aboard, and never to an airfield**: with none it waits. **Once the pass has posted anything,
+a group looks at the first fleet alone** - the original's flag of a posting is set by a join or a placing and cleared by
+nothing between its deployments - so a group that comes after any posting waits unless the country's first fleet has an
+empty carrier. Britain's 3rd, 4th, 5th and 10th CAG wait the whole of 16 to 18 July 1941, where ours had put them on
+London's airfield and so crowded it that Oman's dive bombers left for another (`confirmed` on the listing and the
+original's saves, `reversing/findings/FINDINGS-liveread.md`, section 135). A unit nothing suits waits for the next day. *Hardcoded*: every figure here.
 
 ## 7. What the scripts reach
 

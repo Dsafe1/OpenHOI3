@@ -268,7 +268,8 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    of `wr11` - a hook naming each `math.random` caller is in the session scratchpad as `dbg7-luarand.patch`
    (`OHDBG_LUARAND=TAG`); (b) the fleets and air units ours orders otherwise -
    the British 31st and 41st Navies, the German 33. Unterseebootsflottille, 5th and 6th Navy, the Soviet Cernoje Flote,
-   the German 26th Air wing and the Omani dive bombers; (c) `wr14`, whose dice part at hour 13, and `wr11`.
+   the German 26th Air wing (the Omani dive bombers' rebase was Britain's waiting carrier groups, which ours had put on an
+   airfield: `ministers.md`, section 6); (c) `wr14`, whose dice part at hour 13, and `wr11`.
 
 **Noticed in testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces

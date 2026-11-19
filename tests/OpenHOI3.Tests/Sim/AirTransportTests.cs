@@ -189,6 +189,22 @@ public class AirTransportTests
 	// --- a carrier as an air base ---
 
 	[Fact]
+	public void AFinishedCarrierGroupGoesOnlyToAFleetWithAnEmptyCarrierAndAfterAPostingLooksAtTheFirstFleetAlone()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit waiting = Unit(state, germany, EUnitKind.Air, 0, 1, Cag);
+		// No fleet with a carrier: it waits, and never goes to an airfield.
+		Assert.Null(OpenHOI3.Sim.Construction.CAiDeployment.Place(state, germany, waiting));
+
+		CUnit full = Unit(state, germany, EUnitKind.Navy, Kiel, 1, EscortCarrier, based: Kiel);
+		CCarriers.BaseOn(state, Unit(state, germany, EUnitKind.Air, Kiel, 1, Cag, based: Kiel), full.SubUnits[0]);
+		Unit(state, germany, EUnitKind.Navy, Deep, 1, EscortCarrier, based: Kiel);
+		Assert.Equal(Deep, OpenHOI3.Sim.Construction.CAiDeployment.Place(state, germany, waiting));
+		// Once the pass has posted something, the first fleet alone is looked at.
+		Assert.Null(OpenHOI3.Sim.Construction.CAiDeployment.Place(state, germany, waiting, posted: true));
+	}
+
+	[Fact]
 	public void ACarrierHoldsItsCarrierSizeInWingsShipByShipAndOnlyItsOwnCountrysGroups()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);
