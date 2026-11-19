@@ -75,10 +75,10 @@ public partial class CWeatherLayer : Node2D
 		string file = written.Split('\\', '/').LastOrDefault(part => part.Length > 0) ?? "";
 		(Shader? shader, CGodotShader? translation) = file.Length == 0
 			? (null, null)
-			: gui.Effects.Get(file, type.Effect, EShaderTarget.Canvas, DrawnTexture);
+			: gui.Effects.Get(file, type.Effect, EShaderTarget.Canvas, DrawnTexture, namedIn: type.File, line: type.Line);
 		if (shader is null || translation is null)
 		{
-			CDiagnostics.Problem($"map: the weather picture '{type.Name}' has no technique '{type.Effect}' to be drawn with, and is drawn plainly");
+			CDiagnostics.Problem(type.File, type.Line, $"map: the weather picture '{type.Name}' has no technique '{type.Effect}' to be drawn with, and is drawn plainly");
 			return null;
 		}
 		var material = new ShaderMaterial { Shader = shader };

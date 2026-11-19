@@ -114,6 +114,8 @@ public sealed class CBillboardTypes
 		return new CBillboardType
 		{
 			Name = name,
+			File = file,
+			Line = node.Line,
 			TextureFile = node.GetString("textureFile"),
 			Scale = node.GetFloat("scale", 1f),
 			Offset = node.GetFloat("offset"),

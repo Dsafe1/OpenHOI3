@@ -15,6 +15,18 @@ public sealed class CSpriteType
 
 	public string Name { get; init; } = "";
 
+	/// <summary>
+	/// The <c>.gfx</c> file that declared it and the line its block begins on, and the lines of its texture and effect keys
+	/// (the block's where a key is not written): where a report of a fault in it points
+	/// (<c>docs/mechanics/logs.md</c>, section 4). Empty and nought for a sprite not read from a file.
+	/// </summary>
+	public string File { get; init; } = "";
+	public int Line { get; init; }
+	public int TextureFileLine { get; init; }
+	public int OverlayFileLine { get; init; }
+	public int MaskFileLine { get; init; }
+	public int EffectFileLine { get; init; }
+
 	/// <summary>Game-relative, as written in the file.</summary>
 	public string TextureFile { get; init; } = "";
 
@@ -110,12 +122,19 @@ public sealed class CSpriteType
 	/// <summary>A progress bar's <c>horizontal</c>: one that is not fills from its foot upwards.</summary>
 	public bool Horizontal { get; init; } = true;
 
-	public static CSpriteType FromNode(string kind, ClausewitzNode node)
+	public static CSpriteType FromNode(string kind, ClausewitzNode node, string file = "")
 	{
+		int LineOf(string key) => node.Get(key)?.Line ?? node.Line;
 		return new CSpriteType
 		{
 			Kind = kind,
 			Name = node.GetString("name"),
+			File = file,
+			Line = node.Line,
+			TextureFileLine = LineOf("textureFile"),
+			OverlayFileLine = LineOf("textureFile1"),
+			MaskFileLine = LineOf("textureFile2"),
+			EffectFileLine = LineOf("effectFile"),
 			TextureFile = node.GetString("textureFile"),
 			OverlayFile = node.GetString("textureFile1"),
 			MaskFile = node.GetString("textureFile2"),

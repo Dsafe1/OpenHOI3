@@ -50,13 +50,13 @@ public partial class CTooltipBox : Control
 		_font = context.Fonts.Find(type.Font);
 		if (_font is null)
 		{
-			CDiagnostics.Problem($"interface: '{type.Name}' names the font '{type.Font}', which could not be loaded");
+			CDiagnostics.Problem(type.File, type.Line, $"interface: '{type.Name}' names the font '{type.Font}', which could not be loaded");
 		}
 
 		// Its picture, drawn behind the text in nine parts as the original's font draws a textBoxType's (_Draw).
 		if (type.TextureFile.Length > 0)
 		{
-			_picture = context.Textures.LoadFromGamePath(type.TextureFile);
+			_picture = context.Textures.LoadFromGamePath(type.TextureFile, type.File, type.Line);
 		}
 	}
 

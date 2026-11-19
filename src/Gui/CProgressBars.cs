@@ -46,10 +46,11 @@ public sealed class CProgressBars
 		bool pictures = filled is not null && rest is not null;
 		string file = sprite.EffectFile.Split('\\', '/').LastOrDefault(part => part.Length > 0) ?? DefaultEffect;
 		string technique = pictures ? PictureTechnique : ColourTechnique;
-		(Shader? shader, CGodotShader? translation) = _effects.Get(file, technique, EShaderTarget.Canvas, FilledTexture, device: States);
+		(Shader? shader, CGodotShader? translation) = _effects.Get(file, technique, EShaderTarget.Canvas, FilledTexture, device: States,
+			namedIn: sprite.File, line: sprite.EffectFileLine);
 		if (shader is null || translation is null)
 		{
-			CDiagnostics.Problem($"interface: gfx/FX/{file} has no '{technique}' to draw the progress bar '{sprite.Name}' with, and it is not drawn");
+			CDiagnostics.Problem(sprite.File, sprite.EffectFileLine, $"interface: gfx/FX/{file} has no '{technique}' to draw the progress bar '{sprite.Name}' with, and it is not drawn");
 			return null;
 		}
 		var material = new CProgressBarMaterial(new ShaderMaterial { Shader = shader }, translation);
@@ -71,10 +72,11 @@ public sealed class CProgressBars
 	public CProgressBarMaterial? ScrollMaterial(CSpriteType sprite)
 	{
 		string file = sprite.EffectFile.Split('\\', '/').LastOrDefault(part => part.Length > 0) ?? DefaultEffect;
-		(Shader? shader, CGodotShader? translation) = _effects.Get(file, ScrollTechnique, EShaderTarget.Canvas, FilledTexture, device: States);
+		(Shader? shader, CGodotShader? translation) = _effects.Get(file, ScrollTechnique, EShaderTarget.Canvas, FilledTexture, device: States,
+			namedIn: sprite.File, line: sprite.EffectFileLine);
 		if (shader is null || translation is null)
 		{
-			CDiagnostics.Problem($"interface: gfx/FX/{file} has no '{ScrollTechnique}' to draw the scrolling sprite '{sprite.Name}' with, and it is not drawn");
+			CDiagnostics.Problem(sprite.File, sprite.EffectFileLine, $"interface: gfx/FX/{file} has no '{ScrollTechnique}' to draw the scrolling sprite '{sprite.Name}' with, and it is not drawn");
 			return null;
 		}
 		var material = new CProgressBarMaterial(new ShaderMaterial { Shader = shader }, translation);

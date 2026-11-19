@@ -261,7 +261,7 @@ public partial class CGuiIcon : CGuiObject
 		_sprite = sprite;
 		if (sprite is null && name.Length > 0)
 		{
-			CDiagnostics.Problem($"interface: '{GuiType.Name}' names the sprite '{name}', which no .gfx file declares");
+			CDiagnostics.Problem(GuiType.File, GuiType.Line, $"interface: '{GuiType.Name}' names the sprite '{name}', which no .gfx file declares");
 		}
 		var type = (CGuiIconType)GuiType;
 
@@ -282,8 +282,8 @@ public partial class CGuiIcon : CGuiObject
 		if (sprite is { IsProgressBar: true })
 		{
 			// The bar's two pictures: the part that is filled, and the rest of it.
-			_texture = sprite.OverlayFile.Length == 0 ? null : _context.Textures.LoadFromGamePath(sprite.OverlayFile);
-			_rest = sprite.MaskFile.Length == 0 ? null : _context.Textures.LoadFromGamePath(sprite.MaskFile);
+			_texture = sprite.OverlayFile.Length == 0 ? null : _context.Textures.LoadFromGamePath(sprite.OverlayFile, sprite.File, sprite.OverlayFileLine);
+			_rest = sprite.MaskFile.Length == 0 ? null : _context.Textures.LoadFromGamePath(sprite.MaskFile, sprite.File, sprite.MaskFileLine);
 			_bar = _context.ProgressBars.Material(sprite, _texture, _rest);
 			Material = _bar?.Material;
 			_bar?.Set("CurrentState", _progress / 100f);
@@ -297,7 +297,7 @@ public partial class CGuiIcon : CGuiObject
 		if (sprite is { IsScrolling: true })
 		{
 			// Its picture at its size, slid along itself through its effect's ScrollTech by its frame - which wraps.
-			_texture = sprite.OverlayFile.Length == 0 ? null : _context.Textures.LoadFromGamePath(sprite.OverlayFile);
+			_texture = sprite.OverlayFile.Length == 0 ? null : _context.Textures.LoadFromGamePath(sprite.OverlayFile, sprite.File, sprite.OverlayFileLine);
 			_scroll = _context.ProgressBars.ScrollMaterial(sprite);
 			Place(type, sprite.TileSize * type.Scale);
 			MouseFilter = MouseFilterEnum.Ignore;

@@ -25,6 +25,13 @@ public sealed class CGuiFont
 	public string FontName { get; init; } = "";
 
 	/// <summary>
+	/// Where a <c>bitmapfont</c> entry names its <c>fontname</c> - the <c>.gfx</c> file and the line - for a report of a
+	/// fault in it (<c>docs/mechanics/logs.md</c>, section 4); empty and nought for a font not declared so.
+	/// </summary>
+	public string File { get; init; } = "";
+	public int Line { get; init; }
+
+	/// <summary>
 	/// The entry's <c>effect</c>: on unless it says <c>effect = no</c>, as the original's default. An edit box in a font
 	/// with it on refuses seven characters (<c>docs/mechanics/interface.md</c>, section 8).
 	/// </summary>

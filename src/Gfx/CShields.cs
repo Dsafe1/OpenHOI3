@@ -76,29 +76,30 @@ public sealed class CShields
 
 	private CShieldParts? MakeParts(CSpriteType sprite)
 	{
-		Texture2D? mask = sprite.MaskFile.Length == 0 ? null : _textures.LoadFromGamePath(sprite.MaskFile);
+		Texture2D? mask = sprite.MaskFile.Length == 0 ? null : _textures.LoadFromGamePath(sprite.MaskFile, sprite.File, sprite.MaskFileLine);
 		if (mask is null)
 		{
-			CDiagnostics.Problem($"interface: the shield '{sprite.Name}' has no mask to cut a flag with, and is not drawn");
+			CDiagnostics.Problem(sprite.File, sprite.MaskFileLine, $"interface: the shield '{sprite.Name}' has no mask to cut a flag with, and is not drawn");
 			return null;
 		}
-		Texture2D? overlay = sprite.OverlayFile.Length == 0 ? null : _textures.LoadFromGamePath(sprite.OverlayFile);
+		Texture2D? overlay = sprite.OverlayFile.Length == 0 ? null : _textures.LoadFromGamePath(sprite.OverlayFile, sprite.File, sprite.OverlayFileLine);
 		if (overlay is null)
 		{
-			CDiagnostics.Problem($"interface: the shield '{sprite.Name}' has no texture to draw over a flag");
+			CDiagnostics.Problem(sprite.File, sprite.OverlayFileLine, $"interface: the shield '{sprite.Name}' has no texture to draw over a flag");
 		}
 		string file = EffectName(sprite.EffectFile);
 		var shaders = new Shader?[Techniques.Length];
 		CGodotShader? translation = null;
 		for (int look = 0; look < Techniques.Length; look++)
 		{
-			(Shader? shader, CGodotShader? made) = _effects.Get(file, Techniques[look], EShaderTarget.Canvas, FlagTexture);
+			(Shader? shader, CGodotShader? made) = _effects.Get(file, Techniques[look], EShaderTarget.Canvas, FlagTexture,
+				namedIn: sprite.File, line: sprite.EffectFileLine);
 			shaders[look] = shader;
 			translation ??= made;
 		}
 		if (translation is null || shaders[0] is null)
 		{
-			CDiagnostics.Problem($"interface: gfx/FX/{file} gives the shield '{sprite.Name}' no '{Techniques[0]}' technique, and it is not drawn");
+			CDiagnostics.Problem(sprite.File, sprite.EffectFileLine, $"interface: gfx/FX/{file} gives the shield '{sprite.Name}' no '{Techniques[0]}' technique, and it is not drawn");
 			return null;
 		}
 		Vector2 maskSize = mask.GetSize();

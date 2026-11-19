@@ -51,7 +51,18 @@ public sealed class CGuiFonts
 	{
 		var registry = new CGuiFonts(directories);
 		var read = new List<(string FileName, ClausewitzNode Root)>();
-		var passedOver = new SortedSet<string>(StringComparer.Ordinal);
+		// Each line passed over is a line of the log at its place, said once (docs/mechanics/logs.md, section 4).
+		var paths = new Dictionary<string, string>(StringComparer.Ordinal);
+		var said = new HashSet<string>(StringComparer.Ordinal);
+		void PassedOver(string file, ClausewitzNode line)
+		{
+			string report = CDiagnostics.Located(file, line.Line,
+				$"the line '{line.Key ?? line.Value}' of a font's colours is not a letter and three numbers and was passed over");
+			if (said.Add(report))
+			{
+				CDiagnostics.Problem(report);
+			}
+		}
 		foreach (string file in directories.ListFiles("interface", "*.gfx"))
 		{
 			ClausewitzNode root;
@@ -64,6 +75,7 @@ public sealed class CGuiFonts
 				continue;                             // already reported by the sprite pass
 			}
 			read.Add((Path.GetFileName(file), root));
+			paths[Path.GetFileName(file)] = file;
 			foreach (ClausewitzNode container in root.All("bitmapfonts"))
 			{
 				foreach (ClausewitzNode entry in container.All("bitmapfont"))
@@ -72,9 +84,11 @@ public sealed class CGuiFonts
 					{
 						Name = entry.GetString("name"),
 						FontName = entry.GetString("fontname"),
+						File = file,
+						Line = entry.Get("fontname")?.Line ?? entry.Line,
 						Color = entry.GetColor("color", CColor.White).ToGodot(),
 						Effect = !string.Equals(entry.GetString("effect"), "no", StringComparison.OrdinalIgnoreCase),
-						OwnColours = CFontColourTable.Own(entry, key => passedOver.Add($"{Path.GetFileName(file)}: {key}")),
+						OwnColours = CFontColourTable.Own(entry, line => PassedOver(file, line)),
 					};
 					if (font.Name.Length != 0)
 					{
@@ -85,12 +99,7 @@ public sealed class CGuiFonts
 			}
 			CTrueTypeFontReader.Read(root, registry._trueType);
 		}
-		registry._shared = CFontColourTable.Shared(read, key => passedOver.Add($"colorcodes: {key}"));
-		if (passedOver.Count > 0)
-		{
-			CDiagnostics.Problem($"{passedOver.Count} lines of a font's colours are not a letter and three numbers and were "
-				+ "passed over: " + string.Join(", ", passedOver));
-		}
+		registry._shared = CFontColourTable.Shared(read, (fileName, line) => PassedOver(paths[fileName], line));
 		return registry;
 	}
 
@@ -126,7 +135,7 @@ public sealed class CGuiFonts
 		if (font.Font is null)
 		{
 			// Fonts that share a descriptor share its typeface and its size.
-			CGuiFont? made = Make(font.FontName);
+			CGuiFont? made = Make(font.FontName, font.File, font.Line);
 			if (made is null)
 			{
 				return null;
@@ -184,7 +193,8 @@ public sealed class CGuiFonts
 
 	private readonly Dictionary<string, CFontDescriptor?> _descriptors = new(StringComparer.OrdinalIgnoreCase);
 
-	private CGuiFont? Make(string fontName)
+	/// <summary>A font file made a font, a fault in it reported at <paramref name="namedIn"/> and <paramref name="line"/>, where the name is written.</summary>
+	private CGuiFont? Make(string fontName, string namedIn = "", int line = 0)
 	{
 		if (_files.TryGetValue(fontName, out CGuiFont? cached))
 		{
@@ -218,7 +228,7 @@ public sealed class CGuiFonts
 		{
 			if (descriptor is null)
 			{
-				CDiagnostics.Problem($"The font '{fontName}' has no descriptor in gfx/fonts and no typeface beside one");
+				CDiagnostics.Problem(namedIn, line, $"The font '{fontName}' has no descriptor in gfx/fonts and no typeface beside one");
 			}
 			face = _shipped.For(descriptor?.Face ?? "", descriptor is { Bold: true }, descriptor is { Italic: true },
 				out sameWidths);
@@ -315,7 +325,7 @@ public sealed class CGuiFonts
 				file.AllowSystemFallback = false;
 				return file;
 			}
-			CDiagnostics.Problem($"Could not load the typeface '{path}' ({error})");
+			CDiagnostics.Problem(path, 0, $"Could not load the typeface ({error})");
 		}
 		return null;
 	}

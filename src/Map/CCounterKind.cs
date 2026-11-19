@@ -93,12 +93,12 @@ public sealed class CCounterKind
 			CDiagnostics.Problem("map: a counter type is not declared, so that kind of counter is not drawn");
 			return null;
 		}
-		Texture2D? plate = Load(gui, type.BackgroundFile);
-		Texture2D? mask = Load(gui, type.MaskFile);
-		Texture2D? sizes = Load(gui, type.SizeFile);
+		Texture2D? plate = Load(gui, type.BackgroundFile, type.File, type.Line);
+		Texture2D? mask = Load(gui, type.MaskFile, type.File, type.Line);
+		Texture2D? sizes = Load(gui, type.SizeFile, type.File, type.Line);
 		if (plate is null || mask is null || sizes is null)
 		{
-			CDiagnostics.Problem($"map: counter type '{type.Name}' lacks one of its three pictures and is not drawn");
+			CDiagnostics.Problem(type.File, type.Line, $"map: counter type '{type.Name}' lacks one of its three pictures and is not drawn");
 			return null;
 		}
 		RegisterShared();
@@ -106,13 +106,13 @@ public sealed class CCounterKind
 			device: States, shared: Shared);
 		if (shader is null || translation is null)
 		{
-			CDiagnostics.Problem($"map: gfx/FX/{EffectFile} gives no '{Technique}' technique, so counter type '{type.Name}' is not drawn");
+			CDiagnostics.Problem(type.File, type.Line, $"map: gfx/FX/{EffectFile} gives no '{Technique}' technique, so counter type '{type.Name}' is not drawn");
 			return null;
 		}
 		CGuiFont? font = gui.Fonts.Find(type.Font);
 		if (font is null && type.Font.Length != 0)
 		{
-			CDiagnostics.Problem($"map: counter type '{type.Name}' names the font '{type.Font}', which no file declares");
+			CDiagnostics.Problem(type.File, type.Line, $"map: counter type '{type.Name}' names the font '{type.Font}', which no file declares");
 		}
 		return new CCounterKind(type, plate, mask, sizes, shader, translation, family)
 		{
@@ -190,16 +190,16 @@ public sealed class CCounterKind
 		{
 			CSpriteType? sprite = typeKey.Length == 0 ? null : gui.Sprites.Find(_family + typeKey);
 			sprite ??= gui.Sprites.Find(_family + Unknown);
-			picture = sprite is null ? null : Load(gui, sprite.TextureFile);
+			picture = sprite is null ? null : Load(gui, sprite.TextureFile, sprite.File, sprite.TextureFileLine);
 			_pictures[typeKey] = picture;
 		}
 		return picture;
 	}
 
 	/// <summary>A picture with its smaller copies, which the effect's samplers filter between.</summary>
-	private static Texture2D? Load(CGuiContext gui, string file)
+	private static Texture2D? Load(CGuiContext gui, string file, string namedIn, int line)
 	{
-		if (file.Length == 0 || gui.Textures.LoadImage(file) is not { } image)
+		if (file.Length == 0 || gui.Textures.LoadImage(file, namedIn, line) is not { } image)
 		{
 			return null;
 		}

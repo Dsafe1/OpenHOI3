@@ -22,8 +22,11 @@ public sealed class CEffectShaders
 		_directories = directories;
 	}
 
-	/// <summary>An effect file as read, or null where no layer has it.</summary>
-	public CFxEffect? Effect(string file)
+	/// <summary>
+	/// An effect file as read, or null where no layer has it - reported once, at <paramref name="namedIn"/> and
+	/// <paramref name="line"/> where the first asker knows where the file is named (<c>docs/mechanics/logs.md</c>, section 4).
+	/// </summary>
+	public CFxEffect? Effect(string file, string namedIn = "", int line = 0)
 	{
 		if (!_effects.TryGetValue(file, out CFxEffect? effect))
 		{
@@ -31,7 +34,7 @@ public sealed class CEffectShaders
 			_effects[file] = effect;
 			if (effect is null)
 			{
-				Content.CDiagnostics.Problem($"shaders: no layer has gfx/FX/{file}");
+				Content.CDiagnostics.Problem(namedIn, line, $"shaders: no layer has gfx/FX/{file}");
 			}
 			else
 			{
@@ -50,10 +53,12 @@ public sealed class CEffectShaders
 	/// which the pass's own override (<c>shaders.md</c>, section 3.7), and <paramref name="shared"/> the parameters made
 	/// Godot's global uniforms and their names, which the caller registers first (section 3.11), and
 	/// <paramref name="stencilLayer"/> how many times the engine has cleared the stencil before the draw (section 3.7).
+	/// <paramref name="namedIn"/> and <paramref name="line"/> are where the content names the file, where it does: a fault
+	/// is reported there.
 	/// </summary>
 	public (Shader? Shader, CGodotShader? Translation) Get(string file, string technique, EShaderTarget target,
 		string? drawnTexture = null, int pass = 0, IReadOnlyDictionary<string, string>? device = null,
-		IReadOnlyDictionary<string, string>? shared = null, int stencilLayer = 0)
+		IReadOnlyDictionary<string, string>? shared = null, int stencilLayer = 0, string namedIn = "", int line = 0)
 	{
 		string states = device is null ? "" : string.Join(";", System.Linq.Enumerable.Select(
 			System.Linq.Enumerable.OrderBy(device, s => s.Key, System.StringComparer.Ordinal), s => s.Key + "=" + s.Value));
@@ -65,7 +70,7 @@ public sealed class CEffectShaders
 			return made;
 		}
 		made = (null, null);
-		if (Effect(file) is { } effect && effect.Technique(technique) is { } found && pass < found.Passes.Count)
+		if (Effect(file, namedIn, line) is { } effect && effect.Technique(technique) is { } found && pass < found.Passes.Count)
 		{
 			CGodotShader translation = CGodotShaderWriter.Write(effect, found, found.Passes[pass], target, drawnTexture, device, shared, stencilLayer);
 			foreach (string problem in translation.Problems)
@@ -76,7 +81,7 @@ public sealed class CEffectShaders
 		}
 		else if (Effect(file) is not null)
 		{
-			Content.CDiagnostics.Problem($"shaders: gfx/FX/{file} has no technique '{technique}'");
+			Content.CDiagnostics.Problem(namedIn, line, $"shaders: gfx/FX/{file} has no technique '{technique}'");
 		}
 		_shaders[key] = made;
 		return made;

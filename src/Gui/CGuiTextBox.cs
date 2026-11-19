@@ -71,13 +71,13 @@ public partial class CGuiTextBox : CGuiObject
 		_font = context.Fonts.Find(type.Font);
 		if (_font is null)
 		{
-			CDiagnostics.Problem($"interface: '{type.Name}' names the font '{type.Font}', which could not be loaded");
+			CDiagnostics.Problem(type.File, type.Line, $"interface: '{type.Name}' names the font '{type.Font}', which could not be loaded");
 		}
 
 		// The box's textureFile, drawn behind its text in nine parts (CTextBoxPicture; interface.md, sections 6 and 8).
 		if (!type.IsInstant && type.TextureFile.Length > 0)
 		{
-			_picture = context.Textures.LoadFromGamePath(type.TextureFile);
+			_picture = context.Textures.LoadFromGamePath(type.TextureFile, type.File, type.Line);
 		}
 
 		// A textBoxType's font draws it into a picture of its own, of which only part is shown: its lines and its picture

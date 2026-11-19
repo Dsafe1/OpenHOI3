@@ -115,13 +115,14 @@ public partial class CSoundEffects : Node
 		string path = _directories.Resolve(effect.Path);
 		if (!System.IO.File.Exists(path))
 		{
-			CDiagnostics.Problem($"sound: '{effect.Name}' names {effect.Path}, which is missing");
+			CDiagnostics.Problem(_directories.Resolve(CSoundEffectReader.FilePath), effect.Line,
+				$"sound: '{effect.Name}' names {effect.Path}, which is missing");
 			return null;
 		}
 		AudioStreamWav? stream = AudioStreamWav.LoadFromFile(path);
 		if (stream is null)
 		{
-			CDiagnostics.Problem($"sound: {effect.Path} could not be read");
+			CDiagnostics.Problem(path, 0, "sound: could not be read");
 		}
 		return stream;
 	}

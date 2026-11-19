@@ -13,6 +13,10 @@ public sealed class CCounterType
 {
 	public required string Name { get; init; }
 
+	/// <summary>The <c>.gfx</c> file that declared it and the line its block begins on, for a report of a fault in it (<c>docs/mechanics/logs.md</c>, section 4).</summary>
+	public string File { get; init; } = "";
+	public int Line { get; init; }
+
 	/// <summary><c>textureFile</c>: the plate.</summary>
 	public string BackgroundFile { get; init; } = "";
 

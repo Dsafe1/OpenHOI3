@@ -31,7 +31,7 @@ public sealed class CSpriteTypes
 			}
 			catch (Exception e)
 			{
-				CDiagnostics.Problem($"Could not parse '{file}': {e.Message}");
+				CDiagnostics.Problem(file, 0, $"Could not parse: {e.Message}");
 				continue;
 			}
 			foreach (ClausewitzNode container in root.All("spriteTypes"))
@@ -49,21 +49,21 @@ public sealed class CSpriteTypes
 			// Each passed over is said (docs/mechanics/clausewitz.md, section 3).
 			if (child.Key is null || !child.IsBlock)
 			{
-				CDiagnostics.Problem($"'{file}': spriteTypes: '{child.Key ?? child.Value}' is no sprite - a kind and a block; passed over");
+				CDiagnostics.Problem(file, child.Line, $"spriteTypes: '{child.Key ?? child.Value}' is no sprite - a kind and a block; passed over");
 				continue;
 			}
 			if (Array.IndexOf(SpriteKinds, child.Key) < 0 &&
 				!child.Key.EndsWith("SpriteType", StringComparison.OrdinalIgnoreCase))
 			{
-				CDiagnostics.Problem($"'{file}': spriteTypes: '{child.Key}' is no kind of sprite read here; passed over");
+				CDiagnostics.Problem(file, child.Line, $"spriteTypes: '{child.Key}' is no kind of sprite read here; passed over");
 				continue;
 			}
-			CSpriteType sprite = CSpriteType.FromNode(child.Key, child);
+			CSpriteType sprite = CSpriteType.FromNode(child.Key, child, file);
 			// A pie chart and a progress bar may be drawn with no picture at all: the politics screen's are.
 			if (sprite.Name.Length == 0 || (sprite.TextureFile.Length == 0 && sprite.OverlayFile.Length == 0
 				&& !sprite.IsPieChart && !sprite.IsProgressBar && !sprite.IsLineChart))
 			{
-				CDiagnostics.Problem($"'{file}': the {child.Key} '{sprite.Name}' has " +
+				CDiagnostics.Problem(file, child.Line, $"the {child.Key} '{sprite.Name}' has " +
 					(sprite.Name.Length == 0 ? "no name" : "no texture") + "; passed over");
 				continue;
 			}

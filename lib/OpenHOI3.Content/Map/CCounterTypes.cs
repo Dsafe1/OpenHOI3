@@ -86,6 +86,8 @@ public sealed class CCounterTypes
 		return new CCounterType
 		{
 			Name = name,
+			File = file,
+			Line = node.Line,
 			BackgroundFile = node.GetString("textureFile"),
 			MaskFile = node.GetString("textureFile2"),
 			SizeFile = node.GetString("textureFile3"),

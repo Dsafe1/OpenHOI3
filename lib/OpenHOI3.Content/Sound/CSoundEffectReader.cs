@@ -56,7 +56,7 @@ public static class CSoundEffectReader
 				Math.Clamp(pan, -10_000, 10_000),
 				// Exactly "single", case and all [exe].
 				string.Equals(node.GetString("voicetype"), "single", StringComparison.Ordinal),
-				node.GetInt("volume", 100));
+				node.GetInt("volume", 100)) { Line = node.Line };
 			if (!sounds.TryAdd(name, sound))
 			{
 				warn(CDiagnostics.Located(FilePath, node.Line, $"duplicate sound '{name}', the first kept"));

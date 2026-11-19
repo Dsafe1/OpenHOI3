@@ -442,7 +442,7 @@ public partial class CGuiWindow : CGuiObject
 		{
 			return found;
 		}
-		CDiagnostics.Problem($"interface: the window '{GuiType.Name}' has no {kind} named '{name}'");
+		CDiagnostics.Problem(GuiType.File, GuiType.Line, $"interface: the window '{GuiType.Name}' has no {kind} named '{name}'");
 		return null;
 	}
 }

@@ -14,4 +14,7 @@ public sealed record CSoundEffect(string Name, string Path, int Pitch, int Pan, 
 {
 	/// <summary>The voices a sound has where its <c>voicetype</c> is not <c>single</c> [exe].</summary>
 	public const int Voices = 64;
+
+	/// <summary>The line of <c>interface/sound.sfx</c> it is declared on, for a report of a fault in it (<c>docs/mechanics/logs.md</c>, section 4).</summary>
+	public int Line { get; init; }
 }

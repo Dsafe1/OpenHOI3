@@ -26,15 +26,27 @@ public class FontColourTableTests
 	}
 
 	[Fact]
-	public void ALineThatIsNotThreeNumbersIsPassedOverAndSaid()
+	public void ALineThatIsNotThreeNumbersIsPassedOverAndSaidWithItsLine()
 	{
-		var passed = new List<string>();
+		var passed = new List<(string? Key, int Line)>();
 		var table = new CFontColourTable();
-		table.Add(ClausewitzParser.Parse("R = { 255 0 } G = yes Y = { 255 189 0 0.5 }"), passed.Add);
+		table.Add(ClausewitzParser.Parse("R = { 255 0 }\nG = yes\nY = { 255 189 0 0.5 }"), line => passed.Add((line.Key, line.Line)));
 
-		Assert.Equal(new[] { "R", "G" }, passed);
+		Assert.Equal(new (string?, int)[] { ("R", 1), ("G", 2) }, passed);
 		Assert.True(table.TryGet('Y', out CColor yellow));
 		Assert.Equal(new CColor(1f, 189f / 255f, 0f, 0.5f), yellow);
+	}
+
+	[Fact]
+	public void TheSharedTableSaysTheFileOfALinePassedOver()
+	{
+		ClausewitzNode core = ClausewitzParser.Parse(
+			"bitmapfonts = {\n\tbitmapfont = {\n\t\tname = \"vic_18\"\n\t\tcolorcodes = {\n\t\t\tG = { 0 255 }\n\t\t}\n\t}\n}");
+		var passed = new List<(string File, string? Key, int Line)>();
+
+		CFontColourTable.Shared(new[] { ("core.gfx", core) }, (file, line) => passed.Add((file, line.Key, line.Line)));
+
+		Assert.Equal(new[] { ("core.gfx", (string?)"G", 5) }, passed);
 	}
 
 	[Fact]

@@ -33,7 +33,7 @@ public sealed class CTextureManager
 	/// <summary>Loads the texture for a sprite declaration, or null if unavailable.</summary>
 	public Texture2D? Load(CSpriteType sprite)
 	{
-		return LoadFromGamePath(sprite.TextureFile);
+		return LoadFromGamePath(sprite.TextureFile, sprite.File, sprite.TextureFileLine);
 	}
 
 	/// <summary>
@@ -45,12 +45,16 @@ public sealed class CTextureManager
 		return _directories.ResolveTexture(gameRelative) is not null;
 	}
 
-	public Texture2D? LoadFromGamePath(string gameRelative)
+	/// <summary>
+	/// A texture by its game-relative name, or null where no layer has it - reported at <paramref name="namedIn"/> and
+	/// <paramref name="line"/>, where the name is written, when the caller knows it (<c>docs/mechanics/logs.md</c>, section 4).
+	/// </summary>
+	public Texture2D? LoadFromGamePath(string gameRelative, string namedIn = "", int line = 0)
 	{
 		string? absolute = _directories.ResolveTexture(gameRelative);
 		if (absolute is null)
 		{
-			CDiagnostics.Problem($"Texture not found for '{gameRelative}'");
+			CDiagnostics.Problem(namedIn, line, $"Texture not found for '{gameRelative}'");
 			return null;
 		}
 		return LoadFromFile(absolute);
@@ -87,7 +91,7 @@ public sealed class CTextureManager
 		CAlphaMask? mask = null;
 		if (IsDxt1OrDxt5(absolute))
 		{
-			CDiagnostics.Problem($"Texture {sprite.TextureFile} have forbidden compression, have you tried DXT3?");
+			CDiagnostics.Problem(sprite.File, sprite.TextureFileLine, $"Texture {sprite.TextureFile} have forbidden compression, have you tried DXT3?");
 		}
 		else if (LoadImageAbsolute(absolute) is { } image)
 		{
@@ -95,7 +99,7 @@ public sealed class CTextureManager
 			// would fail with an error of its own.
 			if (image.IsCompressed() && image.Decompress() != Error.Ok)
 			{
-				CDiagnostics.Problem($"Texture {sprite.TextureFile} could not be unpacked to find where it is see-through");
+				CDiagnostics.Problem(sprite.File, sprite.TextureFileLine, $"Texture {sprite.TextureFile} could not be unpacked to find where it is see-through");
 			}
 			else
 			{
@@ -127,13 +131,14 @@ public sealed class CTextureManager
 	/// <summary>
 	/// Decodes to a raw image rather than a texture, for callers that need the pixels -
 	/// compositing a country shield from a flag and a frame, for instance.
+	/// A name no layer has is reported as <see cref="LoadFromGamePath"/> reports it.
 	/// </summary>
-	public Image? LoadImage(string gameRelative)
+	public Image? LoadImage(string gameRelative, string namedIn = "", int line = 0)
 	{
 		string? absolute = _directories.ResolveTexture(gameRelative);
 		if (absolute is null)
 		{
-			CDiagnostics.Problem($"Texture not found for '{gameRelative}'");
+			CDiagnostics.Problem(namedIn, line, $"Texture not found for '{gameRelative}'");
 			return null;
 		}
 		return LoadImageAbsolute(absolute);
@@ -154,7 +159,7 @@ public sealed class CTextureManager
 		}
 		catch (IOException e)
 		{
-			CDiagnostics.Problem($"Could not read '{absolutePath}': {e.Message}");
+			CDiagnostics.Problem(absolutePath, 0, $"Could not read: {e.Message}");
 			return null;
 		}
 
@@ -173,7 +178,7 @@ public sealed class CTextureManager
 			case ETextureFormat.Bmp:
 				return ByGodot(image => image.LoadBmpFromBuffer(bytes), absolutePath);
 			default:
-				CDiagnostics.Problem($"Could not decode '{absolutePath}': it is not a DDS, TGA, PNG, JPEG or BMP");
+				CDiagnostics.Problem(absolutePath, 0, "Could not decode: it is not a DDS, TGA, PNG, JPEG or BMP");
 				return null;
 		}
 	}
@@ -185,7 +190,7 @@ public sealed class CTextureManager
 		Error error = load(image);
 		if (error != Error.Ok || image.IsEmpty())
 		{
-			CDiagnostics.Problem($"Could not decode '{absolutePath}' ({error})");
+			CDiagnostics.Problem(absolutePath, 0, $"Could not decode ({error})");
 			return null;
 		}
 		return image;
@@ -204,7 +209,7 @@ public sealed class CTextureManager
 		}
 		catch (InvalidDataException e)
 		{
-			CDiagnostics.Problem($"Could not decode '{absolutePath}': {e.Message}");
+			CDiagnostics.Problem(absolutePath, 0, $"Could not decode: {e.Message}");
 			return null;
 		}
 		if (recompressed)
@@ -231,7 +236,7 @@ public sealed class CTextureManager
 	{
 		if (CDdsHeader.Parse(bytes) is not { } header)
 		{
-			CDiagnostics.Problem($"Could not decode '{absolutePath}': the file ends inside its DDS header");
+			CDiagnostics.Problem(absolutePath, 0, "Could not decode: the file ends inside its DDS header");
 			return null;
 		}
 		if (LoadSeeThroughDxt1(bytes, header) is { } seeThrough)
@@ -256,7 +261,7 @@ public sealed class CTextureManager
 		}
 		if (error != Error.Ok || image.IsEmpty())
 		{
-			CDiagnostics.Problem($"Could not decode '{absolutePath}' ({error})");
+			CDiagnostics.Problem(absolutePath, 0, $"Could not decode ({error})");
 			return null;
 		}
 		return AsRecompressed(image);

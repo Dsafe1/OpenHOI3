@@ -197,7 +197,19 @@ public sealed class CGuiTypes
 		}
 	}
 
+	/// <summary>An element read, with the file and line it is declared at.</summary>
 	private CGuiType? Read(ClausewitzNode node, bool topLevel)
+	{
+		CGuiType? type = ReadElement(node, topLevel);
+		if (type is not null)
+		{
+			type.File = _file;
+			type.Line = node.Line;
+		}
+		return type;
+	}
+
+	private CGuiType? ReadElement(ClausewitzNode node, bool topLevel)
 	{
 		if (node.Key is null || !node.IsBlock)
 		{
