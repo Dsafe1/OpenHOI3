@@ -243,9 +243,12 @@ public static class CNavalBody
 			}
 			CShipCensus census = CShipCensus.Of(fleet);
 			bool wolfpack = census.Submarines == fleet.SubUnits.Count;
-			if (wolfpack && !IsBusy(fleet) && atWar && headquarters.Plan.NavalStance != 0)
+			// A fleet sent raiding, or to a better port to raid from, is neither counted nor free either: the original jumps
+			// past both once it has posted the order (FINDINGS-liveread.md, section 137).
+			if (wolfpack && !IsBusy(fleet) && atWar && headquarters.Plan.NavalStance != 0
+				&& Raid(state, country, agent, fleet, arriving))
 			{
-				Raid(state, country, agent, fleet, arriving);
+				continue;
 			}
 			// A fleet rebased here is neither counted nor free: the original jumps past both once it has posted the order, so
 			// the patrol and the intercept cannot take it in the same pass (FINDINGS-liveread.md, section 128).
@@ -270,8 +273,8 @@ public static class CNavalBody
 		}
 	}
 
-	/// <summary>A raid on the waters of an enemy convoy, drawn by its transports, nearer its ends the heavier; or, with few in reach, a better port.</summary>
-	private static void Raid(CGameState state, CCountry country, CAgent agent, CUnit fleet, Dictionary<int, int> arriving)
+	/// <summary>A raid on the waters of an enemy convoy, drawn by its transports, nearer its ends the heavier; or, with few in reach, a better port. Whether it posted either.</summary>
+	private static bool Raid(CGameState state, CCountry country, CAgent agent, CUnit fleet, Dictionary<int, int> arriving)
 	{
 		var candidates = new List<(int Province, long Weight)>();
 		int seen = 0;
@@ -319,11 +322,11 @@ public static class CNavalBody
 		// the fleet goes there; where none is, it raids all the same (FINDINGS-liveread.md, section 114).
 		if ((candidates.Count == 0 || candidates.Count < seen / 2) && Relocate(state, country, fleet, tonnage, arriving))
 		{
-			return;
+			return true;
 		}
 		if (candidates.Count == 0 || total <= 0)
 		{
-			return;
+			return false;
 		}
 		long draw = state.AiRandom.Next(country.Tag) % total;
 		int chosen = 0;
@@ -340,7 +343,9 @@ public static class CNavalBody
 		{
 			state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleet.Id, EUnitOrder.ConvoyRaid, chosen,
 				endHour: state.TotalHours + RaidHours, ai: true));
+			return true;
 		}
+		return false;
 	}
 
 	/// <summary>

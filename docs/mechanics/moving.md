@@ -704,7 +704,9 @@ makes nobody at war (`war.md`, section 1).
    so goes no further**: its turn ends there, neither counted nor free, though its order is still none until the command
    runs - so the patrol and the intercept cannot take it in the same pass (`reversing/findings/FINDINGS-liveread.md`,
    section 128: the British 10th Navy rebased to 2021 at 09:00 on 17 July 1941, and the 11445 patrol going to the 16th
-   Navy). **A fleet holding a transport goes no further**: neither counted
+   Navy). **So does a submarine fleet sent raiding or to a better port to raid from** (section 137: the British 41st Navy,
+   sent to raid at 10590 at the same hour, is no part of the intercept on the Italian 11th Navy, which the 31st Navy is
+   given alone). **A fleet holding a transport goes no further**: neither counted
    nor free, it is sent on no patrol and no intercept (`reversing/findings/FINDINGS-liveread.md`, section 42). Any other's
    power, with no rebase or raid, adds to the own power; a fleet not busy - or on patrol or escort - is **free**.
 8. **Patrol**, with the naval stance not 0 and at war or with raided waters: the raided waters, or else the sea of each of
