@@ -61,6 +61,80 @@ Worked out while the normal engine still lacks multiplayer, which comes first. *
   condition the original drops is a condition absent - an `and` of it alone holds - so script that leans on a new
   condition needs a gate the original answers false.
 
+## BiceLib's features, each one's place
+
+By `docs/bicelib/features.md` of the mod's repository, which has each feature's rule in full. **Proposed on
+2026-11-20 and not objected to; the three marked *decided* were asked and answered that day.** Nothing is built. The
+names of keys and defines are proposals.
+
+**Fixes - how the enhanced mode behaves, on unless the mod names one**
+
+- A minister's technology decay counts (*Economy and production*, above).
+- A historical model that needs a technology the country has not researched loses to every model that does not.
+- A queued brigade's `historical_model` gets a level for every technology of its type, so none lands on another.
+- A country-level `ic` modifier counts, as off-map IC: a country's IC is its provinces' sum and that figure.
+- A leader an order of battle puts on a land unit gets the rank of that unit's level and is put in service; a leader
+  whose history dates his first rank after the start comes into service at the rank the line names (*Leaders*, above).
+- A finished building may be placed without its technology, every other test of the placing standing.
+- A loaded game has its event candidates (*Script, events and weather*, above) - the enhanced save keeps them.
+- The Simplified Terrain map mode colours the sea.
+- Already the normal engine's: a province's most infrastructure (`compatibility.md`, entry 29) and the requirement
+  tooltip's indentation (entry 10).
+
+**Rules - a mod's choice, written as data**
+
+- **How many units a command holds**: three modifier kinds - `corps_unit_limit`, `army_unit_limit`,
+  `army_group_unit_limit` - added to a base in `defines.lua`, so a technology, a triggered modifier, a minister or a law
+  may raise it and no script has to set figures day by day. A leader's trait raises or lowers it by a trait effect,
+  `command_limit`. A division of one brigade takes no place. The country asked is the commander's.
+- **Screens and capital ships**: two defines, the flat penalty and the screens wanted for each capital ship.
+- **A trait that counts only at some ranks**: `min_rank` and `max_rank` on the trait; no pair of traits to exchange,
+  and nothing left out of a save. Off in the mod today, so it may come last.
+- **War exhaustion** - *decided*: no payback into neutrality at peace, and nothing else. War exhaustion gathers and
+  weighs as the original's; a define turns the hand-over off. BiceLib's patch does more - it sets the figure to nought
+  every month - and that is not wanted here.
+- **The AI's lending of units** - *decided*: a define stops the AI lending a unit to another country; a unit on loan
+  is still given back, which BiceLib's patch stops too.
+- **A country's own conversion of energy into crude oil and of crude oil into fuel** - *decided*: a native setting,
+  not country variables. Per country: for each of the two conversions whether it is the player's own, how much a day,
+  how much of the source to keep and the level of the product to stop at - changed by a command of its own, kept in
+  the enhanced save, set from a window and by an effect. A country nobody plays converts as the original. The caps the
+  original has - its capacity by IC, the energy industry needs that day, the rate by technology - stand.
+
+**Texts - built in, their wording from the localisation**
+
+- Variables filled where a text asks for them: the unit, place and manner of a `kill_leader`; the manpower tooltip's
+  reinforcement need by land, air and navy with its four further figures.
+- Lines of the engine's own under new keys: a leader's skill with his highest, what a `load_oob` file would do, a
+  unit's summed figures and damage in a battle's tooltip, whether a design may be dropped by parachute and which
+  brigades stop it, what a combined-arms group gives, and manpower and leadership in the resources map mode's tooltip.
+- A tooltip taller than the screen scrolls - any tooltip, not the requirement's alone (*Interface*, above).
+
+**Interface**
+
+- Ctrl on the "unassign all leaders" confirmation unassigns the selected units' leaders alone, as commands that each
+  name their unit.
+- Game options of the engine's own: two more rotating autosaves, scrolling at the screen's edge, where an event's
+  window comes up.
+- A map mode a mod declares in data: the figure a province is coloured by, its bands and colours.
+- Windows of the engine's own for what the engine holds: a country's flags, variables and timed modifiers, the order of
+  battle as a tree and counted, a selected unit's figures, where a building stands, the record of battles.
+- Windows a mod defines, through the interface for mod-defined elements: laid out in `.gui` files and fed by the mod's
+  Lua - BlackICE's country, game-information, set-up, help and statistics pages.
+
+**What mods build on**
+
+- A command a mod defines: a name, its arguments, and an effect block for its body, so that it does the same on every
+  machine. BiceLib has the frame for one and no command of its own in use.
+- A call into the mod's Lua once a game day on every machine, which may post commands and change nothing itself. With
+  the modifier kinds above BlackICE's one use of it goes.
+- Reads for Lua under the global `OpenHOI3`: a message popup with the caller's text, a country's flags, variables,
+  timed modifiers and modifier totals, a province's figures, a leader's state, what the player has selected.
+- The record of finished battles kept in the enhanced save, not in files and a country's variables.
+
+**Not taken**: BiceLib's reverse-engineering tools, console, crash report and crash save, memory watch, warm-up and
+debug pages, the mover of unit animation files, and the loss of skill on promotion, which its maker abandoned.
+
 ## A whole game's replay: what a save does not give back
 
 What the enhanced engine's own save would have to hold, and what its load would have to leave alone, for a game to go on after a load as it would have without one. Found on 2026-11-12 by `OpenHOI3.SaveCheck reload` - a new game run to 5 January and to 1 March 1936, saved, loaded, and every field of the two games set beside each other - and by reading what each field is. **Each is the original's too**: the save keeps the original's keys, and where the original works a thing out again on a load this does the same (`savegame.md`, 5; `war.md`, 4). Caches that are made again on demand to the same figures are left out. The two games part in the first hour after the load.
