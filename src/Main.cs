@@ -41,7 +41,37 @@ public partial class Main : Control
 	private Content.Settings.CUserSettings _startSettings = Content.Settings.CUserSettings.Default;
 
 	/// <summary>The switches that say what game to play, which start it without the front end.</summary>
-	private static readonly string[] GameSwitches = { "--country=", "--load=", "--replay=" };
+	private static readonly string[] GameSwitches = { "--country=", "--load=", "--replay=", "--join=" };
+
+	/// <summary>
+	/// This machine's part in a game between several machines - a host's with <c>--host</c>, a client's with
+	/// <c>--join=</c> - kept across the sessions of it; null in a game of one (docs/multiplayer.md, section 6).
+	/// </summary>
+	private Multiplayer.CNetGame? _net;
+
+	/// <summary>The connections looked after every frame, whatever is on screen; and a game the host has left, ended.</summary>
+	public override void _Process(double delta)
+	{
+		if (_net is not { } net)
+		{
+			return;
+		}
+		net.Pump();
+		if (net.Ended is { } why && _session is not null && !net.Loading)
+		{
+			GD.Print($"Multiplayer: {why}");
+			LeaveNet();
+			_music.LeaveGame();
+			CallDeferred(MethodName.ShowFrontEnd);
+		}
+	}
+
+	/// <summary>The game between machines left: its connections closed.</summary>
+	private void LeaveNet()
+	{
+		_net?.Dispose();
+		_net = null;
+	}
 
 	/// <summary>
 	/// The arrow keys stop here, after everything under this node has had them - a text box or the console takes its own
@@ -63,6 +93,7 @@ public partial class Main : Control
 	public override void _ExitTree()
 	{
 		_surfaces?.Release();
+		_net?.Dispose();
 	}
 
 	public override void _Ready()
@@ -356,11 +387,127 @@ public partial class Main : Control
 		CLoadingScreen screen = OpenLoadingScreen();
 		CLocalisation localisation = await screen.Work("", () => CLocalisation.Load(_directories));
 		screen.Localisation = localisation;
+		if (CSession.Argument("--join=") is { } address)
+		{
+			await Join(screen, address);
+			return;
+		}
 		CSwitchedGame made = await screen.Work(CLoadingSteps.History, () => CSwitchedGame.Make(_directories, localisation), steps: 2);
 		Gui.CGuiContext gui = null!;
 		await screen.OnMain(CLoadingSteps.GuiDefinitions, () => gui = Gui.CGuiContext.Load(_directories, made.Localisation));
+		if (CSession.UserArguments().FirstOrDefault(argument => argument == "--host" || argument.StartsWith("--host=")) is { } host
+			&& made.State.Played.Count > 0)
+		{
+			// The game hosted: its port opened, and machines let in by the play checksum from the first frame on.
+			string checksum = await screen.Work("", PlayChecksum);
+			int port = host.Length > "--host=".Length && int.TryParse(host["--host=".Length..], out int named) ? named
+				: Sim.Multiplayer.CLineLink.DefaultPort;
+			var net = new Multiplayer.CNetHost(port, checksum, made.State.Played.First());
+			net.GameToLoad += (game, played) => Guarded(LoadNetGame(game, played));
+			_net = net;
+			GD.Print($"Multiplayer: hosting on port {net.Port}, play checksum {checksum[..8]}.");
+		}
 		await StartSession(screen, new FrontEnd.CPreparedGame(made.State, made.Map, made.Localisation, gui, made.AiScripts),
 			replayFile: made.ReplayFile, switched: true);
+	}
+
+	/// <summary>This machine's play checksum, in hexadecimal (docs/mechanics/checksum.md, section 8). Takes some seconds.</summary>
+	private string PlayChecksum()
+	{
+		(byte[] hash, _) = Content.Checksum.CPlayChecksum.Compute(Content.Checksum.CChecksumSearchPath.ForPlay(_directories),
+			engineVersion: "");
+		return System.Convert.ToHexString(hash);
+	}
+
+	/// <summary>
+	/// <c>--join=address[:port]</c>: the host reached, this machine let in by its play checksum with the name of
+	/// <c>--name=</c> and the country of <c>--country=</c> asked for, and the game the host then sends waited for under
+	/// the loading screen; it is loaded as every game the host sends after it (<see cref="LoadNetGame"/>).
+	/// </summary>
+	private async Task Join(CLoadingScreen screen, string address)
+	{
+		string checksum = await screen.Work("", PlayChecksum);
+		int port = Sim.Multiplayer.CLineLink.DefaultPort;
+		int colon = address.LastIndexOf(':');
+		if (colon > 0 && int.TryParse(address[(colon + 1)..], out int named))
+		{
+			port = named;
+			address = address[..colon];
+		}
+		string name = CSession.Argument("--name=") ?? System.Environment.UserName;
+		var wanted = new CCountryTag(CSession.PlayerArgument() ?? CSwitchedGame.DefaultPlayer);
+		Sim.Multiplayer.CLineLink link = await screen.Work("", () => Sim.Multiplayer.CLineLink.Connect(address, port));
+		var net = new Multiplayer.CNetClient(link, checksum, name, wanted);
+		bool came = false;
+		net.GameToLoad += (game, played) =>
+		{
+			// The first comes under the screen that waited for it; a later one opens its own.
+			Guarded(LoadNetGame(game, played, came ? null : screen));
+			came = true;
+		};
+		_net = net;
+		GD.Print($"Multiplayer: joining {address}:{port} as {name}, asking for {wanted.Value}; play checksum {checksum[..8]}.");
+		// The host sends the game at its next frame that is free to; _Process takes the lines as they come.
+		while (!came)
+		{
+			if (net.Ended is { } why)
+			{
+				LeaveNet();
+				throw new System.InvalidOperationException(why);
+			}
+			await screen.Drawn();
+		}
+	}
+
+	/// <summary>
+	/// A game the host sent - or, on the host, the one it sent the others - loaded in place of whatever is played, with
+	/// Lua states made now, and played on: what a machine joining and a machine whose game has parted both come down to
+	/// (docs/multiplayer.md, sections 2 and 4.1). The save names the host's country as its player; the others played are
+	/// taken up before the game is entered, so that every machine enters the same game.
+	/// </summary>
+	private async Task LoadNetGame(byte[] bytes, IReadOnlyList<CCountryTag> played, CLoadingScreen? screen = null)
+	{
+		CSession? old = _session;
+		(FrontEnd.CPreparedGame Read, Debug.CSessionCarry Carry)? left = old?.LeaveForLoad();
+		screen ??= OpenLoadingScreen(left?.Read.Localisation);
+		GD.Print($"Multiplayer: loading the game sent, {bytes.Length / 1024} KiB, played by {string.Join(", ", played)}.");
+		// The frame that said so ends first: it may be the old session's own.
+		await screen.Drawn();
+		if (old is not null)
+		{
+			RemoveChild(old);
+			old.QueueFree();
+			_session = null;
+		}
+		CLocalisation localisation = left?.Read.Localisation ?? screen.Localisation
+			?? await screen.Work("", () => CLocalisation.Load(_directories));
+		screen.Localisation = localisation;
+		(Sim.CGameState State, Content.Map.CMap Map, OpenHOI3.Lua.CAiScripts Scripts) made = await screen.Work(CLoadingSteps.History, () =>
+		{
+			string path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"openhoi3_net_{System.Environment.ProcessId}.hoi3");
+			System.IO.File.WriteAllBytes(path, bytes);
+			Content.Definitions.CCountries countries = Content.Definitions.CCountries.Load(_directories, localisation);
+			Content.Map.CMap map = left?.Read.Map ?? Content.Map.CMap.Load(_directories);
+			var scripts = new OpenHOI3.Lua.CAiScripts(_directories);
+			(Sim.CGameState state, _) = Content.Saves.CSaveLoader.Load(_directories, map, localisation, countries, path,
+				played.Count > 0 ? played[0] : null, scripts);
+			foreach (CCountryTag other in played.Skip(1))
+			{
+				if (!state.Played.Contains(other) && state.Country(other) is { } country)
+				{
+					Sim.Commands.CSetPlayedCommand.Take(state, country);
+				}
+			}
+			System.IO.File.Delete(path);
+			return (state, map, scripts);
+		}, steps: 2);
+		Gui.CGuiContext? gui = left?.Read.Gui;
+		if (gui is null)
+		{
+			await screen.OnMain(CLoadingSteps.GuiDefinitions, () => gui = Gui.CGuiContext.Load(_directories, localisation));
+		}
+		await StartSession(screen, new FrontEnd.CPreparedGame(made.State, made.Map, localisation, gui!, made.Scripts,
+			left?.Read.Cache, left?.Read.Tiles), left?.Carry);
 	}
 
 	/// <summary>
@@ -383,13 +530,15 @@ public partial class Main : Control
 		// game's screens are built from are given the sounds.
 		_sounds.Enabled = false;
 		game.Gui.Sounds = _sounds;
-		var session = new CSession { Name = "Session", Music = _music, PlaysClicks = switched, Surfaces = _surfaces };
+		var session = new CSession { Name = "Session", Music = _music, PlaysClicks = switched, Surfaces = _surfaces, Net = _net };
 		session.Setup(_directories, game, carried, replayFile);
 		session.Resigned += () =>
 		{
 			// Left without the end-of-game screen, which plays its own track: the music stopped, as on every road out.
 			_startSettings = session.Settings;
 			_music.LeaveGame();
+			// A game between machines is left with it: a host's leaving ends it for every machine.
+			LeaveNet();
 			CallDeferred(MethodName.ShowFrontEnd);
 		};
 		session.Replaced += (made, kept) =>

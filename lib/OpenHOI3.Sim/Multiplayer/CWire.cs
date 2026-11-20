@@ -74,6 +74,15 @@ public static class CWire
 	/// <summary>Client to host: it has loaded the game and is ready to go on.</summary>
 	public const char GameLoaded = 'r';
 
+	/// <summary>Client to host, after it has asked to be let in: the country its player would play, by its tag.</summary>
+	public const char Wanted = 'W';
+
+	/// <summary>
+	/// Host to client, before a game is offered: the countries played in it, by their tags with commas between, the
+	/// host's first. A save names one player alone, and every machine has to load it with the same countries played.
+	/// </summary>
+	public const char Played = 'P';
+
 	public static string Line(char kind, string rest = "") => kind + " " + rest;
 
 	/// <summary>A command as a recording writes one.</summary>

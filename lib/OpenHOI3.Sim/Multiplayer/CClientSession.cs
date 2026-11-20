@@ -41,6 +41,9 @@ public sealed class CClientSession
 	/// <summary>Whether this game is no longer the host's, by a midnight's hash: nothing more is run until it is sent the game again.</summary>
 	public bool Parted { get; private set; }
 
+	/// <summary>How many midnights' hashes have been set beside the host's and found the same.</summary>
+	public int HashesAlike { get; private set; }
+
 	/// <summary>The country this machine's player plays, as the host has given it; none yet.</summary>
 	public Countries.CCountryTag? Country { get; private set; }
 
@@ -105,11 +108,15 @@ public sealed class CClientSession
 			ran++;
 			long hour = _simulation.State.TotalHours;
 			_send(CWire.Line(CWire.Confirmed, hour.ToString(CultureInfo.InvariantCulture)));
-			if (_hostHashes.Remove(hour, out ulong hosts) && hosts != CStateHash.Whole(CStateHash.Of(_simulation.State)))
+			if (_hostHashes.Remove(hour, out ulong hosts))
 			{
-				Parted = true;
-				_send(CWire.Line(CWire.Parted, hour.ToString(CultureInfo.InvariantCulture)));
-				break;
+				if (hosts != CStateHash.Whole(CStateHash.Of(_simulation.State)))
+				{
+					Parted = true;
+					_send(CWire.Line(CWire.Parted, hour.ToString(CultureInfo.InvariantCulture)));
+					break;
+				}
+				HashesAlike++;
 			}
 			_simulation.Follow();
 		}

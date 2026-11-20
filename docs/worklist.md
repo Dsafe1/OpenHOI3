@@ -48,19 +48,23 @@ changed in play (`CSetPlayedCommand`). **Its pass marks**, to run after touching
 `OpenHOI3.SaveCheck replaycheck` (the state's hash has a seventh part since, `theatres`), `twomachines <install> [date]
 [window] [tcp]` and `joinmachines <install> <date joined> <until>` - on 2026-11-20 59 of 59 days, every midnight the
 same over a real connection, and 28 days the same after a save sent and loaded by both.
-**What is next is all in the client, and nothing of it is begun**:
-1. the sessions driving the game loop (`src/CSession.cs`): a host's `CHostSession` beside its `CSimulation`, a client's
-   `CClientSession.Step` in place of the clock's hours, the lines carried each frame, who is waited for shown;
-2. the host sending a game by itself when a machine joins or says its hash differed: pause, save, offer, every machine
-   loads it - the host too, each with `CAiScripts` made then - and go on. `joinmachines` does these steps by hand and
-   is the model;
+**The client's side is begun** (2026-11-20; `multiplayer.md`, section 6; `src/Multiplayer`): with `--host` beside
+`--country=GER` and `--join=127.0.0.1 --country=ENG` on a second, two clients play one game - the joiner let in, the
+game saved, sent and loaded by both, the sessions driving the loop, each machine's player the country the host gave -
+and on 2026-11-20 stayed in step for 131 midnights. **Looked at in play the same day, from an export, and found good**:
+unit orders, trade deals, production automation, the catching up at speed 5, and the pause from the host and from
+the client. What is next:
+1. **still to be looked at in play**: a client closed (the pause, its country to the AI) and come back, the host
+   closed;
+2. a parted game sent again - the code path is the join's, and nothing has made a game part to try it;
 3. before the lobby, the little the original has there: a player's name and an address to join; then hosting and
-   joining from the lobby there is, and a country for each player (`CHostSession.Unplayed`, `Assign`);
-4. **the client takes the country it plays from `State.Played`'s first** (`CSession.cs`, where `Player` is set), which
-   between several machines holds every player's: it has to be the one the host gave (`CClientSession.Country`);
+   joining from the lobby there is, and a country chosen from those nobody plays (`CHostSession.Unplayed`, `Assign`);
+4. a client's hours beside its frame, as a host's and a game of one's run: they run on the frame's thread now, 10 ms
+   of them a frame, and the host at the top speed waits for it;
 5. a client's Lua for an offer's chance as a state of its own that can post nothing;
 6. the screens that still ask the AI's agent of a headquarters (`CAgents.HighestOver` in `src/Screens` and
-   `lib/OpenHOI3.Interface`) asked the game instead (`CAgents.HighestAutomated`), a client holding no agent.
+   `lib/OpenHOI3.Interface`) asked the game instead (`CAgents.HighestAutomated`), a client holding no agent;
+7. the console and the developer switches refused between machines, and the rest of section 6's *Not built*.
 **Each of these wants two clients running and looked at**; no tool can pass them. And two things changed for a player
 of one, to be looked at in play: a headquarters handed to the AI gets its area and front line with the AI's next pass
 and not while the clock stands, and a tooltip no longer has the supply network made again for the game

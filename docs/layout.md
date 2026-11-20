@@ -9,6 +9,8 @@ src/                    the Godot client
 src/Map/                the map view, and the unit counters on it
 src/Gfx/                decoding the original's textures and fonts
 src/Debug/              ours: the debug menu of developer switches, on Shift and 4, and --click's player
+src/Multiplayer/        this machine's part in a game between machines: a host's or a client's connections,
+                        kept across the sessions of it
 src/Loading/            the loading screen, and the steps of the front end's and a game's making it runs
 src/Audio/              the music and the sound effects, one player of each for the whole run
 src/FrontEnd/           the main menu and the lobby, with the world they offer, and the game Play

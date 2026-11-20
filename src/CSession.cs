@@ -200,11 +200,17 @@ public partial class CSession : Node
 		// From here on screens look at the game between its commands, and a look keeps nothing in it: who stands where and
 		// the supply network are made by a running command alone (docs/multiplayer.md, section 3).
 		State.ScreensLook = true;
-		Player = State.Played.Count > 0 ? State.Country(State.Played.First()) : null;
+		// Between several machines the game's played countries are every player's, and this machine's is the one the host
+		// gave it (docs/multiplayer.md, section 6).
+		Player = Net?.Country is { } given ? State.Country(given)
+			: State.Played.Count > 0 ? State.Country(State.Played.First()) : null;
 		_enteredAs = _carried is { } carried ? carried.EnteredAs : Player?.Tag;
 		_mapCache = prepared.Cache;
 		_quadTiles = prepared.Tiles;
 		ShowGame(prepared.Gui);
+		// The host's or the client's session made around the simulation, after the pace a session before left was taken
+		// up: a client's clock shows the host's from here on.
+		Net?.Bind(_simulation);
 		// The game's hours are started after each frame is drawn, and run beside the next (StartHours).
 		RenderingServer.FramePostDraw += StartHours;
 	}
@@ -292,6 +298,100 @@ public partial class CSession : Node
 		{
 			RunDeveloperArguments();
 		}
+	}
+
+	/// <summary>
+	/// This machine's part in a game between several machines, which the boot scene keeps across the sessions of it; null
+	/// in a game of one. Set before the node enters the tree.
+	/// </summary>
+	public Multiplayer.CNetGame? Net { get; init; }
+
+	/// <summary>What shows what the game between machines is waiting for; made when there is first something to say.</summary>
+	private Label? _netStatus;
+
+	/// <summary>What was last said of it in the log.</summary>
+	private string? _netStatusSaid;
+
+	private readonly bool _netLog = UserArguments().Contains("--netlog");
+	private CDate? _netLogged;
+
+	/// <summary>
+	/// A frame of a game between several machines, the game being this thread's to read: a host sends the game where a
+	/// machine waits to join or has parted; else the lines of play are taken, and a client runs the hours that have
+	/// come. Answers those hours, or -1 where the game on screen is over, another being loaded in its place.
+	/// </summary>
+	private int NetFrame(Multiplayer.CNetGame net)
+	{
+		if (net.Loading)
+		{
+			return -1;
+		}
+		if (net is Multiplayer.CNetHost { ResendWanted: true } host)
+		{
+			// Every order given runs first, so that the save holds it.
+			_simulation.Pump();
+			if (host.SendGame(State, () => System.Text.Encoding.Latin1.GetBytes(
+				Content.Saves.CSaveWriter.Write(State, _localisation.Localise))))
+			{
+				return -1;
+			}
+		}
+		int hours = net.Frame();
+		ShowNetStatus(net.Status);
+		// --netlog says each new day in the log, and on a client how many midnights its hash has been the host's.
+		if (_netLog && State.Date != _netLogged)
+		{
+			_netLogged = State.Date;
+			GD.Print($"Multiplayer: {State.Date}, {Player?.Tag.Value} played here" +
+				(net is Multiplayer.CNetClient client ? $"; {client.HashesAlike} midnights the host's hash." : "."));
+		}
+		return net.Loading ? -1 : hours;
+	}
+
+	/// <summary>The line under the top bar that says who is waited for or that a game is being sent. *Ours.*</summary>
+	private void ShowNetStatus(string text)
+	{
+		if (text != _netStatusSaid)
+		{
+			_netStatusSaid = text;
+			GD.Print(text.Length > 0 ? $"Multiplayer: {text} ({State.Date}, {State.Hour}:00)." : $"Multiplayer: playing on ({State.Date}, {State.Hour}:00).");
+		}
+		if (_netStatus is null)
+		{
+			if (text.Length == 0 || _hud is null)
+			{
+				return;
+			}
+			_netStatus = new Label
+			{
+				Name = "NetStatus",
+				Position = new Vector2(0, 130),
+				Size = new Vector2(1920, 30),
+				HorizontalAlignment = HorizontalAlignment.Center,
+				MouseFilter = Control.MouseFilterEnum.Ignore,
+			};
+			_netStatus.AddThemeFontSizeOverride("font_size", 22);
+			_netStatus.AddThemeColorOverride("font_outline_color", Colors.Black);
+			_netStatus.AddThemeConstantOverride("outline_size", 6);
+			_hud.AddChild(_netStatus);
+		}
+		if (_netStatus.Text != text)
+		{
+			_netStatus.Text = text;
+		}
+	}
+
+	/// <summary>
+	/// What a session of a game between machines leaves the one that plays the game loaded in its place: what was read
+	/// to make it, which the next need not read again, and where the map and the clock stood.
+	/// </summary>
+	public (FrontEnd.CPreparedGame Read, Debug.CSessionCarry Carry) LeaveForLoad()
+	{
+		(Vector2 centre, float zoom) = _mapView.View;
+		var carried = new Debug.CSessionCarry(_console?.Lines.ToList() ?? new List<string>(), _console?.History.ToList() ?? new List<string>(),
+			_console?.IsOpen == true, centre, zoom, _mapView.RenderLayers, _simulation.Clock.Paused, _simulation.Clock.Speed, null, _wireframe,
+			_enteredAs);
+		return (new FrontEnd.CPreparedGame(State, Map, _localisation, _gui!, _aiScripts!, _mapCache, _quadTiles), carried);
 	}
 
 	/// <summary>What the session before kept.</summary>
@@ -1383,6 +1483,16 @@ public partial class CSession : Node
 			_frameLog?.Frame(delta, 0, Stopwatch.GetElapsedTime(frameStart).TotalMilliseconds, 0);
 			return;
 		}
+		if (Net is { } net)
+		{
+			int came = NetFrame(net);
+			if (came < 0)
+			{
+				// Another game is being loaded in this one's place: nothing more of this one runs.
+				return;
+			}
+			hours += came;
+		}
 		ReplayHeldInput();
 		DisbandEmptyUnits();
 		UpdateMenuBackground();
@@ -1421,6 +1531,11 @@ public partial class CSession : Node
 	/// </summary>
 	private void DecideAutosave()
 	{
+		// Between several machines the autosave is the host's alone (docs/multiplayer.md, section 2).
+		if (Net is { IsHost: false })
+		{
+			return;
+		}
 		if (Settings.DebugSaves != 0)
 		{
 			if (!_debugSavesSaid)
@@ -1996,6 +2111,11 @@ public partial class CSession : Node
 		{
 			return;
 		}
+		// A client's hours are the host's, run as they come (NetFrame); and a game another is being loaded in place of runs none.
+		if (Net is { IsHost: false } or { Loading: true })
+		{
+			return;
+		}
 		double owed = _owedSeconds;
 		_owedSeconds = 0;
 		UnlessTheReplayEnds(() => _simulation.BeginAdvance(owed));
@@ -2391,6 +2511,9 @@ public partial class CSession : Node
 	/// and w2 waits two seconds of real time, which is
 	/// what a tooltip's second half waits on - once everything else is done,
 	/// <c>--run</c> starts the clock at the top speed instead of paused,
+	/// <c>--host</c> or <c>--host=port</c> hosts the game for other machines and <c>--join=address[:port]</c> joins one,
+	/// asking for the country of <c>--country=</c> under the name of <c>--name=</c>, with <c>--netlog</c> writing each new
+	/// day to the log (docs/multiplayer.md, section 6),
 	/// <c>--perf=60</c> writes once a second where a frame's time goes - the game's hours,
 	/// the session's own work, the drawing - and quits after sixty seconds with the sums, and
 	/// <c>--screenshot=path.png</c> saves what is on screen after a few frames and quits.

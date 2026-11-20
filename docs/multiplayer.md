@@ -289,7 +289,58 @@ host posts it: `CHostSession.Drop` for a client gone, with the pause; `Assign` f
 plays - any that owns land (`Unplayed`), so one who comes back chooses among them all, the one he had or another -
 the country he held going to the AI, and the client told which is his (`a`).
 
-**Not built**: the host's doing a game's sending by itself when a machine's hash differs or one joins - today a
-tool does the steps; the lobby; chat. Nothing in the client uses any of this yet: it is the simulation's side
-alone, and a client still takes the country it plays from the game's one set of played countries, which holds every
-player's.
+**Not built** in the simulation's side: chat. What the client does with it is section 6.
+
+## 6. The client - begun 2026-11-20
+
+`src/Multiplayer`: `CNetGame`, with `CNetHost` and `CNetClient` - this machine's part in a game between machines.
+**It outlives the sessions that play the game**: every game sent is loaded as a new session around a new
+simulation, so the boot scene (`Main`) keeps it, pumps its connections every frame whatever is on screen, hands it
+to each session, and loads the game it says to.
+
+- **Two developer switches stand in for the lobby, which is not built.** `--host` (or `--host=port`) beside a switch
+  that says what to play - `--country=GER`, `--load=` - hosts that game. `--join=address[:port]` with
+  `--country=ENG` and `--name=` joins one, asking for that country. `--netlog` writes each new day to the log, and on
+  a client how many midnights its hash has been the host's.
+- **A machine is let in and says what it would play** (`j`, then `W` and a tag). The host's next frame that has the
+  game to itself runs every order given, **saves, and offers the save to every machine - those already playing
+  too - and loads it itself** (`CNetHost.SendGame`, `Main.LoadNetGame`), each with `CAiScripts` made then. The same
+  is done when a client says its hash differed. A country asked for that is played or owns no land is refused
+  (`n country`) and the machine let go.
+- **Before the offer the host says which countries are played in the game, its own first** (`P`), and each client
+  which is its (`a`). A save names one player; every machine loads it as that one's and takes the others up
+  (`CSetPlayedCommand.Take`) before the game is entered, so that every machine enters the same game.
+- **No hour runs until every machine has said it has loaded** (`r`); what a client said before that is of the game
+  before and is dropped, and what the host sends a client between the game's last piece and its session being made
+  is kept for that session.
+- **A session takes its player from what the host gave** (`CNetGame.Country`), not from the state's first played
+  country. **A client runs no clock**: each frame it takes the lines that came and runs the hours that are whole, as
+  many as fit in 10 ms, on the frame's own thread. A host's frame takes its clients' lines and tells them of the
+  clock while no hour runs beside it.
+- **A client gone** is dropped at the host's next such frame: the pause, and its country to the AI. **The host
+  gone**, or a refusal, ends the game on a client: back to the main menu, the reason in the log.
+- A line under the top bar says who is waited for, or that a game is being sent or received. *Ours.*
+- A game loaded in place of another keeps where the map and the clock stood (`CSession.LeaveForLoad`).
+
+| added to the lines | |
+| --- | --- |
+| `W`, from a client | the country its player would play, by its tag |
+| `P`, from the host | the countries played in the game about to be offered, the host's first |
+
+**Checked**, 2026-11-20, a host and a client as two processes of the client on one machine, Germany hosted at the
+top speed and the United Kingdom joining on 31 January 1936: the save of 10 MiB sent and loaded by both, and **131
+midnights on, to 12 June, the client's hash the host's every one**; the host waited for the client 817 times, the
+client's hours on its frame's thread being the slower. **Looked at in play the same day**, from an export, two
+windows on one machine: unit orders, trade deals, production automation, the catching up at speed 5 and the pause
+from either side, "looks good". Not tried: a machine dropped or come back, the host gone, a game parted.
+
+**What a load between machines loses**, the save being in the original's keys: the production screen's slider
+locks and the automation of every player but the host, which a save keeps for one player; and a headquarters a
+player other than the host had handed to the AI, whose plan `Take` switches off. To be said in `enhanced.md` with
+the snapshot.
+
+**Not built**: the lobby, a name and an address entered on screen; a country chosen from those nobody plays, by a
+player joining or come back; a client's hours beside its frame; the reason a game ended shown on screen; a
+client keeping the last game it was sent, so as to be sent nothing where it holds it; the console and the developer
+switches refused between machines; a client's own Lua for an offer's chance; chat. A game's sending blocks the
+host's frame until the connection has taken it.

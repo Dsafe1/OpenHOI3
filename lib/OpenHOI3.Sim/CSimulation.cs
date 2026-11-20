@@ -341,8 +341,11 @@ public sealed class CSimulation
 		}
 	}
 
-	/// <summary>Whether commands from outside are taken: not while a recording is played back.</summary>
-	public bool TakesCommands => State.Replay is not { IsReplaying: true };
+	/// <summary>
+	/// Whether commands from outside are taken: not while a recording is played back - but by a game following another's
+	/// as it runs, a client's, whose player's orders go to the game it follows (<see cref="ToHost"/>).
+	/// </summary>
+	public bool TakesCommands => State.Replay is not { IsReplaying: true } || ToHost is not null;
 
 	/// <summary>A recorded player's command, posted where it was: for <see cref="Replay.CReplay"/> alone.</summary>
 	internal void PostReplayed(CCommand command)
