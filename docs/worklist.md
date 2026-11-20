@@ -58,8 +58,14 @@ the client. What is next:
    closed; and, built after the look, a client's hours beside its frame - 125 midnights the same by two processes -
    and the console refusing what would change the game;
 2. a parted game sent again - the code path is the join's, and nothing has made a game part to try it;
-3. before the lobby, the little the original has there: a player's name and an address to join; then hosting and
-   joining from the lobby there is, and a country chosen from those nobody plays (`CHostSession.Unplayed`, `Assign`);
+3. **the shared lobby** (decided 2026-11-20; `multiplayer.md`, section 4.1): the host's lobby listening from the
+   moment it opens, a joiner seeing the same lobby and picking a country on its map, the host's Play starting the
+   game on every machine. **The multiplayer menu before it is built** (2026-11-20, `mechanics/frontend.md`, section
+   8, from the original's `.gui` elements and a reading of its view): Host goes to the lobby of a game of one and the
+   game is hosted from its first frame; Join Internet Game connects, the connect log saying how it went, and a
+   machine let in is **given the unplayed country owning the most land** - a stand-in until the lobby is shared.
+   Tried with `--click` and two processes, the joiner given the Soviet Union and 77 midnights the same; not looked
+   at in play, and Host from the menu not tried at all;
 4. a client's Lua for an offer's chance as a state of its own that can post nothing;
 5. the rest of section 6's *Not built*.
 **The screens no longer ask the AI's agent of a headquarters** (2026-11-20): the unit panel, the objectives, the plan

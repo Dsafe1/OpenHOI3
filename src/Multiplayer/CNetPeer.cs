@@ -35,5 +35,8 @@ public sealed class CNetPeer
 	public bool Loading => Sender is { Loaded: false };
 
 	/// <summary>Whether it has been let in, has said what it would play, and waits for a game to be sent it.</summary>
-	public bool WaitsToJoin => Name is not null && Wanted is not null && Country is null;
+	public bool WaitsToJoin => Name is not null && (Wanted is not null || AnyCountry) && Country is null;
+
+	/// <summary>Whether it named no country and is to be given one.</summary>
+	public bool AnyCountry { get; set; }
 }

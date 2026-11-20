@@ -27,6 +27,9 @@ public abstract class CNetGame : System.IDisposable
 	/// <summary>Why the game is over for this machine - the host gone, or this machine not let in; null while it is not.</summary>
 	public string? Ended { get; protected set; }
 
+	/// <summary>The line of the original's connect log that says why (<c>frontend.md</c>, section 8), by its key; with <see cref="Ended"/>.</summary>
+	public string? EndedKey { get; protected set; }
+
 	/// <summary>What a player is to be told of the others just now - who is waited for, a game being sent; empty for nothing.</summary>
 	public abstract string Status { get; }
 

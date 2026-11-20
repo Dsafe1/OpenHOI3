@@ -26,12 +26,13 @@ public sealed class CNetClient : CNetGame
 	/// <summary>Whether a game has been offered and is not yet here whole.</summary>
 	private bool _taking;
 
-	public CNetClient(CLineLink link, string checksum, string name, CCountryTag wanted)
+	public CNetClient(CLineLink link, string checksum, string name, CCountryTag? wanted)
 	{
 		_link = link;
 		_receiver = new CGameReceiver(link.Send, _ => null);
 		link.Send(CClientSession.JoinLine(checksum, name));
-		link.Send(CWire.Line(CWire.Wanted, wanted.Value));
+		// With no country named the host gives one: the lobby, where one is chosen, is not shared yet.
+		link.Send(CWire.Line(CWire.Wanted, wanted?.Value ?? ""));
 	}
 
 	public override bool IsHost => false;
@@ -112,6 +113,7 @@ public sealed class CNetClient : CNetGame
 		}
 		if (_link.Closed && Ended is null)
 		{
+			EndedKey = Admitted ? "CONNECTION_FAILED" : "GAME_NOT_FOUND";
 			Ended = Admitted ? "The host has left the game." : "The host could not be reached.";
 		}
 	}
@@ -129,6 +131,7 @@ public sealed class CNetClient : CNetGame
 				Admitted = true;
 				return;
 			case CWire.Refused:
+				EndedKey = rest == "country" ? "HOTJOIN_DECLINED" : "BAD_VERSION";
 				Ended = rest == "country"
 					? "The host refused the country asked for: it is played already, or owns no land."
 					: "The host plays other files than this machine: its play checksum differs.";
@@ -153,6 +156,7 @@ public sealed class CNetClient : CNetGame
 			}
 			if (_receiver.Failed)
 			{
+				EndedKey = "CONNECTION_FAILED";
 				Ended = "The game the host sent did not come whole.";
 			}
 			else if (_taking && _receiver.Game is { } game)

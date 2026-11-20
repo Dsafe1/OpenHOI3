@@ -175,7 +175,33 @@ public partial class CFrontEnd : Node
 		};
 		_options.GammaPreviewed += scale => _brightness?.SetBrightness(scale);
 
-		_menu.SinglePlayerPressed += OpenLobby;
+		_menu.SinglePlayerPressed += () =>
+		{
+			HostAs = null;
+			OpenLobby();
+		};
+		// The multiplayer menu (frontend.md, section 8). Host's name given goes to the lobby there is, and the game Play
+		// makes is hosted; an address given is the boot scene's to connect to, its lines written in the connect log.
+		_menu.MultiplayerPressed += () => _menu.Multiplayer?.Show(Settings.LastPlayer);
+		if (_menu.Multiplayer is { } multiplayer)
+		{
+			multiplayer.LastHost = () => Settings.LastHost;
+			multiplayer.HostRequested += (player, game) =>
+			{
+				HostAs = player;
+				HostedGameName = game;
+				RememberPlayer(player);
+				multiplayer.Hide();
+				OpenLobby();
+			};
+			multiplayer.JoinRequested += (player, address) =>
+			{
+				// The last host is set as the address is given; the file is written once a game is reached.
+				Settings = Settings with { LastHost = address };
+				JoinRequested?.Invoke(player, address);
+			};
+			multiplayer.ConnectCancelled += () => JoinCancelled?.Invoke();
+		}
 		_menu.SettingsPressed += () =>
 		{
 			_menu.ShowPanel(false);
@@ -224,9 +250,35 @@ public partial class CFrontEnd : Node
 		_aiScripts = null;
 	}
 
+	/// <summary>The name the player hosts under, where Host brought the lobby up; null in a game of one.</summary>
+	public string? HostAs { get; private set; }
+
+	/// <summary>The name given the hosted game, as typed.</summary>
+	public string HostedGameName { get; private set; } = "";
+
+	/// <summary>An address given in the multiplayer menu: the player's name and the address.</summary>
+	public event Action<string, string>? JoinRequested;
+
+	/// <summary>The connect log's back pressed: a connection under way is to be dropped.</summary>
+	public event Action? JoinCancelled;
+
+	/// <summary>The multiplayer menu, whose connect log the boot scene writes in.</summary>
+	public CMultiplayerMenu? Multiplayer => _menu.Multiplayer;
+
+	/// <summary>
+	/// The player's name kept as the settings' last player and the file written, once a lobby or a game is reached - where
+	/// the original writes it, and the last host with it (<c>reversing/findings/FINDINGS-multiplayermenu.md</c>, section 2).
+	/// </summary>
+	public void RememberPlayer(string player)
+	{
+		Settings = Settings with { LastPlayer = player };
+		CUserSettingsWriter.WriteFile(Settings, Settings.Path ?? CUserSettingsReader.DefaultPath(_directories));
+	}
+
 	/// <summary>The main menu on its backdrop, the lobby hidden; a loaded save is let go and the world is the start again.</summary>
 	public void ShowMenu()
 	{
+		HostAs = null;
 		if (SaveLoaded)
 		{
 			MakeWorld();

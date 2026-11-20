@@ -83,7 +83,11 @@ public sealed class CNetHost : CNetGame
 			{
 				while (peer.Link.TryReceive(out string line))
 				{
-					if (line.Length > 2 && line[0] == CWire.Wanted)
+					if (line.Length >= 2 && line[0] == CWire.Wanted && line[2..].Trim().Length == 0)
+					{
+						peer.AnyCountry = true;
+					}
+					else if (line.Length > 2 && line[0] == CWire.Wanted)
 					{
 						peer.Wanted = new CCountryTag(line[2..].Trim());
 					}
@@ -165,8 +169,12 @@ public sealed class CNetHost : CNetGame
 		bool joined = false;
 		foreach (CNetPeer peer in _peers.Where(peer => peer.WaitsToJoin).ToList())
 		{
-			CCountryTag wanted = peer.Wanted!.Value;
-			if (!free.Contains(wanted) || played.Contains(wanted))
+			// One that named none is given the country nobody plays that owns the most land - a stand-in until the lobby,
+			// where a country is chosen, is shared (docs/multiplayer.md, section 6).
+			Sim.Countries.COwnedCounts owned = Sim.Countries.COwnedCounts.Of(state);
+			CCountryTag? given = peer.Wanted ?? free.Where(tag => !played.Contains(tag))
+				.OrderByDescending(tag => owned.Count(tag)).Select(tag => (CCountryTag?)tag).FirstOrDefault();
+			if (given is not { } wanted || !free.Contains(wanted) || played.Contains(wanted))
 			{
 				peer.Link.Send(CWire.Line(CWire.Refused, "country"));
 				Remove(peer);

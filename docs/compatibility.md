@@ -564,6 +564,20 @@ Since the pairs order is unspecified, no code should rely on it" - and the origi
 | why | about a fifth of the AI's Lua time: about 256 ms of a BlackICE day to 199, measured back to back on one build (`docs/performance.md`, section 2) |
 | to undo | `OPENHOI3_LUA=5.1.4`, the client's `--lua=5.1.4` or the savegame tool's `lua=5.1.4` runs the original's Lua 5.1.4, still built beside it (`CLuaInterpreter`); making it the default is `CLuaInterpreter.Chosen`'s fallback |
 
+## 31. Games between machines are our own: no LAN scan, no metaserver, another port
+
+**Decided** 2026-11-20: "We shouldnt get limited by the old in this regard" - our own networking, with direct
+connections by address only - and, of the menu, "just build the menu exactly like the original. Since it is defined
+in the gui files and is moddable we need to use that."
+
+| | |
+| --- | --- |
+| the original | its multiplayer menu scans the local network for games and lists them, joins one of them or an address on port 1638, and opens the metaserver; machines speak its own protocol |
+| here | the same menu from the same `.gui` elements (`mechanics/frontend.md`, section 8), over our own connection (`docs/multiplayer.md`): **nothing is ever found by a scan**, so the list holds its None row and Join Lan Game stays greyed; **the metaserver's button is greyed**; **the port is 19390**, and an address may end in a colon and another; a host's game name is asked for and used for nothing; the connect log's lines are the original's keys said for our own outcomes |
+| a mod loses | nothing of its interface: every element is found by the original's names. A game cannot be joined with the original's executable, nor one of the original's from here |
+| why | a drop-in engine cannot share a game with the original in any case, its simulation not being bit for bit the original's; and the original's transport is not worth making again |
+| to undo | a scan of the local network and a list of what it finds would fill `games` and enable `join` (`CMultiplayerMenu`); the port is `CLineLink.DefaultPort` |
+
 ## Stricter, with the same meaning
 
 Not departures - a file means what it meant - but a mod's author will see them, so they

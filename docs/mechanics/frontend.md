@@ -24,7 +24,8 @@ whole of the map, the engine's logo and `version_label` - with `mainmenu_panel` 
 | `settings_button` | `settings.gui`'s `menu_settings`, the game options window's four tabs (`gameoptions.md`) |
 | `exit_button` | ends the program at once - no question, nothing saved [exe] |
 | `nudge_button` | hidden, as the original always hides it [exe] |
-| `multi_player_button`, `tutorial_button`, `credits_button` | greyed: not built |
+| `multi_player_button` | the multiplayer menu (section 8) |
+| `tutorial_button`, `credits_button` | greyed: not built |
 | `gg_micro_button` "Buy Bonus Items" | greyed, its tooltip ours: no store is opened (*Ours*) |
 | the four link buttons | hidden (*Ours*) |
 | `toggle_quick_normal` | the Quick Start panel in the main menu's place, `simple` kept in step (`bookmarks.md`, section 4) |
@@ -198,6 +199,59 @@ seventh flag, the finished units placed every hour while it is ticked [exe]. **T
 production, nor the technology screen's under Ai Control or Slider AI [exe]. `CAutomationText` in `Interface/Screens`
 says the lines.
 
+## 8. The multiplayer menu
+
+Built 2026-11-20 from `reversing/findings/FINDINGS-multiplayermenu.md`, which read the original's view whole; tried
+with `--click`, not looked at in play. `CMultiplayerMenu` in `src/FrontEnd`. What the network under it does is
+`docs/multiplayer.md`, and where that differs from the original's is `docs/compatibility.md`, entry 31.
+
+**Three windows** [mod: `temp_frontend.gui`]. `multiplayer_menu` and `multiplayer_connect_menu` are panels of
+`country_selection_panel`, so the backdrop, the logo and the version label stay behind them as behind the main menu.
+`naming_window` is a window of its own, made with the menu and hidden; hiding the menu leaves it alone [exe].
+
+**In and out** [exe]. `multi_player_button` hides `mainmenu_panel` and shows `multiplayer_menu`, the connect log
+hidden. `Back` (asked for as `back`) stops a scan, clears the settings' `simple`, hides both panels and shows the main
+menu.
+
+| `multiplayer_menu` | |
+| --- | --- |
+| `playername` | an edit box. Filled from settings.txt's `lastplayer` as the menu is shown, **only where that is not empty**; else the file's text, FE_PLAYER. Read as it stands when it is needed - never trimmed, never tested, an empty name allowed. **Written to `lastplayer` only once a lobby or a game is reached**, with `lasthost` |
+| `games` | the found games, a row `local_game_entry` each, its checkbox `game` the game's name. **With none, one row saying FE_NONE_FOUND**, from the first frame |
+| `host` | opens `naming_window` for the game's name. Needs nothing |
+| `join` | joins the game selected in `games`; **greyed while none is selected**, the None row counting as none |
+| `join_direct` | opens `naming_window` for an address |
+| `scan` | a toggle: its text **SCAN** as the menu is made - the file's FE_SCAN is never seen - and **STOP_SCAN** while scanning. Starting empties `games` |
+| `metaserver` | the metaserver's view |
+| `bg_multiplayer_menu`, `name_label` | named by no code |
+
+**`naming_window` is one window used twice** [exe] - its file's comment, "used for both player and game name", is not
+what it does:
+
+| | on `host` | on `join_direct` |
+| --- | --- | --- |
+| `Title` | HOST_TITLE | JOIN_IP_TITLE |
+| `ok_host_button`'s text, the file's FE_HOST never seen | HOST_BUTTON | JOIN_BUTTON |
+| `edit` | **left as it is**: the file's FE_MY_GAME the first time, then whatever it last held - an address among it | set to settings.txt's `lasthost`, empty or not |
+| `ok_host_button` pressed | the text exactly as typed is the game's name, empty allowed; the window hidden; **the lobby**, as from Single Player, this machine the host | the text with the white space off its ends is the address, nothing else tested; the window hidden; `lasthost` set in memory; the connect log |
+| `back_button` | the window hidden, the menu shown, the text kept | the same |
+
+Each opening asks the keyboard for `edit`, shows the window and hides the menu. **Enter does nothing**: the box has
+no listener and the buttons no shortcut.
+
+**The connect log**, `multiplayer_connect_menu` [exe]: shown in the menu's place as a connection is begun. Up to
+three attempts are made first; **then** a row CONNECTING is added to `info_list`, and one more by how it went:
+GAME_NOT_FOUND where no attempt came through, BAD_VERSION for a host of another version, BANNED, CONNECTION_FAILED;
+later NAME_TAKEN where a player of that name is in the game, or HOTJOIN_ACCEPTED / HOTJOIN_DECLINED. A row is a
+`connection_log_text` whose `text` is the line. **Nothing clears the list**, so the lines of earlier tries stay.
+`back` shows the menu again and drops a connection under way.
+
+**Built so, with these of ours** (entry 31): no scan finds anything, so `join` stays greyed and `scan` only changes
+its text and makes the None row again; `metaserver` is greyed; BAD_VERSION is said where the play checksums differ,
+HOTJOIN_ACCEPTED when the host has let this machine in, HOTJOIN_DECLINED where it has no country for it; BANNED and
+NAME_TAKEN are never said. **Host's lobby is the lobby of a game of one**, and the game its Play makes is hosted from
+its first frame; a machine that joins comes into that running game and is given a country
+(`docs/multiplayer.md`, section 6). The shared lobby is not built.
+
 ## Ours
 
 - ~~**The Quick Start panel is not offered**~~ - offered since 2026-11-15, `simple` picking the first panel
@@ -236,5 +290,5 @@ says the lines.
 
 ## Not built
 
-The multiplayer menu, the tutorial list, the credits, the victory conditions window, the end-of-game screen, the title
+The shared lobby of a game between machines, the tutorial list, the credits, the victory conditions window, the end-of-game screen, the title
 theme, F11's screenshot.

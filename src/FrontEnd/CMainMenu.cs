@@ -27,6 +27,12 @@ public partial class CMainMenu : Control
 	private CGuiWindow? _window;
 
 	public event Action? SinglePlayerPressed;
+
+	/// <summary>Multi Player pressed, the main menu's panel hidden: the multiplayer menu is to be shown.</summary>
+	public event Action? MultiplayerPressed;
+
+	/// <summary>The multiplayer menu; made as the node enters the tree.</summary>
+	public CMultiplayerMenu? Multiplayer { get; private set; }
 	public event Action? SettingsPressed;
 	public event Action? ExitPressed;
 
@@ -66,6 +72,19 @@ public partial class CMainMenu : Control
 		{
 			return;
 		}
+		// The multiplayer menu, whose panels are this window's and already hidden (frontend.md, section 8).
+		Multiplayer = new CMultiplayerMenu(_context, _window, this);
+		Multiplayer.BackPressed += () =>
+		{
+			// Back clears simple and comes to the main menu, as closing the settings window does.
+			ShowMainMenu();
+			ShowPanel(true);
+		};
+		Bind(menuPanel, "multi_player_button", () =>
+		{
+			ShowPanel(false);
+			MultiplayerPressed?.Invoke();
+		});
 		Bind(menuPanel, "single_player_button", () => SinglePlayerPressed?.Invoke());
 		Bind(menuPanel, "settings_button", () => SettingsPressed?.Invoke());
 		Bind(menuPanel, "exit_button", () => ExitPressed?.Invoke());
@@ -83,7 +102,8 @@ public partial class CMainMenu : Control
 				button.Visible = false;
 			}
 		}
-		foreach (string greyed in new[] { "multi_player_button", "tutorial_button", "credits_button" })
+		foreach (string greyed in Multiplayer.Exists ? new[] { "tutorial_button", "credits_button" }
+			: new[] { "multi_player_button", "tutorial_button", "credits_button" })
 		{
 			if (menuPanel.TryFindButton(greyed) is { } button)
 			{

@@ -327,6 +327,12 @@ public partial class Main : Control
 		frontEnd.Setup(_directories, content, first: !_frontEndShown);
 		_frontEndShown = true;
 		frontEnd.PlayRequested += chosen => Guarded(Play(chosen));
+		frontEnd.JoinRequested += (player, address) => Guarded(JoinFromMenu(frontEnd, player, address));
+		frontEnd.JoinCancelled += () =>
+		{
+			_joinAttempt++;
+			LeaveNet();
+		};
 		// The map made under "Creating the World...", the original stepping the pictures at the province names too - in two
 		// pieces on the main thread, the map's surface and then the rest, with a frame drawn between (loadingscreen.md, section 3).
 		await screen.OnMain(CLoadingSteps.World, frontEnd.PrepareMap, steps: 2);
@@ -375,7 +381,102 @@ public partial class Main : Control
 		{
 			frontEnd.QueueFree();
 		}
+		if (frontEnd.HostAs is not null && game.State.Played.Count > 0)
+		{
+			// Host brought the lobby up (frontend.md, section 8): the game is hosted from its first frame.
+			await Host(screen, game.State.Played.First(), Sim.Multiplayer.CLineLink.DefaultPort);
+		}
 		await StartSession(screen, game);
+	}
+
+	/// <summary>The game about to be played hosted: its port opened, and machines let in by the play checksum.</summary>
+	private async Task Host(CLoadingScreen screen, CCountryTag country, int port)
+	{
+		string checksum = await screen.Work("", PlayChecksum);
+		var net = new Multiplayer.CNetHost(port, checksum, country);
+		net.GameToLoad += (game, played) => Guarded(LoadNetGame(game, played));
+		_net = net;
+		GD.Print($"Multiplayer: hosting on port {net.Port}, play checksum {checksum[..8]}.");
+	}
+
+	/// <summary>Counts the joins begun from the menu and cancelled, so that one cancelled knows it when its work comes back.</summary>
+	private int _joinAttempt;
+
+	/// <summary>
+	/// An address given in the multiplayer menu (frontend.md, section 8): the connect log shown, up to three attempts to
+	/// reach the host, then "Connecting..." - after them, as the original writes it - and the line that says how it went.
+	/// A host that lets this machine in sends its game, which is loaded in the front end's place. The address may end in
+	/// a colon and a port. *Ours*: the original's is the whole text, its port fixed.
+	/// </summary>
+	private async Task JoinFromMenu(FrontEnd.CFrontEnd frontEnd, string player, string address)
+	{
+		if (frontEnd.Multiplayer is not { } menu)
+		{
+			return;
+		}
+		int attempt = ++_joinAttempt;
+		menu.ShowConnecting();
+		int port = Sim.Multiplayer.CLineLink.DefaultPort;
+		int colon = address.LastIndexOf(':');
+		if (colon > 0 && int.TryParse(address[(colon + 1)..], out int named))
+		{
+			port = named;
+			address = address[..colon];
+		}
+		string checksum = await Task.Run(PlayChecksum);
+		Sim.Multiplayer.CLineLink? link = null;
+		for (int tries = 0; tries < 3 && link is null && address.Length > 0; tries++)
+		{
+			try
+			{
+				link = await Task.Run(() => Sim.Multiplayer.CLineLink.Connect(address, port));
+			}
+			catch (System.Exception failed) when (failed is System.Net.Sockets.SocketException or System.IO.IOException)
+			{
+				// Tried again; said below where none came through.
+			}
+		}
+		if (attempt != _joinAttempt || _frontEnd != frontEnd)
+		{
+			link?.Dispose();
+			return;
+		}
+		menu.Log("CONNECTING");
+		if (link is null)
+		{
+			menu.Log("GAME_NOT_FOUND");
+			return;
+		}
+		var net = new Multiplayer.CNetClient(link, checksum, player, wanted: null);
+		bool came = false;
+		bool admitted = false;
+		net.GameToLoad += (game, played) =>
+		{
+			if (!came && _frontEnd == frontEnd)
+			{
+				// A game is reached: the player's name and the last host are kept, as the original keeps them on reaching a lobby.
+				frontEnd.RememberPlayer(player);
+			}
+			came = true;
+			Guarded(LoadNetGame(game, played));
+		};
+		_net = net;
+		GD.Print($"Multiplayer: joining {address}:{port} as {player}; play checksum {checksum[..8]}.");
+		while (!came && attempt == _joinAttempt && _net == net)
+		{
+			if (net.Admitted && !admitted)
+			{
+				admitted = true;
+				menu.Log("HOTJOIN_ACCEPTED");
+			}
+			if (net.Ended is not null)
+			{
+				menu.Log(net.EndedKey ?? "CONNECTION_FAILED");
+				LeaveNet();
+				return;
+			}
+			await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+		}
 	}
 
 	/// <summary>
@@ -398,14 +499,9 @@ public partial class Main : Control
 		if (CSession.UserArguments().FirstOrDefault(argument => argument == "--host" || argument.StartsWith("--host=")) is { } host
 			&& made.State.Played.Count > 0)
 		{
-			// The game hosted: its port opened, and machines let in by the play checksum from the first frame on.
-			string checksum = await screen.Work("", PlayChecksum);
-			int port = host.Length > "--host=".Length && int.TryParse(host["--host=".Length..], out int named) ? named
-				: Sim.Multiplayer.CLineLink.DefaultPort;
-			var net = new Multiplayer.CNetHost(port, checksum, made.State.Played.First());
-			net.GameToLoad += (game, played) => Guarded(LoadNetGame(game, played));
-			_net = net;
-			GD.Print($"Multiplayer: hosting on port {net.Port}, play checksum {checksum[..8]}.");
+			await Host(screen, made.State.Played.First(),
+				host.Length > "--host=".Length && int.TryParse(host["--host=".Length..], out int named) ? named
+					: Sim.Multiplayer.CLineLink.DefaultPort);
 		}
 		await StartSession(screen, new FrontEnd.CPreparedGame(made.State, made.Map, made.Localisation, gui, made.AiScripts),
 			replayFile: made.ReplayFile, switched: true);
@@ -469,10 +565,19 @@ public partial class Main : Control
 	{
 		CSession? old = _session;
 		(FrontEnd.CPreparedGame Read, Debug.CSessionCarry Carry)? left = old?.LeaveForLoad();
-		screen ??= OpenLoadingScreen(left?.Read.Localisation);
+		// Joined from the multiplayer menu, the front end is what the game takes the place of.
+		FrontEnd.CFrontEnd? frontEnd = _frontEnd;
+		screen ??= OpenLoadingScreen(left?.Read.Localisation ?? frontEnd?.Localisation);
 		GD.Print($"Multiplayer: loading the game sent, {bytes.Length / 1024} KiB, played by {string.Join(", ", played)}.");
 		// The frame that said so ends first: it may be the old session's own.
 		await screen.Drawn();
+		if (frontEnd is not null)
+		{
+			_startSettings = frontEnd.Settings;
+			_frontEnd = null;
+			RemoveChild(frontEnd);
+			frontEnd.QueueFree();
+		}
 		if (old is not null)
 		{
 			RemoveChild(old);
