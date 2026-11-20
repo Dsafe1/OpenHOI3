@@ -249,8 +249,8 @@ later NAME_TAKEN where a player of that name is in the game, or HOTJOIN_ACCEPTED
 its text and makes the None row again; `metaserver` is greyed; BAD_VERSION is said where the play checksums differ,
 HOTJOIN_ACCEPTED when the host has let this machine in, HOTJOIN_DECLINED where it has no country for it; BANNED and
 NAME_TAKEN are never said. **Host's lobby is the lobby of a game of one**, and the game its Play makes is hosted from
-its first frame; a machine that joins comes into that running game and is given a country
-(`docs/multiplayer.md`, section 6). The shared lobby is not built.
+its first frame; a machine that joins while the host is in its lobby comes into that lobby, and one that joins the running game is given a country
+(`docs/multiplayer.md`, sections 6 and 7).
 
 ## Ours
 

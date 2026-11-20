@@ -83,6 +83,13 @@ public static class CWire
 	/// </summary>
 	public const char Played = 'P';
 
+	/// <summary>
+	/// Host to client, while the host is in its lobby: the place of the bookmark it has chosen, then the players - each
+	/// a name and the tag of the country chosen or nothing, the host's first - as <c>name=TAG</c> with <c>&amp;</c>
+	/// between, the names escaped as a URL's are.
+	/// </summary>
+	public const char Lobby = 'l';
+
 	public static string Line(char kind, string rest = "") => kind + " " + rest;
 
 	/// <summary>A command as a recording writes one.</summary>

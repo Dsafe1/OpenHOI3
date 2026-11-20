@@ -39,4 +39,7 @@ public sealed class CNetPeer
 
 	/// <summary>Whether it named no country and is to be given one.</summary>
 	public bool AnyCountry { get; set; }
+
+	/// <summary>The lobby's line it was last sent, while the host is in its lobby.</summary>
+	public string? LobbySent { get; set; }
 }

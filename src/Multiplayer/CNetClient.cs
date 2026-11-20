@@ -43,6 +43,21 @@ public sealed class CNetClient : CNetGame
 	/// <summary>Whether the host has let this machine in.</summary>
 	public bool Admitted { get; private set; }
 
+	/// <summary>How many times the host has said how its lobby stands; nought while it has said nothing of one.</summary>
+	public int LobbyVersion { get; private set; }
+
+	/// <summary>The place of the bookmark the host has chosen in its lobby; -1 for none or a save.</summary>
+	public int LobbyBookmark { get; private set; } = -1;
+
+	/// <summary>The players of the host's lobby, the host first: each one's name and the country chosen, if any.</summary>
+	public IReadOnlyList<(string Name, CCountryTag? Country)> LobbyPlayers { get; private set; } = System.Array.Empty<(string, CCountryTag?)>();
+
+	/// <summary>This machine's player's choice of a country in the host's lobby, sent to the host, who gives it where nobody has it.</summary>
+	public void Pick(CCountryTag country)
+	{
+		_link.Send(CWire.Line(CWire.Wanted, country.Value));
+	}
+
 	public override string Status
 	{
 		get
@@ -143,6 +158,25 @@ public sealed class CNetClient : CNetGame
 				Country = new CCountryTag(rest);
 				_session?.Receive(line);
 				return;
+			case CWire.Lobby:
+			{
+				// The host's lobby as it stands: the bookmark's place, then the players.
+				int space = rest.IndexOf(' ');
+				string bookmark = space < 0 ? rest : rest[..space];
+				LobbyBookmark = int.TryParse(bookmark, System.Globalization.NumberStyles.Integer,
+					System.Globalization.CultureInfo.InvariantCulture, out int place) ? place : -1;
+				var players = new List<(string, CCountryTag?)>();
+				foreach (string player in (space < 0 ? "" : rest[(space + 1)..]).Split('&', System.StringSplitOptions.RemoveEmptyEntries))
+				{
+					int equals = player.LastIndexOf('=');
+					string tag = equals < 0 ? "" : player[(equals + 1)..];
+					players.Add((System.Uri.UnescapeDataString(equals < 0 ? player : player[..equals]),
+						tag.Length > 0 ? new CCountryTag(tag) : null));
+				}
+				LobbyPlayers = players;
+				LobbyVersion++;
+				return;
+			}
 		}
 		if (_receiver.Receive(line))
 		{

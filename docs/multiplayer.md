@@ -362,3 +362,40 @@ the snapshot.
 player joining or come back; the reason a game ended shown on screen; a client keeping the last game it was sent,
 so as to be sent nothing where it holds it; a client's own Lua for an offer's chance; chat. A game's sending blocks the
 host's frame until the connection has taken it.
+
+## 7. The shared lobby - built 2026-11-20
+
+Decided the same day (section 4.1). The menu before it is `mechanics/frontend.md`, section 8.
+
+- **The host's lobby listens from the moment it is opened**: Host's name given, the lobby comes up and the play
+  checksum is worked out beside it, some seconds; then the port opens (`Main.HostLobby`, a `CNetHost` with no country
+  yet).
+- **A machine let in while the host is in its lobby is told how the lobby stands** (`l`): the place of the
+  bookmark chosen among the bookmarks, and the players - the host first - each a name and the country chosen or
+  none. It is told again whenever any of it changes. **That line is what takes a joiner to the lobby** and not to a
+  wait in the connect log; a host in a running game sends none, and the joiner is given a country as before.
+- **A client's lobby is the lobby there is** (`CLobby.ClientMode`): it shows the host's bookmark, its rows and its
+  saves take no click, its Play is greyed, and the Options panel is hidden - *ours*, the original greying its
+  arrows. Its player clicks a country on the map; the choice goes to the host (`W`), **who gives it where no other
+  player has that country** and says so in the lobby's line. The players' box (`multiplayer_list`) has a row a
+  player with the shield of what each chose, and their number.
+- **The host's Play is greyed while a player has chosen none.** Pressed, it makes the game as a game of one's is
+  made, the host's country played; the machines in the lobby wait to join with what they chose, and **at the game's
+  first frame it is saved, sent and loaded by every machine** - section 6's join, nothing new. So a game from the
+  lobby is loaded twice on the host.
+- A client's Back leaves the lobby and the connection; the host's closes the lobby for every machine, each of which
+  is back at its connect log with CONNECTION_FAILED.
+
+| added to the lines | |
+| --- | --- |
+| `l`, from the host | its lobby as it stands: the bookmark's place, a space, then `name=TAG` for each player with `&` between, the names escaped as a URL's are |
+
+**Checked**, 2026-11-20, two processes driven by `--click` through the menu: the host hosting from the menu and
+choosing Germany, the client joining by address, coming into the lobby and choosing the United Kingdom, the host's
+Play - **the game loaded on both, played by GER and ENG**, each machine its own. The game then stood paused, as a new
+game does, so no midnight was compared after a start from the lobby. Nobody has looked at it.
+
+**Not built, or a stand-in**: a save the host loads in its lobby is not shown on a client, which keeps the
+bookmark's map and chooses by it; the options and the victory conditions the host sets reach the others only in the
+game sent; a country that owns no land at the start chosen is refused only as the game starts; the chat; the
+original's own lobby rules for several players - what it greys for a client, its messages - which are not read.

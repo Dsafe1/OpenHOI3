@@ -3025,6 +3025,12 @@ public partial class CSession : Node
 
 		// The clicks of a game the front end handed over were the front end's.
 		// All of it through what outlives the session, the console's tag being able to replace it half way.
+		// A session a game between machines has already replaced - the host's first, as a machine in its lobby is sent
+		// the game - plays nothing more.
+		if (!IsInstanceValid(this) || !IsInsideTree())
+		{
+			return;
+		}
 		Node host = GetParent();
 		SceneTree tree = GetTree();
 		Viewport viewport = GetViewport();

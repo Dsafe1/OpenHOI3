@@ -333,6 +333,12 @@ public partial class Main : Control
 			_joinAttempt++;
 			LeaveNet();
 		};
+		frontEnd.HostLobbyOpened += () => Guarded(HostLobby(frontEnd));
+		frontEnd.NetLobbyLeft += () =>
+		{
+			_joinAttempt++;
+			LeaveNet();
+		};
 		// The map made under "Creating the World...", the original stepping the pictures at the province names too - in two
 		// pieces on the main thread, the map's surface and then the rest, with a frame drawn between (loadingscreen.md, section 3).
 		await screen.OnMain(CLoadingSteps.World, frontEnd.PrepareMap, steps: 2);
@@ -383,10 +389,38 @@ public partial class Main : Control
 		}
 		if (frontEnd.HostAs is not null && game.State.Played.Count > 0)
 		{
-			// Host brought the lobby up (frontend.md, section 8): the game is hosted from its first frame.
-			await Host(screen, game.State.Played.First(), Sim.Multiplayer.CLineLink.DefaultPort);
+			// Host brought the lobby up (frontend.md, section 8): the game is hosted from its first frame. The machines
+			// in the lobby wait to join it with the countries they chose, and are sent it at that frame
+			// (docs/multiplayer.md, section 7).
+			if (_net is Multiplayer.CNetHost lobby)
+			{
+				lobby.SetHostCountry(game.State.Played.First());
+			}
+			else
+			{
+				await Host(screen, game.State.Played.First(), Sim.Multiplayer.CLineLink.DefaultPort);
+			}
 		}
 		await StartSession(screen, game);
+	}
+
+	/// <summary>
+	/// A host's lobby opened: its port opened as soon as the play checksum is worked out, and the front end handed the
+	/// host's part, through which it says how the lobby stands and hears what the others choose.
+	/// </summary>
+	private async Task HostLobby(FrontEnd.CFrontEnd frontEnd)
+	{
+		int attempt = ++_joinAttempt;
+		string checksum = await Task.Run(PlayChecksum);
+		if (attempt != _joinAttempt || _frontEnd != frontEnd || frontEnd.HostAs is null)
+		{
+			return;
+		}
+		var net = new Multiplayer.CNetHost(Sim.Multiplayer.CLineLink.DefaultPort, checksum, country: null);
+		net.GameToLoad += (game, played) => Guarded(LoadNetGame(game, played));
+		_net = net;
+		frontEnd.LobbyNet = net;
+		GD.Print($"Multiplayer: the lobby hosted on port {net.Port}, play checksum {checksum[..8]}.");
 	}
 
 	/// <summary>The game about to be played hosted: its port opened, and machines let in by the play checksum.</summary>
@@ -469,9 +503,23 @@ public partial class Main : Control
 				admitted = true;
 				menu.Log("HOTJOIN_ACCEPTED");
 			}
+			// The host is in its lobby: this machine goes to the same lobby, and waits there for the host's Play.
+			if (net.LobbyVersion > 0 && frontEnd.LobbyNet != net)
+			{
+				frontEnd.OpenLobbyAsClient(net, player);
+			}
 			if (net.Ended is not null)
 			{
-				menu.Log(net.EndedKey ?? "CONNECTION_FAILED");
+				string key = net.EndedKey ?? "CONNECTION_FAILED";
+				if (frontEnd.LobbyNet == net)
+				{
+					frontEnd.LobbyNet = null;
+					frontEnd.LeaveLobbyForConnectLog(key);
+				}
+				else
+				{
+					menu.Log(key);
+				}
 				LeaveNet();
 				return;
 			}

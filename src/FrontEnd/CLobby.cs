@@ -229,7 +229,9 @@ public partial class CLobby : Control
 		if (_play is not null)
 		{
 			// Play cannot be pressed while the victory conditions' window is up.
-			_play.Disabled = WhyNot() is not null || _victorySelect is { IsOpen: true };
+			// Between machines: never on a client, whose game the host starts; and on the host not while a player has
+			// chosen no country or two have chosen one (docs/multiplayer.md, section 7).
+			_play.Disabled = WhyNot() is not null || _victorySelect is { IsOpen: true } || ClientMode || NetBlocksPlay?.Invoke() == true;
 		}
 		if (_victoryButton is not null)
 		{
@@ -368,8 +370,14 @@ public partial class CLobby : Control
 	/// for each of its countries, its name and description in the chat, and the year label (<c>docs/mechanics/bookmarks.md</c>,
 	/// section 2; <c>reversing/findings/FINDINGS-frontend.md</c>, B.2). The country chosen stays chosen, where it still is one.
 	/// </summary>
-	private void ChooseBookmark(CBookmark? bookmark)
+	private void ChooseBookmark(CBookmark? bookmark, bool byHost = false)
 	{
+		// On a client the start is the host's to choose: a click on a row does nothing.
+		if (ClientMode && !byHost)
+		{
+			LightRow(_frontEnd.Bookmark);
+			return;
+		}
 		bool fromSave = _frontEnd.SaveLoaded;
 		if (bookmark is not null)
 		{
@@ -560,6 +568,12 @@ public partial class CLobby : Control
 	/// </summary>
 	private void ChooseSave(string path, CSaveHeader header, CGuiButton box)
 	{
+		// On a client the game is the host's to choose.
+		if (ClientMode)
+		{
+			box.Checked = false;
+			return;
+		}
 		foreach (CGuiButton other in _saveBoxes)
 		{
 			other.Checked = ReferenceEquals(other, box);
@@ -586,6 +600,70 @@ public partial class CLobby : Control
 	{
 		_chosen = tag;
 		RefreshPanel();
+	}
+
+	/// <summary>
+	/// Whether this lobby is a client's of a game between machines (docs/multiplayer.md, section 7): it shows the host's
+	/// start, and of its own only the country its player chooses.
+	/// </summary>
+	public bool ClientMode { get; set; }
+
+	/// <summary>On a host: whether the players' choices keep the game from being started.</summary>
+	public Func<bool>? NetBlocksPlay { get; set; }
+
+	/// <summary>The country chosen on the map, or none.</summary>
+	public CCountryTag? Chosen => _chosen;
+
+	/// <summary>The place of the bookmark chosen among the bookmarks; -1 with none, or with a save loaded.</summary>
+	public int BookmarkIndex => _frontEnd.SaveLoaded || _frontEnd.Bookmark is not { } chosen ? -1
+		: _frontEnd.Bookmarks.ToList().IndexOf(chosen);
+
+	/// <summary>On a client: the bookmark the host has chosen, by its place.</summary>
+	public void ShowHostBookmark(int index)
+	{
+		if (index >= 0 && index < _frontEnd.Bookmarks.Count && index != BookmarkIndex)
+		{
+			ChooseBookmark(_frontEnd.Bookmarks[index], byHost: true);
+		}
+	}
+
+	/// <summary>
+	/// The players' box of a game between machines: a row for each player, the host's first, with the shield of the
+	/// country each has chosen, and their number.
+	/// </summary>
+	public void ShowPlayers(IReadOnlyList<(string Name, CCountryTag? Country)> players)
+	{
+		if (_window?.FindWindow("multiplayer") is not { } box || box.FindListBox("multiplayer_list") is not { } list)
+		{
+			return;
+		}
+		if (box.FindTextBox("num_players") is { } count)
+		{
+			count.Text = Interface.Text.CTextTemplate.Fill(Localise("FE_NUM_PLAYERS"),
+				("NUM", players.Count.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+		}
+		list.Clear();
+		_playerRow = null;
+		foreach ((string name, CCountryTag? tag) in players)
+		{
+			if (CGuiWindow.CreateEntry(_context, PlayerRowName) is not { } row)
+			{
+				return;
+			}
+			if (row.FindTextBox("name") is { } label)
+			{
+				label.Text = name;
+			}
+			if (row.FindTextBox("save_progress") is { } progress)
+			{
+				progress.Text = "";
+			}
+			if (tag is { } chosen && World.Country(chosen) is { } country)
+			{
+				row.TryFindButton("player_shield")?.SetCountry(country);
+			}
+			list.Add(row);
+		}
 	}
 
 	private void CentreOnCapital(CCountryTag? tag)

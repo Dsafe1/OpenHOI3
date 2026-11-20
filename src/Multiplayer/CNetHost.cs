@@ -24,12 +24,47 @@ public sealed class CNetHost : CNetGame
 
 	/// <param name="checksum">The host's play checksum, which a machine has to share to be let in.</param>
 	/// <param name="country">The country the host's own player plays.</param>
-	public CNetHost(int port, string checksum, CCountryTag country)
+	public CNetHost(int port, string checksum, CCountryTag? country)
 	{
 		_listener = new CLineListener(port);
 		_checksum = checksum;
 		Country = country;
 	}
+
+	/// <summary>The country the host's own player plays, once the lobby's Play has said: a host made with its lobby has none till then.</summary>
+	public void SetHostCountry(CCountryTag country)
+	{
+		Country = country;
+		_lobby = null;
+	}
+
+	/// <summary>The lobby's line as it stands, sent to every machine let in that has not been sent it; null outside the lobby.</summary>
+	private string? _lobby;
+
+	/// <summary>
+	/// The host's lobby as it stands (docs/multiplayer.md, section 7): the bookmark chosen and the host's own name and
+	/// country. Every machine let in is told of it, and of the others' choices, whenever any of it changes.
+	/// </summary>
+	public void SetLobby(int bookmark, string hostName, CCountryTag? hostCountry)
+	{
+		Country = hostCountry;
+		_lobbyHostName = hostName;
+		_lobby = bookmark.ToString(System.Globalization.CultureInfo.InvariantCulture) + " " + string.Join("&",
+			LobbyPlayers().Select(player => System.Uri.EscapeDataString(player.Name) + "=" + (player.Country?.Value ?? "")));
+	}
+
+	private string _lobbyHostName = "";
+
+	/// <summary>The players of the lobby, the host first: each one's name and the country chosen, if any.</summary>
+	public List<(string Name, CCountryTag? Country)> LobbyPlayers()
+	{
+		var players = new List<(string, CCountryTag?)> { (_lobbyHostName, Country) };
+		players.AddRange(_peers.Where(peer => peer.Name is not null).Select(peer => (peer.Name!, peer.Wanted)));
+		return players;
+	}
+
+	/// <summary>Whether the lobby's game may not be started: a player has chosen no country.</summary>
+	public bool LobbyBlocksPlay => _peers.Any(peer => peer.Name is not null && peer.Wanted is null);
 
 	public override bool IsHost => true;
 
@@ -89,8 +124,18 @@ public sealed class CNetHost : CNetGame
 					}
 					else if (line.Length > 2 && line[0] == CWire.Wanted)
 					{
-						peer.Wanted = new CCountryTag(line[2..].Trim());
+						// A country another player has is not given: the choice stays as it was, which the lobby's line says.
+						var asked = new CCountryTag(line[2..].Trim());
+						if (asked != Country && !_peers.Any(other => other != peer && other.Wanted == asked))
+						{
+							peer.Wanted = asked;
+						}
 					}
+				}
+				if (_lobby is not null && peer.LobbySent != _lobby)
+				{
+					peer.LobbySent = _lobby;
+					peer.Link.Send(CWire.Line(CWire.Lobby, _lobby));
 				}
 			}
 			else if (peer.Sender is { } sender)

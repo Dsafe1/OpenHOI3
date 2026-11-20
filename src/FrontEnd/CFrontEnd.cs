@@ -193,6 +193,8 @@ public partial class CFrontEnd : Node
 				RememberPlayer(player);
 				multiplayer.Hide();
 				OpenLobby();
+				// The lobby listens from the moment it is opened (docs/multiplayer.md, section 7).
+				HostLobbyOpened?.Invoke();
 			};
 			multiplayer.JoinRequested += (player, address) =>
 			{
@@ -210,6 +212,15 @@ public partial class CFrontEnd : Node
 		_menu.ExitPressed += () => GetTree().Quit();
 		_lobby.BackPressed += ShowMenu;
 		_lobby.ChosenChanged += LightChosen;
+		// A client's choice of a country goes to the host, who gives it where nobody has it.
+		_lobby.ChosenChanged += () =>
+		{
+			if (LobbyNet is Multiplayer.CNetClient client && _lobby.Chosen is { } tag)
+			{
+				client.Pick(tag);
+			}
+		};
+		_lobby.NetBlocksPlay = () => LobbyNet is Multiplayer.CNetHost { LobbyBlocksPlay: true };
 
 		var tooltips = new CTooltips();
 		tooltips.Setup(_gui);
@@ -275,10 +286,88 @@ public partial class CFrontEnd : Node
 		CUserSettingsWriter.WriteFile(Settings, Settings.Path ?? CUserSettingsReader.DefaultPath(_directories));
 	}
 
+	/// <summary>
+	/// This machine's part in the game between machines whose lobby this is (docs/multiplayer.md, section 7): a host's,
+	/// set once its port is open, or a client's; null in a game of one.
+	/// </summary>
+	public Multiplayer.CNetGame? LobbyNet { get; set; }
+
+	/// <summary>Host's name given and the lobby open: its port is to be opened.</summary>
+	public event Action? HostLobbyOpened;
+
+	/// <summary>The lobby of a game between machines left by its Back.</summary>
+	public event Action? NetLobbyLeft;
+
+	private int _lobbyVersionShown;
+	private string _lobbyPlayersShown = "";
+
+	/// <summary>
+	/// A client's lobby: the lobby there is, showing the start the host has chosen and every player's country, its own
+	/// player choosing one on the map; the options are the host's and are not shown.
+	/// </summary>
+	public void OpenLobbyAsClient(Multiplayer.CNetClient net, string player)
+	{
+		LobbyNet = net;
+		_lobbyVersionShown = 0;
+		RememberPlayer(player);
+		_menu.Multiplayer?.Hide();
+		_lobby.ClientMode = true;
+		OpenLobby();
+		if (_lobbyOptions is not null)
+		{
+			_lobbyOptions.Visible = false;
+		}
+	}
+
+	/// <summary>The lobby left for the connect log, with the line that says why: the host gone.</summary>
+	public void LeaveLobbyForConnectLog(string key)
+	{
+		ShowMenu();
+		_menu.ShowPanel(false);
+		_menu.Multiplayer?.ShowConnecting();
+		_menu.Multiplayer?.Log(key);
+	}
+
+	/// <summary>The lobby of a game between machines kept in step: a host says how its lobby stands, a client shows it.</summary>
+	public override void _Process(double delta)
+	{
+		if (_lobby is not { Visible: true })
+		{
+			return;
+		}
+		switch (LobbyNet)
+		{
+			case Multiplayer.CNetHost host:
+			{
+				host.SetLobby(_lobby.BookmarkIndex, PlayerName, _lobby.Chosen);
+				System.Collections.Generic.List<(string Name, CCountryTag? Country)> players = host.LobbyPlayers();
+				string shown = string.Join("&", players.Select(player => player.Name + "=" + player.Country?.Value));
+				if (shown != _lobbyPlayersShown)
+				{
+					_lobbyPlayersShown = shown;
+					_lobby.ShowPlayers(players);
+				}
+				break;
+			}
+			case Multiplayer.CNetClient client when client.LobbyVersion != _lobbyVersionShown:
+				_lobbyVersionShown = client.LobbyVersion;
+				_lobby.ShowHostBookmark(client.LobbyBookmark);
+				_lobby.ShowPlayers(client.LobbyPlayers);
+				break;
+		}
+	}
+
 	/// <summary>The main menu on its backdrop, the lobby hidden; a loaded save is let go and the world is the start again.</summary>
 	public void ShowMenu()
 	{
 		HostAs = null;
+		if (LobbyNet is not null)
+		{
+			// The lobby of a game between machines left: a host's closes it for every machine, a client's leaves it.
+			LobbyNet = null;
+			_lobby.ClientMode = false;
+			NetLobbyLeft?.Invoke();
+		}
 		if (SaveLoaded)
 		{
 			MakeWorld();
