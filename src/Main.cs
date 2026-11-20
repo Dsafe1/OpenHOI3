@@ -612,6 +612,25 @@ public partial class Main : Control
 		// Joined from the multiplayer menu, the front end is what the game takes the place of.
 		FrontEnd.CFrontEnd? frontEnd = _frontEnd;
 		screen ??= OpenLoadingScreen(left?.Read.Localisation ?? frontEnd?.Localisation);
+		// Over the loading screen, what it is for: a game already being played is loaded again only to bring the
+		// machines into step - a machine joined, or one was out of step. Ours (asked for on 2026-11-20).
+		if (old is not null)
+		{
+			var syncing = new Label
+			{
+				Name = "Syncing",
+				Text = "Syncing games...",
+				HorizontalAlignment = HorizontalAlignment.Center,
+				Position = new Vector2(0, 140),
+				Size = new Vector2(1920, 60),
+				MouseFilter = MouseFilterEnum.Ignore,
+				ZIndex = 100,
+			};
+			syncing.AddThemeFontSizeOverride("font_size", 40);
+			syncing.AddThemeColorOverride("font_outline_color", Colors.Black);
+			syncing.AddThemeConstantOverride("outline_size", 10);
+			screen.AddChild(syncing);
+		}
 		GD.Print($"Multiplayer: loading the game sent, {bytes.Length / 1024} KiB, played by {string.Join(", ", played)}.");
 		// The frame that said so ends first: it may be the old session's own.
 		await screen.Drawn();

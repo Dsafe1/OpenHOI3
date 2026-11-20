@@ -48,6 +48,25 @@ public class ReplayTests
 		return CCommandCodec.Read(document.RootElement, state);
 	}
 
+	/// <summary>
+	/// An answer to an event names the event by its id and is read back holding the game's own event, so that it runs:
+	/// read back as a copy it was dropped, and a player's answer never ran on the machine that followed.
+	/// </summary>
+	[Fact]
+	public void AnAnswerToAnEventIsReadBackHoldingTheGamesOwnEvent()
+	{
+		CGameState state = State();
+		var known = new OpenHOI3.Sim.Script.CEvent(isProvinceEvent: false, "events/test.txt", 1) { Id = 1002 };
+		state.Events = new[] { new OpenHOI3.Sim.Script.CEvent(isProvinceEvent: false, "events/test.txt", 2) { Id = 7 }, known };
+		var answer = new CSelectEventOptionCommand(known, OpenHOI3.Sim.Script.CEventScope.Start(Germany), 0);
+
+		var back = (CSelectEventOptionCommand)ThereAndBack(answer, state);
+
+		Assert.Same(known, back.Event);
+		Assert.True(back.MayExecute(state));
+		Assert.Equal(Germany, back.Scope.Country);
+	}
+
 	/// <summary>What each game's commands ran, in order, by the game they ran in.</summary>
 	private readonly Dictionary<CGameState, List<string>> _ran = new();
 

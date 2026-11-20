@@ -75,6 +75,12 @@ public static class CCommandCodec
 			case Script.CEventScope scope:
 				WriteScope(writer, scope);
 				return;
+			case Script.CEvent named:
+				// By its id, and read back as the game's own event: an answer runs only for one of the game's events, the
+				// same object, so one written out and made again would be dropped on the machine that read it - a client,
+				// whose player's answer to an event then never ran (docs/multiplayer.md, section 9).
+				writer.WriteNumberValue(named.Id);
+				return;
 			case Delegate:
 				throw new NotSupportedException($"a command holds a delegate ({value.GetType().Name}), which a recording cannot keep");
 		}
@@ -189,6 +195,18 @@ public static class CCommandCodec
 		if (type == typeof(Script.CEventScope))
 		{
 			return ReadScope(element, state);
+		}
+		if (type == typeof(Script.CEvent))
+		{
+			int id = element.GetInt32();
+			foreach (Script.CEvent known in state.Events)
+			{
+				if (known.Id == id)
+				{
+					return known;
+				}
+			}
+			throw new InvalidOperationException($"the recording names an event {id} this game does not have");
 		}
 		if (element.ValueKind == JsonValueKind.Array)
 		{

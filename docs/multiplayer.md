@@ -471,7 +471,6 @@ first months with nothing to say why. **What differed is now written down by bot
 **Checked** with `--netpart=`: the host said "out of step ... in countries", both files were written, 44,356 figures
 each, and the tool named the one that differed, `ENG manpower`.
 
-**Open: what made that game part.** Its log has the client out of step on 21 January 1936 and the game sent again
-twice; nothing kept says in what. Two runs by processes with nobody giving orders - 131 midnights with two
-countries, 34 with one shared - never parted, so it is something a player does, or the internet's delay; the next
-time it happens the files will say.
+**What made that game part - found the same evening, with the files.** A second game, nothing done in it but an event answered, parted at the same hour, 21 January 1936, in one figure of 44,391: `FRA neutrality`. Germany had reoccupied the Rhineland; France is told by event 1002, whose one option takes 3 off its neutrality. **A player's answer to an event never ran on a client**: the answer holds the event, a recording wrote the event out field by field and read it back as an event of its own, and the answer runs only for one of the game's own events (`CSelectEventOptionCommand.MayExecute`) - so it was dropped wherever it had been read. The host took the 3 off and the client did not. An event is now written as its id and read back as the game's own (`CCommandCodec`), with a test. The AI's answers never showed it: every machine makes those itself, and no check had a player answering an event. No other command holds a thing of the script's by reference. **Not tried between machines since** - it wants an event answered in a game of two.
+
+**A game being loaded to bring machines into step says so**: "Syncing games..." over the loading screen, where a game was already being played (asked for on 2026-11-20; *ours*).
