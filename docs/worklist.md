@@ -55,8 +55,9 @@ and on 2026-11-20 stayed in step for 131 midnights. **Looked at in play the same
 unit orders, trade deals, production automation, the catching up at speed 5, and the pause from the host and from
 the client. What is next:
 1. **still to be looked at in play**: a client closed (the pause, its country to the AI) and come back, the host
-   closed; and, built after the look, a client's hours beside its frame - 125 midnights the same by two processes -
-   and the console refusing what would change the game;
+   closed - each tried by processes on 2026-11-20 and doing what it should, by the log (`multiplayer.md`, section
+   6); and, built after the look, a client's hours beside its frame - 125 midnights the same by two processes - and
+   the console refusing what would change the game;
 2. a parted game sent again - the code path is the join's, and nothing has made a game part to try it;
 3. **the multiplayer menu and the shared lobby are built** (2026-11-20; `mechanics/frontend.md`, section 8, from the
    original's `.gui` elements and a reading of its view; `multiplayer.md`, section 7): Host opens the lobby, which

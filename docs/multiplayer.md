@@ -353,6 +353,13 @@ client's hours beside its frame, the same two processes: **125 midnights the sam
 678 times - the game goes no faster for it, the window being what holds the host; it is the client's frames that
 no longer carry the hours. That and the console's refusal have not been looked at in play.
 
+**A machine dropped, come back, and the host gone - tried the same day** by three processes with `--netlog`, which
+also says who plays and whether the clock stands whenever either changes: a client playing the United Kingdom
+stopped on 19 March 1936 after 46 midnights the same - **the host paused that hour and the United Kingdom went to
+the AI**; a second machine asked for the United Kingdom - **the game sent again, loaded by both, played by GER and
+ENG, still paused**; the host stopped - **the client said "The host has left the game."** and left the game. A
+game parted is still untried: nothing has made one part.
+
 **What a load between machines loses**, the save being in the original's keys: the production screen's slider
 locks and the automation of every player but the host, which a save keeps for one player; and a headquarters a
 player other than the host had handed to the AI, whose plan `Take` switches off. To be said in `enhanced.md` with

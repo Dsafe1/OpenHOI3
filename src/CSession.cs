@@ -318,6 +318,7 @@ public partial class CSession : Node
 
 	private readonly bool _netLog = UserArguments().Contains("--netlog");
 	private CDate? _netLogged;
+	private string _netStands = "";
 
 	/// <summary>
 	/// A frame of a game between several machines, the game being this thread's to read: a host sends the game where a
@@ -342,6 +343,16 @@ public partial class CSession : Node
 		}
 		int hours = net.Frame();
 		ShowNetStatus(net.Status);
+		// --netlog also says who plays and whether the clock stands, whenever either changes: a machine gone shows so.
+		if (_netLog)
+		{
+			string stands = string.Join(",", State.Played.Select(tag => tag.Value)) + (_simulation.Pace.Paused ? " paused" : " running");
+			if (stands != _netStands)
+			{
+				_netStands = stands;
+				GD.Print($"Multiplayer: played {stands} ({State.Date}, {State.Hour}:00).");
+			}
+		}
 		// --netlog says each new day in the log, and on a client how many midnights its hash has been the host's.
 		if (_netLog && State.Date != _netLogged)
 		{
