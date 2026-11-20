@@ -314,12 +314,18 @@ to each session, and loads the game it says to.
   before and is dropped, and what the host sends a client between the game's last piece and its session being made
   is kept for that session.
 - **A session takes its player from what the host gave** (`CNetGame.Country`), not from the state's first played
-  country. **A client runs no clock**: each frame it takes the lines that came and runs the hours that are whole, as
-  many as fit in 10 ms, on the frame's own thread. A host's frame takes its clients' lines and tells them of the
-  clock while no hour runs beside it.
+  country. **A client runs no clock**: each frame that has the game to itself it takes the lines that came and
+  runs what came of the orders given between hours; after the frame is drawn the hours that are whole are started
+  **beside the frames that follow, as a game of one's are** (`CSimulation.BeginFollowing`), one after another for
+  `BackToBackSeconds`, and no line is taken while they run. A host's frame takes its clients' lines and tells them
+  of the clock while no hour runs beside it.
+- **The console changes nothing between machines, and of the developer switches only those that look are taken**
+  (`CSession.NetSwitches`), with the host's `--run`: a command of the console that would change the game answers
+  "Not available in this game." - as it now does in a replay, where it had said it was done. *Ours.*
 - **A client gone** is dropped at the host's next such frame: the pause, and its country to the AI. **The host
   gone**, or a refusal, ends the game on a client: back to the main menu, the reason in the log.
-- A line under the top bar says who is waited for, or that a game is being sent or received. *Ours.*
+- A line under the top bar says who is waited for, or that a game is being sent or received, once that has stood a
+  second: at the top speed the host waits a frame or two for a client all the time, the window at work. *Ours.*
 - A game loaded in place of another keeps where the map and the clock stood (`CSession.LeaveForLoad`).
 
 | added to the lines | |
@@ -332,7 +338,10 @@ top speed and the United Kingdom joining on 31 January 1936: the save of 10 MiB 
 midnights on, to 12 June, the client's hash the host's every one**; the host waited for the client 817 times, the
 client's hours on its frame's thread being the slower. **Looked at in play the same day**, from an export, two
 windows on one machine: unit orders, trade deals, production automation, the catching up at speed 5 and the pause
-from either side, "looks good". Not tried: a machine dropped or come back, the host gone, a game parted.
+from either side, "looks good". Not tried: a machine dropped or come back, the host gone, a game parted. With the
+client's hours beside its frame, the same two processes: **125 midnights the same**, to 4 June, the host waiting
+678 times - the game goes no faster for it, the window being what holds the host; it is the client's frames that
+no longer carry the hours. That and the console's refusal have not been looked at in play.
 
 **What a load between machines loses**, the save being in the original's keys: the production screen's slider
 locks and the automation of every player but the host, which a save keeps for one player; and a headquarters a
@@ -340,7 +349,6 @@ player other than the host had handed to the AI, whose plan `Take` switches off.
 the snapshot.
 
 **Not built**: the lobby, a name and an address entered on screen; a country chosen from those nobody plays, by a
-player joining or come back; a client's hours beside its frame; the reason a game ended shown on screen; a
-client keeping the last game it was sent, so as to be sent nothing where it holds it; the console and the developer
-switches refused between machines; a client's own Lua for an offer's chance; chat. A game's sending blocks the
+player joining or come back; the reason a game ended shown on screen; a client keeping the last game it was sent,
+so as to be sent nothing where it holds it; a client's own Lua for an offer's chance; chat. A game's sending blocks the
 host's frame until the connection has taken it.

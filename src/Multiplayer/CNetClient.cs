@@ -15,8 +15,7 @@ namespace OpenHOI3.Multiplayer;
 /// </summary>
 public sealed class CNetClient : CNetGame
 {
-	/// <summary>How long a frame may go on running hours that have come, in milliseconds: a machine behind catches up within it.</summary>
-	private const double FrameBudget = 10;
+	private CSimulation? _simulation;
 
 	private readonly CLineLink _link;
 	private readonly CGameReceiver _receiver;
@@ -70,6 +69,7 @@ public sealed class CNetClient : CNetGame
 
 	public override void Bind(CSimulation simulation)
 	{
+		_simulation = simulation;
 		_session = new CClientSession(simulation, _link.Send);
 		// Before anything else this machine says of the game: the host takes nothing as that game's play until it has come.
 		_receiver.SayLoaded();
@@ -84,21 +84,24 @@ public sealed class CNetClient : CNetGame
 	public override int Frame()
 	{
 		Drain();
-		if (_session is not { } session)
+		// What came of the orders given between hours runs here, at once; the hours are started after the frame is drawn.
+		_session?.Step(mostHours: 0);
+		return 0;
+	}
+
+	public override void StartHours()
+	{
+		if (_session is not { HourReady: true } session || _simulation is not { IsBusy: false } simulation)
 		{
-			return 0;
+			return;
 		}
-		int hours = 0;
-		var spent = Stopwatch.StartNew();
-		while (session.Step(mostHours: 1) > 0)
+		// While they run no line is taken - that is the frame's, which holds off - so what they read stands still. As a
+		// game of one's at the top speed, they run one after another for a while: a machine behind catches up so.
+		simulation.BeginFollowing(() =>
 		{
-			hours++;
-			if (spent.Elapsed.TotalMilliseconds >= FrameBudget)
-			{
-				break;
-			}
-		}
-		return hours;
+			var spent = Stopwatch.StartNew();
+			return session.Step(mostHours: int.MaxValue, () => spent.Elapsed.TotalSeconds < CSimulation.BackToBackSeconds);
+		});
 	}
 
 	private void Drain()
@@ -144,6 +147,7 @@ public sealed class CNetClient : CNetGame
 			{
 				// The game played is over for this machine: what comes from here on is of the one offered.
 				_session = null;
+				_simulation = null;
 				_waiting.Clear();
 				_taking = true;
 			}

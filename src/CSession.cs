@@ -312,6 +312,10 @@ public partial class CSession : Node
 	/// <summary>What was last said of it in the log.</summary>
 	private string? _netStatusSaid;
 
+	/// <summary>What there is to say of it this frame, and since when, in milliseconds.</summary>
+	private string _netStatusNow = "";
+	private ulong _netStatusSince;
+
 	private readonly bool _netLog = UserArguments().Contains("--netlog");
 	private CDate? _netLogged;
 
@@ -351,6 +355,18 @@ public partial class CSession : Node
 	/// <summary>The line under the top bar that says who is waited for or that a game is being sent. *Ours.*</summary>
 	private void ShowNetStatus(string text)
 	{
+		// Said only once it has stood a second: at the top speed the host waits a frame or two for a client all the time,
+		// which is the window at work and nothing a player need be told.
+		ulong now = Time.GetTicksMsec();
+		if (text != _netStatusNow)
+		{
+			_netStatusNow = text;
+			_netStatusSince = now;
+		}
+		if (text.Length > 0 && now - _netStatusSince < 1000)
+		{
+			text = "";
+		}
 		if (text != _netStatusSaid)
 		{
 			_netStatusSaid = text;
@@ -2111,9 +2127,13 @@ public partial class CSession : Node
 		{
 			return;
 		}
-		// A client's hours are the host's, run as they come (NetFrame); and a game another is being loaded in place of runs none.
+		// A client's hours are the host's, started as they have come; and a game another is being loaded in place of runs none.
 		if (Net is { IsHost: false } or { Loading: true })
 		{
+			if (Net is { Loading: false })
+			{
+				Net.StartHours();
+			}
 			return;
 		}
 		double owed = _owedSeconds;
@@ -2518,6 +2538,12 @@ public partial class CSession : Node
 	/// the session's own work, the drawing - and quits after sixty seconds with the sums, and
 	/// <c>--screenshot=path.png</c> saves what is on screen after a few frames and quits.
 	/// </summary>
+	/// <summary>The developer switches a game between several machines takes: those that only look at it.</summary>
+	private static readonly string[] NetSwitches =
+	{
+		"--screenshot=", "--click=", "--centre=", "--hash", "--perf=", "--mode=", "--zoom=", "--select=",
+	};
+
 	private async void RunDeveloperArguments()
 	{
 		string? screenshot = null;
@@ -2527,6 +2553,12 @@ public partial class CSession : Node
 		float? zoom = null;
 		foreach (string argument in UserArguments())
 		{
+			// Between several machines only the switches that look are taken, and the host's --run: the others change the
+			// game from outside its commands, on this machine alone.
+			if (Net is { } net && !NetSwitches.Any(argument.StartsWith) && !(net.IsHost && argument == "--run"))
+			{
+				continue;
+			}
 			if (argument.StartsWith("--screenshot="))
 			{
 				screenshot = argument["--screenshot=".Length..];
@@ -3073,7 +3105,8 @@ public partial class CSession : Node
 
 		public CUnit? SelectedUnit => _session._mapView.Units.First;
 
-		public bool TakesCommands => _session._simulation.TakesCommands;
+		// Not between several machines: the console's commands are no player's orders (docs/multiplayer.md, section 6).
+		public bool TakesCommands => _session._simulation.TakesCommands && _session.Net is null;
 
 		public int RenderLayers
 		{

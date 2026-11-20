@@ -40,10 +40,19 @@ public abstract class CNetGame : System.IDisposable
 	public abstract void Bind(CSimulation simulation);
 
 	/// <summary>
-	/// Once a frame while the game is this thread's to read: the lines of play taken, and on a client the hours that have
-	/// come run. Answers the hours run here - a host's own are run by its clock.
+	/// Once a frame while the game is this thread's to read: the lines of play taken, and on a client what came of the
+	/// orders given between hours run. Answers the hours run here - none: a host's are run by its clock, a client's
+	/// beside its frames (<see cref="StartHours"/>).
 	/// </summary>
 	public abstract int Frame();
+
+	/// <summary>
+	/// After a frame is drawn, the game being this thread's: on a client, the hours that have come started beside the
+	/// frames that follow, as a game of one's are. A host's are started by its clock.
+	/// </summary>
+	public virtual void StartHours()
+	{
+	}
 
 	public abstract void Dispose();
 

@@ -55,16 +55,15 @@ and on 2026-11-20 stayed in step for 131 midnights. **Looked at in play the same
 unit orders, trade deals, production automation, the catching up at speed 5, and the pause from the host and from
 the client. What is next:
 1. **still to be looked at in play**: a client closed (the pause, its country to the AI) and come back, the host
-   closed;
+   closed; and, built after the look, a client's hours beside its frame - 125 midnights the same by two processes -
+   and the console refusing what would change the game;
 2. a parted game sent again - the code path is the join's, and nothing has made a game part to try it;
 3. before the lobby, the little the original has there: a player's name and an address to join; then hosting and
    joining from the lobby there is, and a country chosen from those nobody plays (`CHostSession.Unplayed`, `Assign`);
-4. a client's hours beside its frame, as a host's and a game of one's run: they run on the frame's thread now, 10 ms
-   of them a frame, and the host at the top speed waits for it;
-5. a client's Lua for an offer's chance as a state of its own that can post nothing;
-6. the screens that still ask the AI's agent of a headquarters (`CAgents.HighestOver` in `src/Screens` and
+4. a client's Lua for an offer's chance as a state of its own that can post nothing;
+5. the screens that still ask the AI's agent of a headquarters (`CAgents.HighestOver` in `src/Screens` and
    `lib/OpenHOI3.Interface`) asked the game instead (`CAgents.HighestAutomated`), a client holding no agent;
-7. the console and the developer switches refused between machines, and the rest of section 6's *Not built*.
+6. the rest of section 6's *Not built*.
 **Each of these wants two clients running and looked at**; no tool can pass them. And two things changed for a player
 of one, to be looked at in play: a headquarters handed to the AI gets its area and front line with the AI's next pass
 and not while the clock stands, and a tooltip no longer has the supply network made again for the game

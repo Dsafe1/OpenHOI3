@@ -58,7 +58,25 @@ public sealed class CConsoleRunner
 		{
 			return Fail("Command available only for developers.");
 		}
-		return Execute(row.Name, tokens.Skip(1).ToArray());
+		_refused = false;
+		CConsoleReply reply = Execute(row.Name, tokens.Skip(1).ToArray());
+		// Ours: a command that would change the game says so where the game takes none from here - a replay, and a game
+		// between several machines (docs/multiplayer.md, section 6) - where it would otherwise say it had been done.
+		return _refused ? Fail("Not available in this game.") : reply;
+	}
+
+	/// <summary>Whether the command being run tried to change a game that takes no command from the console.</summary>
+	private bool _refused;
+
+	/// <summary>A command that changes the game, posted - or refused, where the game takes none from here.</summary>
+	private void Post(OpenHOI3.Sim.Commands.CCommand command)
+	{
+		if (!_host.TakesCommands)
+		{
+			_refused = true;
+			return;
+		}
+		_host.Post(command);
 	}
 
 	/// <summary>A row by its name or an alias, exactly.</summary>
@@ -108,7 +126,7 @@ public sealed class CConsoleRunner
 	private void Cheat(ECheat cheat, CCountryTag? country = null, CCountryTag? other = null, long amount = 0, EGoods good = EGoods.Money,
 		int province = 0, string text = "")
 	{
-		_host.Post(new CCheatCommand(cheat, country, other, amount, good, province, text));
+		Post(new CCheatCommand(cheat, country, other, amount, good, province, text));
 	}
 
 	private CConsoleReply Execute(string name, string[] args)
@@ -390,7 +408,7 @@ public sealed class CConsoleRunner
 		{
 			return Fail("There is no event with ID #" + id.ToString(CultureInfo.InvariantCulture));
 		}
-		_host.Post(command);
+		Post(command);
 		return Ok("Executed #" + id.ToString(CultureInfo.InvariantCulture));
 	}
 
@@ -587,7 +605,7 @@ public sealed class CConsoleRunner
 				return Ok(_host.TooltipsOn ? "Tooltips are now turned ON." : "Tooltips are now turned OFF.");
 			case "fow":
 				bool on = !State.FogOfWar;
-				_host.Post(new CFogOfWarCommand(on));
+				Post(new CFogOfWarCommand(on));
 				return Ok(on ? "Fog of war turned ON" : "Fog of war turned OFF");
 			case "nopopup":
 				Cheat(ECheat.ToggleNoPopups);

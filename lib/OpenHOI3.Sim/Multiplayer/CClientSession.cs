@@ -89,11 +89,18 @@ public sealed class CClientSession
 	}
 
 	/// <summary>
+	/// Whether the next hour may be run: the host has said it is whole and its tick is next in what came. Asked after
+	/// <see cref="Step"/> has run what came between hours - with no hours allowed, where only that is wanted.
+	/// </summary>
+	public bool HourReady => !Parted && _simulation.State.TotalHours < _wholeHour && _simulation.HourHasCome;
+
+	/// <summary>
 	/// Once a frame: what has come of the orders given between hours is run, and then the hours that have come, as many
 	/// as <paramref name="mostHours"/> - a machine that is behind catches up by running more of them a frame. Answers the
 	/// hours run.
 	/// </summary>
-	public int Step(int mostHours = 1)
+	/// <param name="goOn">Asked after each hour but the last allowed: false stops there. Null runs them all.</param>
+	public int Step(int mostHours = 1, Func<bool>? goOn = null)
 	{
 		if (Parted)
 		{
@@ -102,7 +109,7 @@ public sealed class CClientSession
 		_simulation.Follow();
 		int ran = 0;
 		// An hour is run once the host has said it is whole: its entries come one by one as the host runs it.
-		while (ran < mostHours && _simulation.State.TotalHours < _wholeHour && _simulation.HourHasCome)
+		while (ran < mostHours && (ran == 0 || goOn?.Invoke() != false) && HourReady)
 		{
 			_simulation.RunHours(1);
 			ran++;

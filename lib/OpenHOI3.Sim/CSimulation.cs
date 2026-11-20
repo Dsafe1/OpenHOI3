@@ -239,6 +239,30 @@ public sealed class CSimulation
 		});
 	}
 
+	/// <summary>
+	/// For a game following another's as it runs - a client's: the hours that have come run beside the frame as a game
+	/// of one's are, <paramref name="hours"/> running them through <see cref="RunHours"/> on the worker and answering
+	/// how many it ran. <see cref="Collect"/> takes them. Until then nothing outside reads the game, and nothing that
+	/// <paramref name="hours"/> reads - the lines that came - may be changed.
+	/// </summary>
+	public void BeginFollowing(Func<int> hours)
+	{
+		if (_running is not null)
+		{
+			throw new InvalidOperationException("an hour is already running beside the frame");
+		}
+		_beside = true;
+		_toldBeside = false;
+		_running = Task.Run(() =>
+		{
+			_runningThread = Environment.CurrentManagedThreadId;
+			var spent = Stopwatch.StartNew();
+			int ran = hours();
+			LastRunMilliseconds = spent.Elapsed.TotalMilliseconds;
+			return ran;
+		});
+	}
+
 	/// <summary>Whether the game has been won or has passed its end date - strictly after it, by the hour.</summary>
 	private bool IsOver()
 	{
@@ -498,7 +522,11 @@ public sealed class CSimulation
 	/// <summary>Runs hours with no regard to real time or to the pause: for tests and tools.</summary>
 	public void RunHours(int hours)
 	{
-		Finish();
+		// From the thread that runs hours beside the frame they are these hours themselves (BeginFollowing).
+		if (Environment.CurrentManagedThreadId != _runningThread)
+		{
+			Finish();
+		}
 		for (int i = 0; i < hours; i++)
 		{
 			RunOneHour();
