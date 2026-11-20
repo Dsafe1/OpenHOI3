@@ -162,8 +162,8 @@ public sealed partial class CLedgerView : Control
 			return;
 		}
 		Opening?.Invoke();
-		_pausedBefore = _simulation.Clock.Paused;
-		_simulation.Clock.Paused = true;
+		// Not in a game between several players, where nothing pauses by itself (docs/multiplayer.md, section 2).
+		_pausedBefore = !_simulation.Pace.PauseByItself();
 		ShowSkin();
 		_window.Visible = true;
 		if (_topColour is not null)
@@ -184,10 +184,7 @@ public sealed partial class CLedgerView : Control
 		{
 			_topColour.Visible = false;
 		}
-		if (!_pausedBefore)
-		{
-			_simulation.Clock.Paused = false;
-		}
+		_simulation.Pace.ResumeAfter(!_pausedBefore);
 	}
 
 	/// <summary>The wheel over the window moves the table, and goes no further: the map under it stays where it is.</summary>

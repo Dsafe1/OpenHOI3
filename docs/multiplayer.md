@@ -55,7 +55,14 @@ All on 2026-11-20.
   moment it is given, and the host puts it into the stream ahead of the next hour it runs, as it does its own
   player's - "a delay in that case can be fatal". What stands between the click and the order is the way to the host
   and back, and nothing added to it.
-- **Anybody may pause and resume; only the host sets the speed.**
+- **Anybody may pause and resume; only the host sets the speed. Nothing pauses by itself**: the in-game menu, the
+  Statistics screen and a message whose type pauses stop the clock of a game of one player and of no other, as the
+  original's do. **Built 2026-11-20 as far as it can be without networking**: every pause and change of speed goes
+  through `CPace` (`CSimulation.Pace`), which holds these rules, and nothing in the client writes the clock itself.
+  How a client's pause reaches the host's clock is the networking's.
+- **A client loads the AI's Lua to show a chance, and never lets it act.** The diplomacy, trade and licence dialogs
+  ask the AI's scripts how an offer would be answered; a client asks its own copy - simpler than asking the host, and
+  at once. A mod whose scripts keep memory between calls may show another figure than the host's AI will use.
 - **A player who drops pauses the game, and his country goes to the AI.** He may come back where joining a running
   game is on.
 - **The host waits for a machine that is behind.** It starts no hour while a client has not confirmed one a few hours
@@ -78,6 +85,21 @@ All on 2026-11-20.
 - **A sweep of the client for state changed outside a command.** Whatever a player's machine writes to the game other
   than by a command parts two machines, and `replaycheck` sees that on the AI's side only. The original has such
   writes of its own - the automation flags, the slider locks (`reversing/findings/FINDINGS-frontend.md`, D.3 and D.4).
+  **Swept on 2026-11-20**, `src/` and `lib/OpenHOI3.Interface` by script over every member the simulation lets be set
+  and every method it defines, the hits read; the screens were not read line by line. No order from a screen writes
+  the game itself. What it found:
+  - the clock's pause and speed, written from twenty places - mended, above;
+  - **the supply network is made again when something asks for it** after land has changed hands
+    (`CSupplyNetworks.Refresh`), and that making remaps the theatres' and the AI's areas - so a tooltip, the convoy
+    window or a trade dialog decides *when*, and two machines may differ by it. To be made at set points of the tick
+    and never by a read. **Not mended.**
+  - **who stands where is filled in the order it is asked** (`CGameState.Positions`), and the simulation reads that
+    order - the first enemy fleet in a sea province. *By the reading alone*; to be made in an order no read changes.
+    **Not mended.**
+  - the lobby writes its options, the played countries and the victory conditions into a made game, one of them by a
+    draw of its own; a lobby between several machines has to send these in any case;
+  - the console and the developer's switches make the game's entry pass run again or drain the queue themselves; a
+    game between several players takes neither, as the original's shuts its console.
 - **The AI out of the tick**, into a step the host alone runs and that only posts commands (`worklist.md`, *Loose
   ends*), proved by two games in one process, one fed by the other as a replay is, before a socket stands between them.
 

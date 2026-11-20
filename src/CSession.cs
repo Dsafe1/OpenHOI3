@@ -296,8 +296,7 @@ public partial class CSession : Node
 	{
 		_mapView.View = (carried.Centre, carried.Zoom);
 		_mapView.RenderLayers = carried.RenderLayers;
-		_simulation.Clock.Paused = carried.Paused;
-		_simulation.Clock.Speed = carried.Speed;
+		_simulation.Pace.Set(carried.Paused, carried.Speed);
 		_replayFile = carried.ReplayFile;
 		_wireframe = carried.Wireframe;
 		GetViewport().DebugDraw = _wireframe ? Viewport.DebugDrawEnum.Wireframe : Viewport.DebugDrawEnum.Disabled;
@@ -340,7 +339,7 @@ public partial class CSession : Node
 		if (justFinished || pastTheEnd)
 		{
 			ShowVictoryDialog();
-			_simulation.Clock.Paused = true;
+			_simulation.Pace.Stop();
 		}
 		if (Player.Tag.Value != "REB" && Sim.Countries.CCountryLists.OwnedCount(State, Player.Tag) < 1)
 		{
@@ -373,7 +372,7 @@ public partial class CSession : Node
 			Resigned?.Invoke();
 			return;
 		}
-		_simulation.Clock.Paused = true;
+		_simulation.Pace.Stop();
 		// The victory march where the player's faction won, the dies irae otherwise (docs/mechanics/music.md, section 4).
 		(int winner, _) = CEndGameText.Result(State);
 		Music?.PlayEnd(winner >= 0 && CEndGameText.Factions[winner] == Player.Faction);
@@ -724,10 +723,10 @@ public partial class CSession : Node
 				{
 					popups.Open(message);
 				}
-				// The original stops the clock of a game of one player; this is one.
+				// The original stops the clock of a game of one player, and of no other.
 				if (message.Type.PausePopup)
 				{
-					_simulation.Clock.Paused = true;
+					_simulation.Pace.PauseByItself();
 				}
 			}
 			_simulation.State.EventAnswered += (answered, scope, option) => Tell(CMessages.EventAnswered(
@@ -1388,7 +1387,7 @@ public partial class CSession : Node
 		// frame holds thousands of hours. A replay that has run out of its recording goes no further.
 		if (_replayEnded)
 		{
-			_simulation.Clock.Paused = true;
+			_simulation.Pace.Stop();
 		}
 		else if (hours > 0)
 		{
@@ -1901,7 +1900,7 @@ public partial class CSession : Node
 		switch (key.Keycode)
 		{
 			case Key.Space or Key.Pause:
-				_simulation.Clock.Paused = !_simulation.Clock.Paused;
+				_simulation.Pace.TogglePause();
 				break;
 			case Key.Escape:
 				// What nothing took first - the map lets a selection go on the first, a shown button with the shortcut
@@ -1910,12 +1909,16 @@ public partial class CSession : Node
 				break;
 			case Key.KpAdd or Key.Plus or Key.Equal:
 				// A change of speed clicks, by key as by button (sound.md, section 7).
-				_simulation.Clock.Speed++;
-				Sounds?.PlayUnlessPlaying("click");
+				if (_simulation.Pace.ChangeSpeed(1))
+				{
+					Sounds?.PlayUnlessPlaying("click");
+				}
 				break;
 			case Key.KpSubtract or Key.Minus:
-				_simulation.Clock.Speed--;
-				Sounds?.PlayUnlessPlaying("click");
+				if (_simulation.Pace.ChangeSpeed(-1))
+				{
+					Sounds?.PlayUnlessPlaying("click");
+				}
 				break;
 			case Key.H:
 				// The original's key for its render_hierarchy setting.
@@ -2010,7 +2013,7 @@ public partial class CSession : Node
 			if (!_replayEnded)
 			{
 				_replayEnded = true;
-				_simulation.Clock.Paused = true;
+				_simulation.Pace.Stop();
 				GD.Print($"--replay: {ended.Message}; the clock stops here.");
 			}
 			return 0;
@@ -2105,7 +2108,7 @@ public partial class CSession : Node
 		catch (CReplayEndedException ended)
 		{
 			_replayEnded = true;
-			_simulation.Clock.Paused = true;
+			_simulation.Pace.Stop();
 			GD.Print($"--replay: {ended.Message}; the clock stops here.");
 			return false;
 		}
@@ -2433,8 +2436,7 @@ public partial class CSession : Node
 			}
 			else if (argument == "--run")
 			{
-				_simulation.Clock.Paused = false;
-				_simulation.Clock.Speed = CClock.SpeedCount - 1;
+				_simulation.Pace.Set(paused: false, CClock.SpeedCount - 1);
 			}
 			else if (argument == "--mode=terrain")
 			{

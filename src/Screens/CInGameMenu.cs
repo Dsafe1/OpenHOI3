@@ -157,11 +157,8 @@ public sealed partial class CInGameMenu : Control
 		{
 			return;
 		}
-		_pausedBefore = _simulation.Clock.Paused;
-		if (!_pausedBefore)
-		{
-			_simulation.Clock.Paused = true;
-		}
+		// Not in a game between several players, where nothing pauses by itself (docs/multiplayer.md, section 2).
+		_pausedBefore = !_simulation.Pace.PauseByItself();
 		_window.Visible = true;
 		SetBlocking(true);
 		HideWindows();
@@ -191,10 +188,7 @@ public sealed partial class CInGameMenu : Control
 			return;
 		}
 		_options?.HideWindow();
-		if (_simulation.Clock.Paused && !_pausedBefore)
-		{
-			_simulation.Clock.Paused = false;
-		}
+		_simulation.Pace.ResumeAfter(!_pausedBefore);
 		_pausedBefore = true;
 		_window.Visible = false;
 		SetBlocking(false);

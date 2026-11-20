@@ -74,6 +74,14 @@ public sealed class CSimulation
 
 	public CClock Clock { get; } = new();
 
+	/// <summary>
+	/// The one way a game in play has its clock stopped, started or set to a speed (<see cref="CPace"/>): what asks
+	/// goes through it and writes <see cref="Clock"/> itself nowhere.
+	/// </summary>
+	public CPace Pace => _pace ??= new CPace(Clock);
+
+	private CPace? _pace;
+
 	/// <summary>How many times the queue has been drained.</summary>
 	public int Turn => _turn;
 

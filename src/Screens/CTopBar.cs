@@ -135,8 +135,8 @@ public partial class CTopBar : Control
 		_pauseBar = _window.FindButton("pause_bg");
 		Bind(_speedIndicator, TogglePause);
 		Bind(_pauseBar, TogglePause);
-		Bind(_window.FindButton("button_speedup"), () => _simulation.Clock.Speed++);
-		Bind(_window.FindButton("button_speeddown"), () => _simulation.Clock.Speed--);
+		Bind(_window.FindButton("button_speedup"), () => _simulation.Pace.ChangeSpeed(1));
+		Bind(_window.FindButton("button_speeddown"), () => _simulation.Pace.ChangeSpeed(-1));
 
 		Bind(_window.FindButton("topbarbutton_prod"), () => ProductionPressed?.Invoke());
 		Bind(_window.FindButton("topbarbutton_tech"), () => TechnologyPressed?.Invoke());
@@ -251,7 +251,7 @@ public partial class CTopBar : Control
 
 	private void TogglePause()
 	{
-		_simulation.Clock.Paused = !_simulation.Clock.Paused;
+		_simulation.Pace.TogglePause();
 	}
 
 	private static void Set(CGuiTextBox? box, string text)
