@@ -53,6 +53,9 @@ public static class CWire
 	/// <summary>Host to client: it is not let in, and why - the host's play checksum where the two differ.</summary>
 	public const char Refused = 'n';
 
+	/// <summary>Host to client: the country its player now plays, by its tag.</summary>
+	public const char Assigned = 'a';
+
 	/// <summary>Host to client: a game is to be had - its hash, then its length in bytes.</summary>
 	public const char GameOffered = 'g';
 

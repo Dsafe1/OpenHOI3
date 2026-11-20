@@ -80,13 +80,49 @@ public sealed class CHostSession
 		return peer;
 	}
 
-	/// <summary>A client gone: the game pauses (<c>docs/multiplayer.md</c>, section 2). Its country going to the AI is not built.</summary>
+	/// <summary>A client gone: the game pauses, and its country goes to the AI (<c>docs/multiplayer.md</c>, section 2).</summary>
 	public void Drop(CHostPeer peer)
 	{
-		if (_peers.Remove(peer))
+		if (!_peers.Remove(peer))
 		{
-			_simulation.Pace.Pause();
+			return;
 		}
+		_simulation.Pace.Pause();
+		if (peer.Country is { } country)
+		{
+			_simulation.Post(new Commands.CSetPlayedCommand(country, played: false));
+		}
+	}
+
+	/// <summary>The countries a player may take up: those owning land that nobody plays, in the countries' order.</summary>
+	public List<Countries.CCountryTag> Unplayed()
+	{
+		CGameState state = _simulation.State;
+		var owned = Countries.COwnedCounts.Of(state);
+		return state.Countries.Where(country => !state.Played.Contains(country.Tag) && owned.Count(country.Tag) > 0)
+			.Select(country => country.Tag).ToList();
+	}
+
+	/// <summary>
+	/// A client's player given a country nobody plays - any of them: one who comes back chooses among them all again,
+	/// the one he had or another (<c>docs/multiplayer.md</c>, section 4.1). The country he held before, if any, goes to
+	/// the AI. Answers whether it was his to take.
+	/// </summary>
+	public bool Assign(CHostPeer peer, Countries.CCountryTag country)
+	{
+		CGameState state = _simulation.State;
+		if (state.Country(country) is null || state.Played.Contains(country))
+		{
+			return false;
+		}
+		if (peer.Country is { } before)
+		{
+			_simulation.Post(new Commands.CSetPlayedCommand(before, played: false));
+		}
+		peer.Country = country;
+		_simulation.Post(new Commands.CSetPlayedCommand(country, played: true));
+		peer.Send(CWire.Line(CWire.Assigned, country.Value));
+		return true;
 	}
 
 	/// <summary>

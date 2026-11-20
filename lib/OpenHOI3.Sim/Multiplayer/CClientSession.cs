@@ -41,6 +41,9 @@ public sealed class CClientSession
 	/// <summary>Whether this game is no longer the host's, by a midnight's hash: nothing more is run until it is sent the game again.</summary>
 	public bool Parted { get; private set; }
 
+	/// <summary>The country this machine's player plays, as the host has given it; none yet.</summary>
+	public Countries.CCountryTag? Country { get; private set; }
+
 	/// <summary>Who the game is waiting for, as the host says: names, or none.</summary>
 	public IReadOnlyList<string> WaitingFor { get; private set; } = Array.Empty<string>();
 
@@ -63,6 +66,9 @@ public sealed class CClientSession
 				_hostHashes[long.Parse(parts[0], CultureInfo.InvariantCulture)] = ulong.Parse(parts[1], CultureInfo.InvariantCulture);
 				break;
 			}
+			case CWire.Assigned:
+				Country = new Countries.CCountryTag(rest);
+				break;
 			case CWire.HourDone:
 				_wholeHour = Math.Max(_wholeHour, long.Parse(rest, CultureInfo.InvariantCulture));
 				break;

@@ -282,6 +282,14 @@ with scripts made then**, and they play on as host and client. On 2026-11-20, jo
 same and the two alike at the end**. So a game loaded by every machine, the host with them, goes on the same on
 each - what a join and a parted machine both come down to (section 2). Tried with nobody playing, and on one start.
 
-**Not built**: the host's doing all of this by itself when a machine's hash differs or one joins - today a tool
-does the steps; the lobby; a dropped player's country to the AI; a country taken up by a player in play; chat.
-Nothing in the client uses any of this yet: it is the simulation's side alone.
+**Who plays a country, changed in play** (built the same day): `CSetPlayedCommand`, *ours* - the original changes
+it in its lobby alone. A country taken up is played, the AI runs its units no longer, and every headquarters the AI
+ran is let go, its plan switched off; one left is the AI's again, its ministers starting at their next hour. The
+host posts it: `CHostSession.Drop` for a client gone, with the pause; `Assign` for a player given a country nobody
+plays - any that owns land (`Unplayed`), so one who comes back chooses among them all, the one he had or another -
+the country he held going to the AI, and the client told which is his (`a`).
+
+**Not built**: the host's doing a game's sending by itself when a machine's hash differs or one joins - today a
+tool does the steps; the lobby; chat. Nothing in the client uses any of this yet: it is the simulation's side
+alone, and a client still takes the country it plays from the game's one set of played countries, which holds every
+player's.
