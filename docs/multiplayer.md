@@ -264,6 +264,24 @@ loopback. And `twomachines ... tcp` puts the same real game through it: to 1 Mar
 midnight's hash the same**, the host waiting on 7 of 1,423 frames for the client to catch up - which the run that
 hands the lines across in lists never has it do.
 
-**Not built**: sending a game to a machine, as it joins or after it has parted; the check of the two machines'
-play checksum before they play; the host's check that an order is its sender's country's; the lobby; a dropped
-player's country to the AI; chat. Nothing in the client uses any of this yet: it is the simulation's side alone.
+**Before and around play** (built the same day):
+
+- **A machine is let in by its play checksum.** Its first line is its checksum and its player's name (`j`); the
+  host answers `y`, or `n` with its own checksum where the two differ (`CHostSession.Admit`).
+- **A game is sent whole, or kept** (`CGameSender`, `CGameReceiver`): the bytes of a save offered by their SHA-256
+  (`g`); a machine that holds those bytes says so (`k`) and is sent nothing; any other asks (`t`) and gets them in
+  pieces of 48,000 bytes as base64 (`b`), then the end (`G`), and checks them against the hash; it says when it has
+  loaded them (`r`). Making the save and loading it are the caller's, the simulation knowing neither.
+- **The host drops an order that is not its sender's country's** (`COrderCheck`), by the field a command names its
+  country in - `_owner` or `_country`, which 68 of the 107 commands have; one with neither is let through.
+
+**A machine joining a running game, checked**: `OpenHOI3.SaveCheck joinmachines <install> <date joined> <until>` -
+a host plays alone to the first date, saves, the save is sent to a second machine line by line, **both load it, each
+with scripts made then**, and they play on as host and client. On 2026-11-20, joined on 1 February 1936: the save
+10.2 MiB, 219 lines, 1.3 MiB as the connection compresses it; **28 days on, to 1 March, every midnight's hash the
+same and the two alike at the end**. So a game loaded by every machine, the host with them, goes on the same on
+each - what a join and a parted machine both come down to (section 2). Tried with nobody playing, and on one start.
+
+**Not built**: the host's doing all of this by itself when a machine's hash differs or one joins - today a tool
+does the steps; the lobby; a dropped player's country to the AI; a country taken up by a player in play; chat.
+Nothing in the client uses any of this yet: it is the simulation's side alone.

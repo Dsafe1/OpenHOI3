@@ -5,6 +5,7 @@ using System.Linq;
 using OpenHOI3.Content;
 using OpenHOI3.Content.Definitions;
 using OpenHOI3.Content.Map;
+using OpenHOI3.Content.Saves;
 using OpenHOI3.Lua;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Replay;
@@ -264,6 +265,120 @@ internal static class CReplayCheck
 	}
 
 	/// <summary>A new game, nobody playing, entered and ready for its first hour.</summary>
+	/// <summary>
+	/// A machine joining a game that is running (docs/multiplayer.md, sections 2 and 4.1): a host plays a new game alone
+	/// to a date; there it saves, and the save's bytes are offered to a second machine and sent it line by line; **both
+	/// load that save, each with Lua states made afresh**, and play on as host and client to a second date. It says how
+	/// large the save was and how it travelled, and whether every midnight's hash after the load was the same.
+	/// </summary>
+	public static int RunJoin(string[] args)
+	{
+		if (args.Length < 4 || !CDate.TryParse(args[2], out CDate joinAt) || !CDate.TryParse(args[3], out CDate end))
+		{
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck joinmachines <install folder> <date joined> <until date>");
+			return 2;
+		}
+		string install = args[1];
+		(CGameState alone, CSimulation aloneRun, IDisposable aloneScripts) = Load(install);
+		while (alone.Date < joinAt)
+		{
+			aloneRun.RunHours(1);
+		}
+		// The orders the last hour's AI posted run in the next drain, which a save written now would leave out.
+		aloneRun.Pump();
+		var warnings = new List<string>();
+		CDirectorySettings directories = CToolDirectories.At(install);
+		CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
+		string hostPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "openhoi3_join_host.hoi3");
+		string clientPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "openhoi3_join_client.hoi3");
+		CSaveFiles.Write(alone, localisation.Localise, hostPath);
+		byte[] game = System.IO.File.ReadAllBytes(hostPath);
+		aloneScripts.Dispose();
+
+		// The save offered and sent, the lines handed across; the joining machine holds no copy of its own.
+		long sent = 0;
+		int lines = 0;
+		OpenHOI3.Sim.Multiplayer.CGameSender? sender = null;
+		var receiver = new OpenHOI3.Sim.Multiplayer.CGameReceiver(line => sender!.Receive(line), _ => null);
+		sender = new OpenHOI3.Sim.Multiplayer.CGameSender(line =>
+		{
+			sent += line.Length;
+			lines++;
+			receiver.Receive(line);
+		}, game);
+		sender.Offer();
+		if (receiver.Game is not { } came)
+		{
+			Console.WriteLine("the game did not come whole");
+			return 1;
+		}
+		System.IO.File.WriteAllBytes(clientPath, came);
+		using var deflated = new System.IO.MemoryStream();
+		using (var deflate = new System.IO.Compression.DeflateStream(deflated, System.IO.Compression.CompressionLevel.Fastest, leaveOpen: true))
+		{
+			deflate.Write(game, 0, game.Length);
+		}
+		Console.WriteLine($"saved at {alone.Date}: {game.Length / 1024} KiB, sent as {lines} lines of {sent / 1024} KiB of text; " +
+			$"compressed as the connection would, {deflated.Length / 1024} KiB");
+
+		// Every machine loads the one save, the host too, each with scripts of its own made now.
+		(CGameState hostState, CSimulation hostRun, IDisposable hostScripts) = LoadSave(install, hostPath);
+		(CGameState clientState, CSimulation clientRun, IDisposable clientScripts) = LoadSave(install, clientPath);
+		receiver.SayLoaded();
+
+		var toClient = new Queue<string>();
+		var toHost = new Queue<string>();
+		var host = new OpenHOI3.Sim.Multiplayer.CHostSession(hostRun);
+		var client = new OpenHOI3.Sim.Multiplayer.CClientSession(clientRun, toHost.Enqueue);
+		OpenHOI3.Sim.Multiplayer.CHostPeer peer = host.Add("client", toClient.Enqueue);
+		int days = 0;
+		hostRun.Pace.Set(paused: false, CClock.SpeedCount - 1);
+		while (hostState.Date < end && !client.Parted)
+		{
+			CDate before = hostState.Date;
+			hostRun.Advance(1.0);
+			host.Tell();
+			while (toClient.Count > 0)
+			{
+				client.Receive(toClient.Dequeue());
+			}
+			client.Step(mostHours: 8);
+			while (toHost.Count > 0)
+			{
+				host.Receive(peer, toHost.Dequeue());
+			}
+			if (hostState.Date != before)
+			{
+				days++;
+			}
+		}
+		ulong[] hostHash = CStateHash.Of(hostState);
+		ulong[] clientHash = CStateHash.Of(clientState);
+		string[] differing = CStateHash.Parts.Where((_, i) => hostHash[i] != clientHash[i]).ToArray();
+		Console.WriteLine(client.Parted
+			? $"{days} days after the load: the client's game parted from the host's at hour {clientState.TotalHours}, {clientState.Date}"
+			: differing.Length > 0
+				? $"{days} days after the load they differ in " + string.Join(", ", differing)
+				: $"{days} days after the load, to {hostState.Date}: every midnight's hash the same, and the two games alike at the end");
+		hostScripts.Dispose();
+		clientScripts.Dispose();
+		return client.Parted || differing.Length > 0 ? 1 : 0;
+	}
+
+	/// <summary>A save loaded as a game nobody plays, with scripts made for it, entered and ready for its first hour.</summary>
+	private static (CGameState State, CSimulation Simulation, IDisposable Scripts) LoadSave(string install, string path)
+	{
+		var warnings = new List<string>();
+		CDirectorySettings directories = CToolDirectories.At(install);
+		CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
+		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
+		CMap map = CMap.Load(directories, warnings.Add);
+		var scripts = new CAiScripts(directories, _ => { });
+		(CGameState state, _) = CSaveLoader.Load(directories, map, localisation, countries, path, null, scripts, _ => { });
+		state.Played.Clear();
+		return (state, new CSimulation(state), scripts);
+	}
+
 	private static (CGameState State, CSimulation Simulation, IDisposable Scripts) Load(string install)
 	{
 		var warnings = new List<string>();
