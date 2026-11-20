@@ -2298,7 +2298,10 @@ None of these blocks the list above.
   is the Lua's fields and strings and a `float` boxed for each figure the Lua classes hand over. **Whether a C++
   rewrite would help** was studied on 2026-11-05 (`docs/performance.md`): little for its cost, since the Lua is C
   already; a port of the simulation alone is to be weighed on a profile of the finished game.
-- **Where the AI runs in multiplayer is not settled** (2026-10-13). Here the AI runs inside the hourly tick,
+- **Where the AI runs in multiplayer - settled 2026-11-20: on the host's machine, always** (`docs/multiplayer.md`,
+  which holds what is decided of multiplayer and what is open). What follows is the question as it stood, kept for
+  what it says has to change: the AI has to come out of the tick into a step that runs on the host and only posts
+  commands. ~~Not settled~~ (2026-10-13). Here the AI runs inside the hourly tick,
   which every machine would run, and draws on the game's shared generator - which countries trade this
   hour, the AI's event option, the roll that answers an offer. The working understanding is that the
   original's host alone runs the AI's Lua; if so, the AI here has to come out of the tick into a step that
