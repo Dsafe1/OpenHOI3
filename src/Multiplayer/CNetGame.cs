@@ -71,6 +71,18 @@ public abstract class CNetGame : System.IDisposable
 	/// </summary>
 	public string? DumpFolder { get; set; }
 
+	/// <summary>
+	/// The player's folder of saved games: where a client looks for a save the host offers in its lobby before it is
+	/// sent it, and keeps one it was sent (docs/multiplayer.md, section 14); null looks nowhere and keeps nothing.
+	/// </summary>
+	public string? SaveFolder { get; set; }
+
+	/// <summary>
+	/// The game on screen written as a save's bytes, as a host writes the one it sends; set by the session that plays
+	/// it. A client in step with the host makes with it the very game the host offers, and is sent nothing.
+	/// </summary>
+	public System.Func<byte[]>? SaveNow { get; set; }
+
 	private readonly List<string> _notes = new();
 
 	/// <summary>What there is to say in the log since it was last taken.</summary>

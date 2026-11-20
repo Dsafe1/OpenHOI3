@@ -482,7 +482,7 @@ public partial class CFrontEnd : Node
 					_lobbyViewPath = saved;
 					try
 					{
-						host.SetView(saved is null ? null : File.ReadAllBytes(saved));
+						host.SetView(saved is null ? null : File.ReadAllBytes(saved), saved is null ? "" : Path.GetFileName(saved));
 					}
 					catch (IOException)
 					{

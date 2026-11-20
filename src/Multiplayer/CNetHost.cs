@@ -123,6 +123,7 @@ public sealed class CNetHost : CNetGame
 	public const int RunningGame = -2;
 
 	private byte[]? _view;
+	private string _viewName = "";
 	private string? _viewHash;
 
 	/// <summary>
@@ -130,7 +131,8 @@ public sealed class CNetHost : CNetGame
 	/// null for none - the start, by its bookmark - and, where a game runs, that game as it stands for a machine that
 	/// would join it (docs/multiplayer.md, section 11). Sent where it is new to a machine.
 	/// </summary>
-	public void SetView(byte[]? game)
+	/// <param name="name">The file's name where it is a save the host chose, which a machine keeps it under; empty for the game that runs.</param>
+	public void SetView(byte[]? game, string name = "")
 	{
 		if (game is null)
 		{
@@ -150,6 +152,7 @@ public sealed class CNetHost : CNetGame
 		{
 			_view = game;
 			_viewHash = hash;
+			_viewName = name;
 			_viewStartSaid = false;
 			_viewDoneSaid = false;
 		}
@@ -197,7 +200,7 @@ public sealed class CNetHost : CNetGame
 	{
 		get
 		{
-			string[] loading = _peers.Where(peer => peer.Loading).Select(peer => peer.Name ?? "").ToArray();
+			string[] loading = _peers.Where(peer => peer.Loading).Select(peer => (peer.Name ?? "") + SendingText(peer)).ToArray();
 			if (loading.Length > 0)
 			{
 				return "Sending the game to " + string.Join(", ", loading);
@@ -281,7 +284,7 @@ public sealed class CNetHost : CNetGame
 					else if (line.Length > 0 && line[0] is CWire.GameKept or CWire.GameWanted)
 					{
 						// Its answer to a game offered it to look at.
-						peer.ViewSender?.Receive(line);
+						Answer(peer, peer.ViewSender, line);
 					}
 					else if (line.Length > 0 && line[0] == CWire.ViewTaken)
 					{
@@ -316,7 +319,7 @@ public sealed class CNetHost : CNetGame
 						_viewStartSaid = true;
 						_chat.Add(new CLobbyChatLine("TRANSERING_SAVE", "", ""));
 					}
-					peer.Link.Send(CWire.Line(CWire.View));
+					peer.Link.Send(CWire.Line(CWire.View, System.Uri.EscapeDataString(_viewName)));
 					peer.ViewSender = new CGameSender(peer.Link.Send, _view);
 					peer.ViewSender.Offer();
 				}
@@ -326,7 +329,7 @@ public sealed class CNetHost : CNetGame
 				// What it says of the game offered; anything else it sent before it had that game is of the game before, and dropped.
 				while (!sender.Loaded && peer.Link.TryReceive(out string line))
 				{
-					sender.Receive(line);
+					Answer(peer, sender, line);
 				}
 			}
 			// One gone that plays no country is forgotten here; one that does is dropped by the frame, which may post - after
@@ -481,6 +484,44 @@ public sealed class CNetHost : CNetGame
 		_parted = false;
 		SayGameToLoad(game, played);
 		return true;
+	}
+
+	/// <summary>
+	/// A machine's answer to a game offered it, handed to that sending - and where it asks for the game, how much is
+	/// given its connection for it marked, so that how far the sending has come can be said (docs/multiplayer.md,
+	/// section 14): the connection sends by itself, and this frame goes on.
+	/// </summary>
+	private static void Answer(CNetPeer peer, CGameSender? sender, string line)
+	{
+		long before = peer.Link.QueuedChars;
+		sender?.Receive(line);
+		if (line.Length > 0 && line[0] == CWire.GameWanted)
+		{
+			peer.SendFrom = before;
+			peer.SendChars = peer.Link.QueuedChars - before;
+		}
+		else if (line.Length > 0 && line[0] == CWire.GameKept)
+		{
+			peer.SendChars = 0;
+		}
+	}
+
+	/// <summary>How far the game a machine asked for has gone to it, in whole percent; null where it asked for none.</summary>
+	private static int? SendingPercent(CNetPeer peer)
+	{
+		return peer.SendChars <= 0 ? null
+			: (int)System.Math.Clamp(100L * (peer.Link.SentChars - peer.SendFrom) / peer.SendChars, 0L, 100L);
+	}
+
+	/// <summary>What the status says after a machine's name of the game going to it: the percent sent, then that it is loading.</summary>
+	private static string SendingText(CNetPeer peer)
+	{
+		return SendingPercent(peer) switch
+		{
+			null => "",
+			>= 100 => " (loading)",
+			int percent => $" ({percent}%)",
+		};
 	}
 
 	private void Remove(CNetPeer peer)

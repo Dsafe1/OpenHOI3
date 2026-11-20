@@ -24,7 +24,13 @@ public sealed class CLineLink : IDisposable
 	private readonly object _sending = new();
 	private readonly ConcurrentQueue<string> _came = new();
 	private readonly Thread _reader;
+	private readonly Thread _writer;
+	private readonly ConcurrentQueue<string> _toSend = new();
+	private readonly SemaphoreSlim _some = new(0);
+	private long _queuedChars;
+	private long _sentChars;
 	private volatile bool _closed;
+	private volatile bool _ending;
 
 	public CLineLink(TcpClient client)
 	{
@@ -34,6 +40,8 @@ public sealed class CLineLink : IDisposable
 		_out = new DeflateStream(stream, CompressionLevel.Fastest, leaveOpen: true);
 		_reader = new Thread(() => Read(stream)) { IsBackground = true, Name = "OpenHOI3 line link" };
 		_reader.Start();
+		_writer = new Thread(Write) { IsBackground = true, Name = "OpenHOI3 line link, sending" };
+		_writer.Start();
 	}
 
 	/// <summary>A connection made to a host.</summary>
@@ -69,20 +77,48 @@ public sealed class CLineLink : IDisposable
 		}
 	}
 
-	/// <summary>Sends one line. It may hold no line break.</summary>
+	/// <summary>
+	/// Sends one line. It may hold no line break. **It does not wait for the connection**: the line joins those still
+	/// to go, which a thread of the link's own writes in the order they were given - so a game of many megabytes sent
+	/// to a slow machine holds up nobody's frame, and several machines are sent to at once
+	/// (<c>docs/multiplayer.md</c>, section 14).
+	/// </summary>
 	public void Send(string line)
 	{
-		if (_closed)
+		if (_closed || _ending)
 		{
 			return;
 		}
-		byte[] bytes = Encoding.UTF8.GetBytes(line + "\n");
+		lock (_sending)
+		{
+			_queuedChars += line.Length;
+			_toSend.Enqueue(line);
+		}
+		_some.Release();
+	}
+
+	/// <summary>How many characters have been given to <see cref="Send"/> since the link was made.</summary>
+	public long QueuedChars => Interlocked.Read(ref _queuedChars);
+
+	/// <summary>How many of them the connection has taken.</summary>
+	public long SentChars => Interlocked.Read(ref _sentChars);
+
+	private void Write()
+	{
 		try
 		{
-			lock (_sending)
+			while (true)
 			{
+				_some.Wait();
+				if (!_toSend.TryDequeue(out string? line))
+				{
+					// Woken with nothing to send: the link is ending, and everything given it has gone.
+					return;
+				}
+				byte[] bytes = Encoding.UTF8.GetBytes(line + "\n");
 				_out.Write(bytes, 0, bytes.Length);
 				_out.Flush();
+				Interlocked.Add(ref _sentChars, line.Length);
 			}
 		}
 		catch (Exception failed) when (failed is IOException or ObjectDisposedException or SocketException)
@@ -117,6 +153,13 @@ public sealed class CLineLink : IDisposable
 
 	public void Dispose()
 	{
+		// What was given to be sent goes first - a machine told why it is let go has to be told - for a little while.
+		_ending = true;
+		_some.Release();
+		if (!_closed && Thread.CurrentThread != _writer)
+		{
+			_writer.Join(TimeSpan.FromSeconds(2));
+		}
 		_closed = true;
 		try
 		{

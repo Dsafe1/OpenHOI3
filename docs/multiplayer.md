@@ -381,8 +381,8 @@ the snapshot.
 
 **Built since**: the lobby with a name and an address entered on screen (section 7), a country chosen by a player
 joining a game that runs (section 10), the reason a game ended said on screen, a client's own Lua for an offer's
-chance (section 12). **Not built**: a client keeping the last game it was sent, so as to be sent nothing where it
-holds it; chat in play. A game's sending blocks the host's frame until the connection has taken it.
+chance (section 12). A client in step being sent nothing, and a sending that holds up no frame, are section 14. **Not built**: chat in
+play.
 
 ## 7. The shared lobby - built 2026-11-20
 
@@ -617,3 +617,39 @@ Four things asked for together, each checked by processes and screenshots.
 | `n banned`, to a client | it is banned from this host's games |
 | `O`, to a client in the lobby | the host's options: seven numbers |
 | `v`, from a client | the game it was sent to look at is here whole |
+
+## 14. A game not sent where it is held, and sent without waiting - built 2026-11-20
+
+Asked for with BlackICE in mind, whose saves are twice the base game's.
+
+- **A client in step with the host is sent nothing when the game is sent again.** A game is offered by its hash
+  and length (section 4.1), and a machine that holds those bytes answers `k`. A client playing the game holds
+  them in effect: **the same state written by the same writer is the same bytes** - `twomachines` writes both
+  machines' games at its end and sets them beside each other, 660,277 lines and none differing after a month. So
+  when a game to be played is offered, a client whose game has not parted runs every hour and order that has come,
+  writes its game as the host wrote its own (`CNetGame.SaveNow`, set by the session) and offers that to the
+  receiver, which takes it where the hash is the host's (`CNetClient.OwnGame`). It then loads its own bytes, as
+  every machine loads the game. **So a machine joining a game that runs costs the others no transfer, only the
+  load**, and of a game that parted only the machine that parted is sent it. Where the bytes differ - another
+  language's names in the save, or anything the two machines hold apart that the midnight's hash does not cover -
+  the hash differs and the game is sent as before: nothing rests on the two being alike.
+- **A save the host chose in its lobby is looked for among the client's own saved games**, by its length and then
+  its hash, and one found is loaded with LOADING_LOCAL_SAVE in the chat and nothing sent. **One that had to be
+  sent is kept** in the client's saved games under the host's name for it with `Multiplayer_` before
+  (`CNetClient.KeepView`; `V` carries the name), so that it is there the next time; the original writes it under
+  the host's own name, which here would overwrite a file of the player's own. The game that runs, shown to a
+  joiner, has no name and is not kept.
+- **A link sends without waiting** (`CLineLink.Send`): a line joins those still to go and a thread of the link's
+  own writes them, in the order they were given. So a game of many megabytes going to a slow machine holds up
+  nobody's frame, several machines are sent to at once and not one after another, and nothing can come between a
+  game's pieces out of order, every line going through the one queue. A link that is closed sends what it was
+  given first, for up to two seconds - a machine told why it is let go is told. **The host says how far each
+  sending has come** in the line under its top bar, "Sending the game to First (45%), Second (loading)", from
+  what its connection has taken of what the game was (`CLineLink.QueuedChars`, `SentChars`).
+
+**Checked** by three processes: a host and a client playing, a second client joining - the first client's log
+"the game the host offers is this machine's own as it stands: nothing was sent", and **all three 78 midnights the
+same after it**; a host choosing a save in its lobby with a client there, twice - the client found it among its
+saved games both times, the two processes sharing one folder, **so a save kept after a sending was not seen**; and
+a test gives a link twelve megabytes at once, closes it, and finds every line arrived in order. The host's
+percentage was not seen, a sending between processes of one machine taking no time.

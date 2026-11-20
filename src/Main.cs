@@ -65,6 +65,7 @@ public partial class Main : Control
 		{
 			return;
 		}
+		net.SaveFolder ??= System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderName);
 		net.Pump();
 		// A game that parts is written beside the logs, each machine's own figures, and said in the log.
 		net.DumpFolder ??= Content.Logs.CLogFiles.Folder(_directories);

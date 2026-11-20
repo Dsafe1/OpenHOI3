@@ -29,7 +29,7 @@ public sealed class CNetClient : CNetGame
 	public CNetClient(CLineLink link, string checksum, string name, CCountryTag? wanted)
 	{
 		_link = link;
-		_receiver = new CGameReceiver(link.Send, _ => null);
+		_receiver = new CGameReceiver(link.Send, OwnGame);
 		link.Send(CClientSession.JoinLine(checksum, name));
 		// With no country named the host says how its lobby stands, or who plays its running game, and the country is
 		// chosen on this machine's lobby.
@@ -204,8 +204,10 @@ public sealed class CNetClient : CNetGame
 					: "The host plays other files than this machine: its play checksum differs.";
 				return;
 			case CWire.View:
-				// The game next offered is to be looked at in the lobby, not played.
+				// The game next offered is to be looked at in the lobby, not played; a save the host chose comes with
+				// its file's name, the game that runs with none.
 				_viewNext = true;
+				_viewName = System.Uri.UnescapeDataString(rest.Trim());
 				return;
 			case CWire.Chat:
 				if (CLobbyChatLine.FromWire(rest) is { } said)
@@ -271,7 +273,13 @@ public sealed class CNetClient : CNetGame
 				_quartersSaid = 0;
 				if (!_hasPlayed)
 				{
-					_chat.Add(new CLobbyChatLine("TRANSERING_SAVE", "", ""));
+					// This machine's own copy is loaded, or the save is on its way.
+					_chat.Add(new CLobbyChatLine(_receiver.Kept ? "LOADING_LOCAL_SAVE" : "TRANSERING_SAVE", "", ""));
+				}
+				if (_receiver.Kept)
+				{
+					Note(_viewNext ? "the save the host chose is among this machine's own: nothing was sent"
+						: "the game the host offers is this machine's own as it stands: nothing was sent");
 				}
 				if (_viewNext)
 				{
@@ -305,6 +313,7 @@ public sealed class CNetClient : CNetGame
 				_takingView = false;
 				LobbyGame = shown;
 				LobbyGameVersion++;
+				KeepView(shown);
 				// The host is told, whose chat says when every machine has the save.
 				_link.Send(CWire.Line(CWire.ViewTaken));
 			}
@@ -318,6 +327,90 @@ public sealed class CNetClient : CNetGame
 		{
 			// Of the game being loaded: kept until its session is made.
 			_waiting.Add(line);
+		}
+	}
+
+	/// <summary>The file name of the save next offered to be looked at, as the host has it; empty for the game that runs.</summary>
+	private string _viewName = "";
+
+	/// <summary>
+	/// The bytes of the game the host offers, where this machine can make or find them itself, so that nothing need
+	/// be sent (docs/multiplayer.md, section 14). **A game to be played, offered while this machine is in step with
+	/// the host**: every hour and order that has come is run, and the game written as the host writes its own - the
+	/// two are then the same bytes, which the hash says. **A save the host chose in its lobby**: a file of this
+	/// machine's saved games of that length and hash. Null where there is none; what is offered is then sent.
+	/// </summary>
+	private byte[]? OwnGame(string hash)
+	{
+		try
+		{
+			if (_viewNext)
+			{
+				if (_viewName.Length == 0 || SaveFolder is null || !System.IO.Directory.Exists(SaveFolder))
+				{
+					return null;
+				}
+				foreach (string file in System.IO.Directory.EnumerateFiles(SaveFolder, "*.hoi3"))
+				{
+					if (new System.IO.FileInfo(file).Length == _receiver.Total)
+					{
+						byte[] bytes = System.IO.File.ReadAllBytes(file);
+						if (CGameSender.Hash(bytes) == hash)
+						{
+							return bytes;
+						}
+					}
+				}
+				return null;
+			}
+			if (_session is not { Parted: false } session || _simulation is not { IsBusy: false } simulation || SaveNow is not { } save)
+			{
+				return null;
+			}
+			// The host wrote its game with every hour and order run; so here, with all that has come of them.
+			session.Step(mostHours: int.MaxValue);
+			if (session.Parted)
+			{
+				return null;
+			}
+			simulation.Pump();
+			byte[] own = save();
+			return own.Length == _receiver.Total ? own : null;
+		}
+		catch (System.Exception failed) when (failed is System.IO.IOException or System.UnauthorizedAccessException
+			or System.InvalidOperationException)
+		{
+			Note($"this machine's own copy of the game offered could not be made: {failed.Message}");
+			return null;
+		}
+	}
+
+	/// <summary>
+	/// A save the host chose in its lobby, sent to this machine, kept among its saved games under the host's name
+	/// for it with <c>Multiplayer_</c> before - so that it is here the next time the host offers it, and a file of
+	/// the player's own of that name is left alone. The original writes it under the host's own name.
+	/// </summary>
+	private void KeepView(byte[] game)
+	{
+		if (_receiver.Kept || _viewName.Length == 0 || SaveFolder is null)
+		{
+			return;
+		}
+		try
+		{
+			string name = System.IO.Path.GetFileName(_viewName);
+			if (!name.StartsWith("Multiplayer_", System.StringComparison.OrdinalIgnoreCase))
+			{
+				name = "Multiplayer_" + name;
+			}
+			System.IO.Directory.CreateDirectory(SaveFolder);
+			System.IO.File.WriteAllBytes(System.IO.Path.Combine(SaveFolder, name), game);
+			Note($"the save the host chose kept as {name}");
+		}
+		catch (System.Exception failed) when (failed is System.IO.IOException or System.UnauthorizedAccessException
+			or System.ArgumentException)
+		{
+			Note($"the save the host chose could not be kept: {failed.Message}");
 		}
 	}
 
@@ -340,7 +433,7 @@ public sealed class CNetClient : CNetGame
 	/// </summary>
 	private void SayProgress()
 	{
-		if (_hasPlayed || _receiver.Failed || _receiver.Total <= 0)
+		if (_hasPlayed || _receiver.Failed || _receiver.Kept || _receiver.Total <= 0)
 		{
 			return;
 		}

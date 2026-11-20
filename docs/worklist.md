@@ -70,9 +70,13 @@ conditions button by request. What is next:
 3. **left of the original's lobby** (`mechanics/frontend.md`, section 9): the figure on the rows' `save_progress`,
    the dialog a thrown-out player gets, a row's shield centring the map, LOST_PLR, the victory conditions reaching
    the others before the game is sent;
-4. **left of ours** (`multiplayer.md`, section 6): chat and notices in play, which wants deciding; a client
-   keeping the last game it was sent, so as to be sent nothing where it holds it; a game's sending blocking the
-   host's frame; a screen for the port.
+4. **built 2026-11-20** (`multiplayer.md`, section 14): a client in step makes the game the host offers itself and
+   is sent nothing - three processes, the first client sent nothing as a second joined, 78 midnights the same
+   after; a save chosen in the lobby looked for among the client's own and kept once sent; and a link that sends
+   on a thread of its own, so that a sending holds up no frame and goes to every machine at once. **To be looked
+   at over the internet**: the host's percentage beside each name, and a save kept on another machine;
+5. **left of ours** (`multiplayer.md`, section 6): chat and notices in play, which wants deciding; a screen for
+   the port.
 **The screens no longer ask the AI's agent of a headquarters** (2026-11-20): the unit panel, the objectives, the plan
 markers and rows, the alert, Disband All, the order tooltip and the right click ask whether a plan is on
 (`CAgents.HighestAutomated`, `CUnit.Plan.Active`), which every machine holds, a client holding no agent. To be looked

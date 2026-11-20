@@ -190,6 +190,27 @@ internal static class CReplayCheck
 				: differing.Length > 0
 					? "at the end they differ in " + string.Join(", ", differing)
 					: "every midnight's hash the same, and the two games alike at the end");
+		// The two games written as saves and set beside each other line by line: what a client would have to hold the
+		// same as the host for its own save to stand for the one the host would send (docs/multiplayer.md, section 14).
+		hostRun.Pump();
+		clientRun.Pump();
+		string[] hostSave = CSaveWriter.Write(hostState).Split('\n');
+		string[] clientSave = CSaveWriter.Write(clientState).Split('\n');
+		int otherLines = Math.Abs(hostSave.Length - clientSave.Length);
+		var shown = new List<string>();
+		for (int i = 0; i < Math.Min(hostSave.Length, clientSave.Length); i++)
+		{
+			if (hostSave[i] != clientSave[i])
+			{
+				otherLines++;
+				if (shown.Count < 12)
+				{
+					shown.Add($"  line {i + 1}: host '{hostSave[i].Trim()}' client '{clientSave[i].Trim()}'");
+				}
+			}
+		}
+		Console.WriteLine($"written as saves: {hostSave.Length} and {clientSave.Length} lines, {otherLines} differing");
+		shown.ForEach(Console.WriteLine);
 		hostScripts.Dispose();
 		clientScripts.Dispose();
 		return client.Parted || parted || differing.Length > 0 || hostState.TotalHours != clientState.TotalHours ? 1 : 0;

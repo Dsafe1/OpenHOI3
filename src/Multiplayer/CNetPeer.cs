@@ -55,6 +55,11 @@ public sealed class CNetPeer
 	/// <summary>The hash of the game to look at that it has said is with it whole; null where it has said so of none.</summary>
 	public string? ViewTaken { get; set; }
 
+	/// <summary>How much had been given its connection when the game it asked for was begun, and how much that game is, in characters; nought where it asked for none.</summary>
+	public long SendFrom { get; set; }
+
+	public long SendChars { get; set; }
+
 	/// <summary>The Options panel's line it was last sent, while the host is in its lobby.</summary>
 	public string? OptionsSent { get; set; }
 

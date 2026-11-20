@@ -20,6 +20,49 @@ public class MultiplayerJoinTests
 	private static readonly CCountryTag Pol = new("POL");
 
 	[Fact]
+	public void ALinkSendsWithoutWaitingInTheOrderGivenAndEverythingBeforeItCloses()
+	{
+		// docs/multiplayer.md, section 14: on this machine's loopback, a port the system picks.
+		using var listener = new CLineListener(port: 0);
+		CLineLink client = CLineLink.Connect("127.0.0.1", listener.Port);
+		CLineLink? host = null;
+		var patience = System.Diagnostics.Stopwatch.StartNew();
+		while (!listener.TryAccept(out host!) && patience.ElapsedMilliseconds < 5000)
+		{
+			System.Threading.Thread.Sleep(1);
+		}
+		Assert.NotNull(host);
+
+		// Some megabytes given at once come back from Send at once, are counted, and all arrive in order - the last
+		// line too, given just before the link is closed.
+		string piece = new('x', 60_000);
+		for (int i = 0; i < 200; i++)
+		{
+			host.Send(i + " " + piece);
+		}
+		host.Send("last");
+		Assert.True(host.QueuedChars > 12_000_000);
+		host.Dispose();
+
+		var came = new List<string>();
+		while (came.Count < 201 && patience.ElapsedMilliseconds < 20000)
+		{
+			if (client.TryReceive(out string line))
+			{
+				came.Add(line);
+			}
+			else
+			{
+				System.Threading.Thread.Sleep(1);
+			}
+		}
+		client.Dispose();
+		Assert.Equal(201, came.Count);
+		Assert.Equal("last", came[200]);
+		Assert.All(came.Take(200).Select((line, i) => (line, i)), pair => Assert.StartsWith(pair.i + " ", pair.line));
+	}
+
+	[Fact]
 	public void AMachineIsLetInByItsPlayChecksumAndToldTheHostsWhereItDiffers()
 	{
 		var told = new List<string>();

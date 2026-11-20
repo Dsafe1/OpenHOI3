@@ -235,6 +235,11 @@ public partial class CSession : Node
 		ShowGame(prepared.Gui);
 		// The host's or the client's session made around the simulation, after the pace a session before left was taken
 		// up: a client's clock shows the host's from here on.
+		if (Net is not null)
+		{
+			// As the host writes the game it sends: a client in step makes the same bytes and is sent nothing.
+			Net.SaveNow = () => System.Text.Encoding.Latin1.GetBytes(Content.Saves.CSaveWriter.Write(State, _localisation.Localise));
+		}
 		Net?.Bind(_simulation);
 		// The game's hours are started after each frame is drawn, and run beside the next (StartHours).
 		RenderingServer.FramePostDraw += StartHours;
