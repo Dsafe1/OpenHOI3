@@ -253,7 +253,11 @@ public partial class CLobby : Control
 		}
 		if (_victoryButton is not null)
 		{
-			_victoryButton.Disabled = CVictoryWindowText.ButtonDisabledKey(World, ChosenCountry(), _frontEnd.SaveLoaded) is not null;
+			// On a client the victory conditions are the host's, as the options are: the button is not shown
+			// (asked for on 2026-11-20; ours - the original leaves it to a client whose country leads a faction).
+			_victoryButton.Visible = !ClientMode;
+			_victoryButton.Disabled = ClientMode
+				|| CVictoryWindowText.ButtonDisabledKey(World, ChosenCountry(), _frontEnd.SaveLoaded) is not null;
 			if (_victoryButton.Disabled)
 			{
 				_victorySelect?.Shut();

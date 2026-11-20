@@ -582,7 +582,9 @@ in the gui files and is moddable we need to use that."
 player**, where the original lets two share one~~ - **reversed the day it was written**, 2026-11-20: "I want co-op.
 In the original the first player to choose the country is the 'primary' one, and gets event popups." Players may
 share a country as the original lets them (`docs/multiplayer.md`, section 8). What stands: **a ban is a kick**, no
-list of the banned being kept; a client's Options panel is hidden where the original greys four of its arrows; a
+list of the banned being kept; a client's Options panel is hidden where the original greys four of its arrows, and
+its victory conditions button with it, which the original leaves usable ("Remove the victory conditions button
+too", 2026-11-20); a
 save the host chooses is not sent in the lobby but as the game starts; a thrown-out player reads the chat's line
 and gets no dialog.
 

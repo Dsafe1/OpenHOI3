@@ -53,7 +53,10 @@ same over a real connection, and 28 days the same after a save sent and loaded b
 game saved, sent and loaded by both, the sessions driving the loop, each machine's player the country the host gave -
 and on 2026-11-20 stayed in step for 131 midnights. **Looked at in play the same day, from an export, and found good**:
 unit orders, trade deals, production automation, the catching up at speed 5, and the pause from the host and from
-the client. What is next:
+the client. **And everything below that asked to be looked at was, later that day, and "looked good"**: the
+multiplayer menu and Host from it, the shared lobby with its chat, kick and ban, co-op, a client's hours beside its
+frame, the console's refusal and a headquarters handed to the AI on a client; a client's lobby then lost its victory
+conditions button by request. What is next:
 1. **still to be looked at in play**: a client closed (the pause, its country to the AI) and come back, the host
    closed - each tried by processes on 2026-11-20 and doing what it should, by the log (`multiplayer.md`, section
    6); and, built after the look, a client's hours beside its frame - 125 midnights the same by two processes - and

@@ -279,7 +279,9 @@ Only the chooser's own panel shows its country; the others see the row.
 **What is the host's alone** [exe]: on a client the tabs are greyed, the bookmark rows take no click, Play is
 greyed, and of the options the four difficulty and game-mode arrows are greyed while the five areas' are the
 player's own. **Here the whole Options panel is hidden on a client** - ours, the host's choices not being sent and a
-client's automation not surviving the game's sending. The victory conditions button is as for anyone.
+client's automation not surviving the game's sending. The original leaves the victory conditions button to a
+client whose country leads a faction, though only the host's choice counts; **here it is not shown on a client**
+(asked for on 2026-11-20).
 
 **Play** [exe]: enabled on the host where every player has a country that owns land and the tab's own condition
 holds; **the number of players is not counted**. Its tooltip gives the first of MP_FEW_PLAYERS, NOT_SELECT,
