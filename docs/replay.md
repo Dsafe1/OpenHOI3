@@ -43,7 +43,13 @@ For each, as it runs, a `CReplayStep` keeps:
 - **the draws it took** of the game's generator and of the AI's (`CRandom.Draws` before and after, the AI's written as `a`
   where it is not nought, since the AI's own generator of 2026-11-12, `mechanics/landcombat.md`, section 8);
 - **the unit numbers it took** (`LastUnitId` before and after) - the fleet and air regrouping take a new unit's number as
-  they post the split, as the original does, and the number travels in the command.
+  they post the split, as the original does, and the number travels in the command;
+- **whether its asking made what the game makes for whoever asks first** - the table of who stands where
+  (`CGameState.Positions`) and the supply network with the areas it remaps (`CSupplyNetworks.Refresh`), written `m` and
+  `n` where it did. A step played back makes them at its place, before its commands go to the outbox; otherwise the
+  game playing back would make them at its own next asking, another moment, and two units made either side of it would
+  stand in another order (2026-11-20; `multiplayer.md`, section 3). A decision the game's pass calls is kept where it
+  did only this, too.
 
 A step that seeds the generator again cannot be recorded, and stops the run.
 

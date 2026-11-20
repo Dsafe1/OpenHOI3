@@ -1002,16 +1002,28 @@ public sealed class CGameState
 			}
 			if (_positions is null)
 			{
+				PositionsMade++;
 				_positions = MakePositions();
 				return _positions;
 			}
 			if (_positionsToCheck || _positionsToAdd is not null)
 			{
+				PositionsMade++;
 				BringPositionsUpToDate();
 			}
 			return _positions;
 		}
 	}
+
+	/// <summary>
+	/// How often the game's own table of who stands where has been made or brought up to date, and its supply network
+	/// made: counts a recording watches, to say of one of the AI's steps whether its asking did either, so that a
+	/// machine playing the step back does it at the same place (<see cref="Replay.CReplayStep"/>).
+	/// </summary>
+	public long PositionsMade { get; private set; }
+
+	/// <inheritdoc cref="PositionsMade"/>
+	public long SupplyNetworksMade { get; internal set; }
 
 	/// <summary>The table a screen was shown while the game's own was not whole: nobody's but the screen's.</summary>
 	private CUnitPositions? _positionsLook;

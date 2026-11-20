@@ -56,6 +56,7 @@ public static class CPlayChecksum
 		paths.Sort((a, b) => string.CompareOrdinal(a.ToLowerInvariant(), b.ToLowerInvariant()));
 
 		int files = 0;
+		Span<byte> length = stackalloc byte[8];
 		foreach (string path in paths)
 		{
 			if (search.Read(path) is not { } bytes)
@@ -64,7 +65,6 @@ public static class CPlayChecksum
 			}
 			AppendText(hash, path.ToLowerInvariant());
 			// The length in front of the bytes too, so that where one file ends and the next begins is part of it.
-			Span<byte> length = stackalloc byte[8];
 			BinaryPrimitives.WriteInt64LittleEndian(length, bytes.LongLength);
 			hash.AppendData(length);
 			hash.AppendData(bytes);

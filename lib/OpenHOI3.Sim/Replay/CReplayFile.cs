@@ -146,6 +146,15 @@ public sealed class CReplayFile : IDisposable
 					{
 						json.WriteNumber("a", step.AiDraws);
 					}
+					// Written only where the step's asking made one: `m` the table of who stands where, `n` the network.
+					if (step.MadePositions)
+					{
+						json.WriteBoolean("m", true);
+					}
+					if (step.MadeSupplyNetwork)
+					{
+						json.WriteBoolean("n", true);
+					}
 					json.WriteStartArray("c");
 					foreach (CCommand command in step.Commands)
 					{
@@ -184,7 +193,9 @@ public sealed class CReplayFile : IDisposable
 				}
 				return new CReplayStep(root.GetProperty("h").GetInt64(), root.GetProperty("s").GetString()!, commands,
 					root.GetProperty("d").GetInt64(), root.GetProperty("u").GetInt32(),
-					root.TryGetProperty("a", out JsonElement ai) ? ai.GetInt64() : 0);
+					root.TryGetProperty("a", out JsonElement ai) ? ai.GetInt64() : 0,
+					root.TryGetProperty("m", out JsonElement positions) && positions.GetBoolean(),
+					root.TryGetProperty("n", out JsonElement network) && network.GetBoolean());
 			case "p":
 				return new CReplayPost(root.GetProperty("t").GetInt32(), CCommandCodec.Read(root.GetProperty("c"), state));
 			case "t":

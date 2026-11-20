@@ -48,6 +48,7 @@ public static class CSupplyNetworks
 			bool had = state.SupplyNetwork is not null;
 			network = Build(state);
 			state.SupplyNetwork = network;
+			state.SupplyNetworksMade++;
 			if (had)
 			{
 				Theatres.CAreaRemap.Remap(state, network);

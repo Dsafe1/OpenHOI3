@@ -113,8 +113,9 @@ All on 2026-11-20.
     - **the AI's steps are first askers too.** The host's AI makes the game's table of who stands where and its supply
       network when it asks, a client takes the AI's steps without running them, and so makes both at its next asking
       of its own - another moment. Latent: no order of events that shows it was found, and the state's hash holds
-      neither. To be settled with the AI out of the tick: the AI's steps made to look only, or both made at set
-      points of the hour that are not the AI's;
+      neither. **Mended 2026-11-20**: a recording keeps, for each of the AI's steps, whether its asking made either
+      (`CReplayStep.MadePositions`, `MadeSupplyNetwork`), and a machine that plays the step back makes them there -
+      so nothing of when the AI asks, or of what it is shown, has changed (`replay.md`, section 2);
     - **a dialog's chance asks the game's own Lua state**, whose own random and whatever its scripts keep move by it,
       and a script that posts from a score function would post into the game. With the Lua a client keeps for the
       chance alone (section 2), a state of its own for dialogs that can post nothing;
@@ -127,6 +128,15 @@ All on 2026-11-20.
     game between several players takes neither, as the original's shuts its console.
 - **The AI out of the tick**, into a step the host alone runs and that only posts commands (`worklist.md`, *Loose
   ends*), proved by two games in one process, one fed by the other as a replay is, before a socket stands between them.
+  **Much of it is there already, as the replay** (found 2026-11-20): every step of the AI's in the hour and the day is
+  marked (`CTick.AiStep`, `CReplay.RunCalledStep`), a recording keeps what each posted, drew and numbered, and a game
+  playing one back runs none of them - and `CReplay.Following` feeds one game from another as it runs, which is what
+  `OpenHOI3.SaveCheck replaycheck` does for a year of play. So a host is a game that records and a client one that
+  follows it, and the recording's entries are what goes over the wire. **What a client still runs of the AI**, and
+  so has to hold the AI's Lua and its own state for: what entering a game runs - the laws, the strategies, the first
+  pass over its units - the theatres each hour (`CTheatres.RunHourly`), which are worked out from the game alone, and
+  the foreign ministers told of a new war (`replay.md`, section 2). **Not yet looked at**: whether each of those is
+  the same on a machine whose AI state has not moved since the first hour, as a client's will not have.
 
 ## 4. Open
 
