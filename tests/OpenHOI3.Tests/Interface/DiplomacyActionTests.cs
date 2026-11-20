@@ -174,4 +174,44 @@ public class DiplomacyActionTests
 		Assert.Equal("", CDiplomacyActions.Chance(Localise, state, offer with { Kind = EOfferKind.Guarantee }));
 		Assert.Equal("", CDiplomacyActions.Chance(Localise, state, revoke));
 	}
+
+	private sealed class PostingScripts : IAiScripts
+	{
+		public int? NonHistoricalRelation(CGameState state, CCountry country, CCountry other) => null;
+
+		public int DiploScore(CGameState state, string function, CCountry actor, CCountry recipient, CCountry observer)
+		{
+			state.Outbox.Add(new OpenHOI3.Sim.Commands.CChangeLawCommand(recipient.Tag, "free_press", "press_laws",
+				payCost: false, postMessage: false));
+			state.Random.Next(100);
+			return 85;
+		}
+	}
+
+	[Fact]
+	public void TheChanceIsAskedOfTheScriptsKeptForLookingAndChangesNothing()
+	{
+		// docs/multiplayer.md, section 12: the display's scripts before the AI's own, and what a script posts or rolls
+		// while it is asked is put back.
+		CGameState state = World();
+		state.AiScripts = new FixedScripts { Score = 5 };
+		int made = 0;
+		var display = new PostingScripts();
+		state.DisplayScripts = () =>
+		{
+			made++;
+			return display;
+		};
+		COffer offer = new(EOfferKind.Alliance, ScriptWorld.Ger, ScriptWorld.Pol, EOfferStage.Proposed, true, state.TotalHours);
+		long draws = state.Random.Draws;
+
+		Assert.Equal("DIPCHANCE_VLIKELY", CDiplomacyActions.Chance(Localise, state, offer));
+		Assert.Equal(1, made);
+		Assert.Empty(state.Outbox);
+		Assert.Equal(draws, state.Random.Draws);
+
+		// With none to be had - a failure to make one answers null - the game's own are asked, as before.
+		state.DisplayScripts = () => null;
+		Assert.Equal("DIPCHANCE_VUNLIKELY", CDiplomacyActions.Chance(Localise, state, offer));
+	}
 }

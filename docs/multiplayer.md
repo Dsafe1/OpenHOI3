@@ -118,7 +118,7 @@ All on 2026-11-20.
       so nothing of when the AI asks, or of what it is shown, has changed (`replay.md`, section 2);
     - **a dialog's chance asks the game's own Lua state**, whose own random and whatever its scripts keep move by it,
       and a script that posts from a score function would post into the game. With the Lua a client keeps for the
-      chance alone (section 2), a state of its own for dialogs that can post nothing;
+      chance alone (section 2), a state of its own for dialogs that can post nothing - **built**, section 12;
     - **what listens to the state's events builds its message inside the running command**, where a look is not yet
       a look; nothing it reads today is made on asking;
     - `CAirBaseHolders` keeps an hour's air bases by a stamp that misses one built in that hour - the AI's alone.
@@ -380,7 +380,8 @@ the snapshot.
 
 **Not built**: the lobby, a name and an address entered on screen; a country chosen from those nobody plays, by a
 player joining or come back; the reason a game ended shown on screen; a client keeping the last game it was sent,
-so as to be sent nothing where it holds it; a client's own Lua for an offer's chance; chat. A game's sending blocks the
+so as to be sent nothing where it holds it; chat in play. (A client's own Lua for an offer's chance is built,
+section 12.) A game's sending blocks the
 host's frame until the connection has taken it.
 
 ## 7. The shared lobby - built 2026-11-20
@@ -533,3 +534,38 @@ stroke." One thing does both: **the host sends a game that is to be shown in a l
 **Checked** by two processes: a joiner's lobby of a running game with the header "Saved Game, 15 of February, 1936",
 the host's date, on a screenshot; then the whole of it, the United Kingdom chosen and joined, 71 and 76 midnights
 the same. **A save chosen in a host's lobby reaching a client was not tried** - no check clicks a save's row.
+
+## 12. The Lua a chance is asked of - built 2026-11-20
+
+Section 3's last open point. The dialogs of an offer say how likely the recipient's AI is to accept, which is that
+AI's own score function in the install's Lua. Until now the game's own Lua state was asked - the AI's, whose scripts
+keep things between calls and have a random of their own - and on a client there was none to ask.
+
+- **Every session keeps a second Lua state for looking** (`CGameState.DisplayScripts`, made by `CSession` the first
+  time a dialog asks and thrown away with the session; `CDiplomacyActions.Chance` asks it). It loads the same
+  `autoexec.lua`, takes 13 ms to make, and is never handed to the tick: nothing of the AI runs on it. A host and a
+  game for one have it too, so that a dialog no longer moves what the AI's scripts keep. Where it cannot be made the
+  game's own is asked as before, and the failure is said once.
+- **What a script posts while a chance is worked out is dropped and said**, and the game's two generators are put
+  back as they were - the second was already so for a peace's roll (`mechanics/war.md`, section 11). A look changes
+  nothing; on a client anything else would part the games.
+- **The state is not in a save and not sent**: a machine makes its own, as it makes the AI's (section 4.1).
+
+**Checked** with `OpenHOI3.SaveCheck aiscore <install> second`, which asks both states the same of one new game: ten
+of the eleven score functions that take only tags answered alike for all 6,006 pairs and posted nothing;
+`DiploScore_PeaceAction` differed in 2,742, since it rolls dice at every call - the dialog's figure for a peace is one
+roll's on any machine, the original's too. A test has a script that posts and rolls and finds neither afterwards.
+**Not looked at on a client's screen.**
+
+**A client's chance may be a little off the host's answer**, for what the scores read that only the AI's steps
+keep current, which a client does not run (`replay.md`, section 3):
+
+- **the recipient's AI strategy** (`GetStrategy()` in the alliance, non-aggression, trade, licence, peace and
+  break-alliance scores) is made again every ten days in an AI step. A client's is as it was at its last load -
+  joining, a resync - or at the country's last change of war or peace or of faction, which the game's own passes
+  run on every machine. Not hashed, so it parts nothing;
+- **what the scripts themselves remember** is each state's own.
+
+`CAIIntel` is worked out from the game as it is asked and is the same everywhere. Ours, and open: the host could be
+asked for the figure instead, which costs a round trip per dialog; or the strategy made again on a client at the
+same ten days, which wants `CAiStrategies.Make` shown to change nothing the hash covers.

@@ -45,6 +45,10 @@ public partial class CSession : Node
 {
 	private CDirectorySettings _directories = null!;
 	private CAiScripts? _aiScripts;
+
+	/// <summary>The Lua state a dialog asks an offer's chance of, this session's own and made when first asked.</summary>
+	private CAiScripts? _displayScripts;
+	private bool _displayScriptsFailed;
 	private CMapView _mapView = null!;
 	private CLocalisation _localisation = null!;
 
@@ -200,6 +204,27 @@ public partial class CSession : Node
 		// From here on screens look at the game between its commands, and a look keeps nothing in it: who stands where and
 		// the supply network are made by a running command alone (docs/multiplayer.md, section 3).
 		State.ScreensLook = true;
+		// And what a dialog asks the install's Lua - an offer's chance - it asks a Lua state of its own, made the first
+		// time one is asked: never the state the AI's ministers run in (docs/multiplayer.md, section 12).
+		State.DisplayScripts = () =>
+		{
+			if (_displayScripts is null && !_displayScriptsFailed)
+			{
+				var clock = Stopwatch.StartNew();
+				try
+				{
+					_displayScripts = new CAiScripts(_directories);
+					GD.Print($"Lua: a state for the dialogs' chances made in {clock.ElapsedMilliseconds} ms.");
+				}
+				catch (System.Exception failed)
+				{
+					// Without it the game's own state answers, as it did.
+					_displayScriptsFailed = true;
+					CDiagnostics.Warn($"lua: no state of its own for the dialogs' chances, so the game's answers: {failed.Message}");
+				}
+			}
+			return _displayScripts;
+		};
 		// Between several machines the game's played countries are every player's, and this machine's is the one the host
 		// gave it (docs/multiplayer.md, section 6).
 		Player = Net?.Country is { } given ? State.Country(given)
@@ -1536,6 +1561,10 @@ public partial class CSession : Node
 		// Hours still running beside the frame finish before the game is let go or handed on.
 		CollectHours(finish: true);
 		Content.Settings.CUserSettingsWriter.WriteFile(Settings, Settings.Path ?? Content.Settings.CUserSettingsReader.DefaultPath(_directories));
+		// The Lua kept for looking is this session's own, whoever has the game next.
+		State.DisplayScripts = null;
+		_displayScripts?.Dispose();
+		_displayScripts = null;
 		if (_handedOver)
 		{
 			return;

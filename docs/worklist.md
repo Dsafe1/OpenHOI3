@@ -82,7 +82,12 @@ conditions button by request. What is next:
    2026-11-20; `multiplayer.md`, section 8): any country may be shared, the first to choose it is its primary and
    alone is shown its events. To be looked at: two players giving one country orders, and the events on the
    primary's screen only;
-4. a client's Lua for an offer's chance as a state of its own that can post nothing;
+4. ~~a client's Lua for an offer's chance as a state of its own that can post nothing~~ - built 2026-11-20
+   (`multiplayer.md`, section 12): every session keeps a second Lua state a dialog's chance is asked of, what a
+   script posts or rolls there is put back, and `aiscore <install> second` sets it beside the game's - alike in
+   6,006 pairs. **Not looked at on a client's screen.** Open, named there: a client's AI strategy is as old as its
+   last load or its country's last change of war, the ten days' remaking being an AI step, so its chance may be a
+   little off the host's answer;
 5. the rest of section 6's *Not built*.
 **The screens no longer ask the AI's agent of a headquarters** (2026-11-20): the unit panel, the objectives, the plan
 markers and rows, the alert, Disband All, the order tooltip and the right click ask whether a plan is on

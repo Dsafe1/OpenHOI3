@@ -59,6 +59,39 @@ internal static class CAiScoreTrial
 		var landed = state.Countries.Where(c => CCountryLists.OwnedCount(state, c.Tag) > 0).ToList();
 		Console.WriteLine($"a new game: {landed.Count} countries own land, {state.Date}");
 
+		// `second`: a second Lua state made beside the game's - the one a dialog asks an offer's chance of
+		// (docs/multiplayer.md, section 12) - asked the same of the same game, and what it answers set beside the first's.
+		if (args.Contains("second"))
+		{
+			var made = Stopwatch.StartNew();
+			using var display = new CAiScripts(directories, reports.Add);
+			Console.WriteLine($"a second Lua state made in {made.ElapsedMilliseconds} ms");
+			foreach (string function in functions)
+			{
+				int asked = 0;
+				int other = 0;
+				int posted = 0;
+				foreach (CCountry actor in landed)
+				{
+					foreach (CCountry recipient in landed)
+					{
+						if (actor == recipient)
+						{
+							continue;
+						}
+						int outbox = state.Outbox.Count;
+						int first = scripts.DiploScore(state, function, actor, recipient, recipient);
+						int second = display.DiploScore(state, function, actor, recipient, recipient);
+						asked++;
+						other += first != second ? 1 : 0;
+						posted += state.Outbox.Count - outbox;
+					}
+				}
+				Console.WriteLine($"{function}: {asked} asked of both, {other} answered otherwise by the second, {posted} commands posted");
+			}
+			return 0;
+		}
+
 		foreach (string function in functions)
 		{
 			int before = scripts.Failures;

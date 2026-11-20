@@ -129,6 +129,15 @@ public sealed class CGameState
 	/// </summary>
 	public IAiScripts? AiScripts { get; set; }
 
+	/// <summary>
+	/// The Lua a screen asks what an AI would make of an offer, where whatever shows the game has one of its own: a
+	/// second state, apart from the one the AI's ministers run in, so that looking never moves what the AI's scripts
+	/// remember or draw, and on a machine that follows another's game never the game (<c>docs/multiplayer.md</c>,
+	/// section 12). Null asks <see cref="AiScripts"/>. No part of the game: set by what shows it, as
+	/// <see cref="ScreensLook"/> is.
+	/// </summary>
+	public System.Func<IAiScripts?>? DisplayScripts { get; set; }
+
 	/// <summary>Where the tick writes how long each of its steps took, or null, as it is but for tools.</summary>
 	public CTickProfile? Profile { get; set; }
 

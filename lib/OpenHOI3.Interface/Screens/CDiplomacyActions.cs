@@ -487,7 +487,17 @@ public static class CDiplomacyActions
 		// it back, so that what a screen shows never moves a game's rolls (war.md, section 11).
 		var saved = state.Random.Snapshot();
 		var savedAi = state.AiRandom.Snapshot();
-		int score = CPactPasses.Score(state, offer);
+		// Asked of the Lua kept for looking, where there is one, and never of the AI's own state; and whatever the
+		// script would post is thrown away and said - a look changes nothing, least of all on a machine that follows
+		// another's game, where it would part the two (docs/multiplayer.md, section 12).
+		int posted = state.Outbox.Count;
+		int score = CPactPasses.Score(state, offer, state.DisplayScripts?.Invoke());
+		if (state.Outbox.Count > posted)
+		{
+			OpenHOI3.Content.CDiagnostics.Warn($"lua: working out an offer's chance, a script posted {state.Outbox.Count - posted} "
+				+ "command(s), which a look may not; they are dropped");
+			state.Outbox.RemoveRange(posted, state.Outbox.Count - posted);
+		}
 		state.Random.Restore(saved);
 		state.AiRandom.Restore(savedAi);
 		string key = score switch
