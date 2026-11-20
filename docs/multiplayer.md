@@ -205,6 +205,16 @@ All on 2026-11-20.
 - **The lobby is the one there is** - the map, the options, the bookmarks and the saves - with the little the
   original has before it: a player's name, and an address to join in place of its list of servers, there being none.
   Chat and the rest come later.
+- **The lobby is shared** (decided 2026-11-20): the host's lobby listens from the moment it is opened, a machine
+  that joins sees the same lobby, each player picks a country on its map, and the host's Play starts the game for
+  every machine. Joining a game that is running stays as it is. So the lobby's choices - the bookmark or the save,
+  the options, who has which country - have to travel between the machines. **Not built.**
+- **The address is typed where the original has it typed**: "The original has a second panel that opens once you
+  choose internet game." `temp_frontend.gui` has `multiplayer_menu` - `playername`, `host`, `join`, `join_direct`,
+  `scan`, `metaserver`, `Back` and the list `games` - and `naming_window`, a `Title`, an edit box `edit`, and the
+  buttons `ok_host_button` and `back_button`, which its own comment says is "used for both player and game name".
+  **What the original does with them is not read**: which the second panel is, its title and what its button says
+  when it asks for an address. To be read in the fact base or told, before the panel is built.
 
 ## 5. A host and its clients - built 2026-11-20, with no network under it
 
