@@ -19,12 +19,16 @@ public static class CTheatreSort
 	/// <summary>The nearest headquarters is looked for from this distance.</summary>
 	private const long Far = 1_000_000;
 
-	public static void Sort(CGameState state, CCountry country)
+	/// <param name="byWayAlone">For a player's command, which every machine runs: where a unit is going is its way's end,
+	/// and never what the AI sent it to in this pass (<see cref="CUnit.AiBound"/>), which only the machine that runs the AI
+	/// holds (<c>docs/multiplayer.md</c>, section 3). By the time a player's command runs, what the AI sent a unit to has
+	/// become its way.</param>
+	public static void Sort(CGameState state, CCountry country, bool byWayAlone = false)
 	{
 		var listed = new List<CUnit>();
 		foreach (CUnit unit in PostOrder(country))
 		{
-			if (unit.Kind == EUnitKind.Theatre || unit.IsRemoved || TheatreAt(state, country, unit) is not { } theatre)
+			if (unit.Kind == EUnitKind.Theatre || unit.IsRemoved || TheatreAt(state, country, unit, byWayAlone) is not { } theatre)
 			{
 				continue;
 			}
@@ -32,7 +36,7 @@ public static class CTheatreSort
 			CUnit? list = unit.Parent is null ? unit : null;
 			while (current.Parent is { } parent && current.Kind != EUnitKind.Theatre)
 			{
-				int place = Place(state, country, parent);
+				int place = Place(state, country, parent, byWayAlone);
 				if (place > 0 && state.Province(place).TheatreId == theatre.Id)
 				{
 					current = parent;
@@ -52,7 +56,7 @@ public static class CTheatreSort
 			{
 				continue;
 			}
-			if (TheatreAt(state, country, unit) is { } theatre && CTheatres.Headquarters(state, theatre) is { } headquarters)
+			if (TheatreAt(state, country, unit, byWayAlone) is { } theatre && CTheatres.Headquarters(state, theatre) is { } headquarters)
 			{
 				state.Outbox.Add(new CAttachUnitCommand(country.Tag, unit.Id, headquarters.Id));
 			}
@@ -92,9 +96,9 @@ public static class CTheatreSort
 	}
 
 	/// <summary>The country's theatre stamped on where the unit counts as standing, or null.</summary>
-	private static CTheatre? TheatreAt(CGameState state, CCountry country, CUnit unit)
+	private static CTheatre? TheatreAt(CGameState state, CCountry country, CUnit unit, bool byWayAlone)
 	{
-		int place = Place(state, country, unit);
+		int place = Place(state, country, unit, byWayAlone);
 		return place > 0 && CTheatreProvinces.Of(state, place) is { } theatre && theatre.Country == country.Tag ? theatre : null;
 	}
 
@@ -103,7 +107,7 @@ public static class CTheatreSort
 	/// its base; a carrying fleet by where it is going on the country's land; a unit with a base by its base, whoever's; a
 	/// land unit by where it is going or where it is, on the country's land; else the headquarters a search finds.
 	/// </summary>
-	private static int Place(CGameState state, CCountry country, CUnit unit)
+	private static int Place(CGameState state, CCountry country, CUnit unit, bool byWayAlone)
 	{
 		if (unit.Transport is { } fleet)
 		{
@@ -132,7 +136,7 @@ public static class CTheatreSort
 		{
 			return unit.Location;
 		}
-		return Search(state, country, CAgentUnits.DestinationOrPlace(unit));
+		return Search(state, country, byWayAlone ? CAgentUnits.WayOrPlace(unit) : CAgentUnits.DestinationOrPlace(unit));
 	}
 
 	private static bool Ours(CGameState state, CCountry country, int province)

@@ -111,10 +111,7 @@ public static class CExpeditions
 		// Ours: the original leaves a unit coming home its old date, which nothing reads without a lender.
 		unit.RecallHour = null;
 		unit.Owner = target.Tag;
-		if (unit.Agent is { } agent)
-		{
-			Agents.CAgents.Unbind(state, agent);
-		}
+		Agents.CAgents.LetGo(state, unit);
 		foreach (CUnit child in unit.Children)
 		{
 			SendOne(state, child, target);
@@ -129,10 +126,7 @@ public static class CExpeditions
 			lender.LentUnits.Add(unit);
 		}
 		unit.Owner = host.Tag;
-		if (unit.Agent is { } agent)
-		{
-			Agents.CAgents.Unbind(state, agent);
-		}
+		Agents.CAgents.LetGo(state, unit);
 		foreach (CUnit child in unit.Children)
 		{
 			Change(state, child, lender, host);
@@ -180,10 +174,7 @@ public static class CExpeditions
 		lender.LentUnits.Remove(unit);
 		unit.Lender = null;
 		unit.RecallHour = null;
-		if (unit.Agent is { } agent)
-		{
-			Agents.CAgents.Unbind(state, agent);
-		}
+		Agents.CAgents.LetGo(state, unit);
 		unit.Owner = lender.Tag;
 		lender.Units.Add(unit);
 		state.ForgetPositions();

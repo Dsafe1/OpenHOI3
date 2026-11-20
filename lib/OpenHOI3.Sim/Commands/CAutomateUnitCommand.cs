@@ -30,16 +30,23 @@ public sealed class CAutomateUnitCommand : CCommand
 	{
 		CCountry country = state.Country(_owner)!;
 		CUnit unit = CUnitFinder.Find(state, _owner, _unit)!;
-		if (CAgents.HighestOver(unit) is { } agent)
+		// By what the game holds - a plan that is on - and never by the AI's agents: a command runs on every machine, and a
+		// machine that does not run the AI has no agent to ask, or a stale one (docs/multiplayer.md, section 3).
+		if (CAgents.HighestAutomated(unit) is { } automated)
 		{
-			CAgents.Remove(state, country, agent);
+			CAgent? agent = automated.Agent;
+			CAgents.LetGo(state, automated);
+			if (agent is not null)
+			{
+				country.UnitAi.Agents.Remove(agent);
+			}
 			return;
 		}
-		if (CAgents.TheatreHeadedBy(state, country, unit) is { } theatre)
+		if (CAgents.TheatreHeadedBy(state, country, unit) is not null)
 		{
-			var made = new CAgent(country.Tag, theatre.Id);
-			country.UnitAi.Agents.Add(made);
-			CAgents.Bind(state, country, made, unit);
+			// Only the plan is switched on here. The agent is the AI's to make, in its next pass (CAgents.Adopt), with the
+			// area, the powers and the sorting of what is under the headquarters, which reach every machine as its commands.
+			unit.Plan.Active = true;
 			// A theatre's plan begins at Prepare, its air and naval stances as low as they go.
 			state.Outbox.Add(new CSetPlanCommand(country.Tag, unit.Id, CUnitPlan.Prepare, 0, 0));
 		}

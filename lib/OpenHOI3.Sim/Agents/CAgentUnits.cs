@@ -43,10 +43,8 @@ public static class CAgentUnits
 		{
 			oldAgent.ReplanSubordinates = true;
 		}
-		if (unit.Agent is { } own)
-		{
-			CAgents.Unbind(state, own);
-		}
+		// By what the game holds of it, as every machine runs this (CAgents.LetGo).
+		CAgents.LetGo(state, unit);
 		CTheatres.Attach(country, unit, parent);
 		if (NearestAgent(parent) is { } newAgent)
 		{
@@ -112,6 +110,16 @@ public static class CAgentUnits
 	public static int DestinationOrPlace(CUnit unit)
 	{
 		int destination = Destination(unit);
+		return destination > 0 ? destination : unit.Location;
+	}
+
+	/// <summary>
+	/// The same with nothing asked of what the AI sent it to in this pass: by its way and its order alone, which every
+	/// machine holds. For what runs on every machine (<c>docs/multiplayer.md</c>, section 3).
+	/// </summary>
+	public static int WayOrPlace(CUnit unit)
+	{
+		int destination = Destination(unit, -1);
 		return destination > 0 ? destination : unit.Location;
 	}
 

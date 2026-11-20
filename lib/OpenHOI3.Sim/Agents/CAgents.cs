@@ -38,17 +38,25 @@ public static class CAgents
 				covering ??= agent;
 			}
 		}
-		if (covering is not null)
+		if (going)
 		{
-			if (going)
+			// Called from the theatres' hour, which every machine runs: the headquarters' plan goes off by what the game
+			// holds of it, and not by an agent only the AI's machine has (docs/multiplayer.md, section 3).
+			if (CTheatres.Headquarters(state, theatre) is { } headquarters)
 			{
-				Remove(state, country, covering);
+				LetGo(state, headquarters);
+			}
+			if (covering is not null)
+			{
+				Detach(covering);
+				ai.Agents.Remove(covering);
 				MarkChanged(state, country);
 			}
-			else
-			{
-				covering.AreaDirty = true;
-			}
+			return;
+		}
+		if (covering is not null)
+		{
+			covering.AreaDirty = true;
 			return;
 		}
 		if (!going && ai.RunsUnits)
@@ -77,10 +85,7 @@ public static class CAgents
 		{
 			return false;
 		}
-		if (unit.Agent is { } other)
-		{
-			Unbind(state, other);
-		}
+		LetGo(state, unit);
 		unit.Agent = agent;
 		agent.Unit = unit;
 		CAgentArea.Set(state, country, agent);
@@ -103,6 +108,72 @@ public static class CAgents
 			unit.Agent = null;
 		}
 		agent.Unit = null;
+	}
+
+	/// <summary>
+	/// A unit let go by whatever every machine runs - a command, the theatres' hour, a change of owner: its plan switched
+	/// off and reset **where the game holds it on**, and an agent on it taken off without a word. The plan's being on is
+	/// what the game holds of "the AI runs this headquarters"; the agent is the AI's own, and a machine that does not run
+	/// the AI may hold none, or one long let go elsewhere - so nothing here is posted for an agent's sake
+	/// (<c>docs/multiplayer.md</c>, section 3).
+	/// </summary>
+	public static void LetGo(CGameState state, CUnit unit)
+	{
+		if (unit.Plan.Active)
+		{
+			state.Outbox.Add(new CActivatePlanCommand(unit.Owner, unit.Id, active: false, unit.Plan.AllowHqReorg));
+		}
+		if (unit.Agent is { } agent)
+		{
+			Detach(agent);
+		}
+	}
+
+	/// <summary>An agent and its unit parted, nothing posted.</summary>
+	private static void Detach(CAgent agent)
+	{
+		if (agent.Unit is { } unit && ReferenceEquals(unit.Agent, agent))
+		{
+			unit.Agent = null;
+		}
+		agent.Unit = null;
+	}
+
+	/// <summary>
+	/// The highest unit, the unit itself or one above it, whose plan is on: the headquarters the AI runs it under, as the
+	/// game holds it and every machine alike. What a command or a screen asks, where the AI's own code asks
+	/// <see cref="HighestOver"/>.
+	/// </summary>
+	public static CUnit? HighestAutomated(CUnit unit)
+	{
+		CUnit? found = null;
+		for (CUnit? above = unit; above is not null; above = above.Parent)
+		{
+			if (above.Plan.Active)
+			{
+				found = above;
+			}
+		}
+		return found;
+	}
+
+	/// <summary>
+	/// For a country whose units the AI does not run - a played one: each of its theatres' headquarters whose plan is on
+	/// and that no agent has is given one, bound. A player's handing a headquarters to the AI only switches its plan on,
+	/// as a command, on every machine (<see cref="Commands.CAutomateUnitCommand"/>); the agent is made here, in the AI's
+	/// pass, by the machine that runs the AI.
+	/// </summary>
+	public static void Adopt(CGameState state, CCountry country)
+	{
+		foreach (CTheatre theatre in country.Strategy.Theatres)
+		{
+			if (CTheatres.Headquarters(state, theatre) is { Plan.Active: true, Agent: null } headquarters)
+			{
+				var made = new CAgent(country.Tag, theatre.Id);
+				country.UnitAi.Agents.Add(made);
+				Bind(state, country, made, headquarters);
+			}
+		}
 	}
 
 	/// <summary>The highest agent on a unit or any unit above it, or null.</summary>

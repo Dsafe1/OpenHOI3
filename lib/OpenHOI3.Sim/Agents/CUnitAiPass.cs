@@ -174,6 +174,8 @@ public static class CUnitAiPass
 		}
 		if (!ai.RunsUnits)
 		{
+			// A headquarters its player has handed to the AI since the last pass is taken up (agents.md, section 1).
+			CAgents.Adopt(state, country);
 			return;
 		}
 		CAgents.CreateForTheatres(state, country);

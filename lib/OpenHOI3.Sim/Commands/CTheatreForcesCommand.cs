@@ -21,6 +21,8 @@ public sealed class CTheatreForcesCommand : CCommand
 
 	public override void Execute(CGameState state)
 	{
-		CTheatreSort.Sort(state, state.Country(_owner)!);
+		// By each unit's way alone: a command runs on every machine, and what the AI sent a unit to in its pass is only
+		// the AI's machine's to know (docs/multiplayer.md, section 3).
+		CTheatreSort.Sort(state, state.Country(_owner)!, byWayAlone: true);
 	}
 }

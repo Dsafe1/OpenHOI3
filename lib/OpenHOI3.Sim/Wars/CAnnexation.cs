@@ -231,10 +231,7 @@ public static class CAnnexation
 		{
 			annexed.Units.Remove(unit);
 		}
-		if (unit.Agent is { } agent)
-		{
-			Agents.CAgents.Unbind(state, agent);
-		}
+		Agents.CAgents.LetGo(state, unit);
 		unit.Owner = to.Tag;
 		to.Units.Add(unit);
 		state.ForgetPositions();
