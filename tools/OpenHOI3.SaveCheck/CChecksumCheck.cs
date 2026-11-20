@@ -48,6 +48,13 @@ public static class CChecksumCheck
 		string ours = $"{CFileChecksum.VersionName} ({CFileChecksum.Letters(checksum)})    {checksum}";
 		Console.WriteLine($"ours:     {ours}, {files} files in {clock.ElapsedMilliseconds} ms");
 
+		// This engine's own, beside it: nothing of the original's to set it against (checksum.md, section 8). With no
+		// engine named, as a game run from its sources has none.
+		clock.Restart();
+		(byte[] play, int playFiles) = CPlayChecksum.Compute(CChecksumSearchPath.ForPlay(directories), engineVersion: "");
+		Console.WriteLine($"play:     {CPlayChecksum.Label(play)}    {Convert.ToHexString(play)}, {playFiles} files in "
+			+ $"{clock.ElapsedMilliseconds} ms");
+
 		string log = Path.Combine(logFolder, "logs", "setup.log");
 		string? theirs = null;
 		if (File.Exists(log))

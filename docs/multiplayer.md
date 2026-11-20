@@ -42,7 +42,9 @@ All on 2026-11-20.
 - **Two checksums.** The original's file checksum is kept as it is, so that players can still set a mod's letters
   beside the original's (`mechanics/checksum.md`). A second one of this engine's own covers what the first does not -
   the engine's version, the enhanced engine's rules, and every file a game reads by path and content
-  (`enhanced.md`, *The file checksum*) - and is what machines compare before they play.
+  (`enhanced.md`, *The file checksum*) - and is what machines compare before they play. **Built 2026-11-20** as
+  `CPlayChecksum` (`mechanics/checksum.md`, section 8): the files that decide how a game goes, the AI's Lua among
+  them, and not the interface, the pictures or the localisation. The client does not work it out yet.
 
 - **A game sent to a machine is loaded by every machine, the host too - until there is a snapshot.** A save in the
   original's keys does not hold everything a game goes on from, and a game loaded parts from the one that saved it

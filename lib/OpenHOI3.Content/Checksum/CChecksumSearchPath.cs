@@ -47,6 +47,22 @@ public sealed class CChecksumSearchPath
 		return new CChecksumSearchPath(mounts.Select(Path.GetFullPath), limits);
 	}
 
+	/// <summary>
+	/// The folders a game here reads its files from, for <see cref="CPlayChecksum"/>: the same without the player's
+	/// folder in front, which is no layer of game files here (<c>docs/compatibility.md</c>, entry 28) - so that what a
+	/// player keeps in his Documents folder does not part his figure from another's.
+	/// </summary>
+	public static CChecksumSearchPath ForPlay(CDirectorySettings directories)
+	{
+		if (OpenHOI3.Content.Mods.CModRules.UserFolderIsLayer)
+		{
+			return For(directories);
+		}
+		(string[] mounts, IReadOnlyDictionary<string, int> limits) = directories.SearchPath();
+		return new CChecksumSearchPath(mounts.Skip(1).Select(Path.GetFullPath),
+			limits.ToDictionary(pair => pair.Key, pair => pair.Value - 1, OpenHOI3.Content.Mods.CModRules.Comparer));
+	}
+
 	/// <summary>The index of the first folder holding the path, file or folder, or -1.</summary>
 	public int First(string relative)
 	{

@@ -88,3 +88,36 @@ the mod layer reads it: Their Finest Hour again, BlackICE GitHub `1599539514 (OX
 The original's figure is a weak guard, kept as it is and listed in `docs/enhanced.md`: it is a sum of sums, so swapping two
 files' contents, moving a file between summed folders or adding an empty one changes nothing; it is 32 bits; and it leaves
 out the AI's Lua, the interface and the localisation. A multiplayer of this game's own would want more.
+
+## 8. The play checksum - ours
+
+A second figure beside the original's, which stays as it is so that a mod's letters can still be set beside the
+original's main menu. Decided 2026-11-20 (`docs/multiplayer.md`, section 2) and built the same day as `CPlayChecksum`:
+**what two machines compare before they play one game.** Nothing of the original's stands behind it.
+
+It is a SHA-256 hash of, in this order:
+
+1. the text `OpenHOI3 play checksum 1`, which is raised when what goes in, or how, changes;
+2. the engine's version, as its `engine.txt` names it (`docs/launcher.md`, section 2) - empty for a game run from its
+   sources;
+3. the rules a game is played by beyond the original's - the enhanced engine's, of which there are none yet;
+4. every file of the folders `common`, `decisions`, `events`, `history`, `map`, `missions`, `script`, `technologies`
+   and `units`, with every subfolder and whatever its extension: its path in lower case, its length and its bytes, the
+   files in the order of their lower-case paths.
+
+Each text goes in with its length in front. So a file moved, two files exchanged and an empty file added each change
+it, and the AI's Lua is part of it - the things the original's figure lets by (section 7).
+
+**Which copy of a file** is the one a game here reads: a mod's folder, `tfh/`, the install, a replaced folder by the
+mod's alone - and **not the player's folder**, which is no layer of game files here (`docs/compatibility.md`, entry 28;
+`CChecksumSearchPath.ForPlay`). **Left out**: `map/cache`, which each machine makes for itself; `.svn` and `.git`
+folders; and the interface, the pictures, the localisation, the sound and the music, which change what a player sees
+and hears and nothing a game does. A mod's interface or localisation may therefore differ between two players who are
+let play together.
+
+A player is shown its first eight hexadecimal digits in fours, `6B30-DA67`.
+
+**Checked** by `OpenHOI3.SaveCheck checksum`, which prints it under the original's: on 2026-11-20 Their Finest Hour
+`6B30-DA67`, 13,662 files in 2.3 s, and BlackICE GitHub `4AFB-2CB2`, 20,567 files in 3.6 s - the original's own figures
+of the same runs unchanged, `GSKH` and `PURE`. **The client does not work it out yet**: it would add those seconds to
+every start, and nothing reads it before there is a lobby between machines.
