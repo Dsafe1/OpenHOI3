@@ -52,7 +52,7 @@ public static class CAutomatedTrades
 				state.Outbox.Add(new COfferCommand(offer with { Stage = EOfferStage.Declined }));
 			}
 		}
-		country.PendingOffers.Clear();
-		country.PendingOffers.AddRange(kept);
+		// Through the step, so that a machine playing the AI back has the list as this one leaves it.
+		state.DoInStep(new CKeepOffersCommand(country.Tag, kept));
 	}
 }

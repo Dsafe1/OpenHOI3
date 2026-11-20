@@ -26,48 +26,21 @@ public static class CPactPasses
 	/// scored by the install's Lua and accepted where the score is over 30 and a draw of 0 to 99 is
 	/// below it, else declined; each answer is posted as a command; and the list is emptied. **One trade
 	/// is accepted an hour**: a further trade the draw would accept stays on the list, still a proposal,
-	/// for the next hour (<c>trade.md</c>, section 2). **A played country's offers are put to its player
-	/// instead**, each once: under automate-trade a trade is kept for the hour's roll
-	/// (<see cref="Trade.CAutomatedTrades"/>), and every other proposal of a kind with a dialog is asked
-	/// (<see cref="CGameState.OfferAsked"/>); the rest are dropped (<c>agreements.md</c>, section 10).
+	/// for the next hour (<c>trade.md</c>, section 2). A played country's offers are its player's
+	/// (<see cref="AskPlayers"/>). **The AI's own step, which only the machine that runs the AI runs**: what it
+	/// leaves of a list it leaves through <see cref="CGameState.DoInStep"/>, so that every machine's lists are
+	/// the same (<c>docs/multiplayer.md</c>, section 3).
 	/// </summary>
 	public static void AnswerOffers(CGameState state)
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			if (country.AiPaused || country.PendingOffers.Count == 0)
+			if (country.AiPaused || country.PendingOffers.Count == 0 || state.Played.Contains(country.Tag))
 			{
 				continue;
 			}
 			var kept = new List<COffer>();
-			if (state.Played.Contains(country.Tag))
-			{
-				bool automated = state.AutomateTrade.Contains(country.Tag);
-				foreach (COffer offer in country.PendingOffers)
-				{
-					if (offer.Kind == EOfferKind.Trade && automated)
-					{
-						kept.Add(offer);
-					}
-					else if (offer.Kind == EOfferKind.CallAlly && offer.Stage == EOfferStage.Proposed)
-					{
-						// The screen's call is accepted for him unasked; one that asks, only while still valid (war.md, section 6).
-						if (!offer.Value)
-						{
-							state.Outbox.Add(new COfferCommand(offer with { Stage = EOfferStage.Accepted }));
-						}
-						else if (Wars.CCallsToArms.MayAsk(state, offer))
-						{
-							state.RaiseOfferAsked(offer);
-						}
-					}
-					else if (COfferRules.AsksPlayer(offer))
-					{
-						state.RaiseOfferAsked(offer);
-					}
-				}
-			}
-			else if (CCountryLists.OwnedCount(state, country.Tag) > 0)
+			if (CCountryLists.OwnedCount(state, country.Tag) > 0)
 			{
 				bool tradeAccepted = false;
 				foreach (COffer offer in country.PendingOffers)
@@ -92,6 +65,52 @@ public static class CPactPasses
 						tradeAccepted = true;
 					}
 					state.Outbox.Add(new COfferCommand(offer with { Stage = answer }));
+				}
+			}
+			state.DoInStep(new CKeepOffersCommand(country.Tag, kept));
+		}
+	}
+
+	/// <summary>
+	/// **A played country's offers are put to its player**, each once: under automate-trade a trade is kept for
+	/// the hour's roll (<see cref="Trade.CAutomatedTrades"/>), and every other proposal of a kind with a dialog is
+	/// asked (<see cref="CGameState.OfferAsked"/>); the rest are dropped (<c>agreements.md</c>, section 10).
+	/// **A step of the game's own, run on every machine** - it was half of the AI's answering until 2026-11-20,
+	/// and a machine that does not run the AI then never showed its player an offer.
+	/// </summary>
+	public static void AskPlayers(CGameState state)
+	{
+		foreach (CCountry country in state.Countries)
+		{
+			if (country.AiPaused || country.PendingOffers.Count == 0 || !state.Played.Contains(country.Tag))
+			{
+				continue;
+			}
+			var kept = new List<COffer>();
+			{
+				bool automated = state.AutomateTrade.Contains(country.Tag);
+				foreach (COffer offer in country.PendingOffers)
+				{
+					if (offer.Kind == EOfferKind.Trade && automated)
+					{
+						kept.Add(offer);
+					}
+					else if (offer.Kind == EOfferKind.CallAlly && offer.Stage == EOfferStage.Proposed)
+					{
+						// The screen's call is accepted for him unasked; one that asks, only while still valid (war.md, section 6).
+						if (!offer.Value)
+						{
+							state.Outbox.Add(new COfferCommand(offer with { Stage = EOfferStage.Accepted }));
+						}
+						else if (Wars.CCallsToArms.MayAsk(state, offer))
+						{
+							state.RaiseOfferAsked(offer);
+						}
+					}
+					else if (COfferRules.AsksPlayer(offer))
+					{
+						state.RaiseOfferAsked(offer);
+					}
 				}
 			}
 			country.PendingOffers.Clear();

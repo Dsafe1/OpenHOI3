@@ -41,33 +41,43 @@ public static class CStateHash
 	/// </summary>
 	private static ulong Theatres(CGameState state)
 	{
-		var hash = new CHasher();
-		hash.Add(state.NextTheatreId);
-		hash.Add(state.LastUnitId);
+		return Of(TheatreFields(state));
+	}
+
+	/// <summary>The theatres part field by field: the two counters, and each country's offers waiting, theatres and active plans.</summary>
+	public static IEnumerable<KeyValuePair<string, ulong>> TheatreFields(CGameState state)
+	{
+		yield return Field("game", "next theatre number", h => h.Add(state.NextTheatreId));
+		yield return Field("game", "last unit number", h => h.Add(state.LastUnitId));
 		foreach (CCountry country in state.Countries)
 		{
-			hash.Add(country.Tag.Value);
-			hash.Add(country.PendingOffers.Count);
-			foreach (Theatres.CTheatre theatre in country.Strategy.Theatres)
+			string tag = country.Tag.Value;
+			yield return Field(tag, "offers waiting", h => h.Add(country.PendingOffers.Count));
+			yield return Field(tag, "theatres", h =>
 			{
-				hash.Add(theatre.Id);
-				hash.Add(theatre.Headquarters);
-				hash.Add(theatre.Provinces.Count);
-				foreach (int province in theatre.Provinces)
+				foreach (Theatres.CTheatre theatre in country.Strategy.Theatres)
 				{
-					hash.Add(province);
+					h.Add(theatre.Id);
+					h.Add(theatre.Headquarters);
+					h.Add(theatre.Provinces.Count);
+					foreach (int province in theatre.Provinces)
+					{
+						h.Add(province);
+					}
 				}
-			}
-			foreach (CUnit unit in country.AllUnits())
+			});
+			yield return Field(tag, "active plans", h =>
 			{
-				if (unit.Plan.Active)
+				foreach (CUnit unit in country.AllUnits())
 				{
-					hash.Add(unit.Id);
-					hash.Add(unit.Plan.Stance);
+					if (unit.Plan.Active)
+					{
+						h.Add(unit.Id);
+						h.Add(unit.Plan.Stance);
+					}
 				}
-			}
+			});
 		}
-		return hash.Value;
 	}
 
 	/// <summary>The parts' hashes as one.</summary>
@@ -254,7 +264,7 @@ public static class CStateHash
 	/// </summary>
 	public static IEnumerable<KeyValuePair<string, ulong>> Fields(CGameState state)
 	{
-		return CountryFields(state).Concat(ProvinceFields(state)).Concat(UnitFields(state));
+		return CountryFields(state).Concat(ProvinceFields(state)).Concat(UnitFields(state)).Concat(TheatreFields(state));
 	}
 
 	/// <summary>Each province's holders and its pool.</summary>

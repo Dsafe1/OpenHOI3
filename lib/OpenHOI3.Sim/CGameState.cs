@@ -1025,6 +1025,22 @@ public sealed class CGameState
 	/// <inheritdoc cref="PositionsMade"/>
 	public long SupplyNetworksMade { get; internal set; }
 
+	/// <summary>What the AI's step now running has done through <see cref="DoInStep"/>, for its recording; null outside one.</summary>
+	internal List<Commands.CCommand>? DoneInStep { get; set; }
+
+	/// <summary>
+	/// For one of the AI's steps that has to change the game itself and at once, where posting a command would change
+	/// it a drain later: the change as a command, run now - and kept with the step where the game is recorded, so that a
+	/// machine playing the step back, which runs none of the step, makes the same change at the same place
+	/// (<c>docs/multiplayer.md</c>, section 3). **Whatever of the AI's the rest of the game reads is written this way
+	/// or by a posted command, never straight** - a machine that does not run the AI has it no other way.
+	/// </summary>
+	public void DoInStep(Commands.CCommand command)
+	{
+		command.Execute(this);
+		DoneInStep?.Add(command);
+	}
+
 	/// <summary>The table a screen was shown while the game's own was not whole: nobody's but the screen's.</summary>
 	private CUnitPositions? _positionsLook;
 

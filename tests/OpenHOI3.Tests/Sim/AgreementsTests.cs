@@ -351,7 +351,7 @@ public class AgreementsTests
 
 		state.Played.Add(Pol);
 		state.AiScripts = new FixedScripts(100);
-		CPactPasses.AnswerOffers(state);
+		CPactPasses.AskPlayers(state);
 		Assert.Empty(C(state, Pol).PendingOffers);
 		Assert.Empty(state.Outbox);
 	}

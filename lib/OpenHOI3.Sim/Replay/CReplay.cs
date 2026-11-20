@@ -91,7 +91,17 @@ public sealed class CReplay
 		int unitIds = state.LastUnitId;
 		long positions = state.PositionsMade;
 		long networks = state.SupplyNetworksMade;
-		step(state);
+		List<CCommand>? outer = state.DoneInStep;
+		var done = new List<CCommand>();
+		state.DoneInStep = done;
+		try
+		{
+			step(state);
+		}
+		finally
+		{
+			state.DoneInStep = outer;
+		}
 		if (state.Random.Draws < draws || state.AiRandom.Draws < aiDraws)
 		{
 			throw new InvalidOperationException($"{name} seeded a generator again, which a recording cannot play back");
@@ -102,7 +112,7 @@ public sealed class CReplay
 			commands.Add(state.Outbox[i]);
 		}
 		Keep(new CReplayStep(state.TotalHours, name, commands, state.Random.Draws - draws, state.LastUnitId - unitIds,
-			state.AiRandom.Draws - aiDraws, state.PositionsMade != positions, state.SupplyNetworksMade != networks));
+			state.AiRandom.Draws - aiDraws, state.PositionsMade != positions, state.SupplyNetworksMade != networks, done));
 	}
 
 	/// <summary>
@@ -118,6 +128,11 @@ public sealed class CReplay
 		if (kept.MadePositions)
 		{
 			_ = state.Positions;
+		}
+		// What the step did to the game itself and at once, done here in its order (CGameState.DoInStep).
+		foreach (CCommand did in kept.Done)
+		{
+			did.Execute(state);
 		}
 		state.Outbox.AddRange(kept.Commands);
 		state.Random.Skip(kept.Draws);
@@ -151,9 +166,20 @@ public sealed class CReplay
 		int unitIds = state.LastUnitId;
 		long positions = state.PositionsMade;
 		long networks = state.SupplyNetworksMade;
-		step(state);
+		List<CCommand>? outer = state.DoneInStep;
+		var done = new List<CCommand>();
+		state.DoneInStep = done;
+		try
+		{
+			step(state);
+		}
+		finally
+		{
+			state.DoneInStep = outer;
+		}
 		if (state.Outbox.Count == posted && state.Random.Draws == draws && state.AiRandom.Draws == aiDraws
-			&& state.LastUnitId == unitIds && state.PositionsMade == positions && state.SupplyNetworksMade == networks)
+			&& state.LastUnitId == unitIds && state.PositionsMade == positions && state.SupplyNetworksMade == networks
+			&& done.Count == 0)
 		{
 			return;
 		}
@@ -163,7 +189,7 @@ public sealed class CReplay
 			commands.Add(state.Outbox[i]);
 		}
 		Keep(new CReplayStep(state.TotalHours, name, commands, state.Random.Draws - draws, state.LastUnitId - unitIds,
-			state.AiRandom.Draws - aiDraws, state.PositionsMade != positions, state.SupplyNetworksMade != networks));
+			state.AiRandom.Draws - aiDraws, state.PositionsMade != positions, state.SupplyNetworksMade != networks, done));
 	}
 
 	/// <summary>Recording: a command posted from outside the game, after that many drains of the queue.</summary>

@@ -118,6 +118,8 @@ public static class CTick
 	/// </summary>
 	private static void RunAiPass(CGameState state)
 	{
+		// A played country's offers are put to its player, on every machine (docs/mechanics/agreements.md, section 10).
+		Step(state, Agreements.CPactPasses.AskPlayers);
 		// Each AI country answers the offers made to it (docs/mechanics/agreements.md, section 2).
 		AiStep(state, Agreements.CPactPasses.AnswerOffers);
 		// Then its politics minister, in its own hour of the day (docs/mechanics/politics.md, section 12).
@@ -349,6 +351,7 @@ public static class CTick
 	/// </summary>
 	private static void RunLoadAiPass(CGameState state)
 	{
+		Agreements.CPactPasses.AskPlayers(state);
 		Agreements.CPactPasses.AnswerOffers(state);
 		Politics.CPoliticsAi.RunHourly(state);
 		Espionage.CEspionageAi.RunHourly(state);

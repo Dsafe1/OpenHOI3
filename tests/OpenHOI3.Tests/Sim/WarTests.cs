@@ -239,7 +239,7 @@ public class WarTests
 		CGameState state = World();
 		state.Played.Add(Eng);
 		Run(state, Declaration(state, Ger, Pol));
-		CPactPasses.AnswerOffers(state);
+		CPactPasses.AskPlayers(state);
 		COfferCommand answer = Assert.IsType<COfferCommand>(Assert.Single(state.Outbox));
 		Assert.Equal(EOfferStage.Accepted, answer.Offer.Stage);
 	}

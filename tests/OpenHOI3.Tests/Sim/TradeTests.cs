@@ -240,7 +240,7 @@ public class TradeTests
 		C(state, Pol).PendingOffers.Add(BuyMetal(state, Pol, "10"));
 		C(state, Pol).PendingOffers.Add(new COffer(EOfferKind.Guarantee, Ger, Pol, EOfferStage.Proposed, true, 0));
 
-		CPactPasses.AnswerOffers(state);
+		CPactPasses.AskPlayers(state);
 		Assert.Equal(EOfferKind.Trade, Assert.Single(asked).Kind);
 		Assert.Empty(C(state, Pol).PendingOffers);
 
@@ -248,7 +248,7 @@ public class TradeTests
 		state.AutomateTrade.Add(Pol);
 		C(state, Pol).PendingOffers.Add(BuyMetal(state, Pol, "10"));
 		C(state, Pol).PendingOffers.Add(BuyMetal(state, Pol, "5"));
-		CPactPasses.AnswerOffers(state);
+		CPactPasses.AskPlayers(state);
 		Assert.Single(asked);
 		Assert.Equal(2, C(state, Pol).PendingOffers.Count);
 		CAutomatedTrades.Answer(state, C(state, Pol));

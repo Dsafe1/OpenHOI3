@@ -161,6 +161,16 @@ public sealed class CReplayFile : IDisposable
 						CCommandCodec.Write(json, command);
 					}
 					json.WriteEndArray();
+					// `x`: what the step did to the game at once, written only where it did anything.
+					if (step.Done.Count > 0)
+					{
+						json.WriteStartArray("x");
+						foreach (CCommand command in step.Done)
+						{
+							CCommandCodec.Write(json, command);
+						}
+						json.WriteEndArray();
+					}
 					break;
 				case CReplayPost post:
 					json.WriteString("k", "p");
@@ -195,11 +205,20 @@ public sealed class CReplayFile : IDisposable
 				{
 					commands.Add(CCommandCodec.Read(command, state));
 				}
+				List<CCommand>? done = null;
+				if (root.TryGetProperty("x", out JsonElement atOnce))
+				{
+					done = new List<CCommand>();
+					foreach (JsonElement command in atOnce.EnumerateArray())
+					{
+						done.Add(CCommandCodec.Read(command, state));
+					}
+				}
 				return new CReplayStep(root.GetProperty("h").GetInt64(), root.GetProperty("s").GetString()!, commands,
 					root.GetProperty("d").GetInt64(), root.GetProperty("u").GetInt32(),
 					root.TryGetProperty("a", out JsonElement ai) ? ai.GetInt64() : 0,
 					root.TryGetProperty("m", out JsonElement positions) && positions.GetBoolean(),
-					root.TryGetProperty("n", out JsonElement network) && network.GetBoolean());
+					root.TryGetProperty("n", out JsonElement network) && network.GetBoolean(), done);
 			case "p":
 				return new CReplayPost(root.GetProperty("t").GetInt32(), CCommandCodec.Read(root.GetProperty("c"), state));
 			case "t":
