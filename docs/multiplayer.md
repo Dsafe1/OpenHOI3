@@ -639,6 +639,13 @@ Asked for with BlackICE in mind, whose saves are twice the base game's.
   (`CNetClient.KeepView`; `V` carries the name), so that it is there the next time; the original writes it under
   the host's own name, which here would overwrite a file of the player's own. The game that runs, shown to a
   joiner, has no name and is not kept.
+- **A machine joining a game that runs is sent it once, not twice** (asked for the same day): the game it was
+  shown in its lobby to choose a country on is the game it joins, the host running no hour while it chooses
+  (section 10), so the bytes it holds are offered to the receiver when the game to be played comes. An order
+  given by a player meanwhile changes the game and its hash, and it is then sent again. Checked by two processes:
+  the joiner's log "nothing was sent" at its Play, 39 midnights the same after. **Not so from a host's lobby**: a
+  save shown there is the file, and the game sent at Play is that save taken up with the lobby's options and
+  players - other bytes, sent whole.
 - **A link sends without waiting** (`CLineLink.Send`): a line joins those still to go and a thread of the link's
   own writes them, in the order they were given. So a game of many megabytes going to a slow machine holds up
   nobody's frame, several machines are sent to at once and not one after another, and nothing can come between a

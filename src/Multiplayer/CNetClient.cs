@@ -363,6 +363,13 @@ public sealed class CNetClient : CNetGame
 				}
 				return null;
 			}
+			// Joining from the lobby of a game that runs: the game it was shown there to choose a country on is the
+			// game it now joins, the host having run no hour meanwhile - unless an order was given since, which the
+			// hash says.
+			if (_session is null && !_hasPlayed && LobbyGame is { } shown && shown.Length == _receiver.Total)
+			{
+				return shown;
+			}
 			if (_session is not { Parted: false } session || _simulation is not { IsBusy: false } simulation || SaveNow is not { } save)
 			{
 				return null;
