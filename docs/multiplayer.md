@@ -58,12 +58,18 @@ All on 2026-11-20.
 - **Anybody may pause and resume; only the host sets the speed.**
 - **A player who drops pauses the game, and his country goes to the AI.** He may come back where joining a running
   game is on.
+- **The host waits for a machine that is behind.** It starts no hour while a client has not confirmed one a few hours
+  back at most - the window is small, its size to be measured - so the game runs at the pace of its slowest machine,
+  and what each player sees stays near what the host runs: an order given on a lagging machine would otherwise land
+  later than its player thinks. The original's clock waits for its slowest player too (*inferred*,
+  `reversing/findings/FINDINGS-frontend.md`, D.3). Who the game is waiting for is shown.
+- **A dropped player where joining a running game is off** stays out until the game is saved and started again from a
+  lobby. Anybody may resume the game once his country is the AI's.
 - **The host leaving ends the game.** No other machine takes it on.
 
 ## 3. Open
 
 - What a client's hour needs from the host beyond the commands: the tick itself, the AI's draws, the game's generator.
-- What happens while one machine is behind the host.
 - Saves: who may save, what a save made on a client is, and loading one in a lobby.
 - The lobby: choosing countries, the host's options, chat.
 - What in the client today is a local write and not a command, and would part two machines.
