@@ -54,8 +54,17 @@ public static class CPlayChecksum
 	/// <param name="search">The folders a game reads through (<see cref="CChecksumSearchPath.ForPlay"/>).</param>
 	/// <param name="engineVersion">The engine's version as its <c>engine.txt</c> names it; empty for one run from its sources.</param>
 	/// <param name="rules">The rules a game is played by beyond the original's, in a form that is the same wherever they are - none yet.</param>
-	public static (byte[] Hash, int Files) Compute(CChecksumSearchPath search, string engineVersion, string rules = "")
+	/// <param name="listed">
+	/// Where given, a line is added for the format, the engine's version and the rules, and one for every file that went
+	/// in - its path as hashed, its length and the first sixteen digits of its own SHA-256 - so that two machines whose
+	/// figures differ can set the two lists beside each other and see in which file (section 8).
+	/// </param>
+	public static (byte[] Hash, int Files) Compute(CChecksumSearchPath search, string engineVersion, string rules = "",
+		List<string>? listed = null)
 	{
+		listed?.Add("format\t" + Format);
+		listed?.Add("engine\t" + engineVersion);
+		listed?.Add("rules\t" + rules);
 		using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
 		AppendText(hash, Format);
 		AppendText(hash, engineVersion);
@@ -83,8 +92,12 @@ public static class CPlayChecksum
 			hash.AppendData(length);
 			hash.AppendData(bytes);
 			files++;
+			listed?.Add(path.ToLowerInvariant() + "\t" + bytes.LongLength.ToString(System.Globalization.CultureInfo.InvariantCulture)
+				+ "\t" + Convert.ToHexString(SHA256.HashData(bytes), 0, 8));
 		}
-		return (hash.GetHashAndReset(), files);
+		byte[] whole = hash.GetHashAndReset();
+		listed?.Add("checksum\t" + Convert.ToHexString(whole));
+		return (whole, files);
 	}
 
 	/// <summary>The first eight hexadecimal digits of the checksum in fours, which is what a player is shown: <c>3F9A-01C7</c>.</summary>

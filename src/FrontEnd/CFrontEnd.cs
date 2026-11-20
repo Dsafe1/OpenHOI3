@@ -118,8 +118,25 @@ public partial class CFrontEnd : Node
 	/// <summary>The play checksum taken as its work ends, and written on the main menu and in the lobby.</summary>
 	private void ShowPlayChecksum()
 	{
-		_playChecksumWork ??= System.Threading.Tasks.Task.Run(() => Content.Checksum.CPlayChecksum.Label(
-			Content.Checksum.CPlayChecksum.Compute(Content.Checksum.CChecksumSearchPath.ForPlay(_directories), engineVersion: "").Hash));
+		_playChecksumWork ??= System.Threading.Tasks.Task.Run(() =>
+		{
+			// Every file that went in, with its length and its own hash, written beside the logs: two players whose
+			// figures differ set the two files beside each other (checksum.md, section 8; tools/checksumdiff.py).
+			var listed = new System.Collections.Generic.List<string>();
+			byte[] hash = Content.Checksum.CPlayChecksum.Compute(Content.Checksum.CChecksumSearchPath.ForPlay(_directories),
+				engineVersion: "", listed: listed).Hash;
+			try
+			{
+				string folder = Content.Logs.CLogFiles.Folder(_directories);
+				System.IO.Directory.CreateDirectory(folder);
+				System.IO.File.WriteAllLines(System.IO.Path.Combine(folder, "openhoi3_checksum.txt"), listed);
+			}
+			catch (System.Exception failed) when (failed is System.IO.IOException or System.UnauthorizedAccessException)
+			{
+				// The figure is shown all the same.
+			}
+			return Content.Checksum.CPlayChecksum.Label(hash);
+		});
 		if (_playChecksum is null && _playChecksumWork.IsCompletedSuccessfully)
 		{
 			_playChecksum = _playChecksumWork.Result;

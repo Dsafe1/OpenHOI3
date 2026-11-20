@@ -110,6 +110,12 @@ other**: one install held, in those folders, a `Thumbs.db` Windows had made, an 
 map cache kept under another folder's name - sixteen files no game reads. What lies there and is of no kind a game
 reads is a machine's own and is left out (`CPlayChecksum.Extensions`). Their Finest Hour is `FBB3-AB63` since.
 
+**What went into it is written down** (2026-11-20, two players' figures still differing after that): as the main
+menu works the figure out, `openhoi3_checksum.txt` is written beside the logs - the format, the engine's version and
+the rules, then a line for every file that went in, its path, its length and the first sixteen digits of its own
+SHA-256, and the checksum last; 13,646 files for Their Finest Hour. `python tools/checksumdiff.py <one> <other>`
+sets two machines' files beside each other and prints the files only one has and those that differ.
+
 Each text goes in with its length in front. So a file moved, two files exchanged and an empty file added each change
 it, and the AI's Lua is part of it - the things the original's figure lets by (section 7).
 
