@@ -74,8 +74,10 @@ conditions button by request. What is next:
    **and ours brought in line** (`mechanics/frontend.md`, section 9): the rows' "name (Country)", kick and ban on the
    host's rows, a client's tabs greyed, the chat between machines, a dead lobby staying up. Left, each named there:
    a save sent in the lobby as its row is ticked, with `save_progress`; the options shown on a client with four
-   arrows greyed; the dialog a thrown-out player gets; a row's shield centring the map; LOST_PLR; and a country
-   chosen by a machine joining a running game. **Several players of one country** (co-op, decided and built
+   arrows greyed; the dialog a thrown-out player gets; a row's shield centring the map; LOST_PLR. **A machine
+   joining a running game chooses its country** on its lobby's map and joins with Play (2026-11-20;
+   `multiplayer.md`, section 10) - on the start's map, not the game's, which is what is left of it. **Several
+   players of one country** (co-op, decided and built
    2026-11-20; `multiplayer.md`, section 8): any country may be shared, the first to choose it is its primary and
    alone is shown its events. To be looked at: two players giving one country orders, and the events on the
    primary's screen only;

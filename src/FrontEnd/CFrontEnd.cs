@@ -257,11 +257,13 @@ public partial class CFrontEnd : Node
 		// A client's choice of a country goes to the host, who gives it where nobody has it.
 		_lobby.ChosenChanged += () =>
 		{
-			if (LobbyNet is Multiplayer.CNetClient client && _lobby.Chosen is { } tag)
+			// Not where the game already runs: there the choice is said with Play, a click alone joining nothing.
+			if (LobbyNet is Multiplayer.CNetClient client && _lobby.Chosen is { } tag && !_lobby.HotJoinMode)
 			{
 				client.Pick(tag);
 			}
 		};
+		_lobby.JoinPressed += tag => (LobbyNet as Multiplayer.CNetClient)?.Pick(tag);
 		_lobby.NetBlocksPlay = () => LobbyNet is Multiplayer.CNetHost { LobbyBlocksPlay: true };
 		// What is typed in the lobby's chat goes to every machine by way of the host, and comes back to this one's log.
 		_lobby.ChatTyped += typed =>
@@ -368,6 +370,9 @@ public partial class CFrontEnd : Node
 		RememberPlayer(player);
 		_menu.Multiplayer?.Hide();
 		_lobby.ClientMode = true;
+		// A host whose game already runs says so in the bookmark's place: the country is then chosen here and joined
+		// as with Play (docs/multiplayer.md, section 10).
+		_lobby.HotJoinMode = net.LobbyBookmark == global::OpenHOI3.Multiplayer.CNetHost.RunningGame;
 		OpenLobby();
 		if (_lobbyOptions is not null)
 		{
@@ -394,8 +399,11 @@ public partial class CFrontEnd : Node
 		{
 			// A player's line is the name in yellow, the colour put back, a colon and what was typed; the lobby's own
 			// lines are their keys with the player's name.
+			// A country asked for that the running game has not: NOT_EXIST, with the country's name for its tag.
+			string name = line.Key == "NOT_EXIST" && CCountryTag.TryParse(line.Name, out CCountryTag asked)
+				? World.Country(asked)?.Name ?? line.Name : line.Name;
 			_lobby.Say(line.Key is null ? "§Y" + line.Name + "§!: " + line.Text
-				: Interface.Text.CTextTemplate.Fill(Localise(line.Key), ("NAME", line.Name)));
+				: Interface.Text.CTextTemplate.Fill(Localise(line.Key), ("NAME", name), ("TAG", name)));
 		}
 	}
 
@@ -412,7 +420,7 @@ public partial class CFrontEnd : Node
 			return;
 		}
 		// The chat's box is shown between machines and hidden in a game of one.
-		_lobby.ShowChatEdit(LobbyNet is not null);
+		_lobby.ShowChatEdit(LobbyNet is not null && !_lobby.HotJoinMode);
 		switch (LobbyNet)
 		{
 			case Multiplayer.CNetClient chatting:
@@ -453,6 +461,7 @@ public partial class CFrontEnd : Node
 			// The lobby of a game between machines left: a host's closes it for every machine, a client's leaves it.
 			LobbyNet = null;
 			_lobby.ClientMode = false;
+			_lobby.HotJoinMode = false;
 			NetLobbyLeft?.Invoke();
 		}
 		if (SaveLoaded)

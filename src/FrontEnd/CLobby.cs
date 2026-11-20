@@ -151,7 +151,11 @@ public partial class CLobby : Control
 		{
 			_play.Pressed += Play;
 			// Between machines the first reason is a player with no country (frontend.md, section 9).
-			_play.Tooltip = () => new CTooltip { Text = NetBlocksPlay?.Invoke() == true ? Localise("NOT_SELECT") : WhyNot() ?? "" };
+			_play.Tooltip = () => new CTooltip
+			{
+				Text = HotJoinMode ? (_chosen is null ? Localise("NOT_SELECT") : "")
+					: NetBlocksPlay?.Invoke() == true ? Localise("NOT_SELECT") : WhyNot() ?? "",
+			};
 		}
 		if (_panel?.TryFindButton("player_shield") is { } shield)
 		{
@@ -258,7 +262,9 @@ public partial class CLobby : Control
 			// Play cannot be pressed while the victory conditions' window is up.
 			// Between machines: never on a client, whose game the host starts; and on the host not while a player has
 			// chosen no country or two have chosen one (docs/multiplayer.md, section 7).
-			_play.Disabled = WhyNot() is not null || _victorySelect is { IsOpen: true } || ClientMode || NetBlocksPlay?.Invoke() == true;
+			// A client joining a game that runs presses it to join as the country it has chosen (section 10).
+			_play.Disabled = HotJoinMode ? _chosen is null
+				: WhyNot() is not null || _victorySelect is { IsOpen: true } || ClientMode || NetBlocksPlay?.Invoke() == true;
 		}
 		if (_victoryButton is not null)
 		{
@@ -301,6 +307,14 @@ public partial class CLobby : Control
 
 	private void Play()
 	{
+		if (HotJoinMode)
+		{
+			if (_chosen is { } asked)
+			{
+				JoinPressed?.Invoke(asked);
+			}
+			return;
+		}
 		if (WhyNot() is null && _chosen is { } chosen)
 		{
 			_frontEnd.Launch(chosen);
@@ -662,6 +676,15 @@ public partial class CLobby : Control
 
 	/// <summary>A row's kick or ban button pressed, on the host: the player's name, and whether it was ban.</summary>
 	public event Action<string, bool>? KickPressed;
+
+	/// <summary>
+	/// Whether this client's lobby is of a game that already runs (docs/multiplayer.md, section 10): its player chooses
+	/// a country on the map and joins with Play, where in a host's lobby a click is the choice and Play is the host's.
+	/// </summary>
+	public bool HotJoinMode { get; set; }
+
+	/// <summary>Play pressed in a lobby of a running game: the country to join as.</summary>
+	public event Action<CCountryTag>? JoinPressed;
 
 	/// <summary>The chat's box shown, between machines, or hidden, in a game of one.</summary>
 	public void ShowChatEdit(bool shown)

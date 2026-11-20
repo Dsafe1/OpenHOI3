@@ -31,8 +31,12 @@ public sealed class CNetClient : CNetGame
 		_link = link;
 		_receiver = new CGameReceiver(link.Send, _ => null);
 		link.Send(CClientSession.JoinLine(checksum, name));
-		// With no country named the host gives one: the lobby, where one is chosen, is not shared yet.
-		link.Send(CWire.Line(CWire.Wanted, wanted?.Value ?? ""));
+		// With no country named the host says how its lobby stands, or who plays its running game, and the country is
+		// chosen on this machine's lobby.
+		if (wanted is { } named)
+		{
+			link.Send(CWire.Line(CWire.Wanted, named.Value));
+		}
 	}
 
 	public override bool IsHost => false;

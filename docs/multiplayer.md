@@ -480,3 +480,27 @@ each, and the tool named the one that differed, `ENG manpower`.
 **What made that game part - found the same evening, with the files.** A second game, nothing done in it but an event answered, parted at the same hour, 21 January 1936, in one figure of 44,391: `FRA neutrality`. Germany had reoccupied the Rhineland; France is told by event 1002, whose one option takes 3 off its neutrality. **A player's answer to an event never ran on a client**: the answer holds the event, a recording wrote the event out field by field and read it back as an event of its own, and the answer runs only for one of the game's own events (`CSelectEventOptionCommand.MayExecute`) - so it was dropped wherever it had been read. The host took the 3 off and the client did not. An event is now written as its id and read back as the game's own (`CCommandCodec`), with a test. The AI's answers never showed it: every machine makes those itself, and no check had a player answering an event. No other command holds a thing of the script's by reference. **Not tried between machines since** - it wants an event answered in a game of two.
 
 **A game being loaded to bring machines into step says so**: "Syncing games..." over the loading screen, where a game was already being played (asked for on 2026-11-20; *ours*).
+
+## 10. Choosing a country to join a game that runs - built 2026-11-20
+
+Until then a machine that joined a running game from the menu was given the unplayed country owning the most
+land. *Ours*: the original's own screen for it, `CIngameLobby`, is not read.
+
+- **A machine that joins by the menu names no country.** A host whose game runs answers as a host in its lobby
+  does, with the lobby's line (`l`), the bookmark's place **-2** for "a game is running" (`CNetHost.RunningGame`)
+  and the players of that game with their countries.
+- **The joiner's lobby opens on that** (`CLobby.HotJoinMode`): its own map of the start, the players' rows, no
+  chat. A click on the map chooses and **sends nothing**; **Play, enabled once a country is chosen, asks for it**
+  (`W`). A click alone joins nothing, where in a host's lobby the click is the choice.
+- **The host gives it** where the country is played - shared, section 8 - or owns land, and sends the game as for
+  any join. **Where it does not exist in the game** the joiner's chat says NOT_EXIST with the country's name, and
+  it chooses again; it is not let go.
+- A machine started with `--join=` and `--country=` names its country at once, chooses on no screen, and is still
+  refused and let go where it cannot have it (`CNetPeer.Direct`).
+
+**Checked** by two processes: a host by switch, running; a client through the menu and the address, into the
+lobby - the host's row "Host (Germany)", its own row with no country, on a screenshot - the United Kingdom clicked,
+Play: **the game sent, played by GER and ENG, 82 midnights the same**. NOT_EXIST was not tried.
+
+**What it does not do**: the map is the start's, not the running game's - a country that has come to be since
+cannot be clicked, and one that is gone can and is refused; the header gives the start's date, not the game's.

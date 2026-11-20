@@ -97,6 +97,21 @@ public sealed class CNetHost : CNetGame
 		return players;
 	}
 
+	/// <summary>The place of no bookmark that says a game is running: a machine joining chooses a country and joins with its Play.</summary>
+	public const int RunningGame = -2;
+
+	/// <summary>What a machine joining a running game is told in a lobby's line's form: no bookmark, and who plays what.</summary>
+	private string RunningGameLine()
+	{
+		if (_lobbyHostName.Length == 0)
+		{
+			_lobbyHostName = "Host";
+		}
+		return RunningGame.ToString(System.Globalization.CultureInfo.InvariantCulture) + " " + string.Join("&",
+			LobbyPlayers().Select(player => System.Uri.EscapeDataString(player.Name) + "=" + (player.Country?.Value ?? "")
+				+ (player.Secondary ? "*" : "")));
+	}
+
 	/// <summary>Whether the lobby's game may not be started: a player has chosen no country.</summary>
 	public bool LobbyBlocksPlay => _peers.Any(peer => peer.Name is not null && peer.Wanted is null);
 
@@ -172,16 +187,26 @@ public sealed class CNetHost : CNetGame
 							peer.Wanted = asked;
 							peer.ChoseAt = ++_choices;
 						}
+						// Named before it was told anything of a lobby: a machine started with its country given, which
+						// chooses on no screen and is let go where it cannot have it.
+						if (peer.LobbySent is null)
+						{
+							peer.Direct = true;
+						}
 					}
 					else if (line.Length > 2 && line[0] == CWire.Chat && _lobby is not null)
 					{
 						SayTyped(peer.Name, line[2..]);
 					}
 				}
-				if (_lobby is not null && peer.LobbySent != _lobby)
+				// The lobby as it stands - or, where a game is running, the players of it under the place -2 of no
+				// bookmark: a machine joining that game chooses its country on its own lobby's map and says so with its
+				// Play (docs/multiplayer.md, section 10).
+				string? lobby = _lobby ?? (_session is not null ? RunningGameLine() : null);
+				if (lobby is not null && peer.LobbySent != lobby)
 				{
-					peer.LobbySent = _lobby;
-					peer.Link.Send(CWire.Line(CWire.Lobby, _lobby));
+					peer.LobbySent = lobby;
+					peer.Link.Send(CWire.Line(CWire.Lobby, lobby));
 				}
 			}
 			else if (peer.Sender is { } sender)
@@ -287,8 +312,18 @@ public sealed class CNetHost : CNetGame
 			// A country somebody plays may be shared; one nobody plays has to own land.
 			if (given is not { } wanted || (!free.Contains(wanted) && !played.Contains(wanted)))
 			{
-				peer.Link.Send(CWire.Line(CWire.Refused, "country"));
-				Remove(peer);
+				if (peer.Direct || peer.Wanted is null)
+				{
+					peer.Link.Send(CWire.Line(CWire.Refused, "country"));
+					Remove(peer);
+				}
+				else
+				{
+					// Chosen on its lobby's map: told the country does not exist at this time, and left to choose again.
+					peer.Link.Send(CWire.Line(CWire.Chat, new CLobbyChatLine("NOT_EXIST", peer.Wanted.Value.Value, "").ToWire()));
+					peer.Wanted = null;
+					peer.ChoseAt = 0;
+				}
 				continue;
 			}
 			peer.Country = wanted;
