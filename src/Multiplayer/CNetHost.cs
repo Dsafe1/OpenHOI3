@@ -112,6 +112,11 @@ public sealed class CNetHost : CNetGame
 						Remove(peer);
 						continue;
 					}
+					// In the lobby every machine's chat says a player has joined.
+					if (_lobby is not null)
+					{
+						SayOfPlayer("PLR_CONNECT", peer.Name);
+					}
 				}
 			}
 			else if (peer.Country is null)
@@ -130,6 +135,10 @@ public sealed class CNetHost : CNetGame
 						{
 							peer.Wanted = asked;
 						}
+					}
+					else if (line.Length > 2 && line[0] == CWire.Chat && _lobby is not null)
+					{
+						SayTyped(peer.Name, line[2..]);
 					}
 				}
 				if (_lobby is not null && peer.LobbySent != _lobby)
@@ -253,6 +262,60 @@ public sealed class CNetHost : CNetGame
 	{
 		_peers.Remove(peer);
 		peer.Link.Dispose();
+		// In the lobby every machine left is told a player has gone.
+		if (_lobby is not null && peer.Name is not null)
+		{
+			SayOfPlayer("PLR_DISC", peer.Name);
+		}
+	}
+
+	/// <summary>The lobby's chat lines that have come since they were last taken, for this machine's own chat log.</summary>
+	public List<CLobbyChatLine> TakeChat()
+	{
+		var taken = new List<CLobbyChatLine>(_chat);
+		_chat.Clear();
+		return taken;
+	}
+
+	private readonly List<CLobbyChatLine> _chat = new();
+
+	/// <summary>A line a player typed in the lobby's chat: every machine's chat log gets it, this one's with them.</summary>
+	public void SayTyped(string name, string text)
+	{
+		Tell(new CLobbyChatLine(null, name, text));
+	}
+
+	/// <summary>A line the lobby says of a player by a localisation key - joined, left, kicked - on every machine.</summary>
+	private void SayOfPlayer(string key, string name)
+	{
+		Tell(new CLobbyChatLine(key, name, ""));
+	}
+
+	private void Tell(CLobbyChatLine line)
+	{
+		_chat.Add(line);
+		string sent = CWire.Line(CWire.Chat, line.ToWire());
+		foreach (CNetPeer peer in _peers.Where(peer => peer.Name is not null && peer.Country is null))
+		{
+			peer.Link.Send(sent);
+		}
+	}
+
+	/// <summary>
+	/// A player thrown out of the lobby by the host, at once and with no question: told so, its connection closed, and
+	/// every machine's chat told (docs/mechanics/frontend.md, section 9). A ban is a kick: no list of the banned is kept.
+	/// </summary>
+	public void Kick(string name, bool ban)
+	{
+		if (_peers.FirstOrDefault(peer => peer.Name == name && peer.Country is null) is not { } peer)
+		{
+			return;
+		}
+		peer.Link.Send(CWire.Line(CWire.Refused, "kicked"));
+		_peers.Remove(peer);
+		peer.Link.Dispose();
+		SayOfPlayer("PLR_DISC", name);
+		SayOfPlayer(ban ? "PLAYER_BANNED" : "PLAYER_KICKED", name);
 	}
 
 	public override void Dispose()

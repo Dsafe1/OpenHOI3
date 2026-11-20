@@ -67,9 +67,12 @@ the client. What is next:
    game that already runs is still **given the unplayed country owning the most land**, a stand-in. Tried with
    `--click` and two processes - GER and ENG chosen in the lobby and the game loaded on both; a join into a running
    game given the Soviet Union, 77 midnights the same. **Not looked at in play.** Left of it (`multiplayer.md`,
-   section 7): a save loaded in the host's lobby shown on a client, the options and victory conditions shown there,
-   the lobby's chat, a country chosen by a machine joining a running game, and the original's own lobby rules for
-   several players, which nobody has read;
+   section 7). **The original's lobby for several players is read** (`reversing/findings/FINDINGS-multiplayerlobby.md`)
+   **and ours brought in line** (`mechanics/frontend.md`, section 9): the rows' "name (Country)", kick and ban on the
+   host's rows, a client's tabs greyed, the chat between machines, a dead lobby staying up. Left, each named there:
+   a save sent in the lobby as its row is ticked, with `save_progress`; the options shown on a client with four
+   arrows greyed; the dialog a thrown-out player gets; a row's shield centring the map; LOST_PLR; and a country
+   chosen by a machine joining a running game;
 4. a client's Lua for an offer's chance as a state of its own that can post nothing;
 5. the rest of section 6's *Not built*.
 **The screens no longer ask the AI's agent of a headquarters** (2026-11-20): the unit panel, the objectives, the plan

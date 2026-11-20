@@ -84,9 +84,26 @@ public partial class CLobby : Control
 		_play = _window.TryFindButton("play_button");
 		// One start, no multiplayer: the chat's box and the players' window are not offered, and the scenarios' and the
 		// custom games' tabs are shown greyed, saying why (frontend.md, section 3; docs/compatibility.md, entry 17).
-		if (_window.TryFindElement("lobby_chat_edit") is { } chatEdit)
+		// The chat's box is hidden in a game of one and shown between machines (frontend.md, section 9): Enter sends the
+		// line with the white space off its ends, an empty one doing nothing, and empties the box.
+		_chatEdit = _window.FindTextBox("lobby_chat_edit");
+		if (_chatEdit is not null)
 		{
-			chatEdit.Visible = false;
+			_chatEdit.Visible = false;
+			_chatEdit.MakeEditable();
+			_chatEdit.Entered += () =>
+			{
+				if (_chatEdit.Editor is not { } editor)
+				{
+					return;
+				}
+				string typed = editor.Text.Trim();
+				if (typed.Length > 0)
+				{
+					ChatTyped?.Invoke(typed);
+					editor.Text = "";
+				}
+			};
 		}
 		foreach ((string tab, string why) in new[]
 		{
@@ -133,7 +150,8 @@ public partial class CLobby : Control
 		if (_play is not null)
 		{
 			_play.Pressed += Play;
-			_play.Tooltip = () => new CTooltip { Text = WhyNot() ?? "" };
+			// Between machines the first reason is a player with no country (frontend.md, section 9).
+			_play.Tooltip = () => new CTooltip { Text = NetBlocksPlay?.Invoke() == true ? Localise("NOT_SELECT") : WhyNot() ?? "" };
 		}
 		if (_panel?.TryFindButton("player_shield") is { } shield)
 		{
@@ -606,7 +624,40 @@ public partial class CLobby : Control
 	/// Whether this lobby is a client's of a game between machines (docs/multiplayer.md, section 7): it shows the host's
 	/// start, and of its own only the country its player chooses.
 	/// </summary>
-	public bool ClientMode { get; set; }
+	public bool ClientMode
+	{
+		get => _clientMode;
+		set
+		{
+			_clientMode = value;
+			// A client's tabs are greyed: the start is the host's to choose (frontend.md, section 9).
+			foreach (CGuiButton? tab in new[] { _newGameTab, _savedGamesTab })
+			{
+				if (tab is not null)
+				{
+					tab.Disabled = value;
+				}
+			}
+		}
+	}
+
+	private bool _clientMode;
+	private CGuiTextBox? _chatEdit;
+
+	/// <summary>A line typed in the chat's box and sent with Enter, the white space off its ends.</summary>
+	public event Action<string>? ChatTyped;
+
+	/// <summary>A row's kick or ban button pressed, on the host: the player's name, and whether it was ban.</summary>
+	public event Action<string, bool>? KickPressed;
+
+	/// <summary>The chat's box shown, between machines, or hidden, in a game of one.</summary>
+	public void ShowChatEdit(bool shown)
+	{
+		if (_chatEdit is not null && _chatEdit.Visible != shown)
+		{
+			_chatEdit.Visible = shown;
+		}
+	}
 
 	/// <summary>On a host: whether the players' choices keep the game from being started.</summary>
 	public Func<bool>? NetBlocksPlay { get; set; }
@@ -631,7 +682,8 @@ public partial class CLobby : Control
 	/// The players' box of a game between machines: a row for each player, the host's first, with the shield of the
 	/// country each has chosen, and their number.
 	/// </summary>
-	public void ShowPlayers(IReadOnlyList<(string Name, CCountryTag? Country)> players)
+	/// <param name="host">Whether this machine hosts: the rows of the others are then <c>multiplayer_entry_server</c>, with the kick and ban buttons.</param>
+	public void ShowPlayers(IReadOnlyList<(string Name, CCountryTag? Country)> players, bool host = false)
 	{
 		if (_window?.FindWindow("multiplayer") is not { } box || box.FindListBox("multiplayer_list") is not { } list)
 		{
@@ -644,15 +696,36 @@ public partial class CLobby : Control
 		}
 		list.Clear();
 		_playerRow = null;
+		bool first = true;
 		foreach ((string name, CCountryTag? tag) in players)
 		{
-			if (CGuiWindow.CreateEntry(_context, PlayerRowName) is not { } row)
+			// The host's first row is its own; the others' rows on the host carry the kick and ban buttons.
+			bool server = host && !first;
+			first = false;
+			CGuiWindow? made = (server ? CGuiWindow.CreateEntry(_context, "multiplayer_entry_server") : null)
+				?? CGuiWindow.CreateEntry(_context, PlayerRowName);
+			if (made is not { } row)
 			{
 				return;
 			}
+			if (server)
+			{
+				string kicked = name;
+				if (row.TryFindButton("button_kick") is { } kick)
+				{
+					kick.Pressed += () => KickPressed?.Invoke(kicked, false);
+					kick.Tooltip = () => new CTooltip { Text = Localise("TIP_KICK") };
+				}
+				if (row.TryFindButton("button_ban") is { } ban)
+				{
+					ban.Pressed += () => KickPressed?.Invoke(kicked, true);
+					ban.Tooltip = () => new CTooltip { Text = Localise("TIP_BAN") };
+				}
+			}
 			if (row.FindTextBox("name") is { } label)
 			{
-				label.Text = name;
+				// The name alone, then "name (Country)" once a country is chosen.
+				label.Text = tag is { } has && World.Country(has) is { } named ? name + " (" + named.Name + ")" : name;
 			}
 			if (row.FindTextBox("save_progress") is { } progress)
 			{

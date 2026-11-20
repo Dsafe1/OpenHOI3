@@ -221,6 +221,20 @@ public partial class CFrontEnd : Node
 			}
 		};
 		_lobby.NetBlocksPlay = () => LobbyNet is Multiplayer.CNetHost { LobbyBlocksPlay: true };
+		// What is typed in the lobby's chat goes to every machine by way of the host, and comes back to this one's log.
+		_lobby.ChatTyped += typed =>
+		{
+			switch (LobbyNet)
+			{
+				case Multiplayer.CNetHost host:
+					host.SayTyped(PlayerName, typed);
+					break;
+				case Multiplayer.CNetClient client:
+					client.SendChat(typed);
+					break;
+			}
+		};
+		_lobby.KickPressed += (name, ban) => (LobbyNet as Multiplayer.CNetHost)?.Kick(name, ban);
 
 		var tooltips = new CTooltips();
 		tooltips.Setup(_gui);
@@ -319,13 +333,28 @@ public partial class CFrontEnd : Node
 		}
 	}
 
-	/// <summary>The lobby left for the connect log, with the line that says why: the host gone.</summary>
-	public void LeaveLobbyForConnectLog(string key)
+	/// <summary>
+	/// A client's lobby whose host is gone, or that the host threw it out of: its chat says so once, and it stays as it
+	/// is - nothing more comes, and nothing in it does anything - until its Back, as the original's does
+	/// (frontend.md, section 9).
+	/// </summary>
+	public void SayLobbyIsDead(string key)
 	{
-		ShowMenu();
-		_menu.ShowPanel(false);
-		_menu.Multiplayer?.ShowConnecting();
-		_menu.Multiplayer?.Log(key);
+		_lobby.Say(Localise(key));
+	}
+
+	private string Localise(string key) => _gui.Localisation.Localise(key);
+
+	/// <summary>The chat lines that came from the other machines written in the lobby's chat log.</summary>
+	private void WriteChat(System.Collections.Generic.List<Multiplayer.CLobbyChatLine> lines)
+	{
+		foreach (Multiplayer.CLobbyChatLine line in lines)
+		{
+			// A player's line is the name in yellow, the colour put back, a colon and what was typed; the lobby's own
+			// lines are their keys with the player's name.
+			_lobby.Say(line.Key is null ? "§Y" + line.Name + "§!: " + line.Text
+				: Interface.Text.CTextTemplate.Fill(Localise(line.Key), ("NAME", line.Name)));
+		}
 	}
 
 	/// <summary>The lobby of a game between machines kept in step: a host says how its lobby stands, a client shows it.</summary>
@@ -334,6 +363,17 @@ public partial class CFrontEnd : Node
 		if (_lobby is not { Visible: true })
 		{
 			return;
+		}
+		// The chat's box is shown between machines and hidden in a game of one.
+		_lobby.ShowChatEdit(LobbyNet is not null);
+		switch (LobbyNet)
+		{
+			case Multiplayer.CNetClient chatting:
+				WriteChat(chatting.TakeChat());
+				break;
+			case Multiplayer.CNetHost hosting:
+				WriteChat(hosting.TakeChat());
+				break;
 		}
 		switch (LobbyNet)
 		{
@@ -345,7 +385,7 @@ public partial class CFrontEnd : Node
 				if (shown != _lobbyPlayersShown)
 				{
 					_lobbyPlayersShown = shown;
-					_lobby.ShowPlayers(players);
+					_lobby.ShowPlayers(players, host: true);
 				}
 				break;
 			}

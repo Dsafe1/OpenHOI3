@@ -58,6 +58,22 @@ public sealed class CNetClient : CNetGame
 		_link.Send(CWire.Line(CWire.Wanted, country.Value));
 	}
 
+	private readonly List<CLobbyChatLine> _chat = new();
+
+	/// <summary>The lobby's chat lines that have come since they were last taken.</summary>
+	public List<CLobbyChatLine> TakeChat()
+	{
+		var taken = new List<CLobbyChatLine>(_chat);
+		_chat.Clear();
+		return taken;
+	}
+
+	/// <summary>What this machine's player typed in the lobby's chat, sent to the host, who tells every machine - this one too.</summary>
+	public void SendChat(string text)
+	{
+		_link.Send(CWire.Line(CWire.Chat, text));
+	}
+
 	public override string Status
 	{
 		get
@@ -146,10 +162,16 @@ public sealed class CNetClient : CNetGame
 				Admitted = true;
 				return;
 			case CWire.Refused:
-				EndedKey = rest == "country" ? "HOTJOIN_DECLINED" : "BAD_VERSION";
-				Ended = rest == "country"
-					? "The host refused the country asked for: it is played already, or owns no land."
+				EndedKey = rest == "country" ? "HOTJOIN_DECLINED" : rest == "kicked" ? "YOUKICKED" : "BAD_VERSION";
+				Ended = rest == "country" ? "The host refused the country asked for: it is played already, or owns no land."
+					: rest == "kicked" ? "The host has thrown this machine out of the lobby."
 					: "The host plays other files than this machine: its play checksum differs.";
+				return;
+			case CWire.Chat:
+				if (CLobbyChatLine.FromWire(rest) is { } said)
+				{
+					_chat.Add(said);
+				}
 				return;
 			case CWire.Played:
 				_played = rest.Split(',', System.StringSplitOptions.RemoveEmptyEntries).Select(tag => new CCountryTag(tag)).ToList();

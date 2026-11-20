@@ -252,6 +252,54 @@ NAME_TAKEN are never said. **Host's lobby is the lobby of a game of one**, and t
 its first frame; a machine that joins while the host is in its lobby comes into that lobby, and one that joins the running game is given a country
 (`docs/multiplayer.md`, sections 6 and 7).
 
+## 9. The lobby with several players
+
+From `reversing/findings/FINDINGS-multiplayerlobby.md`, which read the original's lobby as a host's and as a
+client's, most of it from a filtered listing. Built 2026-11-20 as far as marked; tried with `--click` and two
+processes, not looked at in play. How the choices travel here is `docs/multiplayer.md`, section 7.
+
+**The players' box**, `multiplayer` [mod: `lobby.gui`, `temp_frontend.gui`] - part of the lobby of a game of one
+too, with one row:
+
+| | |
+| --- | --- |
+| `num_players` | FE_NUM_PLAYERS with the number of rows |
+| a row | `multiplayer_entry`; **on the host, for every player but itself, `multiplayer_entry_server`**, which has `button_kick` and `button_ban` [exe] |
+| `name` | the player's name, then **name, a space and the country's name in brackets** once one is chosen |
+| `player_shield` | the country chosen. A click centres the map on its capital - **not built** |
+| `save_progress` | empty; SAVE_PROG while a save is sent - **not built**, no save being sent in the lobby here |
+| `button_kick`, `button_ban` | at once, with no question; tooltips TIP_KICK and TIP_BAN. Every machine's chat says PLAYER_KICKED or PLAYER_BANNED, and PLR_DISC |
+
+**Choosing a country** [exe]: a map click is the same on the host and on a client. **The original refuses no
+country another player has - two may share one. Here one country has one player**, the host giving a choice only
+where nobody has it (`docs/compatibility.md`, entry 31). There is no un-choosing, and no chat line for a choice.
+Only the chooser's own panel shows its country; the others see the row.
+
+**What is the host's alone** [exe]: on a client the tabs are greyed, the bookmark rows take no click, Play is
+greyed, and of the options the four difficulty and game-mode arrows are greyed while the five areas' are the
+player's own. **Here the whole Options panel is hidden on a client** - ours, the host's choices not being sent and a
+client's automation not surviving the game's sending. The victory conditions button is as for anyone.
+
+**Play** [exe]: enabled on the host where every player has a country that owns land and the tab's own condition
+holds; **the number of players is not counted**. Its tooltip gives the first of MP_FEW_PLAYERS, NOT_SELECT,
+NOT_EXIST and the tab's reason - here NOT_SELECT and the tab's reason; MP_FEW_PLAYERS, which the original says
+while Play works, is not said.
+
+**The chat** [exe]: `lobby_chat_edit` is hidden in a game of one and shown between machines. Enter takes the white
+space off both ends, does nothing with an empty line, sends the line and empties the box. **A player's line is the
+name in yellow, the colour put back, a colon, a space and the text**, and comes to every machine - the typist's own
+when it comes back. The lobby's own lines, on every machine: PLR_CONNECT as a player joins, PLR_DISC as one goes,
+PLAYER_KICKED, PLAYER_BANNED. **Not said here**: LOST_PLR for a dropped connection, which the original says beside
+PLR_DISC; the save's lines; OPTION_CHANGED on any machine but the one that pressed.
+
+**Leaving** [exe]: Back, on the host and on a client, goes to the main menu and not to the multiplayer menu. **The
+host gone, a client's chat says SERVER_LOST once and nothing else happens**: it sits in the dead lobby until its
+Back. Thrown out, it says YOUKICKED - the original also raises a dialog whose button is Back, **not built**.
+
+**A save chosen by the host** [exe] is sent to every machine the moment its row is ticked, a client with a file of
+the same name and checksum loading its own, and the host loads it only when every client has it. **Not built**:
+here a save's game reaches the others as the game is started (`docs/multiplayer.md`, section 7).
+
 ## Ours
 
 - ~~**The Quick Start panel is not offered**~~ - offered since 2026-11-15, `simple` picking the first panel

@@ -408,5 +408,18 @@ game does, so no midnight was compared after a start from the lobby. Nobody has 
 
 **Not built, or a stand-in**: a save the host loads in its lobby is not shown on a client, which keeps the
 bookmark's map and chooses by it; the options and the victory conditions the host sets reach the others only in the
-game sent; a country that owns no land at the start chosen is refused only as the game starts; the chat; the
-original's own lobby rules for several players - what it greys for a client, its messages - which are not read.
+game sent; a country that owns no land at the start chosen is refused only as the game starts.
+
+**Brought in line with the original's lobby the same day**, once it was read
+(`reversing/findings/FINDINGS-multiplayerlobby.md`; `mechanics/frontend.md`, section 9, which says what is and is
+not built of it): a row's "name (Country)", the host's rows with kick and ban (`CNetHost.Kick`: the machine told
+`n kicked`, its connection closed), a client's tabs greyed, **the chat** - a typed line to the host (`C`), who
+tells every machine in the lobby, and the lobby's own lines by their keys (`CLobbyChatLine`) - and a client whose
+host is gone or that was thrown out staying in its dead lobby with one line in its chat until its Back. Tried by
+two processes: the rows, the chat's box and a typed line come back from the host, on a screenshot of the client.
+Kick, ban and the host gone from a lobby were not tried.
+
+| added to the lines | |
+| --- | --- |
+| `C`, from a client | what its player typed in the lobby's chat |
+| `C`, from the host | `t`, a name and what that player typed; or `k`, a localisation key and the name of the player it speaks of |

@@ -513,8 +513,8 @@ public partial class Main : Control
 				string key = net.EndedKey ?? "CONNECTION_FAILED";
 				if (frontEnd.LobbyNet == net)
 				{
-					frontEnd.LobbyNet = null;
-					frontEnd.LeaveLobbyForConnectLog(key);
+					// The lobby stays up, dead, with one line in its chat, until its Back - the original's way.
+					frontEnd.SayLobbyIsDead(key == "YOUKICKED" ? key : "SERVER_LOST");
 				}
 				else
 				{

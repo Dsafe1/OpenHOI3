@@ -90,6 +90,12 @@ public static class CWire
 	/// </summary>
 	public const char Lobby = 'l';
 
+	/// <summary>
+	/// A line of the lobby's chat. Client to host: what its player typed. Host to client: <c>t</c>, a name and what
+	/// that player typed, or <c>k</c>, a localisation key and the name of the player it speaks of.
+	/// </summary>
+	public const char Chat = 'C';
+
 	public static string Line(char kind, string rest = "") => kind + " " + rest;
 
 	/// <summary>A command as a recording writes one.</summary>
