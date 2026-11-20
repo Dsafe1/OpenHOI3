@@ -181,12 +181,13 @@ public static class CMovement
 	private static void RunCountryUnits(CGameState state, CCountry country)
 	{
 		bool atWar = state.IsAtWar(country.Tag);
-		List<CUnit>? busy = null;
+		List<(CUnit Unit, bool Busy)>? taken = null;
 		// The units in the order of the country's own list: a unit earlier in it looks at its order before a later one's
-		// look ahead can begin a battle that hour (movement.md, section 6).
+		// look ahead can begin a battle that hour (movement.md, section 6). An idle unit's hour does nothing and is passed
+		// over - but a fleet's, idle or not, ends in its base check, so every fleet is taken.
 		foreach (CUnit unit in country.UnitsInOrder())
 		{
-			if (unit.IsMoving || unit.Order != EUnitOrder.None || unit.IsFighting || unit.Bombing is not null
+			bool busy = unit.IsMoving || unit.Order != EUnitOrder.None || unit.IsFighting || unit.Bombing is not null
 				|| unit.IsRetreating
 				|| unit.AttackDelay > CFixedPoint.Zero || unit.HoursAttacking > 0
 				|| unit.EngageWait > 0 || unit.NoBattleHours > 0 || unit.NoBombingHours > 0
@@ -195,20 +196,28 @@ public static class CMovement
 				// with no order, that hour is what sends it home.
 				|| (unit.Kind == EUnitKind.Air && unit.Base != 0 && !Missions.CAirMissions.IsAtOwnBase(unit))
 				// And one aboard a carrier with no order, whose hour gives it the carrier's duty.
-				|| (unit.Kind == EUnitKind.Air && unit.CarriedBy is not null))
+				|| (unit.Kind == EUnitKind.Air && unit.CarriedBy is not null);
+			if (busy || unit.Kind == EUnitKind.Navy)
 			{
-				(busy ??= new List<CUnit>()).Add(unit);
+				(taken ??= new List<(CUnit, bool)>()).Add((unit, busy));
 			}
 		}
-		if (busy is null)
+		if (taken is null)
 		{
 			return;
 		}
-		foreach (CUnit unit in busy)
+		foreach ((CUnit unit, bool busy) in taken)
 		{
-			if (!unit.IsRemoved)
+			if (busy && !unit.IsRemoved)
 			{
 				RunUnitHour(state, country, unit);
+			}
+			// The last step of a fleet's hour: a base an enemy holds, or none, traded for the nearest of its country's or
+			// its faction's naval bases, and with none and no port left it is queued for removal (fleetsandair.md, section
+			// 2.1).
+			if (unit.Kind == EUnitKind.Navy && !unit.IsRemoved && state.Country(unit.Owner) is { } owner)
+			{
+				CFleetBase.Check(state, owner, unit);
 			}
 		}
 	}

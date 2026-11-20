@@ -8,8 +8,9 @@ namespace OpenHOI3.Sim.Units;
 /// <summary>
 /// A fleet's base, as the original's unit loader and its base check leave it (<c>docs/mechanics/fleetsandair.md</c>,
 /// section 2.1; <c>reversing/findings/FINDINGS-seaair.md</c>, section 3): a file's or a save's <c>base</c> is kept only
-/// where that province has a naval base built, and as the fleet's block closes a fleet with no base, or one an enemy
-/// holds, is given the nearest by sea of its country's naval bases, else of its faction's.
+/// where that province has a naval base built, and as the fleet's block closes - and at the end of each of its hours - a
+/// fleet with no base, or one an enemy holds, is given the nearest by sea of its country's naval bases, else of its
+/// faction's, and with none and no port left to its country it is queued for removal.
 /// </summary>
 public static class CFleetBase
 {
@@ -59,22 +60,27 @@ public static class CFleetBase
 				fleet.Base = province.Id;
 			}
 		}
-		if (fleet.Base != 0 || owner.Faction.Length == 0)
+		if (fleet.Base == 0 && owner.Faction.Length != 0)
 		{
-			return;
-		}
-		best = FactionStart;
-		foreach (CCountry member in CCountryLists.FactionMembers(state, owner.Faction))
-		{
-			foreach (CProvince province in NavalBases(state, member.Tag))
+			best = FactionStart;
+			foreach (CCountry member in CCountryLists.FactionMembers(state, owner.Faction))
 			{
-				long distance = state.NavalDistances.Between(province, at) * CFixedPoint.Scale;
-				if (distance < best)
+				foreach (CProvince province in NavalBases(state, member.Tag))
 				{
-					best = distance;
-					fleet.Base = province.Id;
+					long distance = state.NavalDistances.Between(province, at) * CFixedPoint.Scale;
+					if (distance < best)
+					{
+						best = distance;
+						fleet.Base = province.Id;
+					}
 				}
 			}
+		}
+		// With no base at all and no port left to its country - total_num_of_ports, every province it owns with a port and
+		// a naval base built, whoever holds it - the fleet is queued for removal, which the end of the hour carries out.
+		if (fleet.Base == 0 && Script.CCountryConditions.Ports(state, owner, home: false) == 0)
+		{
+			CPendingUnitRemovals.Queue(state, fleet);
 		}
 	}
 

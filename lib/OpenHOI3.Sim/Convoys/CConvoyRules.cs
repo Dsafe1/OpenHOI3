@@ -120,15 +120,24 @@ public static class CConvoyRules
 	/// <summary>What a single escort is worth against a raider.</summary>
 	private const long DefenceOfAnEscort = 5000;
 
+	/// <summary>The technology effect that scales a convoy's escorts, its owner's [exe].</summary>
+	public const string EscortEfficiency = "escort_efficiency";
+
 	/// <summary>
 	/// What a raider's attack is set against, in thousandths: five for each escort, over
 	/// the provinces of the convoy's way - the longer the route, the thinner its escorts
-	/// are spread. The original scales it by a technology figure that is not built.
+	/// are spread - and then times one and the convoy's owner's <c>escort_efficiency</c>,
+	/// each step cut towards nought (<c>navalmissions.md</c>, section 4).
 	/// </summary>
-	public static long Defence(CConvoy convoy)
+	public static long Defence(CGameState state, CConvoy convoy)
 	{
 		long defence = convoy.Escorts * DefenceOfAnEscort;
-		return convoy.Path.Count == 0 ? defence : defence / convoy.Path.Count;
+		if (convoy.Path.Count != 0)
+		{
+			defence /= convoy.Path.Count;
+		}
+		long efficiency = state.Country(convoy.Owner)?.Technology[EscortEfficiency].Raw ?? 0;
+		return defence * (CFixedPoint.Scale + efficiency) / CFixedPoint.Scale;
 	}
 
 	/// <summary>

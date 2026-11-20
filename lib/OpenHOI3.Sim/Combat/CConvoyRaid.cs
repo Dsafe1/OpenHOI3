@@ -114,7 +114,7 @@ public static class CConvoyRaid
 			{
 				continue;
 			}
-			if (CConvoyRules.Defence(convoy) <= attack || target is null)
+			if (CConvoyRules.Defence(state, convoy) <= attack || target is null)
 			{
 				target = convoy;
 			}
@@ -139,7 +139,7 @@ public static class CConvoyRaid
 		}
 		// An air raider is set against the escorts at five times its attack; it found its convoy at its plain attack.
 		long tested = raider.Kind == EUnitKind.Air ? attack * AirAttackScale / CFixedPoint.Scale : attack;
-		if (CConvoyRules.Defence(convoy) > tested)
+		if (CConvoyRules.Defence(state, convoy) > tested)
 		{
 			// The raider's country is told it found a convoy too strong for it (section 8.2).
 			state.RaiseConvoyRaidMessage(new CConvoyRaidMessage(CConvoyRaidMessage.TooStrong, raider.Owner, raider.Location,

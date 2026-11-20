@@ -15,23 +15,25 @@ public static class CCountryConditions
 {
 	/// <summary>
 	/// The provinces it owns with a port and a naval base built, however damaged and whoever holds them; with
-	/// <paramref name="home"/>, only those in the same block of land as its acting capital [exe].
+	/// <paramref name="home"/>, only those in the same block of land as its acting capital [exe]. Without it, the
+	/// original's <c>total_num_of_ports</c>, which a fleet's base check asks too (<c>CFleetBase</c>).
 	/// </summary>
-	private static int Ports(CGameState state, Countries.CCountry? country, bool home)
+	public static int Ports(CGameState state, Countries.CCountry? country, bool home)
 	{
 		if (country is null)
 		{
 			return 0;
 		}
-		Supply.CSupplyNetwork network = Supply.CSupplyNetworks.Refresh(state);
-		Supply.CSupplyArea? capital = network.AreaOf(country.ActingCapital);
+		// The supply network only where the block of land is asked, so that a count of every port makes nothing.
+		Supply.CSupplyNetwork? network = home ? Supply.CSupplyNetworks.Refresh(state) : null;
+		Supply.CSupplyArea? capital = network?.AreaOf(country.ActingCapital);
 		int count = 0;
 		// Over the provinces it owns, kept until one changes hands, and not the whole map: a count, so in any order.
 		foreach (Provinces.CProvince province in Countries.COwnedCounts.Of(state).Provinces(country.Tag))
 		{
 			if (province.Owner == country.Tag && province.PortSea != 0
 				&& Movement.CMovementRules.BuildingLevel(state, province, Movement.CMovementRules.NavalBase) > CFixedPoint.Zero
-				&& (!home || network.AreaOf(province.Id) == capital))
+				&& (network is null || network.AreaOf(province.Id) == capital))
 			{
 				count++;
 			}

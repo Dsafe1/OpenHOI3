@@ -2080,14 +2080,16 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 
 ## Loose ends
 
-- **A fleet's base check in its hour** (2026-11-19): the original ends every hour of a fleet's with the check that also
-  runs as a unit block is read - a base an enemy holds taken away and the nearest of the country's naval bases given, else
-  its faction's, else the fleet queued for removal (`fleetsandair.md`, section 2.1). Only the reading's half is built
-  (`CFleetBase`); in the hour nothing yet moves a fleet off a captured base, and the removal is not built at all.
+- ~~**A fleet's base check in its hour**~~ - built 2026-11-20: every fleet's hour ends in it, and a fleet with no base and
+  no port left to its country is removed at the hour's end (`fleetsandair.md`, section 2.1). Left: the air unit's own
+  check (`CAir::CheckBase`, the same slot of an air unit's hour - with no base, the nearest of its country's air bases in
+  a straight line), not built; the record has its outline and not its list's order.
 
-- **Read and not built** (2026-11-19, a pass over the readers for what they pass over unseen): the technology effects
-  `escort_efficiency` (Their Finest Hour 1, BlackICE 13) and `radar_efficiency` (1 and 5) are kept and shown in a
-  technology's tooltip, and nothing in the simulation asks them. Smaller, from the same pass: no reader reports an
+- **Read and not built** (2026-11-19, a pass over the readers for what they pass over unseen): ~~the technology effects
+  `escort_efficiency` and `radar_efficiency` are kept and shown in a technology's tooltip, and nothing in the simulation
+  asks them~~ - `escort_efficiency` scales a convoy's escorts since 2026-11-20 (`navalmissions.md`, section 4), and
+  `radar_efficiency` has no reader in the original either, by a search with a positive control, so it stays a tooltip
+  (`reversing/findings/FINDINGS-fleetbasehour.md`, section 4; `docs/enhanced.md`, *Sea*). Smaller, from the same pass: no reader reports an
   `objectTypes` kind none of them takes - the plan marker's `animatedmaptext` is hard-coded, its file's figures unread,
   and the original's list of kinds is not read. ~~`common/country_colors.txt` has no reader~~ - the original stores its
   three colours on the country and reads them nowhere (`FINDINGS-fontterrain.md`, section 3), so none is needed. ~~The

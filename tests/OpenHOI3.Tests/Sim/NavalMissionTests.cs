@@ -563,6 +563,18 @@ public class NavalMissionTests
 	}
 
 	[Fact]
+	public void TheConvoysOwnersEscortEfficiencyScalesItsEscortsAfterTheyAreSpreadOverTheWay()
+	{
+		CGameState state = State(out _, out CCountry poland);
+		CConvoy convoy = Convoy(state, poland, 4, 2, Gdynia, Deep, Bight);
+
+		// Two escorts over three provinces, 3.333; with 0.24 of escort efficiency, 3.333 x 1.24 = 4.132, cut.
+		Assert.Equal(3333, CConvoyRules.Defence(state, convoy));
+		poland.Technology.Set(CConvoyRules.EscortEfficiency, CFixedPoint.Parse("0.24"));
+		Assert.Equal(4132, CConvoyRules.Defence(state, convoy));
+	}
+
+	[Fact]
 	public void AnAirRaiderFiresItsSeaAttackAndIsSetAgainstTheEscortsAtFiveTimesIt()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);
@@ -575,7 +587,7 @@ public class NavalMissionTests
 		// One wing at 30 organisation: 10 x 1 x 0.3, its convoy attack of 50 not read. Two escorts over three provinces
 		// defend at 3.33 - more than 3, which a fleet could not take on, and less than five times it.
 		Assert.Equal(3000, CConvoyRaid.Attack(raider));
-		Assert.Equal(3333, CConvoyRules.Defence(convoy));
+		Assert.Equal(3333, CConvoyRules.Defence(state, convoy));
 		// Its wings find the ships by its order's mission.
 		raider.Order = EUnitOrder.AirConvoyRaid;
 		Assert.True(CConvoyRaid.Resolve(state, germany, raider));
@@ -777,7 +789,7 @@ public class NavalMissionTests
 
 		// One submarine is worth 3; two escorts over three provinces defend at 3.33.
 		empty.Transports = 4;
-		Assert.Equal(3333, CConvoyRules.Defence(empty));
+		Assert.Equal(3333, CConvoyRules.Defence(state, empty));
 		Assert.False(CConvoyRaid.Resolve(state, germany, raider));
 		Assert.Equal(4, empty.Transports);
 		Assert.Equal(CProvince.NoConvoyAttack, state.Province(Bight).LastConvoyAttackHour);

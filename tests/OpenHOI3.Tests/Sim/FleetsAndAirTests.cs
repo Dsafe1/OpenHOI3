@@ -286,6 +286,54 @@ public class FleetsAndAirTests
 	}
 
 	[Fact]
+	public void AnIdleFleetWithNoBaseIsGivenOneAtTheEndOfItsHour()
+	{
+		CGameState state = State(out CCountry country);
+		CUnit fleet = Fleet(state, country, Baltic);
+		fleet.Base = 0;
+
+		// At peace and with no order its hour does nothing - but it still ends in the base check.
+		CMovement.RunHourly(state);
+
+		Assert.Contains(fleet.Base, new[] { Kiel, Danzig });
+		Assert.Empty(state.PendingUnitRemovals);
+	}
+
+	[Fact]
+	public void AFleetWithNoBaseAndNoPortLeftToItsCountryIsRemovedAtTheEndOfTheHour()
+	{
+		CGameState state = State(out CCountry country);
+		CUnit fleet = Fleet(state, country, Baltic);
+		fleet.Base = 0;
+		state.Province(Kiel).SetBuildingLevel(NavalBase, CFixedPoint.Zero);
+		state.Province(Danzig).SetBuildingLevel(NavalBase, CFixedPoint.Zero);
+
+		CMovement.RunHourly(state);
+		Assert.Equal(new[] { fleet.Id }, state.PendingUnitRemovals);
+		Assert.False(fleet.IsRemoved);                                  // not until the hour's very end
+
+		CPendingUnitRemovals.Drain(state);
+		Assert.True(fleet.IsRemoved);
+		Assert.DoesNotContain(fleet, country.Units);
+	}
+
+	[Fact]
+	public void AFleetLeftWithNoBaseIsKeptWhileItsCountryOwnsAPortSomebodyElseHolds()
+	{
+		CGameState state = State(out CCountry country);
+		CUnit fleet = Fleet(state, country, Baltic);
+		fleet.Base = 0;
+		state.Province(Kiel).SetBuildingLevel(NavalBase, CFixedPoint.Zero);
+		state.Province(Danzig).Controller = Pol;
+
+		CMovement.RunHourly(state);
+
+		// Danzig is Germany's still, so total_num_of_ports counts it; Poland's naval bases are no base of a German fleet.
+		Assert.Equal(0, fleet.Base);
+		Assert.Empty(state.PendingUnitRemovals);
+	}
+
+	[Fact]
 	public void AMoveOrderIsDroppedWhenTheFleetArrivesOrHasNoWayLeft()
 	{
 		CGameState state = State(out CCountry country);

@@ -99,7 +99,10 @@ sea province that is not a lake.** That sea province is the one its ships put ou
 `confirmed` (`reversing/findings/FINDINGS-seaair.md`, section 3, read 2026-11-19 in the running game and on the listing).
 A unit block's `base` - an order of battle's, `load_oob`'s or a save's - **is kept only where that province has a naval base
 built**; otherwise the fleet is left with none. Then, as the block closes, the fleet's **base check** runs - the one that
-also ends every hour of a fleet's (*Ours:* not yet in the hour):
+also ends every hour of a fleet's: the last step of a unit's hour on the tick thread is its own check, for every unit of
+every country in turn, idle or not, so a fleet's base an enemy has taken is traded the same hour
+(`reversing/findings/FINDINGS-fleetbasehour.md`, section 1; built since 2026-11-20 at the end of each fleet's turn in
+`CMovement`, whose hour otherwise passes an idle unit over):
 
 1. A fleet with a base no enemy of its country holds keeps it.
 2. Otherwise its base is taken away, and **its country's naval bases** - the provinces it controls with a naval base
@@ -107,8 +110,11 @@ also ends every hour of a fleet's (*Ours:* not yet in the hour):
    fleet lies (section 3), the first strictly nearer than 999,999 winning. **A province with no place in the table of
    distances measures nought**, so from a coast with no port the first base of the list is taken.
 3. With none, its faction's members' bases are measured the same way, in the faction's order.
-4. With none at all, and no port left to the country, the original queues the fleet for removal. *Ours:* not built; it
-   keeps no base.
+4. With none at all, and no port left to the country - `total_num_of_ports`, every province it owns with a port and a
+   naval base built, whoever holds it - **the fleet is queued for removal**, and the end of that hour takes it out of the
+   game as every queued unit goes: its officers lost, what it carries with it (`effects.md`, section 9;
+   `reversing/findings/FINDINGS-fleetbasehour.md`, section 2). A fleet whose country still owns a port an enemy holds is
+   left with no base and kept.
 
 *Measured* at BlackICE's start: the French fleet at Djibouti, which its file bases where the province has no naval base,
 gets Guadeloupe (485), France's first, as the save has it; Japan's "11 Kaigun", based by its file in a Chinese province,

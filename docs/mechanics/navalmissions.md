@@ -309,9 +309,13 @@ count (`convoys.md`), which no fleet adds to.
     the picked convoy's defence > the attack    -> nothing: too strong
 
     defence = 5 for each escort, over the provinces of the convoy's way
+              then x (1 + the convoy's owner's escort_efficiency), each step cut towards nought
 
 So a ship's `surface_detection` is its chance in fifty of finding each convoy, and **escorts are
-spread thinner the longer the route**: five on four provinces defend at 6.25, on twenty at 1.25.
+spread thinner the longer the route**: five on four provinces defend at 6.25, on twenty at 1.25. **A technology's
+`escort_efficiency` multiplies them**, the convoy's own country's - built since 2026-11-20, read on the bytes
+(`reversing/findings/FINDINGS-fleetbasehour.md`, section 3); five escorts on four provinces with 0.24 of it defend at
+7.75.
 
 **The fleet the convoy becomes.**
 
