@@ -181,6 +181,22 @@ unit ordered through the developer switches and seven trade offers posted for Ge
 and replayed in the client with `--hash`, the hashes ten of ten. And `ReplayTests` has a player's command whose consequences
 run in later drains, one of them a paused frame's, come out in the same order replayed.
 
+**A game following another as it runs** (2026-11-20, for a game between several machines; `multiplayer.md`): the
+recording is its own wire. Three things were added for it, none of which a recording played from its start needs:
+
+- **a drain with no hour** is kept (`CReplayDrain`, written `q`) wherever a drain of the queue outside an hour ran
+  anything in a game being recorded - a paused frame's, a tool's `Pump`. A playback from the start drains as far before
+  the next hour in any case; a follower would otherwise not run an order given while the clock stood until the clock
+  ran again;
+- **`CSimulation.Follow`** (`CReplay.FollowBetweenHours`) takes the posts and drains that have come and no further, and
+  **`HourHasCome`** says whether an hour's tick is next - a follower takes what was ordered first, then runs the hour
+  when it has come;
+- **`CSimulation.ToHost`**: a game replaying takes no order from outside, but one that follows hands its own player's
+  to the game it follows, which posts it; it runs on both when it comes back in that game's order.
+
+`TwoMachinesTests` runs the two in one process with every entry through the file's form: an order from each machine in
+one paused frame, then hours, three days long, the hashes alike each midnight.
+
 ## 7. A savegame of our own
 
 Not built. It would start a run anywhere - 30 June 1937 - and, unlike a recording, serve a fix tried as well. It would

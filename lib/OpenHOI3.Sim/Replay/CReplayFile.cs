@@ -172,6 +172,10 @@ public sealed class CReplayFile : IDisposable
 					json.WriteString("k", "t");
 					json.WriteNumber("t", tick.Turn);
 					break;
+				case CReplayDrain drain:
+					json.WriteString("k", "q");
+					json.WriteNumber("t", drain.Turn);
+					break;
 				default:
 					throw new NotSupportedException($"a recording has no form for {entry.GetType().Name}");
 			}
@@ -200,6 +204,8 @@ public sealed class CReplayFile : IDisposable
 				return new CReplayPost(root.GetProperty("t").GetInt32(), CCommandCodec.Read(root.GetProperty("c"), state));
 			case "t":
 				return new CReplayTick(root.GetProperty("t").GetInt32());
+			case "q":
+				return new CReplayDrain(root.GetProperty("t").GetInt32());
 			default:
 				throw new InvalidDataException($"a recording's line of an unknown kind: {line[..Math.Min(line.Length, 60)]}");
 		}

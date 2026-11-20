@@ -116,7 +116,9 @@ public sealed class CSimulation
 	{
 		if (State.Replay is { IsReplaying: true })
 		{
-			return false;
+			// A game following another's - a client's - hands its player's order to the game it follows, and runs it
+			// when it comes back in that game's order (docs/multiplayer.md, section 2).
+			return ToHost?.Invoke(command) ?? false;
 		}
 		// While hours run beside the frame the queue is theirs: the command waits, and is posted as they are collected.
 		if (_beside)
@@ -127,6 +129,38 @@ public sealed class CSimulation
 		State.Replay?.Posted(_turn, command);
 		Enqueue(command);
 		return true;
+	}
+
+	/// <summary>
+	/// Where a game following another's sends what its own player orders: to the game it follows, which posts it and
+	/// sends it back in its order with everything else. Null for a recording played back, which takes no order.
+	/// </summary>
+	public Func<CCommand, bool>? ToHost { get; set; }
+
+	/// <summary>
+	/// For a game following another's as it runs, between hours: runs what has come of the orders given while the clock
+	/// stood (<see cref="Replay.CReplay.FollowBetweenHours"/>). Answers whether anything came.
+	/// </summary>
+	public bool Follow()
+	{
+		return State.Replay is { IsReplaying: true } replay && replay.FollowBetweenHours(this);
+	}
+
+	/// <summary>For a game following another's: whether the hour next to run has come from the game it follows.</summary>
+	public bool HourHasCome => State.Replay is { IsReplaying: true, HasHourNext: true };
+
+	/// <summary>
+	/// The queue drained with no hour begun. Where that ran anything in a game being recorded, the recording is told how
+	/// far the queue has been drained, so that a game following along runs it now and not at the next hour.
+	/// </summary>
+	private int IdlePump()
+	{
+		int executed = PumpCore();
+		if (executed > 0 && State.Replay is { IsReplaying: false } recording)
+		{
+			recording.Drained(_turn);
+		}
+		return executed;
 	}
 
 	/// <summary>Whether hours are being run beside the frame: nothing outside may read or change the state until collected.</summary>
@@ -171,7 +205,7 @@ public sealed class CSimulation
 		{
 			if (State.Replay is not { IsReplaying: true })
 			{
-				PumpCore();
+				IdlePump();
 			}
 			return;
 		}
@@ -361,7 +395,7 @@ public sealed class CSimulation
 		{
 			Finish();
 		}
-		return PumpCore();
+		return IdlePump();
 	}
 
 	private int PumpCore()
@@ -443,7 +477,7 @@ public sealed class CSimulation
 			// Orders given while paused still happen; a replay drains the queue only as its recording did, before each hour.
 			if (State.Replay is not { IsReplaying: true })
 			{
-				PumpCore();
+				IdlePump();
 			}
 			return 0;
 		}

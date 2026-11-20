@@ -178,6 +178,44 @@ public sealed class CReplay
 		Keep(new CReplayTick(turn));
 	}
 
+	/// <summary>Recording: the queue drained with no hour begun, and something ran in the drain (<see cref="CReplayDrain"/>).</summary>
+	public void Drained(int turn)
+	{
+		Keep(new CReplayDrain(turn));
+	}
+
+	/// <summary>
+	/// Following a game as it runs, between hours: what has come of the orders given while its clock stood - each posted
+	/// after as many drains as it was, and the queue drained as far as the game it follows drained it - as far as the
+	/// recording has got and no hour begins. Answers whether anything came.
+	/// </summary>
+	public bool FollowBetweenHours(CSimulation simulation)
+	{
+		bool any = false;
+		while (true)
+		{
+			switch (Peek())
+			{
+				case CReplayPost post:
+					Take(simulation.State);
+					simulation.DrainUntil(post.Turn);
+					simulation.PostReplayed(post.Command);
+					any = true;
+					break;
+				case CReplayDrain drain:
+					Take(simulation.State);
+					simulation.DrainUntil(drain.Turn);
+					any = true;
+					break;
+				default:
+					return any;
+			}
+		}
+	}
+
+	/// <summary>Following a game as it runs: whether the recording has an hour's tick next, so that the hour may be run.</summary>
+	public bool HasHourNext => Peek() is CReplayTick;
+
 	/// <summary>
 	/// Replaying, before an hour's tick is posted: the commands posted from outside before it, each after draining the
 	/// queue as often as it had been drained when it was posted, and then the queue drained as far as it had been when the
@@ -193,6 +231,9 @@ public sealed class CReplay
 				case CReplayPost post:
 					simulation.DrainUntil(post.Turn);
 					simulation.PostReplayed(post.Command);
+					break;
+				case CReplayDrain drain:
+					simulation.DrainUntil(drain.Turn);
 					break;
 				case CReplayTick tick:
 					simulation.DrainUntil(tick.Turn);
