@@ -162,6 +162,20 @@ public static class CSupplyNetworks
 			return _navalBase is null ? 0 : province.BuildingMaxLevel(_navalBase).Raw;
 		}
 
+		/// <summary>
+		/// What an area's harbours are ranked by, the original's <c>UsableNavalBaseLevel</c>: the naval base's level as it
+		/// works - not as it was built - and nought for a port on the Baltic while the Baltic is closed to its owner
+		/// (reversing/findings/FINDINGS-supplyconvoys.md, section 4).
+		/// </summary>
+		private long RankLevel(CProvince province)
+		{
+			if (_navalBase is null || Movement.CMovementRules.IsShutInBaltic(_state, province))
+			{
+				return 0;
+			}
+			return province.BuildingLevel(_navalBase).Raw;
+		}
+
 		private bool HasWorkingPort(CProvince province)
 		{
 			return province.Owner is not null && province.PortSea != 0 && PortLevel(province) > 0;
@@ -266,9 +280,9 @@ public static class CSupplyNetworks
 				}
 				// The largest naval base first, and of two alike the one found first: a new
 				// one goes behind the last that is no smaller.
-				long level = PortLevel(province);
+				long level = RankLevel(province);
 				int at = area.Ports.Count;
-				while (at > 0 && PortLevel(_state.Province(area.Ports[at - 1])) < level)
+				while (at > 0 && RankLevel(_state.Province(area.Ports[at - 1])) < level)
 				{
 					at--;
 				}

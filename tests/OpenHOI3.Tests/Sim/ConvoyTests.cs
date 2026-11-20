@@ -240,7 +240,7 @@ public class ConvoyTests
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
 
 		// Both open onto the same water, so the first in the list - the larger - is taken.
-		Assert.Equal(world.Kiel, CConvoyRules.NearestPort(state, network.AreaOf(world.Berlin), world.Tsingtao));
+		Assert.Equal(world.Kiel, CConvoyRules.NearestPort(state, state.Country(Ger)!, network.AreaOf(world.Berlin), world.Tsingtao));
 	}
 
 	[Fact]

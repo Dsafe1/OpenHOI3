@@ -303,6 +303,25 @@ public class TradeTests
 	}
 
 	[Fact]
+	public void A_trade_convoy_goes_once_its_far_end_is_held_by_a_country_its_route_is_not_with()
+	{
+		// Germany's convoy for its route with Poland, to Poland's province 4.
+		CGameState state = World();
+		CTradeRoute route = CTradeRoutes.Make(state, BuyMetal(state, Pol, "1").Deal!, state.TotalHours)!;
+		var convoy = new OpenHOI3.Sim.Convoys.CConvoy { Id = 900, Owner = Ger, Start = 1, End = 4, IsTrade = true };
+		C(state, Ger).Convoys.Add(convoy);
+		route.Convoy = convoy;
+
+		OpenHOI3.Sim.Convoys.CConvoyDay.LookAtTradeConvoys(state, C(state, Ger));
+		Assert.Contains(convoy, C(state, Ger).Convoys);
+		// Italy, at peace with Germany, takes the harbour: the convoy is looked for among Germany's routes with Italy,
+		// where there is none (FINDINGS-liveread.md, section 152).
+		state.Province(4).Controller = Ita;
+		OpenHOI3.Sim.Convoys.CConvoyDay.LookAtTradeConvoys(state, C(state, Ger));
+		Assert.DoesNotContain(convoy, C(state, Ger).Convoys);
+	}
+
+	[Fact]
 	public void A_countrys_sliders_are_weighed_in_its_own_day_before_the_later_countries_trade_with_it()
 	{
 		// Germany buys 10 metal of Poland in its own day, and Poland sells it 10 more in Poland's, after Germany's.

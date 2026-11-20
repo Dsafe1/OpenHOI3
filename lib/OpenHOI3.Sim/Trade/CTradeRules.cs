@@ -187,8 +187,8 @@ public static class CTradeRules
 		{
 			return null;
 		}
-		int end = CConvoyRules.NearestPort(state, theirs, reference.Ports[0]);
-		int start = CConvoyRules.NearestPort(state, home, end);
+		int end = CConvoyRules.NearestPort(state, buyer, theirs, reference.Ports[0]);
+		int start = CConvoyRules.NearestPort(state, buyer, home, end);
 		if (end == 0 || start == 0 || !CConvoyRules.IsHarbour(state, state.Province(end))
 			|| !CConvoyRules.IsHarbour(state, state.Province(start)))
 		{

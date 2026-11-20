@@ -53,43 +53,77 @@ public static class CConvoyDay
 				convoy.LendLeaseEfficiency = System.Math.Min(CFixedPoint.Scale,
 					convoy.LendLeaseEfficiency + state.Defines[Economy.CResources.EconomySection, LendLeaseRegain].Raw);
 			}
-			if (convoy.IsTrade ? HasNoTrade(state, country, convoy)
-				: !convoy.IsLendLease && (convoy.Carries[(int)Economy.EGoods.Money] || HasLostAnEnd(state, country, convoy)))
+			// A trade convoy is looked at in its owner's own day, before its trade (LookAtTradeConvoys).
+			if (!convoy.IsTrade && !convoy.IsLendLease
+				&& (convoy.Carries[(int)Economy.EGoods.Money] || HasLostAnEnd(state, country, convoy)))
 			{
 				CConvoyMaker.Remove(country, convoy);
 			}
 		}
 	}
 
-	/// <summary>After the day's production: convoys are made and unmade, and the ships shared out.</summary>
+	/// <summary>
+	/// A country's trade convoys looked at in its own day, after the countries before it have traded and before its own
+	/// trade: one with no business any more is taken away, and its route then goes for want of it. The original's day runs
+	/// a whole country before the next, so a route of an earlier country's is still paid on the day a later country's look
+	/// takes its convoy away (<c>docs/mechanics/trade.md</c>, section 5; <c>reversing/findings/FINDINGS-liveread.md</c>,
+	/// section 152).
+	/// </summary>
+	public static void LookAtTradeConvoys(CGameState state, CCountry country)
+	{
+		foreach (CConvoy convoy in country.Convoys.ToArray())
+		{
+			if (convoy.IsTrade && HasNoTrade(state, country, convoy))
+			{
+				CConvoyMaker.Remove(country, convoy);
+			}
+		}
+	}
+
+	/// <summary>After the day's production: convoys are made and unmade, and the ships shared out, every country's.</summary>
 	public static void Maintain(CGameState state)
 	{
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
 		foreach (CCountry country in state.Countries)
 		{
-			if (country.AutoSupplyConvoys)
-			{
-				CSupplyConvoys.Maintain(state, network, country);
-			}
-			if (country.AutoResourceConvoys)
-			{
-				CResourceConvoys.Maintain(state, network, country);
-			}
-			if (country.AutoMaintainConvoys)
-			{
-				CConvoyShips.Distribute(state, network, country);
-			}
+			MaintainCountry(state, network, country);
 		}
 	}
 
 	/// <summary>
-	/// Whether a trade convoy has no business any more: no route of the two serves it, or either end is in
-	/// the hands of somebody at war with its owner or of rebels. A convoy carrying money that is no trade
-	/// convoy - one whose route was cancelled - goes too. See <c>docs/mechanics/trade.md</c>, section 5.
+	/// One country's convoys made and unmade and its ships shared out, at the end of its own economy in the day - so a
+	/// convoy given its ships here carries the trade of the countries after it that day, as in the original's day, which
+	/// runs a whole country before the next (<c>docs/mechanics/convoys.md</c>, section 10;
+	/// <c>reversing/findings/FINDINGS-liveread.md</c>, section 152).
+	/// </summary>
+	public static void MaintainCountry(CGameState state, CSupplyNetwork network, CCountry country)
+	{
+		if (country.AutoSupplyConvoys)
+		{
+			CSupplyConvoys.Maintain(state, network, country);
+		}
+		if (country.AutoResourceConvoys)
+		{
+			CResourceConvoys.Maintain(state, network, country);
+		}
+		if (country.AutoMaintainConvoys)
+		{
+			CConvoyShips.Distribute(state, network, country);
+		}
+	}
+
+	/// <summary>
+	/// Whether a trade convoy has no business any more: no route serves it between its owner and whoever holds its far
+	/// end - or its start, where the owner holds the far end - so an end the partner has lost to a third country takes the
+	/// convoy away, and its route with it; or either end is in the hands of somebody at war with its owner or of rebels. A
+	/// convoy carrying money that is no trade convoy - one whose route was cancelled - goes too. See
+	/// <c>docs/mechanics/trade.md</c>, section 5.
 	/// </summary>
 	private static bool HasNoTrade(CGameState state, CCountry country, CConvoy convoy)
 	{
-		if (!state.TradeRoutes.Exists(route => route.Convoy == convoy))
+		CProvince end = state.Province(convoy.End);
+		CCountryTag? partner = end.Controller == country.Tag ? state.Province(convoy.Start).Controller : end.Controller;
+		if (partner is not { } holder || !state.TradeRoutes.Exists(route => route.Convoy == convoy && route.Joins(country.Tag, holder)))
 		{
 			return true;
 		}

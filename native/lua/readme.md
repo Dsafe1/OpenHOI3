@@ -24,6 +24,10 @@ without `lua.c`, `luac.c` and `print.c`, the stand-alone programs. `COPYRIGHT` i
   read off the DLL: `fld` / `fistp`); a 64-bit build would otherwise truncate.
 - `LUA_INTEGER` is `int`, 32 bits as `ptrdiff_t` is in the original's build, where a 64-bit build
   would make it 64.
+- The `luai_num` operations - add, subtract, multiply, divide, modulo, power - round their result to 24
+  bits of mantissa, to nearest, ties to even, keeping the exponent (`ohoi_r24`), since 2026-11-20. The
+  original's build does its arithmetic on the x87, which every thread that runs its scripts holds at
+  24-bit precision (`docs/mechanics/lua.md`, Ours); a 64-bit build computes in SSE2's full double.
 
 `ohoi/ohoi.c` is ours: a trampoline, so that a function written in C# never raises a Lua error
 itself - a Lua error is a `longjmp`, and a `longjmp` through a .NET frame is undefined. LuaJIT's build

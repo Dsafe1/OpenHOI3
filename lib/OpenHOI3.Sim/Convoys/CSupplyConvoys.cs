@@ -94,7 +94,7 @@ public static class CSupplyConvoys
 				{
 					break;
 				}
-				int from = CConvoyRules.NearestPort(state, home, harbour);
+				int from = CConvoyRules.NearestPort(state, country, home, harbour);
 				if (!CConvoyRules.IsHarbour(state, state.Province(from)))
 				{
 					break;

@@ -117,7 +117,11 @@ and where either capital has no area - they do.
 else `from`. Its end is the harbour of the other country's acting capital's area nearest to the
 buyer's capital area's first harbour - its largest naval base, `convoys.md`'s "first harbour" - and
 its start the harbour of the buyer's acting capital's area nearest to that end, each by the straight
-line between the harbours' sea provinces. Both ends must be harbours with a naval base. **That the
+line between the harbours' sea provinces. **A harbour is nearest only among those whose water is
+connected with the other's for the buyer** - closed straits shut it out: Gibraltar and Suez held by its
+enemies close the Mediterranean to it, the Danish straits the Baltic (`fleetsandair.md`, section 1;
+`reversing/findings/FINDINGS-supplyconvoys.md`, section 4) - so in September 1939 no German convoy may be
+made to Turkey, while Turkey's may sail to Germany. Both ends must be harbours with a naval base. **That the
 convoy can be made** is the same test. It starts with no transports and is manned like a resource
 convoy (`convoys.md`): its transports wanted are its path's length times `CONVOY_PATH_LENGTH_MULT` and
 **`CONVOY_TRADE_WEIGHT_MULT`**, scaled by its end's naval base, at least one; it is ranked by what its
@@ -125,8 +129,14 @@ day carries, and it is idled where its start area produces none of crude oil, me
 materials (*inferred*).
 
 **It ends** in the daily look at a country's convoys where no route of the pair carries it any more, or
-an end is held by a country at war with its owner or by rebels. A cancelled route's convoy stops being
-a trade convoy at once and goes the next day.
+an end is held by a country at war with its owner or by rebels. **The pair is its owner and whoever holds
+its far end** - or its start, where the owner holds the far end - and not the route's other country, so
+a harbour the partner has lost to a third country takes the convoy away, though that country is at war
+with nobody the owner is, and the route goes the next time it is walked for want of it: Haiti's routes
+with Poland, to Gdynia held by Germany, on 7 September 1939 (`reversing/findings/FINDINGS-liveread.md`,
+section 152). **A trade convoy is looked at in its owner's own day**, just before its trade (section 6),
+so a route a country earlier in the order runs is paid on the day a later country's look takes its
+convoy away. A cancelled route's convoy stops being a trade convoy at once and goes the next day.
 
 ## 6. The day
 

@@ -531,12 +531,26 @@
 */
 #if defined(LUA_CORE)
 #include <math.h>
-#define luai_numadd(a,b)	((a)+(b))
-#define luai_numsub(a,b)	((a)-(b))
-#define luai_nummul(a,b)	((a)*(b))
-#define luai_numdiv(a,b)	((a)/(b))
-#define luai_nummod(a,b)	((a) - floor((a)/(b))*(b))
-#define luai_numpow(a,b)	(pow(a,b))
+/*
+** OpenHOI3: the original's Lua does its arithmetic on the x87, which Direct3D 9 sets to 24-bit
+** mantissas on the device's thread, and which every thread that runs the original's AI was seen
+** to hold (control word 0x007F, 2026-11-20; reversing/findings/FINDINGS-luahost.md, section 6).
+** So each result is rounded to 24 bits of mantissa, to nearest, ties to even, its exponent kept.
+*/
+static __inline double ohoi_r24(double x) {
+  union { double d; unsigned __int64 u; } v;
+  v.d = x;
+  if (((v.u >> 52) & 0x7FF) == 0x7FF) return x;  /* an infinity or a NaN */
+  v.u += 0x0FFFFFFFull + ((v.u >> 29) & 1);
+  v.u &= ~0x1FFFFFFFull;
+  return v.d;
+}
+#define luai_numadd(a,b)	(ohoi_r24((a)+(b)))
+#define luai_numsub(a,b)	(ohoi_r24((a)-(b)))
+#define luai_nummul(a,b)	(ohoi_r24((a)*(b)))
+#define luai_numdiv(a,b)	(ohoi_r24((a)/(b)))
+#define luai_nummod(a,b)	(ohoi_r24((a) - ohoi_r24(floor(ohoi_r24((a)/(b)))*(b))))
+#define luai_numpow(a,b)	(ohoi_r24(pow(a,b)))
 #define luai_numunm(a)		(-(a))
 #define luai_numeq(a,b)		((a)==(b))
 #define luai_numlt(a,b)		((a)<(b))

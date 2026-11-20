@@ -168,12 +168,19 @@ For each block of a country's land that is not the one its capital stands on: `c
 
 **The home harbour** is, of the harbours of the block the capital stands on, the one whose
 water lies the shortest **straight line** from the water the far harbour opens onto - between
-the two sea provinces, not by sea - and of two alike the first. It has to have water all the way
-there.
+the two sea provinces, not by sea - and of two alike the first. **Its water has to be connected with
+the far harbour's for the convoy's country**: the original's `SeaConnected`, by sea regions and the
+closed straits (`fleetsandair.md`, section 1), and not whether a way by sea exists at all - so a
+country at war with whoever holds Gibraltar and Suez finds no home harbour on the Mediterranean for an
+ocean's port (`reversing/findings/FINDINGS-supplyconvoys.md`, section 4; since 2026-11-20). A convoy's way
+is broken by the same test, water by water.
 
 **A block's harbours are in the order of their naval bases, the largest first**, and of two
 alike in the order the block's provinces were found (`supply.md`, section 2). So "the first
-harbour" is the largest. `confirmed`, and **measured**: with the harbours in the order they were
+harbour" is the largest. **The level ranked is the naval base's as it works**, not as it was built,
+**and a port on the Baltic counts nought while the Baltic is closed to its owner** - the Danish
+straits held by its enemy - the original's `UsableNavalBaseLevel`: so in July 1941 the Soviet Union's
+first harbour is not Leningrad (`reversing/findings/FINDINGS-liveread.md`, section 152; since 2026-11-20). `confirmed`, and **measured**: with the harbours in the order they were
 found 212 of the save's 261 convoys came out, and in this order all 261 - San Diego and not Los
 Angeles for the Pacific, Alexandria and not Tel Aviv for Egypt's resources.
 
@@ -282,7 +289,15 @@ Twice in a country's day: `confirmed`
 The supply pass has run before either, so a harbour's convoy answers what was asked of it this
 morning, and what it lands goes inland tomorrow.
 
-*Ours:* the original runs a country's whole day before the next country's; here each step is
+**Where it meets the trade**, a country's look at its **trade** convoys (`trade.md`, section 5) and its
+making, unmaking and manning of convoys come in its own stretch of the economy, the first just before
+its trade and the second at its end - so a country later in the order trades over a convoy an earlier
+one manned that day, and a route an earlier country runs is paid before a later one's look takes its
+convoy away. The original showed both on 7 September 1939: Australia paid on a German convoy given its
+first transport that midnight, Saudi Arabia paid on a route whose convoy it took away the same day
+(`reversing/findings/FINDINGS-liveread.md`, section 152; since 2026-11-20).
+
+*Ours:* the original runs a country's whole day before the next country's; here each other step is
 run for every country in turn (`tick.md`, section 3).
 
 ## 11. A new game

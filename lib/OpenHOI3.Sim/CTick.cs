@@ -200,7 +200,7 @@ public static class CTick
 		// country by country, so that it sees the surrenders and the IC of the countries before it and not those after.
 		Step(state, s => RunAlignmentAndSurrender(s, icAtDayStart), "CAlignment.RunDaily and CSurrender.RunDaily");
 		Step(state, Wars.CExile.ReturnDaily);                     // and an exile leading its faction coming home
-		Step(state, CConvoyDay.Maintain);                         // late in a country's day
+		// The convoys are made, unmade and manned at the end of each country's economy, above (RunEconomy).
 		Step(state, Economy.CSpareManpower.UpdateDaily);          // at the very end of it, what it has to spare
 		// Each province's own day, after every country's: what was bombed comes back, the suppression, the revolt risk's
 		// step and land at peace back to its owner, a province at a time; and then the pool is held.
@@ -463,6 +463,8 @@ public static class CTick
 		CIndustrialCapacity.CDay ic = CIndustrialCapacity.Prepare(state);
 		foreach (Countries.CCountry country in state.Countries)
 		{
+			// Its trade convoys looked at in its own day, after the earlier countries have traded (FINDINGS-liveread.md, 152).
+			Convoys.CConvoyDay.LookAtTradeConvoys(state, country);
 			CStockpile.AddHomeProduction(state, country);
 			CTribute.RunCountry(state, country);
 			CResources.GatherCutOff(state, network, country, held[country.Index]);
@@ -474,6 +476,9 @@ public static class CTick
 			CIndustrialCapacity.Apply(state, ic, country);
 			CProduction.RunCountry(state, country);
 			Wars.CExile.HoldPool(country);
+			// Its convoys made, unmade and manned at the end of its economy, before the later countries trade with them
+			// (FINDINGS-liveread.md, section 152).
+			Convoys.CConvoyDay.MaintainCountry(state, network, country);
 			// Then its sliders, before the later countries' days trade with it (ministers.md, section 5). Ours: the
 			// original weighs them last in the country's day, after its later stretches too, none of which was found to
 			// change what the weighing reads.

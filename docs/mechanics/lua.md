@@ -422,11 +422,16 @@ whatever the odds", from a signed draw, was corrected by this reading.
   file names for a mod's script that would list a folder through LuaFileSystem (`mods.md`, section 6; `CLuaFiles`).
 - **The state lives as long as a session**, where the original's lives as long as the process and
   carries a script's globals from one game into the next. Nothing in the base game relies on that.
-- **Lua's arithmetic is in full double precision.** The original's main thread ran its Lua under the
-  x87 set to 24 bits by Direct3D 9 (`FINDINGS-luahost.md`, section 6), so a script's fractions there
-  were rounded to single precision at each step. A new game's relations are whole numbers and exact
-  either way; what the AI's fractional arithmetic does is not established. The engine's own floats -
-  `Get()`, the alignment distance, the resource values - are single precision here as there.
+- **Under LuaJIT, Lua's arithmetic is in full double precision.** The original runs its Lua with the x87 set to 24 bits -
+  the device's thread by Direct3D 9, and every worker thread of its AI as well, seen holding the control word 0x007F
+  (`reversing/findings/FINDINGS-luahost.md`, section 6; `reversing/findings/FINDINGS-liveread.md`, section 152) - so each
+  result of a script's arithmetic is rounded to a float's mantissa. **The original's Lua 5.1.4 here does the same**: its
+  `luaconf.h` rounds every `luai_num` result to 24 bits of mantissa, to nearest, ties to even, keeping the exponent, and
+  `math.random` rounds its two steps so (`CLuaRandom`). It matters: a buyer whose money asked equals what it may spend to
+  the thousandth passes the trading script's test at 24 bits and fails it in double precision, which decided Turkey's
+  trade of 7 September 1939. LuaJIT's arithmetic cannot be rounded so; it stays double (`docs/compatibility.md`, entry
+  30). What is not rounded: `math`'s other functions, a number read from text, and the numbers the engine hands in, which
+  are single precision here as there - `Get()`, the alignment distance, the resource values.
 - **Only the classes, methods and globals above are built**, with the tech and production scripts'
   (`ministers.md`, section 7). The original makes every one of its registered classes a global; here a
   class is a global once something of it is built.

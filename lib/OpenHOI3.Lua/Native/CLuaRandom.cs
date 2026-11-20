@@ -37,7 +37,7 @@ internal sealed class CLuaRandom
 		int drawn = _rand.Next();
 		drawn = Feed?.Invoke() ?? drawn;
 		// The remainder avoids r == 1.
-		double r = (double)(drawn % RandMax) / RandMax;
+		double r = X87((double)(drawn % RandMax) / RandMax);
 		switch (call.ArgumentCount)
 		{
 			case 0:
@@ -49,7 +49,7 @@ internal sealed class CLuaRandom
 				{
 					throw new CLuaError("bad argument #1 to 'random' (interval is empty)");
 				}
-				return call.Return(Math.Floor(r * u) + 1);
+				return call.Return(Math.Floor(X87(r * u)) + 1);
 			}
 			case 2:
 			{
@@ -59,11 +59,32 @@ internal sealed class CLuaRandom
 				{
 					throw new CLuaError("bad argument #2 to 'random' (interval is empty)");
 				}
-				return call.Return(Math.Floor(r * unchecked(u - l + 1)) + l);
+				return call.Return(X87(Math.Floor(X87(r * unchecked(u - l + 1))) + l));
 			}
 			default:
 				throw new CLuaError("wrong number of arguments");
 		}
+	}
+
+	/// <summary>
+	/// A result as the original's x87 left it - rounded to 24 bits of mantissa, to nearest, ties to even, the exponent
+	/// kept - under the original's Lua 5.1.4, whose arithmetic is rounded so in <c>native/lua</c>'s <c>luaconf.h</c>;
+	/// LuaJIT's is full double precision and so is this under it (<c>docs/mechanics/lua.md</c>, Ours).
+	/// </summary>
+	private static double X87(double x)
+	{
+		if (CLuaInterpreter.Chosen != ELuaInterpreter.Lua514)
+		{
+			return x;
+		}
+		ulong bits = BitConverter.DoubleToUInt64Bits(x);
+		if (((bits >> 52) & 0x7FF) == 0x7FF)
+		{
+			return x;
+		}
+		bits += 0x0FFFFFFFUL + ((bits >> 29) & 1);
+		bits &= ~0x1FFFFFFFUL;
+		return BitConverter.UInt64BitsToDouble(bits);
 	}
 
 	private int RandomSeed(CLuaCall call)

@@ -154,28 +154,12 @@ public static class CConvoyRules
 	}
 
 	/// <summary>
-	/// Whether there is water all the way between two provinces for a country: each a
-	/// harbour or sea, and a way by sea from one to the other. A distance is the same both
-	/// ways, as the original keeps one triangle of them, so the answer is too; the distances
-	/// are measured from <paramref name="a"/>'s end, so a caller asking of one place many
-	/// times puts it first.
+	/// The harbour of an area nearest a province across the sea, for the country whose convoy it is: of the area's ports
+	/// the one whose own water is connected with the water the province's port opens onto for that country - closed
+	/// straits shut it out (<see cref="CMovementRules.SeaConnected"/>) - and lies the shortest straight line from it, the
+	/// first of equals. 0 where there is none to be had.
 	/// </summary>
-	public static bool IsSeaBetween(CGameState state, CProvince a, CProvince b)
-	{
-		if (CMovementRules.SeaEnd(state, a) is not { } first || CMovementRules.SeaEnd(state, b) is not { } second
-			|| first.SeaIndex < 0 || second.SeaIndex < 0)
-		{
-			return false;
-		}
-		return first.Id == second.Id || state.NavalDistances.Between(first, second) != 0;
-	}
-
-	/// <summary>
-	/// The harbour of an area nearest a province across the sea: of the area's ports the
-	/// one whose own water lies the shortest straight line from the water the province's
-	/// port opens onto, the first of equals. 0 where there is none to be had.
-	/// </summary>
-	public static int NearestPort(CGameState state, CSupplyArea? area, int target)
+	public static int NearestPort(CGameState state, CCountry country, CSupplyArea? area, int target)
 	{
 		if (area is null || area.Ports.Count == 0 || target <= 0)
 		{
@@ -187,7 +171,7 @@ public static class CConvoyRules
 		foreach (int port in area.Ports)
 		{
 			CProvince water = state.Province(state.Province(port).PortSea);
-			if (!IsSeaBetween(state, targetWater, water))
+			if (!CMovementRules.SeaConnected(state, country, water, targetWater))
 			{
 				continue;
 			}
@@ -241,8 +225,8 @@ public static class CConvoyRules
 	}
 
 	/// <summary>
-	/// Whether a convoy's way no longer holds: some water on it the owner may not enter,
-	/// or with no way by sea back to the harbour it sails from.
+	/// Whether a convoy's way no longer holds: some water on it the owner may not enter, or not connected for the owner
+	/// with the harbour it sails from - closed straits shutting it out.
 	/// </summary>
 	public static bool IsPathBroken(CGameState state, CConvoy convoy)
 	{
@@ -258,7 +242,7 @@ public static class CConvoyRules
 			{
 				continue;
 			}
-			if (!CMovementRules.MayEnter(state, owner, province) || !IsSeaBetween(state, start, province))
+			if (!CMovementRules.MayEnter(state, owner, province) || !CMovementRules.SeaConnected(state, owner, province, start))
 			{
 				return true;
 			}

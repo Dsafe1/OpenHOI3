@@ -43,7 +43,7 @@ public static class CResourceConvoys
 			{
 				continue;
 			}
-			CProvince to = state.Province(CConvoyRules.NearestPort(state, home, port.Id));
+			CProvince to = state.Province(CConvoyRules.NearestPort(state, country, home, port.Id));
 			if (CConvoyRules.IsHarbour(state, port) && CConvoyRules.IsHarbour(state, to))
 			{
 				CConvoyMaker.Create(state, country, port.Id, to.Id, forSupplies: false);
@@ -64,7 +64,7 @@ public static class CResourceConvoys
 				continue;
 			}
 			CProvince port = state.Province(theirs.Ports[0]);
-			CProvince to = state.Province(CConvoyRules.NearestPort(state, home, port.Id));
+			CProvince to = state.Province(CConvoyRules.NearestPort(state, country, home, port.Id));
 			if (CConvoyRules.IsHarbour(state, port) && CConvoyRules.IsHarbour(state, to))
 			{
 				CConvoyMaker.Create(state, country, port.Id, to.Id, forSupplies: false);

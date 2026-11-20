@@ -371,6 +371,21 @@ public static class CMovementRules
 		return end == mediterranean || !IsWaterClosed(state, country, "GIBRALTAR") || !IsWaterClosed(state, country, "SUEZ");
 	}
 
+	/// <summary>
+	/// Whether a port opens onto the Baltic while the Baltic is closed to its owner - which the original's ranking of an
+	/// area's harbours counts as a naval base of level 0 (<c>CMapProvince::UsableNavalBaseLevel</c>;
+	/// reversing/findings/FINDINGS-supplyconvoys.md, section 4).
+	/// </summary>
+	public static bool IsShutInBaltic(CGameState state, CProvince port)
+	{
+		if (port.PortSea <= 0 || port.PortSea >= state.Provinces.Count || state.Country(port.Owner) is not { } owner)
+		{
+			return false;
+		}
+		int baltic = RegionNamed(state, "baltic_sea_region");
+		return FirstRegion(state.Province(port.PortSea)) == baltic && IsWaterClosed(state, owner, "BALTIC");
+	}
+
 	/// <summary>The number of a province's first region, or -1 where it is in none.</summary>
 	private static int FirstRegion(CProvince province)
 	{

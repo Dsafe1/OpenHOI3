@@ -331,8 +331,12 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    on the save's figures (threat 96.714, alignment distance about 302, Germany's effective neutrality 0, no German unit on
    Belgian ground), and Germany's strategy has no `befriend` for Belgium (only `protect` 50); not found where the original
    stops, and in four days of a live run nobody's `CanDeclareWar` (VA `0x89B239`) or `CAIIntel` (VA `0x89F240`) was logged at
-   all - and at 19 and 26, an offer the AI answers one draw out (Turkey's trade to Germany answered in ours, Yugoslavia's
-   draw in the original's); its fleets and air from hour 15 (the RAF's Strategic Bomber Command);
+   all; its fleets and air from hour 15 (the RAF's Strategic Bomber Command); **hours 19 and 26 agree since 2026-11-20**
+   (section 152: the 5.1.4 Lua's arithmetic at 24 bits, a convoy's harbour connected for its country, a trade convoy's
+   partner by its far end, a country's trade convoys looked at and its convoys manned in its own economy, and a Baltic
+   port ranked nought while the Baltic is closed to it), and of the routes after the first midnight 641 of 642 are the
+   save's, Cuba's two with Canada and Italy, cancelled by the original's Cuba in its first two hours, surviving in ours -
+   not looked into;
    `wr14`'s from hour 32 - Soviet divisions; `wr20`'s one of ours alone at hour 47, the
    German 6th H Arm Division sent at 2275 at odds 1.693 over a bar of 1.5 where the original makes no attack (no odds probe in
    that recording); `wr21` 440 of 468 and `wr11` 464 of 488, both from that entering on, so to be measured only past it;

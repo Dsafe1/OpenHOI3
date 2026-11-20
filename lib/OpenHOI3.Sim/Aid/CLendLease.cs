@@ -185,7 +185,7 @@ public static class CLendLease
 			return null;
 		}
 		int end = home.Ports[0];
-		int start = CConvoyRules.NearestPort(state, theirs, end);
+		int start = CConvoyRules.NearestPort(state, giver, theirs, end);
 		if (start == 0 || !CConvoyRules.IsHarbour(state, state.Province(start)) || !CConvoyRules.IsHarbour(state, state.Province(end)))
 		{
 			return null;
