@@ -43,6 +43,25 @@ public static class CAiStrategies
 		}
 	}
 
+	/// <summary>
+	/// <see cref="RunDaily"/> for a game that plays the AI's steps back from a recording - a replay, a machine following a
+	/// host: the same strategies made again on the same days, their lists alone. The two things of a making that the game's
+	/// hour reads, the theatres' mark and the prepared wars, come with the played-back step and are left as it set them
+	/// (<c>CAiMarks</c>). So a look that asks a strategy - an offer's chance in a dialog - reads the host's lists
+	/// (<c>docs/multiplayer.md</c>, section 12).
+	/// </summary>
+	public static void RunDailyFollowing(CGameState state)
+	{
+		long today = state.TotalHours / CGameState.HoursPerDay;
+		foreach (CCountry country in state.Countries)
+		{
+			if ((state.IsRunning && today - country.Strategy.MadeHour / CGameState.HoursPerDay >= Days) || !country.Strategy.IsMade)
+			{
+				Make(state, country, listsOnly: true);
+			}
+		}
+	}
+
 	/// <summary>Made again at once - a change of war or a peace - in a running game only.</summary>
 	public static void Remake(CGameState state, CCountry country)
 	{
@@ -74,7 +93,7 @@ public static class CAiStrategies
 	/// the lists in order each scaled after its making, and its prepared wars checked. Nothing for the rebels, a country
 	/// owning no province, or one whose acting capital is in no area of the supply network. Answers whether it was made.
 	/// </summary>
-	public static bool Make(CGameState state, CCountry country)
+	public static bool Make(CGameState state, CCountry country, bool listsOnly = false)
 	{
 		if (country.Tag.Value == "REB" || COwnedCounts.Of(state).Count(country.Tag) <= 0
 			|| CSupplyNetworks.Refresh(state).AreaOf(country.ActingCapital) is null)
@@ -103,7 +122,10 @@ public static class CAiStrategies
 		strategy.Vassal.ScaleTo400();
 		CStrategyProtection.Make(state, country, strategy);
 		strategy.Protect.ScaleTo400();
-		CWarTargets.Recheck(state, country);
+		if (!listsOnly)
+		{
+			CWarTargets.Recheck(state, country);
+		}
 		strategy.IsMade = true;
 		return true;
 	}

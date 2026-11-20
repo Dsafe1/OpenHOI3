@@ -221,6 +221,8 @@ internal static class CReplayCheck
 		int days = 0;
 		int same = 0;
 		int differing = 0;
+		int strategiesSame = 0;
+		int strategiesShown = 0;
 		while (recorded.Date < end)
 		{
 			CDate before = recorded.Date;
@@ -246,6 +248,22 @@ internal static class CReplayCheck
 			}
 
 			days++;
+			// Every country's strategy lists, which the hash leaves out and the replaying game makes for itself
+			// (multiplayer.md, section 12).
+			List<string> otherStrategies = recorded.Countries.Zip(replayed.Countries)
+				.Where(pair => StrategyText(pair.First) != StrategyText(pair.Second))
+				.Select(pair => pair.First.Tag.Value).ToList();
+			if (otherStrategies.Count == 0)
+			{
+				strategiesSame++;
+			}
+			else if (strategiesShown++ < 5)
+			{
+				var first = recorded.Countries.Zip(replayed.Countries).First(pair => StrategyText(pair.First) != StrategyText(pair.Second));
+				Console.WriteLine($"  {recorded.Date}: the strategies of {otherStrategies.Count} countries differ ({string.Join(", ", otherStrategies.Take(12))})");
+				Console.WriteLine($"    {first.First.Tag} recorded: {StrategyText(first.First)}");
+				Console.WriteLine($"    {first.First.Tag} replayed: {StrategyText(first.Second)}");
+			}
 			ulong[] then = CStateHash.Of(recorded);
 			ulong[] now = CStateHash.Of(replayed);
 			string[] parted = CStateHash.Parts.Where((_, i) => now[i] != then[i]).ToArray();
@@ -273,9 +291,25 @@ internal static class CReplayCheck
 			$"{commands} commands, {recording.Steps.Sum(step => step.Draws)} draws of the game's generator and " +
 			$"{recording.Steps.Sum(step => step.AiDraws)} of the AI's), replayed in " +
 			$"{replayClock.ElapsedMilliseconds / 1000.0:0.0} s; {same} of {days} days the same");
+		Console.WriteLine($"every country's strategy lists the same on {strategiesSame} of {days} days");
 		recordedScripts.Dispose();
 		replayedScripts.Dispose();
-		return differing == 0 ? 0 : 1;
+		return differing == 0 && strategiesSame == days ? 0 : 1;
+	}
+
+	/// <summary>
+	/// A country's strategy as one line: when it was made, its personality and each list the making fills, in order with
+	/// its weights. Not the military access list, which the AI's scripts write.
+	/// </summary>
+	private static string StrategyText(OpenHOI3.Sim.Countries.CCountry country)
+	{
+		OpenHOI3.Sim.Ai.CAiStrategy strategy = country.Strategy;
+		static string List<T>(string name, OpenHOI3.Sim.Ai.CStrategyList<T> list) where T : notnull =>
+			$" {name}[{string.Join(",", list.Entries.Select(entry => $"{entry.Key}={entry.Weight}"))}]";
+		return $"made {strategy.IsMade} at {strategy.MadeHour} {strategy.Personality}"
+			+ List("conquer", strategy.ConquerProvinces) + List("defend", strategy.DefendProvinces)
+			+ List("threat", strategy.Threat) + List("antagonize", strategy.Antagonize) + List("befriend", strategy.Befriend)
+			+ List("protect", strategy.Protect) + List("rival", strategy.Rival) + List("vassal", strategy.Vassal);
 	}
 
 	/// <summary>The first hour the two part: the figures, each differing pool good by good, and the steps recorded around it.</summary>

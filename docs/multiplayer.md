@@ -560,12 +560,17 @@ roll's on any machine, the original's too. A test has a script that posts and ro
 **A client's chance may be a little off the host's answer**, for what the scores read that only the AI's steps
 keep current, which a client does not run (`replay.md`, section 3):
 
-- **the recipient's AI strategy** (`GetStrategy()` in the alliance, non-aggression, trade, licence, peace and
-  break-alliance scores) is made again every ten days in an AI step. A client's is as it was at its last load -
-  joining, a resync - or at the country's last change of war or peace or of faction, which the game's own passes
-  run on every machine. Not hashed, so it parts nothing;
-- **what the scripts themselves remember** is each state's own.
+- **what the scripts themselves remember** is each state's own;
+- **the military access list of a strategy** is written by the AI's scripts and a client's stays empty.
 
-`CAIIntel` is worked out from the game as it is asked and is the same everywhere. Ours, and open: the host could be
-asked for the figure instead, which costs a round trip per dialog; or the strategy made again on a client at the
-same ten days, which wants `CAiStrategies.Make` shown to change nothing the hash covers.
+**The recipient's AI strategy** (`GetStrategy()` in the alliance, non-aggression, trade, licence, peace and
+break-alliance scores) is made again every ten days in an AI step, which a client plays back and does not run. **A
+game that plays the step back makes the lists itself, right after it** (`CAiStrategies.RunDailyFollowing`, called by
+the tick where `CReplay.IsReplaying`; decided 2026-11-20, "Ok build it"): the same countries on the same days, a
+making reading nothing but the game, rolling nothing and posting nothing. It leaves out the two things of a making
+the game's hour reads - the prepared wars' recheck and the theatres' mark - which come with the played-back step
+(`CAiMarks`). The makings at a load and at a change of war, peace or faction were every machine's already.
+**Checked** with `replaycheck`, which now sets every country's lists side by side each midnight: the same on 365 of
+365 days to 1 January 1937, the hashes too; `twomachines` 59 days the same.
+
+`CAIIntel` is worked out from the game as it is asked and is the same everywhere.

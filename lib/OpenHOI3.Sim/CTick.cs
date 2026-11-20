@@ -162,6 +162,11 @@ public static class CTick
 		Step(state, Politics.CNationalUnity.RunDaily);           // right after a country's modifier (politics.md, section 6)
 		Step(state, Politics.CMinisterPosts.JoinDaily);          // a minister whose start date is today joins the pool
 		AiStep(state, Ai.CAiStrategies.RunDaily);                   // before a country's day: its strategy, ten days old (aistrategy.md, 1)
+		if (state.Replay is { IsReplaying: true })
+		{
+			// where the step was played back, the lists it would have made (multiplayer.md, section 12)
+			Step(state, Ai.CAiStrategies.RunDailyFollowing);
+		}
 		Step(state, Agreements.CNapBalance.UpdateDaily);          // before a country's day: its pacts' borders
 		Step(state, Countries.CActingCapital.EnsureCapitals);     // at the head of a country's day: a capital it owns,
 		Step(state, CNeutrality.RunDaily);                        // then neutrality

@@ -70,6 +70,9 @@ be the hour and the step the game has reached; where it is not, the run stops an
 
 **What the AI keeps for itself does not move in a replay** - its agents, plans, prepared wars and the Lua's own memory -
 so a tool that reads them in a replay reads them as they stood at the first hour. Nothing of the game reads them.
+**A strategy's lists are the exception since 2026-11-20**: the replaying game makes them itself right after the daily
+step it played back, on the same days (`CAiStrategies.RunDailyFollowing`), for a dialog's chance on a machine that
+follows a host; `replaycheck` sets them beside the recording game's each midnight (`multiplayer.md`, section 12).
 
 **A decision of the AI's that the game's own pass calls** reads them all the same, and so is kept as a step is, through
 `CReplay.RunCalledStep`: the sealift's look as a land unit enters a province in the march (`CSealiftArrival.OnEntered`;

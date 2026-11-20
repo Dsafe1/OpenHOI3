@@ -85,9 +85,9 @@ conditions button by request. What is next:
 4. ~~a client's Lua for an offer's chance as a state of its own that can post nothing~~ - built 2026-11-20
    (`multiplayer.md`, section 12): every session keeps a second Lua state a dialog's chance is asked of, what a
    script posts or rolls there is put back, and `aiscore <install> second` sets it beside the game's - alike in
-   6,006 pairs. **Not looked at on a client's screen.** Open, named there: a client's AI strategy is as old as its
-   last load or its country's last change of war, the ten days' remaking being an AI step, so its chance may be a
-   little off the host's answer;
+   6,006 pairs. **Not looked at on a client's screen.** And a game that plays the AI's steps back makes
+   the strategies' lists itself on the same ten days, so a client's chance reads the host's lists - `replaycheck`
+   sets them side by side, the same on 365 of 365 days;
 5. the rest of section 6's *Not built*.
 **The screens no longer ask the AI's agent of a headquarters** (2026-11-20): the unit panel, the objectives, the plan
 markers and rows, the alert, Disband All, the order tooltip and the right click ask whether a plan is on
