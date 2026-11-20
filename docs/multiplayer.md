@@ -44,15 +44,26 @@ All on 2026-11-20.
   the engine's version, the enhanced engine's rules, and every file a game reads by path and content
   (`enhanced.md`, *The file checksum*) - and is what machines compare before they play.
 
+- **A game sent to a machine is loaded by every machine, the host too - until there is a snapshot.** A save in the
+  original's keys does not hold everything a game goes on from, and a game loaded parts from the one that saved it
+  within the hour (`enhanced.md`, *A whole game's replay*; `OpenHOI3.SaveCheck reload`). So when a client is sent the
+  game - on joining, or because its hash differed - the host saves and all machines load that save, which the same
+  load makes the same game on each: the original's lobby does no other. The game changes a little by it, as by any
+  load. When the enhanced engine's save holds the whole state, that is sent to the one machine and nobody else
+  loads; what carries a game between machines is made to take either.
+- **A player's order is acted on at once.** It is never kept for an hour's turn: a client sends it to the host the
+  moment it is given, and the host puts it into the stream ahead of the next hour it runs, as it does its own
+  player's - "a delay in that case can be fatal". What stands between the click and the order is the way to the host
+  and back, and nothing added to it.
+- **Anybody may pause and resume; only the host sets the speed.**
+- **A player who drops pauses the game, and his country goes to the AI.** He may come back where joining a running
+  game is on.
+- **The host leaving ends the game.** No other machine takes it on.
+
 ## 3. Open
 
 - What a client's hour needs from the host beyond the commands: the tick itself, the AI's draws, the game's generator.
-- The player's own commands: when one posted on a client runs, and on which hour, on every machine.
-- Speed and pause: who may set them, and what happens while one machine is behind.
-- A player leaving or losing the connection: his country to the AI, the game paused, his return.
-- The host leaving: whether the game ends or another machine takes it on.
+- What happens while one machine is behind the host.
 - Saves: who may save, what a save made on a client is, and loading one in a lobby.
 - The lobby: choosing countries, the host's options, chat.
 - What in the client today is a local write and not a command, and would part two machines.
-- The enhanced engine's save, which is to hold everything a game goes on from (`enhanced.md`, *A whole game's replay*):
-  a save in the original's keys does not, so a client sent one may not go on exactly as the host does.
