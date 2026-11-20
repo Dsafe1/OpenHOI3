@@ -101,7 +101,9 @@ internal static class CRebelsTrial
 			while (state.Date == today)
 			{
 				CTick.RunHour(state);
-				foreach (CCommand command in state.Outbox.ToArray())
+				var hour = new List<CCommand>(state.Outbox);
+				CCommand.DropRefused(state, hour);
+				foreach (CCommand command in hour)
 				{
 					if (command.MayExecute(state))
 					{

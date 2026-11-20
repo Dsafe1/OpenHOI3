@@ -256,9 +256,9 @@ public sealed class LuaModApiTests : IDisposable
 		using CAiScripts scripts = Load();
 
 		Assert.Equal(2.0, scripts.Ask(state, $"{Germany}:GetNumberOfFreeSpies()"));
-		// A faction member is no ally for being one: the allies are the alliances (FINDINGS-liveread.md, section 145).
-		Assert.Equal(0.0, scripts.Ask(state, $"{Germany}:GetNumOfAllies()"));
-		Assert.Equal(0.0, scripts.Ask(state, $"(function() local n = 0 for _ in {Germany}:GetAllies() do n = n + 1 end return n end)()"));
+		// A faction member is an ally, and one with an alliance besides is counted once (FINDINGS-liveread.md, section 151).
+		Assert.Equal(1.0, scripts.Ask(state, $"{Germany}:GetNumOfAllies()"));
+		Assert.Equal(1.0, scripts.Ask(state, $"(function() local n = 0 for _ in {Germany}:GetAllies() do n = n + 1 end return n end)()"));
 		state.Alliances.Add(new CAlliance(Ger, Ita));
 		Assert.Equal(1.0, scripts.Ask(state, $"{Germany}:GetNumOfAllies()"));
 		Assert.Equal("1,2", scripts.Ask(state, $"(function() local t = {{}} for id in {Germany}:GetOwnedProvinces() do t[#t + 1] = id end return table.concat(t, ',') end)()"));

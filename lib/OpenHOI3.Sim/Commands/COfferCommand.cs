@@ -17,6 +17,12 @@ public sealed class COfferCommand : CCommand
 
 	public COffer Offer { get; }
 
+	/// <summary>A proposal a diplomat would wait for is thrown away at its post while one is on his way (agreements.md, section 1).</summary>
+	public override bool MayPost(CGameState state)
+	{
+		return !COfferRules.RefusedAtPost(state, Offer);
+	}
+
 	public override void Execute(CGameState state)
 	{
 		if (!COfferRules.IsValid(state, Offer) || state.Country(Offer.Actor) is not { } actor

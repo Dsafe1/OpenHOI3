@@ -115,6 +115,49 @@ public class AgreementsTests
 	}
 
 	[Fact]
+	public void A_proposal_a_diplomat_waits_for_is_thrown_away_at_its_post_while_one_is_on_his_way()
+	{
+		CGameState state = World();
+		CCountryTag slo = ScriptWorld.Slo;
+		Run(state, Offer(state, EOfferKind.Alliance, Pol, slo));
+
+		// A guarantee and a call to arms send no diplomat, and still wait for one already sent (FINDINGS-liveread.md, section 151).
+		Assert.False(new COfferCommand(Offer(state, EOfferKind.Guarantee, Pol, slo)).MayPost(state));
+		Assert.False(new COfferCommand(Offer(state, EOfferKind.CallAlly, Pol, slo) with { Versus = Ger }).MayPost(state));
+		// An answer, a cancelled trade and a withdrawn expedition are never stopped; the other way round is another pair.
+		Assert.True(new COfferCommand(Offer(state, EOfferKind.Alliance, Pol, slo, stage: EOfferStage.Accepted)).MayPost(state));
+		Assert.True(new COfferCommand(Offer(state, EOfferKind.Trade, Pol, slo, value: false)).MayPost(state));
+		Assert.True(new COfferCommand(Offer(state, EOfferKind.Expedition, Pol, slo, value: false)).MayPost(state));
+		Assert.False(new COfferCommand(Offer(state, EOfferKind.Trade, Pol, slo)).MayPost(state));
+		Assert.True(new COfferCommand(Offer(state, EOfferKind.Guarantee, slo, Pol)).MayPost(state));
+		// Stopping lend-lease waits only where none is being given.
+		COffer stop = Offer(state, EOfferKind.OfferLendLease, Pol, slo, value: false);
+		Assert.False(new COfferCommand(stop).MayPost(state));
+		C(state, Pol).LendLeaseGiving.Add(new OpenHOI3.Sim.Aid.CLendLeaseGift(slo));
+		Assert.True(new COfferCommand(stop).MayPost(state));
+		// The hour the diplomat arrives still counts; the next does not.
+		CDiplomacyStatus status = CGameState.Status(C(state, Pol), C(state, slo));
+		status.DiplomatUntil = state.TotalHours;
+		Assert.False(new COfferCommand(Offer(state, EOfferKind.Guarantee, Pol, slo)).MayPost(state));
+		status.DiplomatUntil = state.TotalHours - 1;
+		Assert.True(new COfferCommand(Offer(state, EOfferKind.Guarantee, Pol, slo)).MayPost(state));
+	}
+
+	[Fact]
+	public void The_queue_takes_no_proposal_its_post_throws_away()
+	{
+		CGameState state = World();
+		var simulation = new CSimulation(state);
+		CCountryTag slo = ScriptWorld.Slo;
+		simulation.Post(new COfferCommand(Offer(state, EOfferKind.Alliance, Pol, slo)));
+		simulation.Pump();
+
+		simulation.Post(new COfferCommand(Offer(state, EOfferKind.Guarantee, Pol, slo)));
+		Assert.Equal(0, simulation.Pump());
+		Assert.Single(C(state, slo).PendingOffers);
+	}
+
+	[Fact]
 	public void An_AI_accepts_over_thirty_on_a_draw_below_its_score_and_the_answer_comes_back_as_a_command()
 	{
 		CGameState state = World();

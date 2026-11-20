@@ -277,6 +277,8 @@ unset is the screen's call; set, a call made by a declaration or the AI's.
   caller in the war, or the recipient another's puppet, the caller first of its side and the puppet's
   overlord already on it; and the recipient has no NAP with a real country on the side the caller
   fights.
+- **Posted**: thrown away while the caller's diplomat is en route to the recipient, though a call sends none and its
+  row's test asks for none (`agreements.md`, section 1).
 - **Proposed**: the war's call map marks the recipient; **`value` unset only**, the caller pays
   `CALLALLY_INFLUENCE_COST`, held at nought.
 - **Accepted**: the mark cleared; the recipient's alliance, guarantee and NAP with the enemy end; it joins

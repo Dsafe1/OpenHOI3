@@ -59,6 +59,7 @@ public static class CPoliticsAi
 		state.NewGameLaws.Clear();
 		posted.AddRange(state.Outbox);
 		state.Outbox.Clear();
+		CCommand.DropRefused(state, posted);
 		while (true)
 		{
 			foreach (CCommand command in posted)

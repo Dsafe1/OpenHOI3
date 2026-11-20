@@ -66,7 +66,7 @@ public static class CCountryClass
 			.Method("GetStrategy", call => call.Return(new CLuaObject(api.Strategy, Of(call))))
 			.Method("GetFlags", call => call.Return(new CLuaObject(api.Flags, Of(call).Flags)))
 			// What the foreign minister's script asks (foreignminister.md, section 3).
-			.Method("GetAllies", call => call.ReturnIterator(Tags(api, CCountryLists.Allied(api.State, Of(call)))))
+			.Method("GetAllies", call => call.ReturnIterator(Tags(api, CCountryLists.Allies(api.State, Of(call)))))
 			.Method("GetVassals", call => call.ReturnIterator(Tags(api, Vassals(api, Of(call)))))
 			.Method("GetControllerNeighbours", call => call.ReturnIterator(Tags(api, CCountryLists.ControllerNeighbours(api.State, Of(call)))))
 			.Method("IsNeighbour", call => call.Return(CCountryFacts.Of(api.State).AreNeighbours(Of(call).Tag,

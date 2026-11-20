@@ -379,6 +379,35 @@ public static class COfferRules
 	public static bool DiplomatEnRoute(CGameState state, CCountry actor, CCountry recipient) =>
 		state.TotalHours <= CGameState.Status(actor, recipient).DiplomatUntil;
 
+	/// <summary>
+	/// Whether a diplomat on his way stops this offer - its row greyed, and as a proposal refused at its post: every kind
+	/// but three. A trade and an expedition only while offering or sending; stopping lend-lease only where the actor is not
+	/// giving the recipient any. See <c>docs/mechanics/agreements.md</c>, section 1.
+	/// </summary>
+	public static bool WaitsForDiplomat(CGameState state, COffer offer)
+	{
+		return offer.Kind switch
+		{
+			EOfferKind.Trade or EOfferKind.Expedition => offer.Value,
+			EOfferKind.OfferLendLease => offer.Value || state.Country(offer.Actor) is not { } actor
+				|| state.Country(offer.Recipient) is not { } recipient || !Aid.CLendLease.Gives(actor, recipient),
+			_ => true,
+		};
+	}
+
+	/// <summary>
+	/// Whether a proposal is thrown away as it is posted, before it is ever executed: one a diplomat stops while the
+	/// actor's diplomat is on his way to the recipient - a call to arms among them, which sends none itself. Answers and
+	/// the offers a declaration makes and runs on the spot are not posted and are never asked. See
+	/// <c>docs/mechanics/agreements.md</c>, section 1.
+	/// </summary>
+	public static bool RefusedAtPost(CGameState state, COffer offer)
+	{
+		return offer.Stage == EOfferStage.Proposed && WaitsForDiplomat(state, offer)
+			&& state.Country(offer.Actor) is { } actor && state.Country(offer.Recipient) is { } recipient
+			&& DiplomatEnRoute(state, actor, recipient);
+	}
+
 	public static bool IsPuppet(CCountry country) => country.Overlord is not null;
 
 	/// <summary>The recipient is no puppet, or the actor's own.</summary>

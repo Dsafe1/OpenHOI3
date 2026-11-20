@@ -131,6 +131,7 @@ internal static class CDeclareTrial
 			CTick.RunHour(state);
 			var posted = new List<CCommand>(state.Outbox);
 			state.Outbox.Clear();
+			CCommand.DropRefused(state, posted);
 			foreach (CCommand command in posted)
 			{
 				if (command is COfferCommand { Offer.Kind: EOfferKind.CallAlly } call)
@@ -196,7 +197,9 @@ internal static class CDeclareTrial
 		while (state.Date == day)
 		{
 			CTick.RunHour(state);
-			foreach (CCommand command in state.Outbox.ToArray())
+			var hour = new List<CCommand>(state.Outbox);
+			CCommand.DropRefused(state, hour);
+			foreach (CCommand command in hour)
 			{
 				if (command.MayExecute(state))
 				{
@@ -255,6 +258,7 @@ internal static class CDeclareTrial
 			CTick.RunHour(state);
 			var posted = new List<CCommand>(state.Outbox);
 			state.Outbox.Clear();
+			CCommand.DropRefused(state, posted);
 			foreach (CCommand command in posted)
 			{
 				if (command is COfferCommand { Offer.Kind: EOfferKind.Peace } answer)

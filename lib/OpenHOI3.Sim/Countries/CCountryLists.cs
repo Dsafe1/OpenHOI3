@@ -103,27 +103,10 @@ public static class CCountryLists
 	}
 
 	/// <summary>
-	/// The original's list of allies, the one the Lua's <c>GetAllies</c> and <c>GetNumOfAllies</c>, the <c>ally</c>
-	/// scope and <c>num_of_allies</c> read: every country it has an alliance with that owns a province, in the countries'
-	/// order - **no faction member for being one** (reversing/findings/FINDINGS-scopetriggers.md, section 1; liveread,
-	/// section 145).
-	/// </summary>
-	public static List<CCountry> Allied(CGameState state, CCountry country)
-	{
-		var allies = new List<CCountry>();
-		foreach (CCountry other in state.Countries)
-		{
-			if (other != country && HasAlliance(state, country.Tag, other.Tag) && OwnedCount(state, other.Tag) > 0)
-			{
-				allies.Add(other);
-			}
-		}
-		return allies;
-	}
-
-	/// <summary>
 	/// The country's allies: every country it has an alliance with that owns a province, then
-	/// every other member of its faction not already there.
+	/// every other member of its faction not already there - the original's list of allies, which the Lua's
+	/// <c>GetAllies</c> and <c>GetNumOfAllies</c>, the <c>ally</c> scope and <c>num_of_allies</c> read
+	/// (reversing/findings/FINDINGS-scopetriggers.md, section 1; FINDINGS-liveread.md, section 151).
 	/// </summary>
 	public static List<CCountry> Allies(CGameState state, CCountry country)
 	{

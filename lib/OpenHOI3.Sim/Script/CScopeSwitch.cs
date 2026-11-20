@@ -37,7 +37,7 @@ public static class CScopeSwitch
 			case "ally":
 			{
 				CCountry? country = state.Country(scope.Country);
-				List<CCountry> allies = country is null ? new List<CCountry>() : CCountryLists.Allied(state, country);
+				List<CCountry> allies = country is null ? new List<CCountry>() : CCountryLists.Allies(state, country);
 				return allies.Count == 0 ? null : scope.With(allies[scope.Draw(allies.Count)].Tag, scope.Province);
 			}
 			case "local_enemy":

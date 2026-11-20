@@ -301,12 +301,15 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    as outnumbered and the original as enough, sending it to the ring at `wr14`'s hour 17. `wr14` 477, `wr11` 464.
    **Three new recordings, 2026-11-19, every probe** (48 hours each from `Ireland1941_07_16_07`, beside `wr19` in session
    eb4eed6b's scratchpad): `wr20`, `wr21` and `wr22`, the last with `probes/hoiodds.lua` (every attack estimate, look by look).
-   **And the Lua's `GetAllies` is the alliances alone** (`triggers.md`, section 2; section 145): `wr20` parted at hour 33,
-   ours having Germany's foreign minister call Italy, an Axis member with no alliance, into its war on Mongolia, which the
-   original's list - empty, Germany having no alliance - never does; `GetNumOfAllies`, the `ally` scope and `num_of_allies`
-   read the same list (`CCountryLists.Allied`). `wr20` 520 of 523 land orders (476), one of ours alone (59), fleets 170 of
-   170, air 34 of 34; the five others unchanged. The other readers of `CCountryLists.Allies`, which keeps the faction's
-   members, were not looked at. **Ours' attack estimates are the original's look for look** (section 146: `wr22`'s every
+   **And a proposal is thrown away at its post while a diplomat is on his way** (`agreements.md`, section 1; section
+   151, which corrects 145): `wr20` parted at hour 33, ours having Germany's foreign minister call Italy into its war on
+   Mongolia, which the original's makes too and loses at the post, Germany's diplomat to Rome not due until 21 July. From
+   2026-11-19 to 2026-11-20 ours had it so by giving `GetAllies` the alliances alone, which is not the original's list:
+   `GetAllies`, `GetNumOfAllies`, the `ally` scope and `num_of_allies` are the alliances and then the faction again
+   (`CCountryLists.Allies`, the one list). Its nine other readers - battle plans' sharing, the ledger, the offer
+   dialog, the allied objectives, the theatres screen, a Lua economy method, the underground's two - were built on that
+   list and stay on it; which list each one's original reads was not checked one by one. All seven recordings
+   play back as before: `wr20` 523 of 523, fleets 170 of 170, air 34 of 34. **Ours' attack estimates are the original's look for look** (section 146: `wr22`'s every
    Soviet look on entering to the thousandth, clean defenders among them).
    **And `wr11`'s and `wr21`'s entering is the recording's** (`replay.md`, section 9; section 147): the Soviet attacks on 1576
    and 1440 ours makes and those originals decline are at stance 4 in ours and in every entering made without

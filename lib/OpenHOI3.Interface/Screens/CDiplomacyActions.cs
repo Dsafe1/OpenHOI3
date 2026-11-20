@@ -181,8 +181,8 @@ public static class CDiplomacyActions
 		{
 			return true;
 		}
-		// Cancelling a trade, or stopping lend-lease being given, never waits for a diplomat.
-		if (!offer.Value && offer.Kind is EOfferKind.Trade or EOfferKind.OfferLendLease)
+		// Cancelling a trade, withdrawing an expedition or stopping lend-lease being given never waits for a diplomat.
+		if (!COfferRules.WaitsForDiplomat(state, offer))
 		{
 			return false;
 		}

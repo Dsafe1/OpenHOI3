@@ -26,7 +26,7 @@ public static class CCountryHoldingsMethods
 				call.Return(new CLuaObject(api.DistributionSetting, CDistributionSettingClass.At(call, Of(call), leadership: true))))
 			// The spies bought and not placed, whole, cut toward nought.
 			.Method("GetNumberOfFreeSpies", call => call.Return((int)(Of(call).FreeSpies.Raw / CFixedPoint.Scale)))
-			.Method("GetNumOfAllies", call => call.Return(CCountryLists.Allied(api.State, Of(call)).Count))
+			.Method("GetNumOfAllies", call => call.Return(CCountryLists.Allies(api.State, Of(call)).Count))
 			// The numbers of the provinces it owns, in the provinces' order.
 			.Method("GetOwnedProvinces", call =>
 			{

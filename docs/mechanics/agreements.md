@@ -39,6 +39,17 @@ lifting an embargo) - and a **date**, its hour. The kinds built and their keys:
 3. **the offer takes effect** for its stage and value (section 5);
 4. it is put on a list of offers: the **recipient's**, if it is a proposal, else the **actor's**.
 
+**Before any of that, the post may throw it away** (`confirmed`, `reversing/findings/FINDINGS-liveread.md`, section
+151): as the command is posted - before it takes a place in the queue, and before anything posted with it has run - a
+**proposal** is dropped while the actor's diplomat is en route to the recipient, unless it is of a kind no diplomat
+stops: a trade being cancelled, an expedition withdrawn, or lend-lease stopped that the actor is giving. Every other
+proposal waits for one - a guarantee, an influence, a trade offered and **a call to arms**, though none of them sends a
+diplomat of its own or tests for one where its button is greyed - so the AI's script may make one its own test
+passes, post it, and see it thrown away. The same kinds are the ones a diplomat greys on the screen (section 7). An
+answer is never stopped. Ours: `CCommand.MayPost`, which the queue asks as it takes a command and `COfferCommand`
+answers by `COfferRules.RefusedAtPost`. In July 1941 it is why the original's Germany, calling Italy into its war on
+Mongolia, never brings it in before 21 July: a diplomat it sent Rome before the save is due that midnight.
+
 **Influence is charged on proposing**, whatever the answer (section 5), from the actor's
 `diplomatic influence`, never below nought. Guarantee, embargo, influence and alignment have no
 answer: **they take effect when they are proposed**.

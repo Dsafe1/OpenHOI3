@@ -303,9 +303,16 @@ public sealed class CSimulation
 		}
 	}
 
-	/// <summary>Stamps a command with its place in the order and queues it.</summary>
+	/// <summary>
+	/// Stamps a command with its place in the order and queues it - unless its post throws it away. What the hour posts is
+	/// queued as soon as the hour has run, before anything posted with it runs, so the test reads the game as the post did.
+	/// </summary>
 	private void Enqueue(CCommand command)
 	{
+		if (!command.MayPost(State))
+		{
+			return;
+		}
 		command.Serial = _nextSerial++;
 		command.Turn = _turn;
 		_queue.Enqueue(command);

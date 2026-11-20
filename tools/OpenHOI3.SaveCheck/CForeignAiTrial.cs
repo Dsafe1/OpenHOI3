@@ -53,6 +53,7 @@ internal static class CForeignAiTrial
 			CTick.RunHour(state);
 			var posted = new List<CCommand>(state.Outbox);
 			state.Outbox.Clear();
+			CCommand.DropRefused(state, posted);
 			foreach (CCommand command in posted)
 			{
 				bool may = command.MayExecute(state);

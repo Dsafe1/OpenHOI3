@@ -325,6 +325,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - **Withdrawn access ends both ways,** and `MILACC_CANCEL_RELATION_CHANGE` is read by nothing. `agreements.md`, oddity 4. *Bug.* Risk: small.
 - **Two tests disagree for alliance and embargo:** what greys a button and what decides an offer. `agreements.md`, oddity 6. *Oversight.* Risk: none.
 - **"Unlikely" means never.** A chance of 10 to 30 reads "Unlikely" and is always declined. `agreements.md`, oddity 7. *Display.* Risk: none.
+- **A proposal made while a diplomat travels is lost without a word.** The post throws it away, but the tests the AI's scripts ask before posting - a call to arms', a guarantee's, an influence's, a trade's - do not look for a diplomat, so the AI makes it, posts it and never learns it went nowhere: in July 1941 Germany calls Italy into its war on Mongolia every few days and Italy comes only once an earlier offer's diplomat has arrived. `agreements.md`, 1. *Oversight.* Risk: moderate - when the AI's allies come into its wars.
 - **The null faction's progress overflows.** `factions.md`, 7 and oddity 10. *Bug.* Risk: none.
 - **The join dialog prints the alliance's costs.** The faction's action charges nothing. `factions.md`, oddity 1. *Display.* Risk: none.
 - **Debt is repaid for ever.** It is never lowered, and one under 18.250 is never repaid. `aid.md`, 1 and 5. *Bug.* Risk: moderate.

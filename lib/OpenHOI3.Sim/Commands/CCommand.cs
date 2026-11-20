@@ -29,5 +29,20 @@ public abstract class CCommand
 		return true;
 	}
 
+	/// <summary>
+	/// Asked as it is posted, before it takes a place in the order: a command that answers false is thrown away and never
+	/// queued. What it reads is the game as the post finds it, before anything posted with it has run.
+	/// </summary>
+	public virtual bool MayPost(CGameState state)
+	{
+		return true;
+	}
+
+	/// <summary>Takes out of a list of posted commands those their post would throw away, before any of them runs.</summary>
+	public static void DropRefused(CGameState state, System.Collections.Generic.List<CCommand> posted)
+	{
+		posted.RemoveAll(command => !command.MayPost(state));
+	}
+
 	public abstract void Execute(CGameState state);
 }
