@@ -57,38 +57,22 @@ the client. **And everything below that asked to be looked at was, later that da
 multiplayer menu and Host from it, the shared lobby with its chat, kick and ban, co-op, a client's hours beside its
 frame, the console's refusal and a headquarters handed to the AI on a client; a client's lobby then lost its victory
 conditions button by request. What is next:
-1. **still to be looked at in play**: a client closed (the pause, its country to the AI) and come back, the host
-   closed - each tried by processes on 2026-11-20 and doing what it should, by the log (`multiplayer.md`, section
-   6); and, built after the look, a client's hours beside its frame - 125 midnights the same by two processes - and
-   the console refusing what would change the game;
-2. ~~a parted game sent again~~ - tried 2026-11-20 with `--netpart=`, which puts a client out of step: sent again,
-   loaded by both, 88 midnights the same after it (`multiplayer.md`, section 6);
-3. **the multiplayer menu and the shared lobby are built** (2026-11-20; `mechanics/frontend.md`, section 8, from the
-   original's `.gui` elements and a reading of its view; `multiplayer.md`, section 7): Host opens the lobby, which
-   listens; Join Internet Game connects, the connect log saying how it went, and comes into the host's lobby, each
-   player choosing a country on the map, the host's Play starting the game on every machine. A machine joining a
-   game that already runs is still **given the unplayed country owning the most land**, a stand-in. Tried with
-   `--click` and two processes - GER and ENG chosen in the lobby and the game loaded on both; a join into a running
-   game given the Soviet Union, 77 midnights the same. **Not looked at in play.** Left of it (`multiplayer.md`,
-   section 7). **The original's lobby for several players is read** (`reversing/findings/FINDINGS-multiplayerlobby.md`)
-   **and ours brought in line** (`mechanics/frontend.md`, section 9): the rows' "name (Country)", kick and ban on the
-   host's rows, a client's tabs greyed, the chat between machines, a dead lobby staying up. Left, each named there:
-   `save_progress` and the save's chat lines; the options shown on a client with four arrows greyed; the dialog a
-   thrown-out player gets; a row's shield centring the map; LOST_PLR. **A machine joining a running game chooses
-   its country** on its lobby's map and joins with Play, the game held meanwhile (2026-11-20; `multiplayer.md`,
-   section 10), **and is shown that game; a save the host chooses in its lobby is sent to the others there**
-   (section 11) - the last not tried, which wants a save's row clicked on a host with a client in its lobby. **Several
-   players of one country** (co-op, decided and built
-   2026-11-20; `multiplayer.md`, section 8): any country may be shared, the first to choose it is its primary and
-   alone is shown its events. To be looked at: two players giving one country orders, and the events on the
-   primary's screen only;
-4. ~~a client's Lua for an offer's chance as a state of its own that can post nothing~~ - built 2026-11-20
-   (`multiplayer.md`, section 12): every session keeps a second Lua state a dialog's chance is asked of, what a
-   script posts or rolls there is put back, and `aiscore <install> second` sets it beside the game's - alike in
-   6,006 pairs. **Not looked at on a client's screen.** And a game that plays the AI's steps back makes
-   the strategies' lists itself on the same ten days, so a client's chance reads the host's lists - `replaycheck`
-   sets them side by side, the same on 365 of 365 days;
-5. the rest of section 6's *Not built*.
+1. **looked at in play on 2026-11-20, over the internet too, and found good**: the menu and the shared lobby, a
+   save chosen in the lobby reaching the others, kick, co-op with its primary and the primary handed on, a machine
+   joining a game that runs and choosing its country, a client gone and come back, the host gone - a client then
+   saves the game and says so - and the resync, whose one cause in play, an event's answer dropped on a client, is
+   mended. The copy and paste in edit boxes and the play checksum on the menu with them;
+2. **built 2026-11-20 and checked by processes and screenshots, not in play** (`multiplayer.md`, sections 12 and 13):
+   a second Lua state for a dialog's chance, with the strategies' lists made on a client too; a ban that holds
+   while the host's program runs; the port as `openhoi3_port` in `settings.txt`, named in the host's chat; how far
+   a game being sent has come, in the lobby's chat and over a game in play - **the figure in play not seen**, two
+   processes of one machine being too quick; the host's Options panel on a client, every arrow faint;
+3. **left of the original's lobby** (`mechanics/frontend.md`, section 9): the figure on the rows' `save_progress`,
+   the dialog a thrown-out player gets, a row's shield centring the map, LOST_PLR, the victory conditions reaching
+   the others before the game is sent;
+4. **left of ours** (`multiplayer.md`, section 6): chat and notices in play, which wants deciding; a client
+   keeping the last game it was sent, so as to be sent nothing where it holds it; a game's sending blocking the
+   host's frame; a screen for the port.
 **The screens no longer ask the AI's agent of a headquarters** (2026-11-20): the unit panel, the objectives, the plan
 markers and rows, the alert, Disband All, the order tooltip and the right click ask whether a plan is on
 (`CAgents.HighestAutomated`, `CUnit.Plan.Active`), which every machine holds, a client holding no agent. To be looked

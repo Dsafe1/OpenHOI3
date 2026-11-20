@@ -211,7 +211,7 @@ All on 2026-11-20.
 - **The lobby is shared** (decided 2026-11-20): the host's lobby listens from the moment it is opened, a machine
   that joins sees the same lobby, each player picks a country on its map, and the host's Play starts the game for
   every machine. Joining a game that is running stays as it is. So the lobby's choices - the bookmark or the save,
-  the options, who has which country - have to travel between the machines. **Not built.**
+  the options, who has which country - have to travel between the machines. **Built**, sections 7, 11 and 13.
 - **The address is typed where the original has it typed**: "The original has a second panel that opens once you
   choose internet game." `temp_frontend.gui` has `multiplayer_menu` - `playername`, `host`, `join`, `join_direct`,
   `scan`, `metaserver`, `Back` and the list `games` - and `naming_window`, a `Title`, an edit box `edit`, and the
@@ -238,9 +238,8 @@ one process. What they do:
   nothing. The speed is refused on a client (`CPace`).
 - **Each midnight the host sends the state's hash**, and a client sets its own beside it. One that differs says so,
   runs nothing more, and is no longer waited for or sent anything - `CHostSession.Parted` is where sending it the
-  game again will hang. **That sending is not built.**
-- **A client gone pauses the game.** Its country going to the AI is not built: nothing but the console changes who
-  plays a country.
+  game again will hang. **That sending is built** (section 6).
+- **A client gone pauses the game**, and its country goes to the AI (built since, section 6).
 
 **The lines** (`CWire`), each one line of text whose first letter is its kind:
 
@@ -302,7 +301,8 @@ host posts it: `CHostSession.Drop` for a client gone, with the pause; `Assign` f
 plays - any that owns land (`Unplayed`), so one who comes back chooses among them all, the one he had or another -
 the country he held going to the AI, and the client told which is his (`a`).
 
-**Not built** in the simulation's side: chat. What the client does with it is section 6.
+**Not built** in the simulation's side: chat in play - the lobby's is the client's (section 7). What the client
+does with the rest is section 6.
 
 ## 6. The client - begun 2026-11-20
 
@@ -311,7 +311,8 @@ the country he held going to the AI, and the client told which is his (`a`).
 simulation, so the boot scene (`Main`) keeps it, pumps its connections every frame whatever is on screen, hands it
 to each session, and loads the game it says to.
 
-- **Two developer switches stand in for the lobby, which is not built.** `--host` (or `--host=port`) beside a switch
+- **Two developer switches start a game between machines without the lobby**, which is built since (section 7).
+  `--host` (or `--host=port`) beside a switch
   that says what to play - `--country=GER`, `--load=` - hosts that game. `--join=address[:port]` with
   `--country=ENG` and `--name=` joins one, asking for that country. `--netlog` writes each new day to the log, and on
   a client how many midnights its hash has been the host's.
@@ -378,11 +379,10 @@ locks and the automation of every player but the host, which a save keeps for on
 player other than the host had handed to the AI, whose plan `Take` switches off. To be said in `enhanced.md` with
 the snapshot.
 
-**Not built**: the lobby, a name and an address entered on screen; a country chosen from those nobody plays, by a
-player joining or come back; the reason a game ended shown on screen; a client keeping the last game it was sent,
-so as to be sent nothing where it holds it; chat in play. (A client's own Lua for an offer's chance is built,
-section 12.) A game's sending blocks the
-host's frame until the connection has taken it.
+**Built since**: the lobby with a name and an address entered on screen (section 7), a country chosen by a player
+joining a game that runs (section 10), the reason a game ended said on screen, a client's own Lua for an offer's
+chance (section 12). **Not built**: a client keeping the last game it was sent, so as to be sent nothing where it
+holds it; chat in play. A game's sending blocks the host's frame until the connection has taken it.
 
 ## 7. The shared lobby - built 2026-11-20
 
@@ -414,11 +414,12 @@ Decided the same day (section 4.1). The menu before it is `mechanics/frontend.md
 **Checked**, 2026-11-20, two processes driven by `--click` through the menu: the host hosting from the menu and
 choosing Germany, the client joining by address, coming into the lobby and choosing the United Kingdom, the host's
 Play - **the game loaded on both, played by GER and ENG**, each machine its own. The game then stood paused, as a new
-game does, so no midnight was compared after a start from the lobby. Nobody has looked at it.
+game does, so no midnight was compared after a start from the lobby. **Looked at in play on 2026-11-20, over the
+internet too, and found good.**
 
-**Not built, or a stand-in**: a save the host loads in its lobby is not shown on a client, which keeps the
-bookmark's map and chooses by it; the options and the victory conditions the host sets reach the others only in the
-game sent; a country that owns no land at the start chosen is refused only as the game starts.
+**Built since**: a save the host loads in its lobby is shown on a client (section 11), and the host's options
+(section 13). **A stand-in still**: the victory conditions the host sets reach the others only in the game sent; a
+country that owns no land at the start chosen is refused only as the game starts.
 
 **Brought in line with the original's lobby the same day**, once it was read
 (`reversing/findings/FINDINGS-multiplayerlobby.md`; `mechanics/frontend.md`, section 9, which says what is and is
@@ -427,7 +428,7 @@ not built of it): a row's "name (Country)", the host's rows with kick and ban (`
 tells every machine in the lobby, and the lobby's own lines by their keys (`CLobbyChatLine`) - and a client whose
 host is gone or that was thrown out staying in its dead lobby with one line in its chat until its Back. Tried by
 two processes: the rows, the chat's box and a typed line come back from the host, on a screenshot of the client.
-Kick, ban and the host gone from a lobby were not tried.
+Kick was looked at in play on 2026-11-20 and works; the ban kept nobody out then and does since (section 13).
 
 | added to the lines | |
 | --- | --- |
@@ -457,9 +458,8 @@ country is refused, and a human is marked primary where no other human of that c
 
 **Checked** by three processes: a client asked for Germany, which the host played - sent the game, **played by
 GER alone, the client not primary, 34 midnights the same**; the client stopped - the host paused and **Germany
-stayed played**; a second machine asked for Germany again and was let in, not primary. That a second player's
-orders run, that the events stay off its screen, and a primary handed on were not tried: the first two want
-looking at, and the third wants three machines.
+stayed played**; a second machine asked for Germany again and was let in, not primary. A second player's orders, the events on the primary's screen alone and a primary handed on were **looked at in
+play on 2026-11-20 and work**.
 
 ## 9. A game that parts, named
 
@@ -501,7 +501,8 @@ land. *Ours*: the original's own screen for it, `CIngameLobby`, is not read.
 
 **Checked** by two processes: a host by switch, running; a client through the menu and the address, into the
 lobby - the host's row "Host (Germany)", its own row with no country, on a screenshot - the United Kingdom clicked,
-Play: **the game sent, played by GER and ENG, 82 midnights the same**. NOT_EXIST was not tried.
+Play: **the game sent, played by GER and ENG, 82 midnights the same**. NOT_EXIST was not tried, and is hardly
+reached since the joiner chooses on the running game's own map (section 11).
 
 ~~**What it does not do**: the map is the start's, not the running game's~~ - it is the running game's since the
 same evening, section 11.
@@ -533,7 +534,7 @@ stroke." One thing does both: **the host sends a game that is to be shown in a l
 
 **Checked** by two processes: a joiner's lobby of a running game with the header "Saved Game, 15 of February, 1936",
 the host's date, on a screenshot; then the whole of it, the United Kingdom chosen and joined, 71 and 76 midnights
-the same. **A save chosen in a host's lobby reaching a client was not tried** - no check clicks a save's row.
+the same. A save chosen in a host's lobby reaching a client was **looked at in play on 2026-11-20 and works**.
 
 ## 12. The Lua a chance is asked of - built 2026-11-20
 
@@ -574,3 +575,45 @@ the game's hour reads - the prepared wars' recheck and the theatres' mark - whic
 365 days to 1 January 1937, the hashes too; `twomachines` 59 days the same.
 
 `CAIIntel` is worked out from the game as it is asked and is the same everywhere.
+
+## 13. The ban, the port, a save's progress and the host's options - built 2026-11-20
+
+Four things asked for together, each checked by processes and screenshots.
+
+- **A ban holds.** A machine the host bans is known by its address (`CLineLink.RemoteAddress`, an IPv4 address
+  that came through the IPv6 socket as the IPv4 it is). It is told `n banned` and its connection closed, and
+  **anything that connects from that address again is told the same before it is asked anything**, in the lobby
+  and in a game that runs, **for as long as the host's program runs** - the list is the program's (`Main`), handed
+  to each `CNetHost`, and is in no file. The banned machine's lobby says BANNED in its chat, a later try's connect
+  log the same. Two players behind one address are both kept out; a player whose address changes is not. Checked:
+  a client banned from the lobby, and a second process from the same address refused in its connect log.
+- **The port is the settings' `openhoi3_port`**, a key of ours at the top level of the player's `settings.txt`
+  (`CUserSettings.Port`), read between 1 and 65535 and **written only where it is not the default 19390**, so a
+  file that never set it stays the original's byte for byte. It is the port a game is hosted on - from the menu,
+  or by `--host` with no number - and the port an address that names none is joined at. No screen sets it.
+  **A host's lobby says the port in its own chat** as it opens, "Hosting on port 19390.", or that it could not be
+  opened and why; the line is English, the original having none. Checked: hosted and joined on 19555 by the key.
+- **A game being sent says how far it has come.** `CGameReceiver.Percent` is the bytes here over the length the
+  offer named. **In a lobby** the chat says TRANSERING_SAVE as a game is offered, SAVE_PROG "Save progress: N %" at
+  each quarter, yellow and at 100 green, and SAVE_TRANSFER_DONE - for a save the host chose, the game that runs
+  shown to a joiner, and the game sent at Play. The host's own chat says TRANSERING_SAVE once for each save it
+  sends and SAVE_TRANSFER_DONE when every machine in the lobby has said it holds it (`v`). **In play**, where the
+  game on screen is to be replaced, "Syncing games... N%" stands over it while the game comes, and gives way to
+  the loading screen's own "Syncing games..." (`Main`); the line under the top bar says the same figure. *Ours*:
+  the original writes the figure on each player's row (`save_progress`), which stays unbuilt. Checked in a
+  joiner's lobby on a screenshot; **the figure in play was not seen**, a game between two processes of one machine
+  coming whole within a frame.
+- **A client's lobby shows the host's Options panel, every arrow faint and doing nothing.** The host says its
+  seven choices whenever one changes (`O`: the difficulty, the game mode, the five areas), and a client writes
+  them into its panel; a save or a running game shown to it gives the panel that game's own choices first.
+  **The five areas' arrows are greyed too**, where the original leaves them to each player: here the areas are
+  the game's one record and the AI is the host's, so a client's choice would be lost with the game sent
+  (`compatibility.md`, entry 31). The arrows' picture has no greyed frame, so an arrow that does nothing is drawn
+  faint, the game mode's with them. Checked: the host's change to Hard on the client's panel, and the client's
+  own presses changing nothing.
+
+| added to the lines | |
+| --- | --- |
+| `n banned`, to a client | it is banned from this host's games |
+| `O`, to a client in the lobby | the host's options: seven numbers |
+| `v`, from a client | the game it was sent to look at is here whole |

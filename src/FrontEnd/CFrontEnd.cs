@@ -374,10 +374,38 @@ public partial class CFrontEnd : Node
 		// as with Play (docs/multiplayer.md, section 10).
 		_lobby.HotJoinMode = net.LobbyBookmark == global::OpenHOI3.Multiplayer.CNetHost.RunningGame;
 		OpenLobby();
+		// The Options panel shows the host's choices, every arrow greyed (frontend.md, section 9).
+		_lobbyOptionsShown = 0;
 		if (_lobbyOptions is not null)
 		{
-			_lobbyOptions.Visible = false;
+			_lobbyOptions.ReadOnly = true;
 		}
+	}
+
+	/// <summary>On a client: which of the host's sayings of its options the panel shows.</summary>
+	private int _lobbyOptionsShown;
+
+	/// <summary>The host's options, where it has said them, written into the panel of a client.</summary>
+	private void ShowHostOptions(Multiplayer.CNetClient client)
+	{
+		_lobbyOptionsShown = client.LobbyOptionsVersion;
+		if (client.LobbyOptions is { } values)
+		{
+			CLobbyOptions.Apply(values, ChosenPlay, ChosenAutomation);
+		}
+		_lobbyOptions?.Refresh();
+	}
+
+	/// <summary>A host's lobby whose port is open: its chat names the port, for the players to be told. *Ours.*</summary>
+	public void SayHosted(int port)
+	{
+		_lobby.Say($"Hosting on port §Y{port}§W.");
+	}
+
+	/// <summary>A host's lobby whose port could not be opened: its chat says so. *Ours.*</summary>
+	public void SayNotHosted(int port, string why)
+	{
+		_lobby.Say($"§RPort {port} could not be opened§W: {why}");
 	}
 
 	/// <summary>
@@ -402,8 +430,11 @@ public partial class CFrontEnd : Node
 			// A country asked for that the running game has not: NOT_EXIST, with the country's name for its tag.
 			string name = line.Key == "NOT_EXIST" && CCountryTag.TryParse(line.Name, out CCountryTag asked)
 				? World.Country(asked)?.Name ?? line.Name : line.Name;
+			// How far a save has come is yellow, and green once it is here, as the original's rows write it.
+			string colour = line.Key != "SAVE_PROG" ? "" : line.Text == "100" ? "§G" : "§Y";
 			_lobby.Say(line.Key is null ? "§Y" + line.Name + "§!: " + line.Text
-				: Interface.Text.CTextTemplate.Fill(Localise(line.Key), ("NAME", name), ("TAG", name)));
+				: colour + Interface.Text.CTextTemplate.Fill(Localise(line.Key), ("NAME", name), ("TAG", name), ("VALUE", line.Text))
+					+ (colour.Length > 0 ? "§W" : ""));
 		}
 	}
 
@@ -435,6 +466,7 @@ public partial class CFrontEnd : Node
 			case Multiplayer.CNetHost host:
 			{
 				host.SetLobby(_lobby.BookmarkIndex, PlayerName, _lobby.Chosen);
+				host.SetOptions(CLobbyOptions.Values(ChosenPlay, ChosenAutomation));
 				System.Collections.Generic.List<(string Name, CCountryTag? Country, bool Secondary)> players = host.LobbyPlayers();
 				string shown = string.Join("&", players.Select(player => player.Name + "=" + player.Country?.Value + (player.Secondary ? "*" : "")));
 				if (shown != _lobbyPlayersShown)
@@ -482,11 +514,14 @@ public partial class CFrontEnd : Node
 					{
 						CDiagnostics.Warn($"The game the host sent for the lobby could not be shown: {failed.Message}");
 					}
-					if (_lobbyOptions is not null)
-					{
-						_lobbyOptions.Visible = false;
-					}
+					// The panel is the game's as loaded - a running game's own choices - and then the host's, where its
+					// lobby has said them since.
+					ShowHostOptions(client);
 					_lobby.ShowPlayers(client.LobbyPlayers);
+				}
+				if (client.LobbyOptionsVersion != _lobbyOptionsShown)
+				{
+					ShowHostOptions(client);
 				}
 				break;
 		}
@@ -511,6 +546,10 @@ public partial class CFrontEnd : Node
 			LobbyNet = null;
 			_lobby.ClientMode = false;
 			_lobby.HotJoinMode = false;
+			if (_lobbyOptions is not null)
+			{
+				_lobbyOptions.ReadOnly = false;
+			}
 			NetLobbyLeft?.Invoke();
 		}
 		if (SaveLoaded)

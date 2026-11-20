@@ -103,6 +103,11 @@ public static class CUserSettingsWriter
 
 		Line(text, "lastplayer", Quoted(s.LastPlayer));
 		Line(text, "lasthost", Quoted(s.LastHost));
+		// A key of ours, written only off its default: a file that never set it comes out as the original writes it.
+		if (s.Port != CUserSettings.Default.Port)
+		{
+			Line(text, "openhoi3_port", Int(s.Port));
+		}
 		Line(text, "serveradress", Quoted(s.ServerAddress));
 		Line(text, "debug_saves", Int(s.DebugSaves));
 		Line(text, "autosave", Quoted(s.Autosave));

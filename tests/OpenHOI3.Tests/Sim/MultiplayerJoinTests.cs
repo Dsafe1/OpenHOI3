@@ -106,6 +106,29 @@ public class MultiplayerJoinTests
 	}
 
 	[Fact]
+	public void AGameComingSaysHowMuchOfItIsHere()
+	{
+		byte[] game = { 1, 2, 3, 4, 5, 6, 7, 8 };
+		var receiver = new CGameReceiver(_ => { }, _ => null);
+		Assert.Equal(0, receiver.Percent);
+		receiver.Receive(CWire.Line(CWire.GameOffered, CGameSender.Hash(game) + " 8"));
+		Assert.Equal(8, receiver.Total);
+		Assert.Equal(0, receiver.Percent);
+		receiver.Receive(CWire.Line(CWire.GamePiece, Convert.ToBase64String(game, 0, 2)));
+		Assert.Equal(25, receiver.Percent);
+		receiver.Receive(CWire.Line(CWire.GamePiece, Convert.ToBase64String(game, 2, 6)));
+		Assert.Equal(100, receiver.Percent);
+		receiver.Receive(CWire.Line(CWire.GameSent));
+		Assert.Equal(100, receiver.Percent);
+		Assert.Equal(game, receiver.Game);
+
+		// One this machine holds already is here at once.
+		var holder = new CGameReceiver(_ => { }, _ => game);
+		holder.Receive(CWire.Line(CWire.GameOffered, CGameSender.Hash(game) + " 8"));
+		Assert.Equal(100, holder.Percent);
+	}
+
+	[Fact]
 	public void AnOrderIsItsSendersCountrysOrIsDropped()
 	{
 		Assert.True(COrderCheck.MayGive(new CAutomateUnitCommand(Ger, 5), Ger));

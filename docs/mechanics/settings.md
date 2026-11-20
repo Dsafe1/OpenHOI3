@@ -37,7 +37,8 @@ defaults are the original's constructors' [exe]. A number is a figure, not thous
 | `mapRenderingOptions = { show_unit_names }` | no | **applied** since 2026-11-14: a near counter carries its unit's name where yes, its leader's where no, as it is read and from Apply on (`mapunits.md`, section 2) |
 | `mapRenderingOptions = { counter_distance }` | 100 | read and written; the height under which units are seen from near (`reversing/findings/FINDINGS-camera.md`) - the original's figures, or with `alwaysCounters` the near counter, and here always the near counter and the near battle marker, the far ones from it up to 500 (`mapunits.md`, section 7). Until 2026-11-12 the near counter went by a new install's 100 whatever the setting said |
 | `mapRenderingOptions = { counter_scale }` | 1 | **applied** since 2026-11-07: it multiplies a far counter's growth with rank, as it is read and from Apply on (`mapunits.md`, section 2) |
-| `lastplayer`, `lasthost`, `serveradress` | "", "", "diplomacy.valkyrienet.com" | read and written; there is no game of several players |
+| `lastplayer`, `lasthost`, `serveradress` | "", "", "diplomacy.valkyrienet.com" | read and written; the first two are the multiplayer menu's name and address (`frontend.md`, section 8) |
+| `openhoi3_port` | 19390 | **a key of ours**, which the original passes over and drops when it writes the file: the port a game is hosted on and an address with none is joined at; written after `lasthost` and only where it is not 19390, so a file that never set it comes out the original's byte for byte (`docs/multiplayer.md`, section 13) |
 | `debug_saves` | 0 | read and written |
 | `autosave` | `YEARLY` | read and written, and the autosave's frequency (`savegame.md`, section 11). A name that is none of the six is reported and read as `YEARLY` |
 | `simple`, `categories` | yes, six noughts | read and written; what they mean is not read |

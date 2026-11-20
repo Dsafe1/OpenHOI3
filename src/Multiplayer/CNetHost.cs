@@ -24,18 +24,40 @@ public sealed class CNetHost : CNetGame
 
 	/// <param name="checksum">The host's play checksum, which a machine has to share to be let in.</param>
 	/// <param name="country">The country the host's own player plays.</param>
-	public CNetHost(int port, string checksum, CCountryTag? country)
+	/// <param name="banned">The addresses of the machines banned, kept by the caller across the games it hosts.</param>
+	public CNetHost(int port, string checksum, CCountryTag? country, HashSet<string>? banned = null)
 	{
 		_listener = new CLineListener(port);
 		_checksum = checksum;
+		_banned = banned ?? new HashSet<string>();
 		Country = country;
 	}
+
+	/// <summary>
+	/// The addresses of the machines the host has banned: one that connects from such an address is told so and let go
+	/// before it is asked anything, in the lobby and in a game that runs (docs/multiplayer.md, section 13).
+	/// </summary>
+	private readonly HashSet<string> _banned;
+
+	/// <summary>The Options panel's line as it stands, sent to every machine in the lobby that has not been sent it; null outside the lobby.</summary>
+	private string? _options;
+
+	/// <summary>The host's Options panel as it stands: the difficulty, the game mode and the five areas, as numbers.</summary>
+	public void SetOptions(IEnumerable<int> values)
+	{
+		_options = string.Join(" ", values.Select(value => value.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+	}
+
+	/// <summary>Whether the host's own chat has been told the save now shown is being sent, and that every machine has it.</summary>
+	private bool _viewStartSaid;
+	private bool _viewDoneSaid;
 
 	/// <summary>The country the host's own player plays, once the lobby's Play has said: a host made with its lobby has none till then.</summary>
 	public void SetHostCountry(CCountryTag country)
 	{
 		Country = country;
 		_lobby = null;
+		_options = null;
 	}
 
 	/// <summary>Counts the choices of a country as they are made, the host's and the others'.</summary>
@@ -128,6 +150,8 @@ public sealed class CNetHost : CNetGame
 		{
 			_view = game;
 			_viewHash = hash;
+			_viewStartSaid = false;
+			_viewDoneSaid = false;
 		}
 	}
 
@@ -195,6 +219,13 @@ public sealed class CNetHost : CNetGame
 	{
 		while (_listener.TryAccept(out CLineLink link))
 		{
+			// A banned machine is told so and let go, whatever it would say.
+			if (_banned.Contains(link.RemoteAddress))
+			{
+				link.Send(CWire.Line(CWire.Refused, "banned"));
+				link.Dispose();
+				continue;
+			}
 			_peers.Add(new CNetPeer(link));
 		}
 		foreach (CNetPeer peer in _peers.ToList())
@@ -252,6 +283,17 @@ public sealed class CNetHost : CNetGame
 						// Its answer to a game offered it to look at.
 						peer.ViewSender?.Receive(line);
 					}
+					else if (line.Length > 0 && line[0] == CWire.ViewTaken)
+					{
+						// The game it was last offered to look at is with it whole.
+						peer.ViewTaken = peer.ViewHash;
+					}
+				}
+				// The host's Options panel, to a machine in its lobby, whenever a choice there changes.
+				if (_lobby is not null && _options is not null && peer.LobbySent is not null && peer.OptionsSent != _options)
+				{
+					peer.OptionsSent = _options;
+					peer.Link.Send(CWire.Line(CWire.Options, _options));
 				}
 				// The lobby as it stands - or, where a game is running, the players of it under the place -2 of no
 				// bookmark: a machine joining that game chooses its country on its own lobby's map and says so with its
@@ -268,6 +310,12 @@ public sealed class CNetHost : CNetGame
 					&& (peer.ViewHash is null || (_lobby is not null && peer.ViewHash != _viewHash)))
 				{
 					peer.ViewHash = _viewHash;
+					// The host's own chat says a save is on its way, once for each save chosen, as the original's does.
+					if (_lobby is not null && !_viewStartSaid)
+					{
+						_viewStartSaid = true;
+						_chat.Add(new CLobbyChatLine("TRANSERING_SAVE", "", ""));
+					}
 					peer.Link.Send(CWire.Line(CWire.View));
 					peer.ViewSender = new CGameSender(peer.Link.Send, _view);
 					peer.ViewSender.Offer();
@@ -287,6 +335,13 @@ public sealed class CNetHost : CNetGame
 			{
 				Remove(peer);
 			}
+		}
+		// And that every machine in the lobby has the save, once they all have said so.
+		if (_lobby is not null && _viewStartSaid && !_viewDoneSaid
+			&& _peers.Where(peer => peer.Name is not null && peer.Country is null && !peer.Direct).All(peer => peer.ViewTaken == _viewHash))
+		{
+			_viewDoneSaid = true;
+			_chat.Add(new CLobbyChatLine("SAVE_TRANSFER_DONE", "", ""));
 		}
 	}
 
@@ -473,7 +528,8 @@ public sealed class CNetHost : CNetGame
 
 	/// <summary>
 	/// A player thrown out of the lobby by the host, at once and with no question: told so, its connection closed, and
-	/// every machine's chat told (docs/mechanics/frontend.md, section 9). A ban is a kick: no list of the banned is kept.
+	/// every machine's chat told (docs/mechanics/frontend.md, section 9). A banned machine's address is kept, and
+	/// nothing that connects from it is let in again while the program runs (docs/multiplayer.md, section 13).
 	/// </summary>
 	public void Kick(string name, bool ban)
 	{
@@ -481,7 +537,11 @@ public sealed class CNetHost : CNetGame
 		{
 			return;
 		}
-		peer.Link.Send(CWire.Line(CWire.Refused, "kicked"));
+		if (ban && peer.Link.RemoteAddress is { Length: > 0 } address)
+		{
+			_banned.Add(address);
+		}
+		peer.Link.Send(CWire.Line(CWire.Refused, ban ? "banned" : "kicked"));
 		_peers.Remove(peer);
 		peer.Link.Dispose();
 		SayOfPlayer("PLR_DISC", name);

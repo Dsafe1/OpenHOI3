@@ -267,8 +267,8 @@ too, with one row:
 | a row | `multiplayer_entry`; **on the host, for every player but itself, `multiplayer_entry_server`**, which has `button_kick` and `button_ban` [exe] |
 | `name` | the player's name, then **name, a space and the country's name in brackets** once one is chosen |
 | `player_shield` | the country chosen. A click centres the map on its capital - **not built** |
-| `save_progress` | empty; SAVE_PROG while a save is sent - **not built**, no save being sent in the lobby here |
-| `button_kick`, `button_ban` | at once, with no question; tooltips TIP_KICK and TIP_BAN. Every machine's chat says PLAYER_KICKED or PLAYER_BANNED, and PLR_DISC |
+| `save_progress` | empty; SAVE_PROG while a save is sent - **not written on the rows here**: the figure is said in the chat, at each quarter (`docs/multiplayer.md`, section 13) |
+| `button_kick`, `button_ban` | at once, with no question; tooltips TIP_KICK and TIP_BAN. Every machine's chat says PLAYER_KICKED or PLAYER_BANNED, and PLR_DISC. **A banned machine's address is kept out for as long as the host's program runs** (`docs/multiplayer.md`, section 13) |
 
 **Choosing a country** [exe]: a map click is the same on the host and on a client. **No country another player has
 is refused - players may share one**, and the first to have chosen it is its primary, who alone is shown its
@@ -278,8 +278,9 @@ Only the chooser's own panel shows its country; the others see the row.
 
 **What is the host's alone** [exe]: on a client the tabs are greyed, the bookmark rows take no click, Play is
 greyed, and of the options the four difficulty and game-mode arrows are greyed while the five areas' are the
-player's own. **Here the whole Options panel is hidden on a client** - ours, the host's choices not being sent and a
-client's automation not surviving the game's sending. The original leaves the victory conditions button to a
+player's own. **Here the panel shows the host's choices on a client and every arrow is faint and does nothing, the five areas'
+too** (2026-11-20; `docs/multiplayer.md`, section 13) - ours, the areas being the game's one record and a client's
+choice not surviving the game's sending (`docs/compatibility.md`, entry 31). The original leaves the victory conditions button to a
 client whose country leads a faction, though only the host's choice counts; **here it is not shown on a client**
 (asked for on 2026-11-20).
 
@@ -293,17 +294,20 @@ space off both ends, does nothing with an empty line, sends the line and empties
 name in yellow, the colour put back, a colon, a space and the text**, and comes to every machine - the typist's own
 when it comes back. The lobby's own lines, on every machine: PLR_CONNECT as a player joins, PLR_DISC as one goes,
 PLAYER_KICKED, PLAYER_BANNED. **Not said here**: LOST_PLR for a dropped connection, which the original says beside
-PLR_DISC; the save's lines; OPTION_CHANGED on any machine but the one that pressed.
+PLR_DISC; LOADING_LOCAL_SAVE and SAVE_LOADED of the save's lines - TRANSERING_SAVE and SAVE_TRANSFER_DONE are said
+since 2026-11-20, with SAVE_PROG between them; OPTION_CHANGED on any machine but the one that pressed, as the
+original's. **A host's chat also names its port**, a line of ours.
 
 **Leaving** [exe]: Back, on the host and on a client, goes to the main menu and not to the multiplayer menu. **The
 host gone, a client's chat says SERVER_LOST once and nothing else happens**: it sits in the dead lobby until its
-Back. Thrown out, it says YOUKICKED - the original also raises a dialog whose button is Back, **not built**.
+Back. Thrown out, it says YOUKICKED, and banned, BANNED - the original also raises a dialog whose button is Back,
+**not built**, and writes YOUKICKED in a banned machine's chat with BANNED in that dialog.
 
 **A save chosen by the host** [exe] is sent to every machine the moment its row is ticked, a client with a file of
 the same name and checksum loading its own, and the host loads it only when every client has it. **Built
 2026-11-20 as far as the sending** (`docs/multiplayer.md`, section 11): the save goes to every machine in the lobby
 as it is chosen and is shown there; the host does not wait for them, a client keeps no copy of its own, and
-`save_progress` and the save's chat lines are not written.
+how far the save has come is said in the chat and not on the rows' `save_progress` (section 13 there).
 
 ## Ours
 
@@ -343,5 +347,5 @@ as it is chosen and is shown there; the host does not wait for them, a client ke
 
 ## Not built
 
-The shared lobby of a game between machines, the tutorial list, the credits, the victory conditions window, the end-of-game screen, the title
+The tutorial list, the credits, the victory conditions window, the end-of-game screen, the title
 theme, F11's screenshot.

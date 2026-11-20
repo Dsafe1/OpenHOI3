@@ -54,6 +54,7 @@ public partial class CLobbyOptions : Control
 			if (_window.TryFindButton(arrow) is { } button)
 			{
 				button.Disabled = true;
+				button.Modulate = Faint;
 			}
 		}
 		foreach ((string element, string label, EAutomation area) in CLobbyOptionsText.Areas)
@@ -78,6 +79,73 @@ public partial class CLobbyOptions : Control
 			CLobbyOptionsText.Set(automation, area, value);
 			Refresh();
 			Changed?.Invoke(CLobbyOptionsText.Changed(Localise, label, CLobbyOptionsText.Text(Localise, values, value)));
+		}
+	}
+
+	/// <summary>
+	/// Whether the panel shows another machine's choices - the host's, on a client: every arrow is then greyed. The
+	/// original greys the difficulty's and the game mode's four there and leaves the five areas' to the player; here
+	/// the areas are the game's one record, the host's, so theirs are greyed too (docs/compatibility.md, entry 31).
+	/// </summary>
+	public bool ReadOnly
+	{
+		get => _readOnly;
+		set
+		{
+			_readOnly = value;
+			if (_window is null)
+			{
+				return;
+			}
+			var arrows = new System.Collections.Generic.List<string> { "difficulty_prev", "difficulty_next" };
+			foreach ((string element, string _, EAutomation _) in CLobbyOptionsText.Areas)
+			{
+				arrows.Add(element + "_prev");
+				arrows.Add(element + "_next");
+			}
+			foreach (string arrow in arrows)
+			{
+				if (_window.TryFindButton(arrow) is { } button)
+				{
+					button.Disabled = value;
+					// The arrows' picture has no greyed frame, so one that does nothing is drawn faint. Ours.
+					button.Modulate = value ? Faint : Colors.White;
+				}
+			}
+		}
+	}
+
+	private static readonly Color Faint = new(1f, 1f, 1f, 0.35f);
+
+	private bool _readOnly;
+
+	/// <summary>The panel's seven choices as numbers - the difficulty, the game mode and the five areas - as they travel to the other machines.</summary>
+	public static System.Collections.Generic.List<int> Values(CGamePlaySettings play, CPlayerAutomation automation)
+	{
+		var values = new System.Collections.Generic.List<int> { play.Difficulty, play.GameMode };
+		foreach ((string _, string _, EAutomation area) in CLobbyOptionsText.Areas)
+		{
+			values.Add(CLobbyOptionsText.Value(automation, area));
+		}
+		return values;
+	}
+
+	/// <summary>Such numbers written into the choices; ones out of range, or too few, change nothing.</summary>
+	public static void Apply(System.Collections.Generic.IReadOnlyList<int> values, CGamePlaySettings play, CPlayerAutomation automation)
+	{
+		if (values.Count < 2 + CLobbyOptionsText.Areas.Count || values[0] < 0 || values[0] >= CGamePlaySettings.DifficultyCount)
+		{
+			return;
+		}
+		play.Difficulty = values[0];
+		play.GameMode = values[1];
+		for (int i = 0; i < CLobbyOptionsText.Areas.Count; i++)
+		{
+			EAutomation area = CLobbyOptionsText.Areas[i].Area;
+			if (values[2 + i] >= 0 && values[2 + i] < CLobbyOptionsText.Values(area).Length)
+			{
+				CLobbyOptionsText.Set(automation, area, values[2 + i]);
+			}
 		}
 	}
 

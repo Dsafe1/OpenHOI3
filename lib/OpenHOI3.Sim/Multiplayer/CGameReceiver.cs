@@ -33,6 +33,15 @@ public sealed class CGameReceiver
 	/// <summary>Whether what was sent was not the game offered: its hash differs.</summary>
 	public bool Failed { get; private set; }
 
+	/// <summary>The length in bytes of the game last offered, as the host said it; nought where it said none.</summary>
+	public int Total { get; private set; }
+
+	/// <summary>How many of those bytes are here: all of them once the game is, and at once where it was this machine's own.</summary>
+	public int Received => Game is not null ? Total : (int)(_pieces?.Length ?? 0);
+
+	/// <summary>How much of the game last offered is here, in whole percent.</summary>
+	public int Percent => Game is not null ? 100 : Total <= 0 ? 0 : (int)Math.Min(100L, 100L * Received / Total);
+
 	/// <summary>A line from the host; answers whether it was one of the sending's.</summary>
 	public bool Receive(string line)
 	{
@@ -49,6 +58,7 @@ public sealed class CGameReceiver
 				_hash = parts[0];
 				Game = null;
 				Failed = false;
+				Total = parts.Length > 1 && int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int total) ? total : 0;
 				if (_own(_hash) is { } own && CGameSender.Hash(own) == _hash)
 				{
 					Game = own;

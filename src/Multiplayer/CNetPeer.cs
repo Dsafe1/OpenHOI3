@@ -52,6 +52,12 @@ public sealed class CNetPeer
 	/// <summary>The hash of that game; null where it has been offered none.</summary>
 	public string? ViewHash { get; set; }
 
+	/// <summary>The hash of the game to look at that it has said is with it whole; null where it has said so of none.</summary>
+	public string? ViewTaken { get; set; }
+
+	/// <summary>The Options panel's line it was last sent, while the host is in its lobby.</summary>
+	public string? OptionsSent { get; set; }
+
 	/// <summary>When it chose its country, as a count that grows: of several players of one country the first to have chosen is its primary (docs/multiplayer.md, section 8).</summary>
 	public long ChoseAt { get; set; }
 

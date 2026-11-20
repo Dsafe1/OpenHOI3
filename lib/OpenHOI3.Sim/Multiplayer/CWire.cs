@@ -102,6 +102,15 @@ public static class CWire
 	/// </summary>
 	public const char View = 'V';
 
+	/// <summary>Client to host: the game it was sent to look at in the lobby is here whole.</summary>
+	public const char ViewTaken = 'v';
+
+	/// <summary>
+	/// Host to client, while the host is in its lobby: the Options panel's choices as numbers with spaces between -
+	/// the difficulty, the game mode, then the five areas in the panel's order.
+	/// </summary>
+	public const char Options = 'O';
+
 	public static string Line(char kind, string rest = "") => kind + " " + rest;
 
 	/// <summary>A command as a recording writes one.</summary>

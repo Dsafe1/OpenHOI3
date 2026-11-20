@@ -110,6 +110,13 @@ public sealed record CUserSettings
 
 	public string LastHost { get; init; } = "";
 
+	/// <summary>
+	/// <c>openhoi3_port</c>, a key of ours: the port a game is hosted on, and the one an address that names none is
+	/// joined at. Written only where it is not the default, so a file that never set it stays the original's
+	/// (<c>docs/multiplayer.md</c>, section 13).
+	/// </summary>
+	public int Port { get; init; } = Sim.Multiplayer.CLineLink.DefaultPort;
+
 	public string ServerAddress { get; init; } = "diplomacy.valkyrienet.com";
 
 	public int DebugSaves { get; init; }

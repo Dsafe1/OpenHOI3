@@ -587,12 +587,18 @@ in the gui files and is moddable we need to use that."
 **And in the lobby** (`mechanics/frontend.md`, section 9), by the same decisions: ~~**one country has one
 player**, where the original lets two share one~~ - **reversed the day it was written**, 2026-11-20: "I want co-op.
 In the original the first player to choose the country is the 'primary' one, and gets event popups." Players may
-share a country as the original lets them (`docs/multiplayer.md`, section 8). What stands: **a ban is a kick**, no
-list of the banned being kept; a client's Options panel is hidden where the original greys four of its arrows, and
-its victory conditions button with it, which the original leaves usable ("Remove the victory conditions button
-too", 2026-11-20); a
-save the host chooses is not sent in the lobby but as the game starts; a thrown-out player reads the chat's line
-and gets no dialog.
+share a country as the original lets them (`docs/multiplayer.md`, section 8). What stands: ~~**a ban is a kick**, no
+list of the banned being kept~~ - a banned machine's address is kept out while the host's program runs, since
+2026-11-20; **a client's Options panel shows the host's choices with every arrow greyed**, where the original greys
+the difficulty's and the game mode's four and leaves the five areas' to each player - here the areas are the
+game's one record and the AI is the host's (asked for on 2026-11-20, "The game options"; before that the panel was
+hidden); its victory conditions button is not shown, which the original leaves usable ("Remove the victory
+conditions button too", 2026-11-20); ~~a save the host chooses is not sent in the lobby but as the game starts~~ -
+it is sent as it is chosen, since the same day; **how far a save has come is said in the chat** and not on the
+players' rows (asked for so: "Save transfer progress in the overlay message, and the lobby chat"); a thrown-out
+player reads the chat's line and gets no dialog. **And the port may be another**: `openhoi3_port` in the player's
+`settings.txt`, a key of ours that the original drops when it writes that file ("Port setting, only via the
+settings.txt for now").
 
 ## Stricter, with the same meaning
 

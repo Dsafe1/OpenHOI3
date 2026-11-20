@@ -97,7 +97,7 @@ public sealed class CNetClient : CNetGame
 		{
 			if (_taking)
 			{
-				return "Receiving the game from the host";
+				return $"Receiving the game from the host: {_receiver.Percent}%";
 			}
 			if (_session is { Parted: true })
 			{
@@ -119,6 +119,7 @@ public sealed class CNetClient : CNetGame
 	public override void Bind(CSimulation simulation)
 	{
 		_simulation = simulation;
+		_hasPlayed = true;
 		_session = new CClientSession(simulation, _link.Send);
 		// Before anything else this machine says of the game: the host takes nothing as that game's play until it has come.
 		_receiver.SayLoaded();
@@ -196,9 +197,10 @@ public sealed class CNetClient : CNetGame
 				Admitted = true;
 				return;
 			case CWire.Refused:
-				EndedKey = rest == "country" ? "HOTJOIN_DECLINED" : rest == "kicked" ? "YOUKICKED" : "BAD_VERSION";
+				EndedKey = rest == "country" ? "HOTJOIN_DECLINED" : rest == "kicked" ? "YOUKICKED" : rest == "banned" ? "BANNED" : "BAD_VERSION";
 				Ended = rest == "country" ? "The host refused the country asked for: it is played already, or owns no land."
 					: rest == "kicked" ? "The host has thrown this machine out of the lobby."
+					: rest == "banned" ? "The host has banned this machine from its game."
 					: "The host plays other files than this machine: its play checksum differs.";
 				return;
 			case CWire.View:
@@ -211,6 +213,21 @@ public sealed class CNetClient : CNetGame
 					_chat.Add(said);
 				}
 				return;
+			case CWire.Options:
+			{
+				// The host's Options panel: the difficulty, the game mode and the five areas.
+				var values = new List<int>();
+				foreach (string part in rest.Split(' ', System.StringSplitOptions.RemoveEmptyEntries))
+				{
+					if (int.TryParse(part, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int value))
+					{
+						values.Add(value);
+					}
+				}
+				LobbyOptions = values;
+				LobbyOptionsVersion++;
+				return;
+			}
 			case CWire.Played:
 				_played = rest.Split(',', System.StringSplitOptions.RemoveEmptyEntries).Select(tag => new CCountryTag(tag)).ToList();
 				return;
@@ -250,6 +267,12 @@ public sealed class CNetClient : CNetGame
 		{
 			if (line[0] == CWire.GameOffered)
 			{
+				// A lobby's chat says a save is on its way, and then how far it has come (SayProgress).
+				_quartersSaid = 0;
+				if (!_hasPlayed)
+				{
+					_chat.Add(new CLobbyChatLine("TRANSERING_SAVE", "", ""));
+				}
 				if (_viewNext)
 				{
 					// One to look at in the lobby: nothing that is played is let go for it.
@@ -266,6 +289,7 @@ public sealed class CNetClient : CNetGame
 					_taking = true;
 				}
 			}
+			SayProgress();
 			if (_receiver.Failed)
 			{
 				EndedKey = "CONNECTION_FAILED";
@@ -281,6 +305,8 @@ public sealed class CNetClient : CNetGame
 				_takingView = false;
 				LobbyGame = shown;
 				LobbyGameVersion++;
+				// The host is told, whose chat says when every machine has the save.
+				_link.Send(CWire.Line(CWire.ViewTaken));
 			}
 			return;
 		}
@@ -294,6 +320,47 @@ public sealed class CNetClient : CNetGame
 			_waiting.Add(line);
 		}
 	}
+
+	/// <summary>Whether a game has been played over this connection: from then on there is no lobby whose chat could say anything.</summary>
+	private bool _hasPlayed;
+
+	/// <summary>How many quarters of the game now coming the lobby's chat has said.</summary>
+	private int _quartersSaid;
+
+	/// <summary>
+	/// How much of a game the host is sending is here, in whole percent - one to be played, or one to look at in the
+	/// lobby; null where none is on its way.
+	/// </summary>
+	public int? Progress => _taking || _takingView ? _receiver.Percent : null;
+
+	/// <summary>
+	/// The lobby's chat told how far the game that is coming has come: SAVE_PROG at each quarter, and SAVE_TRANSFER_DONE
+	/// once it is here whole - in the chat by request, where the original writes the figure on the players' rows
+	/// (docs/multiplayer.md, section 13).
+	/// </summary>
+	private void SayProgress()
+	{
+		if (_hasPlayed || _receiver.Failed || _receiver.Total <= 0)
+		{
+			return;
+		}
+		int quarters = _receiver.Percent / 25;
+		while (_quartersSaid < quarters)
+		{
+			_quartersSaid++;
+			_chat.Add(new CLobbyChatLine("SAVE_PROG", "", (_quartersSaid * 25).ToString(System.Globalization.CultureInfo.InvariantCulture)));
+			if (_quartersSaid == 4)
+			{
+				_chat.Add(new CLobbyChatLine("SAVE_TRANSFER_DONE", "", ""));
+			}
+		}
+	}
+
+	/// <summary>The host's Options panel as it last said it - the difficulty, the game mode and the five areas; null where it has said none.</summary>
+	public IReadOnlyList<int>? LobbyOptions { get; private set; }
+
+	/// <summary>How many times the host has said its options.</summary>
+	public int LobbyOptionsVersion { get; private set; }
 
 	public override void Dispose()
 	{

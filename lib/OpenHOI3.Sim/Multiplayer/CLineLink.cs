@@ -45,6 +45,30 @@ public sealed class CLineLink : IDisposable
 	/// <summary>Whether the other side has gone, or the connection failed: nothing more will come, and what is sent goes nowhere.</summary>
 	public bool Closed => _closed;
 
+	/// <summary>
+	/// The other machine's address as text, an IPv4 address that came through an IPv6 socket as the IPv4 it is; empty
+	/// where it is not to be had. What a host knows a banned machine by.
+	/// </summary>
+	public string RemoteAddress
+	{
+		get
+		{
+			try
+			{
+				if (_client.Client.RemoteEndPoint is System.Net.IPEndPoint remote)
+				{
+					System.Net.IPAddress address = remote.Address;
+					return (address.IsIPv4MappedToIPv6 ? address.MapToIPv4() : address).ToString();
+				}
+			}
+			catch (Exception failed) when (failed is SocketException or ObjectDisposedException)
+			{
+				// Gone already.
+			}
+			return "";
+		}
+	}
+
 	/// <summary>Sends one line. It may hold no line break.</summary>
 	public void Send(string line)
 	{

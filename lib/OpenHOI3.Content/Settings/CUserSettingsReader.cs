@@ -97,6 +97,7 @@ public static class CUserSettingsReader
 			ShowUnitNames = map.GetBool("show_unit_names", d.ShowUnitNames),
 			LastPlayer = root.GetString("lastplayer", d.LastPlayer),
 			LastHost = root.GetString("lasthost", d.LastHost),
+			Port = root.GetInt("openhoi3_port", d.Port) is > 0 and < 65536 and int port ? port : d.Port,
 			ServerAddress = root.GetString("serveradress", d.ServerAddress),
 			DebugSaves = root.GetInt("debug_saves", d.DebugSaves),
 			Autosave = autosave,

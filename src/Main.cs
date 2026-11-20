@@ -49,6 +49,15 @@ public partial class Main : Control
 	/// </summary>
 	private Multiplayer.CNetGame? _net;
 
+	/// <summary>The addresses of the machines this host has banned, kept across the games it hosts while the program runs.</summary>
+	private readonly HashSet<string> _banned = new();
+
+	/// <summary>
+	/// The port of the player's settings, <c>openhoi3_port</c>: the one a game is hosted on, and the one an address that
+	/// names none is joined at (docs/multiplayer.md, section 13).
+	/// </summary>
+	private int SettingsPort => (_session?.Settings ?? _frontEnd?.Settings ?? _startSettings).Port;
+
 	/// <summary>The connections looked after every frame, whatever is on screen; and a game the host has left, ended.</summary>
 	public override void _Process(double delta)
 	{
@@ -62,6 +71,12 @@ public partial class Main : Control
 		foreach (string note in net.TakeNotes())
 		{
 			GD.Print("Multiplayer: " + note);
+		}
+		// A game being sent to take the place of the one on screen: how far it has come, said over it. Ours.
+		if (net is Multiplayer.CNetClient { Progress: { } percent } && _session is not null && percent != _progressSaid)
+		{
+			_progressSaid = percent;
+			ShowNotice($"Syncing games... {percent}%", seconds: 3);
 		}
 		if (net.Ended is { } why && _session is not null && !net.Loading)
 		{
@@ -117,6 +132,9 @@ public partial class Main : Control
 	}
 
 	private CanvasLayer? _notice;
+
+	/// <summary>The percentage last said of a game being sent.</summary>
+	private int _progressSaid = -1;
 
 	/// <summary>The game between machines left: its connections closed.</summary>
 	private void LeaveNet()
@@ -450,7 +468,7 @@ public partial class Main : Control
 			}
 			else
 			{
-				await Host(screen, game.State.Played.First(), Sim.Multiplayer.CLineLink.DefaultPort);
+				await Host(screen, game.State.Played.First(), SettingsPort);
 			}
 		}
 		await StartSession(screen, game);
@@ -468,10 +486,23 @@ public partial class Main : Control
 		{
 			return;
 		}
-		var net = new Multiplayer.CNetHost(Sim.Multiplayer.CLineLink.DefaultPort, checksum, country: null);
+		int port = frontEnd.Settings.Port;
+		Multiplayer.CNetHost net;
+		try
+		{
+			net = new Multiplayer.CNetHost(port, checksum, country: null, _banned);
+		}
+		catch (System.Net.Sockets.SocketException failed)
+		{
+			// Taken by another program, or not this user's to open: said in the lobby's chat, which then hosts nothing.
+			GD.PushWarning($"Multiplayer: port {port} could not be opened: {failed.Message}");
+			frontEnd.SayNotHosted(port, failed.Message);
+			return;
+		}
 		net.GameToLoad += (game, played) => Guarded(LoadNetGame(game, played));
 		_net = net;
 		frontEnd.LobbyNet = net;
+		frontEnd.SayHosted(net.Port);
 		GD.Print($"Multiplayer: the lobby hosted on port {net.Port}, play checksum {checksum[..8]}.");
 	}
 
@@ -479,7 +510,7 @@ public partial class Main : Control
 	private async Task Host(CLoadingScreen screen, CCountryTag country, int port)
 	{
 		string checksum = await screen.Work("", PlayChecksum);
-		var net = new Multiplayer.CNetHost(port, checksum, country);
+		var net = new Multiplayer.CNetHost(port, checksum, country, _banned);
 		net.GameToLoad += (game, played) => Guarded(LoadNetGame(game, played));
 		_net = net;
 		GD.Print($"Multiplayer: hosting on port {net.Port}, play checksum {checksum[..8]}.");
@@ -503,7 +534,7 @@ public partial class Main : Control
 		int attempt = ++_joinAttempt;
 		menu.ShowConnecting();
 		// A name or an IPv4 address with a port after a colon, or an IPv6 address, bare or in brackets (CNetAddress).
-		(address, int port) = Sim.Multiplayer.CNetAddress.Parse(address);
+		(address, int port) = Sim.Multiplayer.CNetAddress.Parse(address, SettingsPort);
 		string checksum = await Task.Run(PlayChecksum);
 		Sim.Multiplayer.CLineLink? link = null;
 		for (int tries = 0; tries < 3 && link is null && address.Length > 0; tries++)
@@ -561,7 +592,7 @@ public partial class Main : Control
 				if (frontEnd.LobbyNet == net)
 				{
 					// The lobby stays up, dead, with one line in its chat, until its Back - the original's way.
-					frontEnd.SayLobbyIsDead(key == "YOUKICKED" ? key : "SERVER_LOST");
+					frontEnd.SayLobbyIsDead(key is "YOUKICKED" or "BANNED" ? key : "SERVER_LOST");
 				}
 				else
 				{
@@ -596,7 +627,7 @@ public partial class Main : Control
 		{
 			await Host(screen, made.State.Played.First(),
 				host.Length > "--host=".Length && int.TryParse(host["--host=".Length..], out int named) ? named
-					: Sim.Multiplayer.CLineLink.DefaultPort);
+					: SettingsPort);
 		}
 		await StartSession(screen, new FrontEnd.CPreparedGame(made.State, made.Map, made.Localisation, gui, made.AiScripts),
 			replayFile: made.ReplayFile, switched: true);
@@ -619,7 +650,7 @@ public partial class Main : Control
 	{
 		string checksum = await screen.Work("", PlayChecksum);
 		// A name or an IPv4 address with a port after a colon, or an IPv6 address, bare or in brackets (CNetAddress).
-		(address, int port) = Sim.Multiplayer.CNetAddress.Parse(address);
+		(address, int port) = Sim.Multiplayer.CNetAddress.Parse(address, SettingsPort);
 		string name = CSession.Argument("--name=") ?? System.Environment.UserName;
 		var wanted = new CCountryTag(CSession.PlayerArgument() ?? CSwitchedGame.DefaultPlayer);
 		Sim.Multiplayer.CLineLink link = await screen.Work("", () => Sim.Multiplayer.CLineLink.Connect(address, port));
@@ -654,6 +685,13 @@ public partial class Main : Control
 	private async Task LoadNetGame(byte[] bytes, IReadOnlyList<CCountryTag> played, CLoadingScreen? screen = null)
 	{
 		CSession? old = _session;
+		// The game is here whole: what said how far it had come gives way to the loading screen's own line.
+		_progressSaid = -1;
+		if (_notice is { } said && IsInstanceValid(said))
+		{
+			said.QueueFree();
+		}
+		_notice = null;
 		(FrontEnd.CPreparedGame Read, Debug.CSessionCarry Carry)? left = old?.LeaveForLoad();
 		// Joined from the multiplayer menu, the front end is what the game takes the place of.
 		FrontEnd.CFrontEnd? frontEnd = _frontEnd;

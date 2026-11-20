@@ -44,6 +44,25 @@ public class UserSettingsTests : IDisposable
 	}
 
 	[Fact]
+	public void The_port_is_a_key_of_ours_written_only_where_it_is_not_the_default()
+	{
+		// docs/multiplayer.md, section 13.
+		Assert.Equal(19390, CUserSettings.Default.Port);
+		Assert.DoesNotContain("openhoi3_port", CUserSettingsWriter.Write(CUserSettings.Default));
+
+		string written = CUserSettingsWriter.Write(CUserSettings.Default with { Port = 20001 });
+		Assert.Contains("openhoi3_port=20001\r\n", written);
+		File.WriteAllText(_path, written);
+		var warnings = new List<string>();
+		Assert.Equal(20001, CUserSettingsReader.Read(_path, warnings.Add).Port);
+		Assert.Empty(warnings);
+
+		// A number that is no port is passed over.
+		File.WriteAllText(_path, "openhoi3_port=70000\n");
+		Assert.Equal(19390, CUserSettingsReader.Read(_path, warnings.Add).Port);
+	}
+
+	[Fact]
 	public void The_outliner_s_sections_are_read_whole_and_with_no_key_are_open_with_the_units()
 	{
 		File.WriteAllText(_path, "outliner=\n{\n2 3 7 8 9 1 10 }\n");
