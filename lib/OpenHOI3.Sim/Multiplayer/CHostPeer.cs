@@ -26,4 +26,10 @@ public sealed class CHostPeer
 
 	/// <summary>Whether it has said its game is no longer the host's: it is sent the game again, and is not waited for.</summary>
 	public bool Parted { get; set; }
+
+	/// <summary>The hour at which it found its hash another than the host's.</summary>
+	public long PartedHour { get; set; }
+
+	/// <summary>Its hash of each part of the state at that hour, where it sent them; empty where it did not.</summary>
+	public ulong[] PartedParts { get; set; } = System.Array.Empty<ulong>();
 }

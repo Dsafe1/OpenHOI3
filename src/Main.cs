@@ -57,6 +57,12 @@ public partial class Main : Control
 			return;
 		}
 		net.Pump();
+		// A game that parts is written beside the logs, each machine's own figures, and said in the log.
+		net.DumpFolder ??= Content.Logs.CLogFiles.Folder(_directories);
+		foreach (string note in net.TakeNotes())
+		{
+			GD.Print("Multiplayer: " + note);
+		}
 		if (net.Ended is { } why && _session is not null && !net.Loading)
 		{
 			GD.Print($"Multiplayer: {why}");

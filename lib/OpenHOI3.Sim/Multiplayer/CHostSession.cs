@@ -177,6 +177,11 @@ public sealed class CHostSession
 				if (!peer.Parted)
 				{
 					peer.Parted = true;
+					// The hour its hash differed at, and its hash of each part of the state where it sent them.
+					string[] said = rest.Split(' ');
+					peer.PartedHour = long.TryParse(said[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out long at) ? at : 0;
+					peer.PartedParts = said.Skip(1).Select(part => ulong.TryParse(part, NumberStyles.Integer, CultureInfo.InvariantCulture,
+						out ulong hash) ? hash : 0).ToArray();
 					Parted?.Invoke(peer);
 				}
 				break;
@@ -215,11 +220,33 @@ public sealed class CHostSession
 		string hour = state.TotalHours.ToString(CultureInfo.InvariantCulture);
 		if (state.Hour == 0)
 		{
-			ulong hash = CStateHash.Whole(CStateHash.Of(state));
+			ulong[] parts = CStateHash.Of(state);
+			ulong hash = CStateHash.Whole(parts);
 			Broadcast(CWire.Line(CWire.Hash, hour + " " + hash.ToString(CultureInfo.InvariantCulture)));
+			// Kept for the last few midnights, with every figure's own hash: where a client says its game has parted, what
+			// differs can then be named (docs/multiplayer.md, section 9). Only while a client follows.
+			if (_peers.Count > 0)
+			{
+				_midnights[state.TotalHours] = (parts, CStateHash.Fields(state).ToList());
+				foreach (long old in _midnights.Keys.Where(kept => kept < state.TotalHours - 72).ToList())
+				{
+					_midnights.Remove(old);
+				}
+			}
 		}
 		// Last of the hour: a client may now run it.
 		Broadcast(CWire.Line(CWire.HourDone, hour));
+	}
+
+	private readonly Dictionary<long, (ulong[] Parts, List<KeyValuePair<string, ulong>> Fields)> _midnights = new();
+
+	/// <summary>
+	/// The host's hash of each part of the state, and of every figure, as a midnight of the last three days stood; null
+	/// where that hour is not kept.
+	/// </summary>
+	public (ulong[] Parts, List<KeyValuePair<string, ulong>> Fields)? MidnightAt(long hour)
+	{
+		return _midnights.TryGetValue(hour, out (ulong[], List<KeyValuePair<string, ulong>>) kept) ? kept : null;
 	}
 
 	private void Broadcast(string line)

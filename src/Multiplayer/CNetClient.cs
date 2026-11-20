@@ -119,10 +119,27 @@ public sealed class CNetClient : CNetGame
 
 	public override int Frame()
 	{
+		// Before the lines are taken: the host's answer to a parted game is another game, which lets go of this one.
+		DumpWhereParted();
 		Drain();
 		// What came of the orders given between hours runs here, at once; the hours are started after the frame is drawn.
 		_session?.Step(mostHours: 0);
+		DumpWhereParted();
 		return 0;
+	}
+
+	private long _dumpedHour = -1;
+
+	/// <summary>A game that has parted written once, every figure's hash as it stood at that hour, for setting beside the host's.</summary>
+	private void DumpWhereParted()
+	{
+		if (_session is not { PartedFields: { } fields } session || session.PartedHour == _dumpedHour)
+		{
+			return;
+		}
+		_dumpedHour = session.PartedHour;
+		string? path = Dump($"openhoi3_parted_{session.PartedHour}_client_{System.Environment.ProcessId}.txt", fields);
+		Note($"out of step with the host at hour {session.PartedHour}; this machine's figures: {path ?? "not written"}");
 	}
 
 	public override void StartHours()

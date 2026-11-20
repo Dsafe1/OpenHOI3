@@ -453,3 +453,25 @@ GER alone, the client not primary, 34 midnights the same**; the client stopped -
 stayed played**; a second machine asked for Germany again and was let in, not primary. That a second player's
 orders run, that the events stay off its screen, and a primary handed on were not tried: the first two want
 looking at, and the third wants three machines.
+
+## 9. A game that parts, named
+
+Built 2026-11-20, after a game played over the internet by two players of France was sent again three times in its
+first months with nothing to say why. **What differed is now written down by both machines.**
+
+- A client that finds its midnight's hash another than the host's sends, with the hour, its hash of each of the
+  state's seven parts (`x hour p1 ... p7`), and writes every figure's own hash as its game then stood to
+  `openhoi3_parted_<hour>_client_<process>.txt` in the logs' folder (`CClientSession.PartedFields`).
+- The host keeps each midnight's parts and figures for three days while a client follows (`CHostSession.MidnightAt`);
+  told of a parted game it says in its log which parts differed and writes its own figures of that midnight to
+  `openhoi3_parted_<hour>_host.txt`.
+- `python tools/partdiff.py <logs folder> [hour]` sets the two beside each other and prints the figures that
+  differ.
+
+**Checked** with `--netpart=`: the host said "out of step ... in countries", both files were written, 44,356 figures
+each, and the tool named the one that differed, `ENG manpower`.
+
+**Open: what made that game part.** Its log has the client out of step on 21 January 1936 and the game sent again
+twice; nothing kept says in what. Two runs by processes with nobody giving orders - 131 midnights with two
+countries, 34 with one shared - never parted, so it is something a player does, or the internet's delay; the next
+time it happens the files will say.

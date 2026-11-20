@@ -204,7 +204,21 @@ public sealed class CNetHost : CNetGame
 	public override void Bind(CSimulation simulation)
 	{
 		var session = new CHostSession(simulation) { HostCountry = Country };
-		session.Parted += _ => _parted = true;
+		session.Parted += peer =>
+		{
+			_parted = true;
+			// Which parts of the state differed, and the host's own figures of that midnight written beside the client's.
+			if (session.MidnightAt(peer.PartedHour) is { } kept)
+			{
+				string[] differing = Sim.Replay.CStateHash.Parts.Where((_, i) => i < peer.PartedParts.Length && peer.PartedParts[i] != kept.Parts[i]).ToArray();
+				string? path = Dump($"openhoi3_parted_{peer.PartedHour}_host.txt", kept.Fields);
+				Note($"{peer.Name} is out of step at hour {peer.PartedHour}, in {(differing.Length > 0 ? string.Join(", ", differing) : "parts not said")}; the host's figures: {path ?? "not written"}");
+			}
+			else
+			{
+				Note($"{peer.Name} is out of step at hour {peer.PartedHour}; that hour's figures are no longer kept here");
+			}
+		};
 		foreach (CNetPeer peer in _peers.Where(peer => peer.Country is not null))
 		{
 			peer.HostPeer = session.Add(peer.Name ?? "", peer.Link.Send);

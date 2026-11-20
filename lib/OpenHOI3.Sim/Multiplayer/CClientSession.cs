@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using OpenHOI3.Sim.Replay;
 
 namespace OpenHOI3.Sim.Multiplayer;
@@ -40,6 +41,12 @@ public sealed class CClientSession
 
 	/// <summary>Whether this game is no longer the host's, by a midnight's hash: nothing more is run until it is sent the game again.</summary>
 	public bool Parted { get; private set; }
+
+	/// <summary>The hour at which this game's hash was another than the host's.</summary>
+	public long PartedHour { get; private set; }
+
+	/// <summary>Every figure's own hash as this game stood at that hour; null while the game has not parted.</summary>
+	public List<KeyValuePair<string, ulong>>? PartedFields { get; private set; }
 
 	/// <summary>How many midnights' hashes have been set beside the host's and found the same.</summary>
 	public int HashesAlike { get; private set; }
@@ -117,10 +124,16 @@ public sealed class CClientSession
 			_send(CWire.Line(CWire.Confirmed, hour.ToString(CultureInfo.InvariantCulture)));
 			if (_hostHashes.Remove(hour, out ulong hosts))
 			{
-				if (hosts != CStateHash.Whole(CStateHash.Of(_simulation.State)))
+				ulong[] parts = CStateHash.Of(_simulation.State);
+				if (hosts != CStateHash.Whole(parts))
 				{
 					Parted = true;
-					_send(CWire.Line(CWire.Parted, hour.ToString(CultureInfo.InvariantCulture)));
+					// With this machine's hash of each part, and every figure's kept, so that what differs can be named
+					// on both machines (docs/multiplayer.md, section 9).
+					PartedHour = hour;
+					PartedFields = CStateHash.Fields(_simulation.State).ToList();
+					_send(CWire.Line(CWire.Parted, hour.ToString(CultureInfo.InvariantCulture) + " "
+						+ string.Join(" ", parts.Select(part => part.ToString(CultureInfo.InvariantCulture)))));
 					break;
 				}
 				HashesAlike++;

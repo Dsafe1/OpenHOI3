@@ -66,6 +66,47 @@ public abstract class CNetGame : System.IDisposable
 	public abstract void Dispose();
 
 	/// <summary>
+	/// The folder a game that has parted is written into, each machine's own figures at the hour it parted, so that what
+	/// differed can be named afterwards (docs/multiplayer.md, section 9): the logs' folder; null writes nothing.
+	/// </summary>
+	public string? DumpFolder { get; set; }
+
+	private readonly List<string> _notes = new();
+
+	/// <summary>What there is to say in the log since it was last taken.</summary>
+	public List<string> TakeNotes()
+	{
+		var taken = new List<string>(_notes);
+		_notes.Clear();
+		return taken;
+	}
+
+	protected void Note(string text)
+	{
+		_notes.Add(text);
+	}
+
+	/// <summary>Every figure's hash written to a file of the dump folder, a figure a line; answers the path, or null.</summary>
+	protected string? Dump(string name, IEnumerable<KeyValuePair<string, ulong>> fields)
+	{
+		if (DumpFolder is null)
+		{
+			return null;
+		}
+		try
+		{
+			System.IO.Directory.CreateDirectory(DumpFolder);
+			string path = System.IO.Path.Combine(DumpFolder, name);
+			System.IO.File.WriteAllLines(path, System.Linq.Enumerable.Select(fields, field => field.Key + "\t" + field.Value.ToString("X16")));
+			return path;
+		}
+		catch (System.Exception failed) when (failed is System.IO.IOException or System.UnauthorizedAccessException)
+		{
+			return null;
+		}
+	}
+
+	/// <summary>
 	/// Whether a game has been said to be loaded and its simulation is not yet made: the game on screen is over, and its
 	/// session runs nothing more of it.
 	/// </summary>
