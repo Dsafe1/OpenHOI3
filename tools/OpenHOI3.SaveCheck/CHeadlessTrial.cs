@@ -141,7 +141,8 @@ internal static class CHeadlessTrial
 		var messages = new SortedDictionary<int, Dictionary<string, int>>();
 		state.EventFired += (fired_, scope) => Count(fired, state.Date.Year, fired_.Id.ToString(CultureInfo.InvariantCulture));
 		state.DecisionTaken += (decision, scope) => Count(taken, state.Date.Year, decision.Name);
-		state.PactMessaged += pact => Count(messages, state.Date.Year, pact.We);
+		// A message with no key of its own on our side is counted by the other side's key, which says what it was.
+		state.PactMessaged += pact => Count(messages, state.Date.Year, pact.We.Length != 0 ? pact.We : $"(none; they {pact.They})");
 
 		var below = new SortedDictionary<string, (CDate First, int Days)>(StringComparer.Ordinal);
 		var yearTimes = new List<(int Year, long Ms)>();
@@ -615,13 +616,13 @@ internal static class CHeadlessTrial
 			.Select(p => $"{p.Key} x{p.Item2}")));
 		Console.WriteLine($"  decisions taken by year: " + string.Join(", ", taken.Select(y => $"{y.Key} {y.Value.Values.Sum()}")));
 		Console.WriteLine($"  the decisions: " + string.Join(", ", taken.Values.SelectMany(d => d)
-			.GroupBy(p => p.Key).Select(g => (g.Key, g.Sum(p => p.Value))).OrderByDescending(p => p.Item2).Take(15)
+			.GroupBy(p => p.Key).Select(g => (g.Key, g.Sum(p => p.Value))).OrderByDescending(p => p.Item2)
 			.Select(p => $"{p.Key} x{p.Item2}")));
 		Console.WriteLine($"  pact messages by kind: " + string.Join(", ", messages.Values.SelectMany(d => d)
-			.GroupBy(p => p.Key).Select(g => (g.Key, g.Sum(p => p.Value))).OrderByDescending(p => p.Item2).Take(15)
+			.GroupBy(p => p.Key).Select(g => (g.Key, g.Sum(p => p.Value))).OrderByDescending(p => p.Item2).Take(30)
 			.Select(p => $"{p.Key} x{p.Item2}")));
 		Console.WriteLine($"  wars and factions, {happenings.Count} changes:");
-		foreach (string line in happenings.Take(60))
+		foreach (string line in happenings)
 		{
 			Console.WriteLine("    " + line);
 		}

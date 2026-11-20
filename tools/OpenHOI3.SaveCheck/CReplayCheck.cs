@@ -203,6 +203,10 @@ internal static class CReplayCheck
 			return 2;
 		}
 		CDate end = args.Length > 2 && CDate.TryParse(args[2], out CDate given) ? given : new CDate(1936, 2, 1);
+		// from=DATE: from that date the two are set beside each other every hour, not only at midnight, and the first
+		// difference shows each differing pool's goods and the steps recorded in that hour and the one before.
+		string? fromText = args.FirstOrDefault(a => a.StartsWith("from=", StringComparison.Ordinal))?["from=".Length..];
+		CDate? hourlyFrom = fromText is not null && CDate.TryParse(fromText, out CDate from) ? from : null;
 
 		CReplay recording = CReplay.Recording();
 		(CGameState recorded, CSimulation recordedRun, IDisposable recordedScripts) = Load(args[1]);
@@ -226,6 +230,16 @@ internal static class CReplayCheck
 			replayClock.Start();
 			replayedRun.RunHours(1);
 			replayClock.Stop();
+			if (hourlyFrom is { } start && recorded.Date >= start)
+			{
+				ulong[] a = CStateHash.Of(recorded);
+				ulong[] b = CStateHash.Of(replayed);
+				if (!a.SequenceEqual(b))
+				{
+					ShowHour(recording, recorded, replayed);
+					break;
+				}
+			}
 			if (recorded.Date == before)
 			{
 				continue;
@@ -262,6 +276,50 @@ internal static class CReplayCheck
 		recordedScripts.Dispose();
 		replayedScripts.Dispose();
 		return differing == 0 ? 0 : 1;
+	}
+
+	/// <summary>The first hour the two part: the figures, each differing pool good by good, and the steps recorded around it.</summary>
+	private static void ShowHour(CReplay recording, CGameState recorded, CGameState replayed)
+	{
+		Console.WriteLine($"  first differs at {recorded.Date} {recorded.Hour}h, hour {recorded.TotalHours}");
+		Dictionary<string, ulong> fields = CStateHash.Fields(recorded).ToDictionary(pair => pair.Key, pair => pair.Value);
+		List<string> figures = CStateHash.Fields(replayed)
+			.Where(pair => !fields.TryGetValue(pair.Key, out ulong value) || value != pair.Value)
+			.Select(pair => pair.Key).ToList();
+		Console.WriteLine($"  {figures.Count} figures: " + string.Join("; ", figures.Take(60)));
+		foreach (string figure in figures.Take(25))
+		{
+			OpenHOI3.Sim.Economy.CGoodsPool? Pool(CGameState state)
+			{
+				string[] words = figure.Split(' ');
+				if (words.Length == 2 && words[1] == "stockpile")
+				{
+					return state.Country(new OpenHOI3.Sim.Countries.CCountryTag(words[0])) is { } country ? state.Stockpile(country) : null;
+				}
+				if (words.Length == 3 && words[0] == "province" && words[2] == "pool")
+				{
+					int id = int.Parse(words[1], System.Globalization.CultureInfo.InvariantCulture);
+					return state.Provinces.FirstOrDefault(p => p.Id == id)?.Pool;
+				}
+				return null;
+			}
+			if (Pool(recorded) is not { } x || Pool(replayed) is not { } y)
+			{
+				continue;
+			}
+			var goods = Enumerable.Range(0, OpenHOI3.Sim.Economy.CGoodsPool.Count)
+				.Select(g => (OpenHOI3.Sim.Economy.EGoods)g)
+				.Where(g => x[g].Raw != y[g].Raw)
+				.Select(g => $"{g} {x[g]} / {y[g]}");
+			Console.WriteLine($"    {figure}: recorded / replayed: {string.Join(", ", goods)}");
+		}
+		long hour = recorded.TotalHours;
+		foreach (CReplayStep step in recording.Steps.Where(step => step.Hour >= hour - 2 && step.Hour <= hour))
+		{
+			Console.WriteLine($"    recorded at hour {step.Hour}: {step.Step}, {step.Commands.Count} commands " +
+				$"({string.Join(", ", step.Commands.GroupBy(c => c.GetType().Name).Select(g => $"{g.Key} x{g.Count()}"))}), " +
+				$"{step.Draws} draws, {step.AiDraws} AI draws, {step.UnitIds} unit ids");
+		}
 	}
 
 	/// <summary>A new game, nobody playing, entered and ready for its first hour.</summary>
