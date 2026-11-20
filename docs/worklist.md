@@ -36,6 +36,36 @@ Four choices sit under all of it:
 
 ## Next up
 
+**Multiplayer - the last large piece of the normal engine** (`docs/multiplayer.md`, which holds every decision, what is
+built and what is not; begun 2026-11-20). **The simulation's side is built and on main**, all of it without the client:
+a host's game records and a client's follows the recording as it is made (`replay.md`, section 8), in lines of text
+(`lib/OpenHOI3.Sim/Multiplayer`: `CHostSession`, `CClientSession`, `CWire`) over TCP with a Deflate stream each way
+(`CLineLink`, `CLineListener`); a client's order to the host and back, while the clock stands too; the hour held until
+whole; the host's waiting within three hours; anybody's pause and the host's speed (`CPace`); the midnight's hash; a
+machine let in by its play checksum (`CPlayChecksum`; `mechanics/checksum.md`, section 8); a game sent whole or kept by
+its hash (`CGameSender`, `CGameReceiver`); an order dropped that is not its sender's country's; and who plays a country
+changed in play (`CSetPlayedCommand`). **Its pass marks**, to run after touching any of it or anything the AI writes:
+`OpenHOI3.SaveCheck replaycheck` (the state's hash has a seventh part since, `theatres`), `twomachines <install> [date]
+[window] [tcp]` and `joinmachines <install> <date joined> <until>` - on 2026-11-20 59 of 59 days, every midnight the
+same over a real connection, and 28 days the same after a save sent and loaded by both.
+**What is next is all in the client, and nothing of it is begun**:
+1. the sessions driving the game loop (`src/CSession.cs`): a host's `CHostSession` beside its `CSimulation`, a client's
+   `CClientSession.Step` in place of the clock's hours, the lines carried each frame, who is waited for shown;
+2. the host sending a game by itself when a machine joins or says its hash differed: pause, save, offer, every machine
+   loads it - the host too, each with `CAiScripts` made then - and go on. `joinmachines` does these steps by hand and
+   is the model;
+3. before the lobby, the little the original has there: a player's name and an address to join; then hosting and
+   joining from the lobby there is, and a country for each player (`CHostSession.Unplayed`, `Assign`);
+4. **the client takes the country it plays from `State.Played`'s first** (`CSession.cs`, where `Player` is set), which
+   between several machines holds every player's: it has to be the one the host gave (`CClientSession.Country`);
+5. a client's Lua for an offer's chance as a state of its own that can post nothing;
+6. the screens that still ask the AI's agent of a headquarters (`CAgents.HighestOver` in `src/Screens` and
+   `lib/OpenHOI3.Interface`) asked the game instead (`CAgents.HighestAutomated`), a client holding no agent.
+**Each of these wants two clients running and looked at**; no tool can pass them. And two things changed for a player
+of one, to be looked at in play: a headquarters handed to the AI gets its area and front line with the AI's next pass
+and not while the clock stands, and a tooltip no longer has the supply network made again for the game
+(`multiplayer.md`, section 3).
+
 **The BlackICE layer, a stage of its own** (`docs/mechanics/mods.md`). **Stage 1 - built 2026-11-16**: a mod laid over the
 install as the original lays it - its descriptor found and matched as the launcher names it, its folder in front of
 `tfh/` and the install, `replace_path` on a folder's listing alone, the player's folder its `user_dir`, several mods in
