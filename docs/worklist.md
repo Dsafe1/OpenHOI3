@@ -2131,8 +2131,9 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   charged `NAP_JOIN_INFLUENCE_COST` - and `MILACC_CANCEL_RELATION_CHANGE` by the listing. So nothing is to build for them.
   A test game of 1936 to 1941 then settled `CORE_GAIN`, `CORE_LOSE` and `WAR_THREAT` as unread too (a whole annexation,
   27 months' turns and the AI's declarations of 1939; `FINDINGS-definesuse.md`, section 11.1). Still open where their
-  play never ran: `REBEL_ACCEPTANCE_MONTHS`, `JOINBLOCK_INFLUENCE_COST`, `ROUGH_COUNTRY_RUIN_EST_MODIFIER` and
-  `UNDERGROUND_PARTISAN_STRENGTH` - none read in the years watched.
+  play never ran: `REBEL_ACCEPTANCE_MONTHS`, `ROUGH_COUNTRY_RUIN_EST_MODIFIER` and `UNDERGROUND_PARTISAN_STRENGTH` -
+  none read in the years watched. `JOINBLOCK_INFLUENCE_COST` is settled by the listing: a faction join charges
+  `JOIN_FACTION_INFLUENCE_COST`, as ours does; a "block" likely another EU3 leftover, by the user's account.
   `PURCHASE_INFLUENCE_COST`, `RELATION_INFLUENCE_COST` and `MAX_PROVINCE_SELL_PRICE` are likely leftovers of the engine's
   EU3 parts, by the user's account of 2026-11-20 - buying, influencing relations and selling a province have no action in
   Hearts of Iron 3 - so nothing is to build for them either.
