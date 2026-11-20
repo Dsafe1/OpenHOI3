@@ -185,5 +185,56 @@ All on 2026-11-20.
 
 ## 4. Open
 
-- The size of the window the host waits within.
-- Chat's place in play, and what a player is told of the others - who is behind, who dropped, who paused.
+- The size of the window the host waits within: `CHostSession.DefaultWindow` is 3 hours, a guess.
+- Chat's place in play, and what a player is told of the others - who dropped, who paused.
+
+## 5. A host and its clients - built 2026-11-20, with no network under it
+
+`lib/OpenHOI3.Sim/Multiplayer`: `CHostSession` and `CClientSession`, each handed the lines that came and a way to
+send one. **How a line travels is no part of them** - no socket is built - so everything here runs and is tested in
+one process. What they do:
+
+- **The host's game records, and every entry of the recording is sent to every client as it is made**; a client's
+  game follows them (`replay.md`, section 8).
+- **A client's order goes to the host and nowhere else**, is posted there, and runs on every machine when it comes
+  back in the recording - while the clock stands too, at the host's next frame.
+- **A client starts no hour before the host has said it is whole.** An hour's entries are sent one by one as the
+  host runs it, and one begun on some of them would stop for want of the rest.
+- **The host waits**: it starts no hour that would put a client more than the window behind, so no client is ever
+  further behind than that, and it tells every client who is waited for. A client behind catches up by running more
+  hours a frame.
+- **Anybody's pause is taken by the host**, whose clock paces the game; a client's clock shows the host's and paces
+  nothing. The speed is refused on a client (`CPace`).
+- **Each midnight the host sends the state's hash**, and a client sets its own beside it. One that differs says so,
+  runs nothing more, and is no longer waited for or sent anything - `CHostSession.Parted` is where sending it the
+  game again will hang. **That sending is not built.**
+- **A client gone pauses the game.** Its country going to the AI is not built: nothing but the console changes who
+  plays a country.
+
+**The lines** (`CWire`), each one line of text whose first letter is its kind:
+
+| from the host | |
+| --- | --- |
+| `e` | an entry of the recording, as a recording has it on disk |
+| `h` | an hour that turned a day, and the state's hash as it then stood |
+| `d` | an hour, whole: everything of it has been sent |
+| `s` | the host's clock: paused or not, and its speed |
+| `w` | who the game is waiting for, by name |
+
+| from a client | |
+| --- | --- |
+| `o` | its player's order, as a recording writes a command |
+| `c` | the hour it has run the game to |
+| `p` | its player pauses or resumes |
+| `x` | the hour at which its hash was not the host's |
+
+**Checked.** `MultiplayerSessionTests` on a game of two provinces, each rule above with the lines held in lists
+between the two. And `OpenHOI3.SaveCheck twomachines <install> [date] [window]`: two new games with nobody playing
+and the install's AI, the host an hour a frame, the client's frame every third of the host's, an order from the
+client's side once a day. On 2026-11-20, to 1 March 1936: **59 days, every midnight's hash the same and the two
+alike at the end**; 7.4 MiB sent to the client, about 128 KiB a game day as plain text, the longest line 163,466
+characters, and 17 KiB to the host. Nothing is compressed yet.
+
+**Not built**: a socket; sending a game to a machine, as it joins or after it has parted; the lobby; a dropped
+player's country to the AI; chat. And an entry is sent from the thread that runs the hour, where a client's hours
+run beside its frame - what carries the lines has to take them from there.

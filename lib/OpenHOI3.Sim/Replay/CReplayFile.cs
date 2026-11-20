@@ -129,7 +129,8 @@ public sealed class CReplayFile : IDisposable
 		});
 	}
 
-	private static string ToLine(CReplayEntry entry)
+	/// <summary>An entry as the one line it is in a recording: also what goes from one machine to another (<c>docs/multiplayer.md</c>).</summary>
+	public static string ToLine(CReplayEntry entry)
 	{
 		return Json(json =>
 		{
@@ -193,7 +194,8 @@ public sealed class CReplayFile : IDisposable
 		});
 	}
 
-	private static CReplayEntry FromLine(string line, CGameState state)
+	/// <summary>A line of a recording read against a game: its commands name that game's own countries and units.</summary>
+	public static CReplayEntry FromLine(string line, CGameState state)
 	{
 		using JsonDocument document = JsonDocument.Parse(line);
 		JsonElement root = document.RootElement;

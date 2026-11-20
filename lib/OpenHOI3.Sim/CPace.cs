@@ -1,3 +1,5 @@
+using System;
+
 namespace OpenHOI3.Sim;
 
 /// <summary>
@@ -32,10 +34,27 @@ public sealed class CPace
 	/// <summary>Whether this machine's player may set the speed: always in a game of one, the host alone otherwise.</summary>
 	public bool MaySetSpeed => !Multiplayer || IsHost;
 
+	/// <summary>
+	/// On a machine that follows a host's game: where a player's pause or resume goes, the clock that paces the game
+	/// being the host's. This machine's own clock then only shows what the host's says (<see cref="Set"/>).
+	/// </summary>
+	public Action? AskHostToTogglePause { get; set; }
+
 	/// <summary>A player's own pause or resume - the key, the top bar. Anybody's to give.</summary>
 	public void TogglePause()
 	{
+		if (AskHostToTogglePause is { } ask)
+		{
+			ask();
+			return;
+		}
 		_clock.Paused = !_clock.Paused;
+	}
+
+	/// <summary>The clock stopped where it runs, as a player's pause is: a host's, for a player who has dropped.</summary>
+	public void Pause()
+	{
+		_clock.Paused = true;
 	}
 
 	/// <summary>A player's change of speed by so many steps. Answers whether it was his to make.</summary>

@@ -17,6 +17,112 @@ using OpenHOI3.Sim.Replay;
 /// </summary>
 internal static class CReplayCheck
 {
+	/// <summary>
+	/// A host's game and a client's, two new games with nobody playing, with nothing between them but the lines of text
+	/// two machines would send (docs/multiplayer.md, section 5): the host runs an hour a frame with its AI, the client
+	/// follows through a <c>CClientSession</c>, kept a few frames behind so that the host's waiting is exercised, and once
+	/// a day the client's side posts an order of its own. It says how many days ran, whether the client ever found its
+	/// midnight's hash another than the host's, how much was sent, and how long each side took.
+	/// </summary>
+	public static int RunTwoMachines(string[] args)
+	{
+		if (args.Length < 2)
+		{
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck twomachines <install folder> [until date] [window]");
+			return 2;
+		}
+		CDate end = args.Length > 2 && CDate.TryParse(args[2], out CDate given) ? given : new CDate(1936, 2, 1);
+		int window = args.Length > 3 && int.TryParse(args[3], out int asked) ? asked : OpenHOI3.Sim.Multiplayer.CHostSession.DefaultWindow;
+
+		(CGameState hostState, CSimulation hostRun, IDisposable hostScripts) = Load(args[1]);
+		(CGameState clientState, CSimulation clientRun, IDisposable clientScripts) = Load(args[1]);
+		var toClient = new Queue<string>();
+		var toHost = new Queue<string>();
+		long sentToClient = 0;
+		long sentToHost = 0;
+		int longest = 0;
+		var host = new OpenHOI3.Sim.Multiplayer.CHostSession(hostRun, window);
+		var client = new OpenHOI3.Sim.Multiplayer.CClientSession(clientRun, line =>
+		{
+			sentToHost += line.Length;
+			toHost.Enqueue(line);
+		});
+		OpenHOI3.Sim.Multiplayer.CHostPeer peer = host.Add("client", line =>
+		{
+			sentToClient += line.Length;
+			longest = Math.Max(longest, line.Length);
+			toClient.Enqueue(line);
+		});
+		bool parted = false;
+		host.Parted += _ => parted = true;
+
+		var hostClock = new Stopwatch();
+		var clientClock = new Stopwatch();
+		int days = 0;
+		int waited = 0;
+		long frames = 0;
+		hostRun.Pace.Set(paused: false, CClock.SpeedCount - 1);
+		while (hostState.Date < end && !parted)
+		{
+			frames++;
+			CDate before = hostState.Date;
+			long hoursBefore = hostState.TotalHours;
+			hostClock.Start();
+			hostRun.Advance(1.0);
+			host.Tell();
+			hostClock.Stop();
+			if (hostState.TotalHours == hoursBefore)
+			{
+				waited++;
+			}
+			if (hostState.Date != before)
+			{
+				days++;
+				// An order from the client's side, once a day: it goes to the host and comes back in the host's order.
+				clientRun.Post(new OpenHOI3.Sim.Commands.CFogOfWarCommand(days % 2 == 0));
+			}
+			// The client's frame comes every third of the host's: it falls behind, the host waits, it catches up.
+			if (frames % 3 == 0)
+			{
+				clientClock.Start();
+				while (toClient.Count > 0)
+				{
+					client.Receive(toClient.Dequeue());
+				}
+				client.Step(mostHours: 8);
+				clientClock.Stop();
+				while (toHost.Count > 0)
+				{
+					host.Receive(peer, toHost.Dequeue());
+				}
+			}
+		}
+		// What is still under way, so that the two stand at the same hour.
+		while (toClient.Count > 0)
+		{
+			client.Receive(toClient.Dequeue());
+		}
+		client.Step(mostHours: 1000);
+
+		ulong[] hostHash = CStateHash.Of(hostState);
+		ulong[] clientHash = CStateHash.Of(clientState);
+		string[] differing = CStateHash.Parts.Where((_, i) => hostHash[i] != clientHash[i]).ToArray();
+		Console.WriteLine($"to {hostState.Date}: {days} days, window {window}; the host waited on {waited} of {frames} frames; " +
+			$"{sentToClient / 1024} KiB to the client ({sentToClient / Math.Max(days, 1) / 1024} KiB a day, the longest line " +
+			$"{longest} characters), {sentToHost / 1024} KiB to the host; host {hostClock.ElapsedMilliseconds / 1000.0:0.0} s, " +
+			$"client {clientClock.ElapsedMilliseconds / 1000.0:0.0} s");
+		Console.WriteLine(client.Parted || parted
+			? $"the client's game parted from the host's at hour {clientState.TotalHours}"
+			: hostState.TotalHours != clientState.TotalHours
+				? $"the client stands at hour {clientState.TotalHours}, the host at {hostState.TotalHours}"
+				: differing.Length > 0
+					? "at the end they differ in " + string.Join(", ", differing)
+					: "every midnight's hash the same, and the two games alike at the end");
+		hostScripts.Dispose();
+		clientScripts.Dispose();
+		return client.Parted || parted || differing.Length > 0 || hostState.TotalHours != clientState.TotalHours ? 1 : 0;
+	}
+
 	public static int Run(string[] args)
 	{
 		if (args.Length < 2)

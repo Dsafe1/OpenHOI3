@@ -342,6 +342,12 @@ if (args.Length > 0 && args[0] == "replaycheck")
 	return CReplayCheck.Run(args);
 }
 
+// A host's game and a client's with nothing between them but the lines two machines would send (docs/multiplayer.md).
+if (args.Length > 0 && args[0] == "twomachines")
+{
+	return CReplayCheck.RunTwoMachines(args);
+}
+
 // Whether a game goes on after a save and a load as it would have without them (docs/enhanced.md).
 if (args.Length > 0 && args[0] == "reload")
 {

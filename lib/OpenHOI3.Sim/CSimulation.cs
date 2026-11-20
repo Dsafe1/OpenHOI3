@@ -132,6 +132,12 @@ public sealed class CSimulation
 	}
 
 	/// <summary>
+	/// Asked when the clock says an hour is due: false holds the hour back, and the frame does what a frame with no hour
+	/// does. A host's waiting for a machine that is behind (<c>docs/multiplayer.md</c>, section 2); null lets every hour run.
+	/// </summary>
+	public Func<bool>? HourGate { get; set; }
+
+	/// <summary>
 	/// Where a game following another's sends what its own player orders: to the game it follows, which posts it and
 	/// sends it back in its order with everything else. Null for a recording played back, which takes no order.
 	/// </summary>
@@ -201,7 +207,7 @@ public sealed class CSimulation
 		{
 			throw new InvalidOperationException("an hour is already running beside the frame");
 		}
-		if (!Clock.HourDue(realSeconds))
+		if (!Clock.HourDue(realSeconds) || HourGate?.Invoke() == false)
 		{
 			if (State.Replay is not { IsReplaying: true })
 			{
@@ -472,7 +478,7 @@ public sealed class CSimulation
 	/// </summary>
 	public int Advance(double realSeconds)
 	{
-		if (!Clock.HourDue(realSeconds))
+		if (!Clock.HourDue(realSeconds) || HourGate?.Invoke() == false)
 		{
 			// Orders given while paused still happen; a replay drains the queue only as its recording did, before each hour.
 			if (State.Replay is not { IsReplaying: true })

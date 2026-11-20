@@ -51,6 +51,15 @@ public sealed class CReplay
 			: null);
 	}
 
+	/// <summary>
+	/// A playback of entries as they come from elsewhere - another machine: <paramref name="next"/> answers the next one,
+	/// or null while none has come, and is asked again.
+	/// </summary>
+	public static CReplay Following(Func<CReplayEntry?> next)
+	{
+		return new CReplay(null, _ => next());
+	}
+
 	/// <summary>A playback of a recording on disk, read an entry at a time.</summary>
 	public static CReplay Replaying(CReplayFile file)
 	{

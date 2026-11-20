@@ -64,6 +64,8 @@ lib/OpenHOI3.Sim/       our own data model and the simulation: the game state, t
                         air - air bases chosen and missions given
     Replay/             ours: the AI's steps recorded and played back in their place, the
                         commands' written form and the state's hash (docs/replay.md)
+    Multiplayer/        ours: a host's and a client's side of a game between several machines,
+                        and the lines of text they send each other (docs/multiplayer.md)
     Modifiers/          what a modifier is, and the rebuilding of a province's and a country's
     Economy/            goods, resources, IC, the stockpile, the six shares, manpower, leadership
     Research/           technologies, their categories, the queue and the decay
