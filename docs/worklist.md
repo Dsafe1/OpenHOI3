@@ -37,7 +37,9 @@ Four choices sit under all of it:
 ## Next up
 
 **Multiplayer - the last large piece of the normal engine** (`docs/multiplayer.md`, which holds every decision, what is
-built and what is not; begun 2026-11-20). **The simulation's side is built and on main**, all of it without the client:
+built and what is not; begun 2026-11-20). **Finished, by the word of 2026-11-21: "I think multiplayer is finished
+now."** What the list below still names as left - of the original's lobby, of the chat, a screen for the port - is
+polish nobody has asked for, and nothing here is next. **The simulation's side is built and on main**, all of it without the client:
 a host's game records and a client's follows the recording as it is made (`replay.md`, section 8), in lines of text
 (`lib/OpenHOI3.Sim/Multiplayer`: `CHostSession`, `CClientSession`, `CWire`) over TCP with a Deflate stream each way
 (`CLineLink`, `CLineListener`); a client's order to the host and back, while the clock stands too; the hour held until
