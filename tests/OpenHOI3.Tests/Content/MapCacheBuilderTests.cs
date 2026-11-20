@@ -620,8 +620,13 @@ public class MapCacheBuilderTests : IDisposable
 		Assert.Null(cache.Find("only_in_the_install.bin"));
 	}
 
+	/// <summary>
+	/// The stamp alone makes no cache: the original keeps part of one in the install and part in the player's folder, and
+	/// a player's folder with the map's stamp and half the files drew a broken map. A cache with no list of its contents
+	/// is built again, whole.
+	/// </summary>
 	[Fact]
-	public void TheOriginalsCacheInThePlayersFolderIsTakenWhereItIsTheMaps()
+	public void ACacheWithTheMapsStampAndNoListOfItsContentsIsBuiltAgainWhole()
 	{
 		WriteMap();
 		Directory.CreateDirectory(UserCache);
@@ -630,7 +635,37 @@ public class MapCacheBuilderTests : IDisposable
 		CMapCache cache = CMapCache.OpenOrBuild(Install, User, CMap.Load(Install, _ => { }), _ => { });
 
 		Assert.True(cache.IsCurrent);
-		Assert.Null(cache.Find(CQuadCache.IndexFile));
+		Assert.StartsWith(User, cache.Find(CQuadCache.IndexFile));
+		Assert.True(File.Exists(Path.Combine(UserCache, CMapCache.ContentsFile)));
+	}
+
+	[Fact]
+	public void AWholeCacheIsKeptAndOneWithAFileGoneOrCutIsBuiltAgain()
+	{
+		WriteMap();
+		CMap map = CMap.Load(Install, _ => { });
+		CMapCache.OpenOrBuild(Install, User, map, _ => { });
+		string index = Path.Combine(UserCache, CQuadCache.IndexFile);
+		DateTime built = File.GetLastWriteTimeUtc(index);
+
+		// Whole: nothing is built again.
+		var said = new System.Collections.Generic.List<string>();
+		CMapCache.OpenOrBuild(Install, User, map, said.Add);
+		Assert.Empty(said);
+		Assert.Equal(built, File.GetLastWriteTimeUtc(index));
+
+		// A file gone: built again.
+		File.Delete(index);
+		CMapCache.OpenOrBuild(Install, User, map, said.Add);
+		Assert.Single(said);
+		Assert.True(File.Exists(index));
+
+		// A file cut short: built again.
+		long whole = new FileInfo(index).Length;
+		File.WriteAllBytes(index, new byte[1]);
+		CMapCache.OpenOrBuild(Install, User, map, said.Add);
+		Assert.Equal(2, said.Count);
+		Assert.Equal(whole, new FileInfo(index).Length);
 	}
 
 	[Fact]

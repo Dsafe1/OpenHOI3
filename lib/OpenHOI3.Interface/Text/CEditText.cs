@@ -173,6 +173,27 @@ public sealed class CEditText
 	}
 
 	/// <summary>
+	/// Text pasted at the caret, a character at a time by the rules of typing: one the box refuses is left out, a line
+	/// break and any other control character with it, and past the cap nothing more goes in. The two characters that
+	/// move the caret when typed do not when pasted. Answers how many characters went in. *Ours* - the original's box
+	/// has no clipboard (<c>docs/mechanics/interface.md</c>, section 8).
+	/// </summary>
+	public int Paste(string text)
+	{
+		int before = _text.Length;
+		foreach (char character in text)
+		{
+			if (char.IsControl(character))
+			{
+				continue;
+			}
+			// As typed with Shift held: the apostrophe's and the per cent's steps of the caret are a typed key's alone.
+			Type(character, shift: true, ctrl: false);
+		}
+		return _text.Length - before;
+	}
+
+	/// <summary>
 	/// A key: Left and Right with neither Ctrl nor Shift a character either way, Home to its line's start, End to the
 	/// line's length as last stored by an edit, Delete without Shift erasing the character after the caret. Answers
 	/// whether the box took it; any other key, or one of these held otherwise, goes on.

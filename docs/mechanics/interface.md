@@ -970,6 +970,13 @@ never the font's own letters. So:
 Read out of the original on 2026-11-05 for the save dialog (`reversing/findings/FINDINGS-editbox.md`), and built
 (`CEditText` in `Interface/Text`, `CGuiTextBox.MakeEditable`). [exe] unless marked.
 
+**The clipboard - ours**, asked for on 2026-11-20 so that a unit's name or a host's address can be copied: in a box
+that has the keyboard, **Ctrl and C copies the whole of its text** - a box has no selection - **Ctrl and X copies it
+and empties the box, and Ctrl and V pastes at the caret** by the rules of typing: a character the box refuses is
+left out, a line break with it, nothing goes in past the cap, and the two characters that move the caret when typed
+do not (`CEditText.Paste`). The original's box lets no character through with Ctrl held and has no clipboard. Text
+that is not in an edit box cannot be copied. Tested as far as `Paste`; the keys were not tried on screen.
+
 - **The keyboard** goes to an edit box when it is clicked with the left button, or when a screen gives it - the
   save dialog gives `game_name` it as it opens. **It stays there until another edit box takes it**: hiding the box,
   Enter, Escape and a click on a button take nothing away. A hidden box takes no keys. A click does not move the

@@ -99,7 +99,7 @@ public sealed class CMapCache
 	{
 		uint stamp = Stamp(directories);
 		string folder = Path.Combine(userFolder, Folder.Replace('/', Path.DirectorySeparatorChar));
-		if (!HoldsStamp(folder, stamp))
+		if (!HoldsStamp(folder, stamp) || !IsWhole(folder, stamp))
 		{
 			CMapCacheSource? source = CMapCacheSource.From(map, problem);
 			if (source is null)
@@ -107,10 +107,70 @@ public sealed class CMapCache
 				return new CMapCache(directories, userFolder, current: false, askInstall: false);
 			}
 			problem($"cache: building the map's cache in {folder}");
-			// The stamp goes last, so that a build cut short is never taken for a cache.
+			// The stamp goes last, so that a build cut short is never taken for a cache - and the list of what was built
+			// after it, last of all.
 			CMapCacheBuilder.Build(source, folder, stamp);
+			WriteContents(folder, stamp);
 		}
 		return new CMapCache(directories, userFolder, current: true, askInstall: false);
+	}
+
+	/// <summary>
+	/// The file a cache built here ends with: the stamp, then every file of the cache with its length. *Ours* - the
+	/// original writes no such file and passes it over.
+	/// </summary>
+	public const string ContentsFile = "openhoi3_contents.txt";
+
+	/// <summary>
+	/// Whether the cache in the folder is one built here, whole: its list of contents is of this stamp and every file it
+	/// names is there at the length it had. The stamp alone does not say so: the original keeps part of a cache in the
+	/// install and part in the player's folder, and a player's folder with the stamp and half the files drew a broken map
+	/// (2026-11-20). A cache with no list - the original's own, whole or not - is built again, once.
+	/// </summary>
+	private static bool IsWhole(string folder, uint stamp)
+	{
+		string path = Path.Combine(folder, ContentsFile);
+		if (!File.Exists(path))
+		{
+			return false;
+		}
+		string[] lines = File.ReadAllLines(path);
+		if (lines.Length < 2 || lines[0] != stamp.ToString("X8"))
+		{
+			return false;
+		}
+		for (int index = 1; index < lines.Length; index++)
+		{
+			int tab = lines[index].IndexOf('\t');
+			if (tab <= 0 || !long.TryParse(lines[index][(tab + 1)..], System.Globalization.NumberStyles.None,
+				System.Globalization.CultureInfo.InvariantCulture, out long length))
+			{
+				return false;
+			}
+			var file = new FileInfo(Path.Combine(folder, lines[index][..tab].Replace('/', Path.DirectorySeparatorChar)));
+			if (!file.Exists || file.Length != length)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/// <summary>The list of a cache just built: every file under the folder but the list itself, by its path and its length.</summary>
+	private static void WriteContents(string folder, uint stamp)
+	{
+		var lines = new System.Collections.Generic.List<string> { stamp.ToString("X8") };
+		string[] files = Directory.GetFiles(folder, "*", SearchOption.AllDirectories);
+		Array.Sort(files, StringComparer.Ordinal);
+		foreach (string file in files)
+		{
+			string relative = Path.GetRelativePath(folder, file).Replace(Path.DirectorySeparatorChar, '/');
+			if (relative != ContentsFile)
+			{
+				lines.Add(relative + "\t" + new FileInfo(file).Length.ToString(System.Globalization.CultureInfo.InvariantCulture));
+			}
+		}
+		File.WriteAllLines(Path.Combine(folder, ContentsFile), lines);
 	}
 
 	private static bool HoldsStamp(string folder, uint stamp)

@@ -14,6 +14,28 @@ public class EditTextTests
 	}
 
 	[Fact]
+	public void Pasted_text_goes_in_at_the_caret_by_the_rules_of_typing()
+	{
+		CEditText box = Box("ab");
+		box.Key(EEditKey.Left, shift: false, ctrl: false);
+
+		// A line break and a character the font refuses are left out; the apostrophe does not move the caret.
+		Assert.Equal(9, box.Paste("127.0.0.1\r\n@"));
+		Assert.Equal("a127.0.0.1b", box.Text);
+		Assert.Equal(10, box.Caret);
+		box.Paste("'x");
+		Assert.Equal("a127.0.0.1'xb", box.Text);
+	}
+
+	[Fact]
+	public void Pasting_stops_at_the_cap()
+	{
+		CEditText box = Box(new string('a', CEditText.MaxLength - 2));
+		Assert.Equal(2, box.Paste("12345"));
+		Assert.Equal(CEditText.MaxLength, box.Text.Length);
+	}
+
+	[Fact]
 	public void A_box_of_one_line_erases_at_once_a_character_that_would_wrap()
 	{
 		CEditText box = Box("Panzerkor");

@@ -443,6 +443,12 @@ section 3.
 | why | as decided |
 | to undo | have `CMapCache.OpenOrBuild` take `Open`'s answer first, and pass `askInstall: true` |
 
+**And since 2026-11-20 a cache the original wrote into the player's folder is no longer taken as it is**: "make the
+map-cache rebuilding more thorough", after a machine whose cache lay half in the install and half in the player's
+folder drew a broken map. A cache is used only where it ends in our own list of its contents and every file is
+there (`mechanics/mapcache.md`, section 11); the original's is built again once, the same bytes, and the list - one
+file the original does not know - is left in its folder.
+
 ## 23. A lent unit's leader cannot be changed
 
 **Decided** 2026-11-09, the original having been seen in play letting the host do it.

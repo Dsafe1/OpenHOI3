@@ -195,6 +195,39 @@ public partial class CGuiTextBox : CGuiObject
 		CEditText editor = Editor!;
 		bool shift = key.ShiftPressed;
 		bool ctrl = key.CtrlPressed;
+		// Ours: the clipboard. Ctrl and C copies the whole of the box's text - it has no selection - Ctrl and X copies it
+		// and empties the box, Ctrl and V pastes at the caret by the rules of typing (interface.md, section 8).
+		if (ctrl && !key.AltPressed && key.Keycode is Key.C or Key.X or Key.V && ctrl)
+		{
+			if (key.Keycode == Key.V)
+			{
+				var pasted = new System.Text.StringBuilder();
+				foreach (char character in DisplayServer.ClipboardGet())
+				{
+					if (CWindows1252.FromUnicode(character) is { } held)
+					{
+						pasted.Append(held);
+					}
+				}
+				editor.Paste(pasted.ToString());
+			}
+			else
+			{
+				DisplayServer.ClipboardSet(CWindows1252.ToDisplay(editor.Text));
+				if (key.Keycode == Key.X)
+				{
+					editor.Text = "";
+				}
+			}
+			GetViewport().SetInputAsHandled();
+			if (editor.Text != _text)
+			{
+				_text = editor.Text;
+				Typed?.Invoke();
+			}
+			QueueRedraw();
+			return;
+		}
 		bool taken = key.Keycode switch
 		{
 			Key.Left => editor.Key(EEditKey.Left, shift, ctrl),
