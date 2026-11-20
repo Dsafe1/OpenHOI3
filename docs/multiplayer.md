@@ -340,7 +340,9 @@ to each session, and loads the game it says to.
   host is gone first saves the game as it stands there** (asked for on 2026-11-20, so that a host's crash loses
   nobody the game; `CSession.SaveAsTheHostIsLost`): to its own saves as `Multiplayer_` and the name the save dialog
   offers, `Multiplayer_United_Kingdom1936_03_17_17.hoi3`, written as that machine's player's. Tried by processes:
-  the host stopped, the file written, its `player` the client's country.
+  the host stopped, the file written, its `player` the client's country. **And it says so on screen**: the reason
+  and the save's name over the way back to the main menu and twenty seconds on (`Main.ShowNotice`; *ours*) - not
+  seen on screen by a check.
 - A line under the top bar says who is waited for, or that a game is being sent or received, once that has stood a
   second: at the top speed the host waits a frame or two for a client all the time, the window at work. *Ours.*
 - A game loaded in place of another keeps where the map and the clock stood (`CSession.LeaveForLoad`).

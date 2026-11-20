@@ -71,12 +71,52 @@ public partial class Main : Control
 			{
 				string? saved = _session.SaveAsTheHostIsLost();
 				GD.Print(saved is null ? "Multiplayer: the game could not be saved." : $"Multiplayer: the game saved as {saved}.");
+				// Said on screen too, over the way back to the main menu and a while on it.
+				ShowNotice(why + "\n" + (saved is null ? "The game could not be saved."
+					: "The game was saved as " + System.IO.Path.GetFileName(saved)), seconds: 20);
 			}
 			LeaveNet();
 			_music.LeaveGame();
 			CallDeferred(MethodName.ShowFrontEnd);
 		}
 	}
+
+	/// <summary>
+	/// A few words over everything for a while - the loading screen and the main menu that follows among it: what a
+	/// player has to be told as a game between machines ends under him. Ours; one at a time, a new one in the old's place.
+	/// </summary>
+	private void ShowNotice(string text, double seconds)
+	{
+		_notice?.QueueFree();
+		var layer = new CanvasLayer { Name = "Notice", Layer = 200 };
+		var label = new Label
+		{
+			Text = text,
+			HorizontalAlignment = HorizontalAlignment.Center,
+			Position = new Vector2(0, 140),
+			Size = new Vector2(1920, 120),
+			MouseFilter = MouseFilterEnum.Ignore,
+		};
+		label.AddThemeFontSizeOverride("font_size", 36);
+		label.AddThemeColorOverride("font_outline_color", Colors.Black);
+		label.AddThemeConstantOverride("outline_size", 10);
+		layer.AddChild(label);
+		AddChild(layer);
+		_notice = layer;
+		GetTree().CreateTimer(seconds).Timeout += () =>
+		{
+			if (_notice == layer)
+			{
+				_notice = null;
+			}
+			if (IsInstanceValid(layer))
+			{
+				layer.QueueFree();
+			}
+		};
+	}
+
+	private CanvasLayer? _notice;
 
 	/// <summary>The game between machines left: its connections closed.</summary>
 	private void LeaveNet()
