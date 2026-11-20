@@ -990,6 +990,16 @@ public sealed class CGameState
 	{
 		get
 		{
+			if (LooksOnly)
+			{
+				// A screen's look keeps nothing: the table as the game has it where that is whole, else the one the game
+				// would make now, made beside it and thrown away as the game goes on.
+				if (_positions is not null && !_positionsToCheck && _positionsToAdd is null)
+				{
+					return _positions;
+				}
+				return _positionsLook ??= new CUnitPositions(this, _positions ?? _lastPositions);
+			}
 			if (_positions is null)
 			{
 				_positions = MakePositions();
@@ -1002,6 +1012,53 @@ public sealed class CGameState
 			return _positions;
 		}
 	}
+
+	/// <summary>The table a screen was shown while the game's own was not whole: nobody's but the screen's.</summary>
+	private CUnitPositions? _positionsLook;
+
+	/// <summary>
+	/// Whether screens look at this game between its commands: set by a client for the game it shows, never by a tool or
+	/// a test. Some of what the game holds is made when it is first asked for - who stands where, the supply network with
+	/// the areas it remaps - and made by whoever asks first. A tooltip asking at its own moment would make it at that
+	/// moment, so two machines running the same commands would hold it made at different ones, and differently
+	/// (<c>docs/multiplayer.md</c>, section 3). With this set, what asks while no command runs is answered from a copy
+	/// made beside the game and thrown away as the game goes on (<see cref="LooksOnly"/>), and only a running command
+	/// makes anything the game keeps.
+	/// </summary>
+	public bool ScreensLook { get; set; }
+
+	private int _executing;
+
+	private int _telling;
+
+	/// <summary>
+	/// Whether what is asked now is a screen's look and may keep nothing in the game: no command is running, or one is
+	/// and has stopped to tell a screen of something.
+	/// </summary>
+	public bool LooksOnly => ScreensLook && (_executing == 0 || _telling > 0);
+
+	/// <summary>A run of commands begins or ends (<see cref="CSimulation"/> alone): what screens were shown is thrown away.</summary>
+	internal void Executing(bool begins)
+	{
+		_executing += begins ? 1 : -1;
+		ForgetLooks();
+	}
+
+	/// <summary>A running command stops to tell a screen of something, or goes on.</summary>
+	internal void Telling(bool begins)
+	{
+		_telling += begins ? 1 : -1;
+		ForgetLooks();
+	}
+
+	private void ForgetLooks()
+	{
+		_positionsLook = null;
+		SupplyLook = null;
+	}
+
+	/// <summary>The supply network a screen was shown while the game's own was behind (<see cref="Supply.CSupplyNetworks.Refresh"/>).</summary>
+	internal Supply.CSupplyNetwork? SupplyLook { get; set; }
 
 	/// <summary>Whether the table is to be checked against where every unit stands when it is next asked for.</summary>
 	private bool _positionsToCheck;

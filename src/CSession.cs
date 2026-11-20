@@ -197,6 +197,9 @@ public partial class CSession : Node
 		_aiScripts = prepared.AiScripts;
 		State = prepared.State;
 		_simulation = new CSimulation(State);
+		// From here on screens look at the game between its commands, and a look keeps nothing in it: who stands where and
+		// the supply network are made by a running command alone (docs/multiplayer.md, section 3).
+		State.ScreensLook = true;
 		Player = State.Played.Count > 0 ? State.Country(State.Played.First()) : null;
 		_enteredAs = _carried is { } carried ? carried.EnteredAs : Player?.Tag;
 		_mapCache = prepared.Cache;

@@ -38,22 +38,30 @@ public sealed class CSimulation
 	public CSimulation(CGameState state, bool discardEntryOrders = false)
 	{
 		State = state;
-		CTick.RunEntryPass(state);
-		if (discardEntryOrders)
+		state.Executing(begins: true);
+		try
 		{
-			state.Outbox.Clear();
-		}
-		// What entering posted - the AI's sort of its units into its theatres - runs at once.
-		DrainOutbox();
-		// A loaded game runs a second AI pass before its first hour, and that one's orders run as well.
-		if (state.LoadedFromSave)
-		{
-			CTick.RunSecondOfLoad(state);
+			CTick.RunEntryPass(state);
 			if (discardEntryOrders)
 			{
 				state.Outbox.Clear();
 			}
+			// What entering posted - the AI's sort of its units into its theatres - runs at once.
 			DrainOutbox();
+			// A loaded game runs a second AI pass before its first hour, and that one's orders run as well.
+			if (state.LoadedFromSave)
+			{
+				CTick.RunSecondOfLoad(state);
+				if (discardEntryOrders)
+				{
+					state.Outbox.Clear();
+				}
+				DrainOutbox();
+			}
+		}
+		finally
+		{
+			state.Executing(begins: false);
 		}
 	}
 
@@ -281,7 +289,16 @@ public sealed class CSimulation
 			}
 			return;
 		}
-		tell();
+		// Told from inside a running command, a screen still only looks (CGameState.LooksOnly).
+		State.Telling(begins: true);
+		try
+		{
+			tell();
+		}
+		finally
+		{
+			State.Telling(begins: false);
+		}
 	}
 
 	/// <summary>Whether commands from outside are taken: not while a recording is played back.</summary>
@@ -353,31 +370,40 @@ public sealed class CSimulation
 		// carries the next turn's number - it will run in the next drain.
 		_turn++;
 		int executed = 0;
-		for (int waiting = _queue.Count; waiting > 0; waiting--)
+		// Only what runs from here to the end may make what the game keeps (CGameState.ScreensLook).
+		State.Executing(begins: true);
+		try
 		{
-			CCommand command = _queue.Dequeue();
-			if (!command.MayExecute(State))
+			for (int waiting = _queue.Count; waiting > 0; waiting--)
 			{
-				continue;
-			}
+				CCommand command = _queue.Dequeue();
+				if (!command.MayExecute(State))
+				{
+					continue;
+				}
 
-			long hoursBefore = State.TotalHours;
-			CDate before = State.Date;
-			command.Execute(State);
-			executed++;
-			Executed++;
+				long hoursBefore = State.TotalHours;
+				CDate before = State.Date;
+				command.Execute(State);
+				executed++;
+				Executed++;
 
-			// What the game posted while the command ran waits for the next turn.
-			foreach (CCommand posted in State.Outbox)
-			{
-				Enqueue(posted);
-			}
-			State.Outbox.Clear();
+				// What the game posted while the command ran waits for the next turn.
+				foreach (CCommand posted in State.Outbox)
+				{
+					Enqueue(posted);
+				}
+				State.Outbox.Clear();
 
-			if (State.TotalHours != hoursBefore)
-			{
-				RaiseTimeEvents(before, State.Date);
+				if (State.TotalHours != hoursBefore)
+				{
+					RaiseTimeEvents(before, State.Date);
+				}
 			}
+		}
+		finally
+		{
+			State.Executing(begins: false);
 		}
 		return executed;
 	}

@@ -91,11 +91,18 @@ All on 2026-11-20.
   - the clock's pause and speed, written from twenty places - mended, above;
   - **the supply network is made again when something asks for it** after land has changed hands
     (`CSupplyNetworks.Refresh`), and that making remaps the theatres' and the AI's areas - so a tooltip, the convoy
-    window or a trade dialog decides *when*, and two machines may differ by it. To be made at set points of the tick
-    and never by a read. **Not mended.**
+    window or a trade dialog decides *when*, and two machines may differ by it;
   - **who stands where is filled in the order it is asked** (`CGameState.Positions`), and the simulation reads that
-    order - the first enemy fleet in a sea province. *By the reading alone*; to be made in an order no read changes.
-    **Not mended.**
+    order - the first enemy fleet in a sea province: two units made one after the other end in the order the
+    countries are walked in, or in the order they were made where something asked between them (shown by a test);
+  - **both mended 2026-11-20: a screen's look keeps nothing.** A client sets `CGameState.ScreensLook` for the game it
+    shows, and from then on what asks while no command runs - or while a running command has stopped to tell a screen
+    of something - is answered from a copy made beside the game and thrown away as the game goes on
+    (`CGameState.LooksOnly`); only a running command makes the table or the network the game keeps, and remaps the
+    areas. A tool or a test never sets it, and for them nothing has changed. So the game makes both at the moments
+    its own commands ask, the same on every machine. *Ours*: until then a screen's asking made them for the game too.
+    Not tried in the running client. Any other thing the game keeps that is made on first asking, and whose making
+    hangs on when, wants the same test - none other was found, and they were not searched for one by one;
   - the lobby writes its options, the played countries and the victory conditions into a made game, one of them by a
     draw of its own; a lobby between several machines has to send these in any case;
   - the console and the developer's switches make the game's entry pass run again or drain the queue themselves; a

@@ -39,6 +39,12 @@ public static class CSupplyNetworks
 		if (force || state.SupplyNetwork is not { } network || network.ControlChanges != state.ControlChanges
 			|| network.ProvinceCount != state.Provinces.Count)
 		{
+			// A screen's look keeps nothing and remaps nothing: it is shown the network the game would make now, made
+			// beside the game's own, and the game makes its own when a command next asks (CGameState.ScreensLook).
+			if (state.LooksOnly)
+			{
+				return state.SupplyLook ??= Build(state);
+			}
 			bool had = state.SupplyNetwork is not null;
 			network = Build(state);
 			state.SupplyNetwork = network;
