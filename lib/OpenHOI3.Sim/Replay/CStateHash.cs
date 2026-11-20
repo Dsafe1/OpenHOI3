@@ -16,7 +16,7 @@ namespace OpenHOI3.Sim.Replay;
 public static class CStateHash
 {
 	/// <summary>The parts, in the order they are told.</summary>
-	public static readonly string[] Parts = { "generator", "countries", "diplomacy", "provinces", "units", "wars" };
+	public static readonly string[] Parts = { "generator", "countries", "diplomacy", "provinces", "units", "wars", "theatres" };
 
 	/// <summary>Each part's hash, in the order of <see cref="Parts"/>.</summary>
 	public static ulong[] Of(CGameState state)
@@ -29,7 +29,45 @@ public static class CStateHash
 			Provinces(state),
 			Units(state),
 			Wars(state),
+			Theatres(state),
 		};
+	}
+
+	/// <summary>
+	/// What a game playing the AI back makes for itself all the same, and so has to hold as the game it follows does
+	/// (<c>docs/multiplayer.md</c>, section 3; added 2026-11-20): the theatres, which every machine makes each hour -
+	/// their numbers, provinces and headquarters - the two counters their making moves, every unit's plan as far as a
+	/// battle reads it, and how many offers wait for an answer.
+	/// </summary>
+	private static ulong Theatres(CGameState state)
+	{
+		var hash = new CHasher();
+		hash.Add(state.NextTheatreId);
+		hash.Add(state.LastUnitId);
+		foreach (CCountry country in state.Countries)
+		{
+			hash.Add(country.Tag.Value);
+			hash.Add(country.PendingOffers.Count);
+			foreach (Theatres.CTheatre theatre in country.Strategy.Theatres)
+			{
+				hash.Add(theatre.Id);
+				hash.Add(theatre.Headquarters);
+				hash.Add(theatre.Provinces.Count);
+				foreach (int province in theatre.Provinces)
+				{
+					hash.Add(province);
+				}
+			}
+			foreach (CUnit unit in country.AllUnits())
+			{
+				if (unit.Plan.Active)
+				{
+					hash.Add(unit.Id);
+					hash.Add(unit.Plan.Stance);
+				}
+			}
+		}
+		return hash.Value;
 	}
 
 	/// <summary>The parts' hashes as one.</summary>

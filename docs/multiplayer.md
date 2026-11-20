@@ -135,8 +135,34 @@ All on 2026-11-20.
   follows it, and the recording's entries are what goes over the wire. **What a client still runs of the AI**, and
   so has to hold the AI's Lua and its own state for: what entering a game runs - the laws, the strategies, the first
   pass over its units - the theatres each hour (`CTheatres.RunHourly`), which are worked out from the game alone, and
-  the foreign ministers told of a new war (`replay.md`, section 2). **Not yet looked at**: whether each of those is
-  the same on a machine whose AI state has not moved since the first hour, as a client's will not have.
+  the foreign ministers told of a new war (`replay.md`, section 2).
+- **A game that plays the AI back does not yet stay with the one it follows** (2026-11-20). What the AI's steps
+  write themselves and not by a command stays, on a client, as the first hour left it - and some of it is read by
+  what every machine runs. Found by reading, every step's writes followed and their readers looked for, the agents'
+  16,900 lines by pattern and not line by line; and **shown the same day**: `CStateHash` was given a seventh part,
+  `theatres` - the theatres' numbers, provinces and headquarters, the next theatre's and the last unit's number,
+  every active plan's stance and how many offers wait - and with it `replaycheck` to 1 March 1936 agrees on none of
+  59 days, where the six older parts agree on all of them. Which of the following shows on the first day was not
+  told apart. **Not mended**: each is in the theatres', the agents' or the offers' code.
+  - **the ten-day mark that has the theatres made again** (`CAiStrategy.TheatresDirty`) is set by the AI's daily
+    step, and the theatres' hour - which every machine runs, `replay.md` wrongly saying it is worked out from the
+    game alone - reads it: a host makes its theatres again every ten days, a client only on a change of hands;
+  - **the wars a country prepares** (`CCountry.WarTargets`) are written by the Lua in the AI's steps and decide what
+    is a front worth a theatre of its own; a theatre more or fewer is a headquarters made or not, and **every unit
+    number after it differs**, so the AI's commands name other units;
+  - **whether a headquarters is the AI's** is asked of the agent bound to it (`CUnit.Agent`), which only the host
+    binds: the theatres' hour takes a plan off through it on the host alone, a player's `CAutomateUnitCommand` goes
+    one way on the host and the other on a client, and a plan's stance picks a battle's tactic;
+  - **a player's theatre command sorts by an AI flag** (`CUnit.AiBound`, in `CTheatreForcesCommand`);
+  - **offers to a played country are handled inside the AI's step** that answers offers, with the event a screen
+    listens for - so a client's player is never shown an offer made to him, and no machine but the host empties the
+    lists of offers waiting, which a client's save then holds;
+  - **the Lua states' own random and memory** are a game's old on the host and new on a machine that joins, and
+    entering a loaded game runs the ministers' scripts on every machine;
+  - on a client only shown wrongly, nothing in the game moved: its own theatres' fronts, a theatre's needs and
+    power bars, the operation named, an automated headquarters' line and arrow until the host's agent next posts.
+  **What mends most of it** is one rule: nothing a machine runs for itself may ask the AI's own state - a mark, a
+  list or a flag the game needs is set by a command or by a step every machine runs.
 
 ## 4. Open
 
