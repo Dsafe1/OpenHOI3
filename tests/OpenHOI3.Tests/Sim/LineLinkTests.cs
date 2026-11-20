@@ -22,6 +22,25 @@ public class LineLinkTests
 		return (listener, host!, client);
 	}
 
+	[Fact]
+	public void AHostIsReachedByAnIPv6AddressAsByAnIPv4One()
+	{
+		if (!System.Net.Sockets.Socket.OSSupportsIPv6)
+		{
+			return;
+		}
+		using var listener = new CLineListener(port: 0);
+		foreach (string address in new[] { "::1", "127.0.0.1" })
+		{
+			using CLineLink client = CLineLink.Connect(address, listener.Port);
+			CLineLink? host = null;
+			Wait(() => listener.TryAccept(out host!));
+			client.Send("over " + address);
+			Assert.Equal(new[] { "over " + address }, Take(host!, 1));
+			host!.Dispose();
+		}
+	}
+
 	private static void Wait(Func<bool> until)
 	{
 		var clock = Stopwatch.StartNew();

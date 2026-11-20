@@ -450,13 +450,8 @@ public partial class Main : Control
 		}
 		int attempt = ++_joinAttempt;
 		menu.ShowConnecting();
-		int port = Sim.Multiplayer.CLineLink.DefaultPort;
-		int colon = address.LastIndexOf(':');
-		if (colon > 0 && int.TryParse(address[(colon + 1)..], out int named))
-		{
-			port = named;
-			address = address[..colon];
-		}
+		// A name or an IPv4 address with a port after a colon, or an IPv6 address, bare or in brackets (CNetAddress).
+		(address, int port) = Sim.Multiplayer.CNetAddress.Parse(address);
 		string checksum = await Task.Run(PlayChecksum);
 		Sim.Multiplayer.CLineLink? link = null;
 		for (int tries = 0; tries < 3 && link is null && address.Length > 0; tries++)
@@ -571,13 +566,8 @@ public partial class Main : Control
 	private async Task Join(CLoadingScreen screen, string address)
 	{
 		string checksum = await screen.Work("", PlayChecksum);
-		int port = Sim.Multiplayer.CLineLink.DefaultPort;
-		int colon = address.LastIndexOf(':');
-		if (colon > 0 && int.TryParse(address[(colon + 1)..], out int named))
-		{
-			port = named;
-			address = address[..colon];
-		}
+		// A name or an IPv4 address with a port after a colon, or an IPv6 address, bare or in brackets (CNetAddress).
+		(address, int port) = Sim.Multiplayer.CNetAddress.Parse(address);
 		string name = CSession.Argument("--name=") ?? System.Environment.UserName;
 		var wanted = new CCountryTag(CSession.PlayerArgument() ?? CSwitchedGame.DefaultPlayer);
 		Sim.Multiplayer.CLineLink link = await screen.Work("", () => Sim.Multiplayer.CLineLink.Connect(address, port));

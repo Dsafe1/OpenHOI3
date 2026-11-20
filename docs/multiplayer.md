@@ -192,7 +192,10 @@ All on 2026-11-20.
 - **TCP.** Every line has to come, and in order, which it gives; the traffic is small, and a stall for a lost packet
   is what the window of three hours is for.
 - **The host's port has to be reachable, and nothing is done about it**: on a local or a virtual network it is; over
-  the open one the host forwards the port. One port, which the host may change.
+  the open one the host forwards the port. One port, which the host may change. **IPv4 and IPv6 both** (built
+  2026-11-20): the host listens on one socket for both families, and an address typed to join is a name or an
+  IPv4 address, which may end in a colon and a port, or an IPv6 address - bare, or in square brackets with a
+  colon and a port after them (`CNetAddress`).
 - **A game is sent whole, compressed, with the game paused until every machine has it** - the save every machine
   then loads (section 2). **A client that already holds the same save, by its hash, is sent nothing.** And **every
   machine makes its Lua states afresh at that load, the host too**, so that the scripts' own random and memory begin

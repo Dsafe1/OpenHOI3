@@ -12,7 +12,16 @@ public sealed class CLineListener : IDisposable
 	/// <param name="port">The port to listen on; nought for one the system picks, which <see cref="Port"/> then names.</param>
 	public CLineListener(int port = CLineLink.DefaultPort)
 	{
-		_listener = new TcpListener(IPAddress.Any, port);
+		// One socket for both families where the machine has IPv6: a machine may join by an IPv4 or an IPv6 address.
+		if (Socket.OSSupportsIPv6)
+		{
+			_listener = new TcpListener(IPAddress.IPv6Any, port);
+			_listener.Server.DualMode = true;
+		}
+		else
+		{
+			_listener = new TcpListener(IPAddress.Any, port);
+		}
 		_listener.Start();
 	}
 
