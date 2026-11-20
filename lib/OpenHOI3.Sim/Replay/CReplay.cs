@@ -94,6 +94,7 @@ public sealed class CReplay
 		List<CCommand>? outer = state.DoneInStep;
 		var done = new List<CCommand>();
 		state.DoneInStep = done;
+		ulong[] marks = CAiMarks.Of(state);
 		try
 		{
 			step(state);
@@ -102,6 +103,8 @@ public sealed class CReplay
 		{
 			state.DoneInStep = outer;
 		}
+		// What of the AI's own the game's hour reads, kept where the step changed it (CAiMarks).
+		CAiMarks.KeepChanged(state, marks, done);
 		if (state.Random.Draws < draws || state.AiRandom.Draws < aiDraws)
 		{
 			throw new InvalidOperationException($"{name} seeded a generator again, which a recording cannot play back");
@@ -169,6 +172,7 @@ public sealed class CReplay
 		List<CCommand>? outer = state.DoneInStep;
 		var done = new List<CCommand>();
 		state.DoneInStep = done;
+		ulong[] marks = CAiMarks.Of(state);
 		try
 		{
 			step(state);
@@ -177,6 +181,8 @@ public sealed class CReplay
 		{
 			state.DoneInStep = outer;
 		}
+		// What of the AI's own the game's hour reads, kept where the step changed it (CAiMarks).
+		CAiMarks.KeepChanged(state, marks, done);
 		if (state.Outbox.Count == posted && state.Random.Draws == draws && state.AiRandom.Draws == aiDraws
 			&& state.LastUnitId == unitIds && state.PositionsMade == positions && state.SupplyNetworksMade == networks
 			&& done.Count == 0)
