@@ -66,10 +66,22 @@ All on 2026-11-20.
 - **A dropped player where joining a running game is off** stays out until the game is saved and started again from a
   lobby. Anybody may resume the game once his country is the AI's.
 - **The host leaving ends the game.** No other machine takes it on.
+- **Anybody may save.** A save is a file on the machine that makes it, so no rule says who may; **the autosave alone
+  is the host's.** A game is loaded in a lobby and sent to every machine.
+- **What a client is sent for an hour is what a replay records** - the tick, the AI's commands with their draws and
+  unit numbers, the generator's place - in the recording's own form (`replay.md`).
+- **The lobby's look is not prescribed**: "I dont care." It needs a country for each player, the host's options -
+  joining a running game among them - a ready state and chat.
 
-## 3. Open
+## 3. To do before any networking
 
-- What a client's hour needs from the host beyond the commands: the tick itself, the AI's draws, the game's generator.
-- Saves: who may save, what a save made on a client is, and loading one in a lobby.
-- The lobby: choosing countries, the host's options, chat.
-- What in the client today is a local write and not a command, and would part two machines.
+- **A sweep of the client for state changed outside a command.** Whatever a player's machine writes to the game other
+  than by a command parts two machines, and `replaycheck` sees that on the AI's side only. The original has such
+  writes of its own - the automation flags, the slider locks (`reversing/findings/FINDINGS-frontend.md`, D.3 and D.4).
+- **The AI out of the tick**, into a step the host alone runs and that only posts commands (`worklist.md`, *Loose
+  ends*), proved by two games in one process, one fed by the other as a replay is, before a socket stands between them.
+
+## 4. Open
+
+- The size of the window the host waits within.
+- Chat's place in play, and what a player is told of the others - who is behind, who dropped, who paused.
