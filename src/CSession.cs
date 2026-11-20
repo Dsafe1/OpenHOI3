@@ -423,6 +423,40 @@ public partial class CSession : Node
 	}
 
 	/// <summary>
+	/// The game written to the player's saves as the host is lost, so that nothing played is lost with it
+	/// (docs/multiplayer.md, section 6): `Multiplayer_` and the name the save dialog would offer. Written as this
+	/// machine's player's - a save names one player, and the game is over here, so who is first among the played is
+	/// put right for it. Answers the file, or null where it could not be written.
+	/// </summary>
+	public string? SaveAsTheHostIsLost()
+	{
+		if (Player is null)
+		{
+			return null;
+		}
+		CollectHours(finish: true);
+		var others = State.Played.Where(tag => tag != Player.Tag).ToList();
+		State.Played.Clear();
+		State.Played.Add(Player.Tag);
+		foreach (CCountryTag other in others)
+		{
+			State.Played.Add(other);
+		}
+		string path = System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderName,
+			"Multiplayer_" + Content.Saves.CSaveFiles.OfferedName(Player.Name, State.TotalHours) + ".hoi3");
+		try
+		{
+			Content.Saves.CSaveFiles.Write(State, _localisation.Localise, path);
+			return path;
+		}
+		catch (System.Exception failed) when (failed is System.IO.IOException or System.UnauthorizedAccessException)
+		{
+			CDiagnostics.Warn($"Failed to write save file {path}: {failed.Message}");
+			return null;
+		}
+	}
+
+	/// <summary>
 	/// What a session of a game between machines leaves the one that plays the game loaded in its place: what was read
 	/// to make it, which the next need not read again, and where the map and the clock stood.
 	/// </summary>

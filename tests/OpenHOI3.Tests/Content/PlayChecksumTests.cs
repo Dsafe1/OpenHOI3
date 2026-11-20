@@ -54,6 +54,31 @@ public class PlayChecksumTests : IDisposable
 		return CPlayChecksum.Label(hash);
 	}
 
+	/// <summary>
+	/// What lies in the folders and is no file a game reads does not count: two installs of the same game were refused
+	/// each other for a Thumbs.db, an archive, three .bak files and a map cache under another name.
+	/// </summary>
+	[Fact]
+	public void AMachinesOwnFilesInTheFoldersDoNotChangeIt()
+	{
+		string before = Label();
+		Write("map/Thumbs.db", "a machine's own");
+		Write("map/map.rar", "kept by a player");
+		Write("map/_cache/adjacencies.bin", "a cache under another name");
+		Write("map/_cache/time", "1");
+		Write("history/provinces/holland/1851 - Haarlem.txt.bak", "kept by a player");
+		Assert.Equal(before, Label());
+		Write("map/definition.csv", "read by the game");
+		Assert.NotEqual(before, Label());
+	}
+
+	[Fact]
+	public void TheLabelCarriesThePlayChecksumAfterTheOriginalsLetters()
+	{
+		Assert.Equal("OpenHOI3 (GSKH) 3F9A-01C7", OpenHOI3.Interface.Screens.CVersionText.Label(1499173604, null, "3F9A-01C7"));
+		Assert.Equal("OpenHOI3 (GSKH) 3F9A-01C7    Mod: X", OpenHOI3.Interface.Screens.CVersionText.Label(1499173604, "X", "3F9A-01C7"));
+	}
+
 	[Fact]
 	public void TheSameFilesGiveTheSameFigureAndEveryFileIsCounted()
 	{

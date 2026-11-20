@@ -101,7 +101,32 @@ public partial class CFrontEnd : Node
 	/// mod's localised name where one is played (which of several the original names is not read).
 	/// </summary>
 	public string VersionLabel => Interface.Screens.CVersionText.Label(_content.Checksum,
+		_directories.Mods.Count > 0 ? _content.Localisation.Localise(_directories.Mods[0].Name) : null, _playChecksum);
+
+	/// <summary>
+	/// Our own play checksum as a player is shown it, after the original's letters once it is worked out - some seconds,
+	/// beside the menu (checksum.md, section 8): two players who would share a game set theirs beside each other.
+	/// </summary>
+	private string? _playChecksum;
+
+	/// <summary>The lobby's players box has room for the original's label and no more: ours without the play checksum.</summary>
+	public string LobbyVersionLabel => Interface.Screens.CVersionText.Label(_content.Checksum,
 		_directories.Mods.Count > 0 ? _content.Localisation.Localise(_directories.Mods[0].Name) : null);
+
+	private System.Threading.Tasks.Task<string>? _playChecksumWork;
+
+	/// <summary>The play checksum taken as its work ends, and written on the main menu and in the lobby.</summary>
+	private void ShowPlayChecksum()
+	{
+		_playChecksumWork ??= System.Threading.Tasks.Task.Run(() => Content.Checksum.CPlayChecksum.Label(
+			Content.Checksum.CPlayChecksum.Compute(Content.Checksum.CChecksumSearchPath.ForPlay(_directories), engineVersion: "").Hash));
+		if (_playChecksum is null && _playChecksumWork.IsCompletedSuccessfully)
+		{
+			_playChecksum = _playChecksumWork.Result;
+			_menu.ShowVersion(VersionLabel);
+
+		}
+	}
 
 	/// <summary>
 	/// The world and its map made, its surface's meshes with it, before the front end enters the tree: a step of the loading
@@ -360,7 +385,12 @@ public partial class CFrontEnd : Node
 	/// <summary>The lobby of a game between machines kept in step: a host says how its lobby stands, a client shows it.</summary>
 	public override void _Process(double delta)
 	{
-		if (_lobby is not { Visible: true })
+		if (_lobby is null || _menu is null)
+		{
+			return;
+		}
+		ShowPlayChecksum();
+		if (!_lobby.Visible)
 		{
 			return;
 		}

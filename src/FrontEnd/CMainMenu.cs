@@ -38,6 +38,23 @@ public partial class CMainMenu : Control
 
 	private string _versionLabel = Interface.Screens.CVersionText.Name;
 
+	/// <summary>The version label written again, once the play checksum that ends it is worked out.</summary>
+	public void ShowVersion(string label)
+	{
+		if (_window?.FindTextBox("version_label") is { } version)
+		{
+			// The box begins at a fixed place and its text runs to the right, off the screen where it grows: it is moved
+			// left by what the label has grown, so that it ends where it ended.
+			if (version.GuiType is OpenHOI3.Content.Gui.CGuiTextBoxType type && _context.Fonts.Find(type.Font) is { } font)
+			{
+				float grown = Interface.Text.CTextIcons.Measure(label, font.Width) - Interface.Text.CTextIcons.Measure(_versionLabel, font.Width);
+				version.Position -= new Vector2(grown, 0);
+			}
+			version.Text = label;
+		}
+		_versionLabel = label;
+	}
+
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	public void Setup(CGuiContext context, string versionLabel)
 	{

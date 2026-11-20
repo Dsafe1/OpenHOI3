@@ -179,6 +179,15 @@ public partial class CLobby : Control
 		Say(Interface.Text.CTextTemplate.Fill(Localise("PLR_CONNECT"), ("NAME", _frontEnd.PlayerName)));
 	}
 
+	/// <summary>The players' box's version written again, once the play checksum that ends it is worked out.</summary>
+	public void ShowVersion()
+	{
+		if (_window?.FindWindow("multiplayer")?.FindTextBox("checksum") is { } version)
+		{
+			version.Text = _frontEnd.LobbyVersionLabel;
+		}
+	}
+
 	/// <summary>
 	/// The players' box, which the original shows in a game of one too: their count, the version, and a row for the player
 	/// with their country's shield once one is chosen and the settings' name.
@@ -196,7 +205,7 @@ public partial class CLobby : Control
 		// Our name where the original writes its version, then its checksum's four letters, as on the main menu.
 		if (players.FindTextBox("checksum") is { } version)
 		{
-			version.Text = _frontEnd.VersionLabel;
+			version.Text = _frontEnd.LobbyVersionLabel;
 		}
 		if (players.FindListBox("multiplayer_list") is not { } list)
 		{

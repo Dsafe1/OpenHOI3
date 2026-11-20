@@ -97,13 +97,18 @@ original's main menu. Decided 2026-11-20 (`docs/multiplayer.md`, section 2) and 
 
 It is a SHA-256 hash of, in this order:
 
-1. the text `OpenHOI3 play checksum 1`, which is raised when what goes in, or how, changes;
+1. the text `OpenHOI3 play checksum 2`, which is raised when what goes in, or how, changes;
 2. the engine's version, as its `engine.txt` names it (`docs/launcher.md`, section 2) - empty for a game run from its
    sources;
 3. the rules a game is played by beyond the original's - the enhanced engine's, of which there are none yet;
 4. every file of the folders `common`, `decisions`, `events`, `history`, `map`, `missions`, `script`, `technologies`
-   and `units`, with every subfolder and whatever its extension: its path in lower case, its length and its bytes, the
-   files in the order of their lower-case paths.
+   and `units`, with every subfolder, **of the kinds a game reads there** - `.txt`, `.lua`, `.csv`, `.bmp`, `.dds`,
+   `.tga`, `.map`: its path in lower case, its length and its bytes, the files in the order of their lower-case paths.
+
+**Until 2026-11-20 every file was counted whatever its extension, and that refused two players of the same game each
+other**: one install held, in those folders, a `Thumbs.db` Windows had made, an archive, three `.bak` files and a
+map cache kept under another folder's name - sixteen files no game reads. What lies there and is of no kind a game
+reads is a machine's own and is left out (`CPlayChecksum.Extensions`). Their Finest Hour is `FBB3-AB63` since.
 
 Each text goes in with its length in front. So a file moved, two files exchanged and an empty file added each change
 it, and the AI's Lua is part of it - the things the original's figure lets by (section 7).
@@ -115,7 +120,10 @@ folders; and the interface, the pictures, the localisation, the sound and the mu
 and hears and nothing a game does. A mod's interface or localisation may therefore differ between two players who are
 let play together.
 
-A player is shown its first eight hexadecimal digits in fours, `6B30-DA67`.
+A player is shown its first eight hexadecimal digits in fours, `FBB3-AB63` - **on the main menu, after the
+original's letters**, `OpenHOI3 (GSKH) FBB3-AB63`, once it is worked out beside the menu, some seconds; the label is
+moved left by what it has grown, its box running to the right from a fixed place (asked for on 2026-11-20). The
+lobby's players box, which has no room for it, keeps the label without.
 
 **Checked** by `OpenHOI3.SaveCheck checksum`, which prints it under the original's: on 2026-11-20 Their Finest Hour
 `6B30-DA67`, 13,662 files in 2.3 s, and BlackICE GitHub `4AFB-2CB2`, 20,567 files in 3.6 s - the original's own figures

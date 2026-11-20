@@ -13,9 +13,17 @@ public static class CVersionText
 	public const string Name = "OpenHOI3";
 
 	/// <summary>The label for a checksum, or the name alone while there is none yet; and the mod's name where one is played.</summary>
-	public static string Label(int? checksum, string? mod = null)
+	/// <param name="play">
+	/// Our own play checksum as a player is shown it (<see cref="CPlayChecksum.Label"/>), which two machines have to share
+	/// to play one game: after the original's letters, once it is worked out. *Ours.*
+	/// </param>
+	public static string Label(int? checksum, string? mod = null, string? play = null)
 	{
 		string label = checksum is { } figure ? $"{Name} ({CFileChecksum.Letters(figure)})" : Name;
+		if (play is { Length: > 0 })
+		{
+			label += " " + play;
+		}
 		return mod is { Length: > 0 } ? $"{label}    Mod: {mod}" : label;
 	}
 }

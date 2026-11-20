@@ -66,6 +66,12 @@ public partial class Main : Control
 		if (net.Ended is { } why && _session is not null && !net.Loading)
 		{
 			GD.Print($"Multiplayer: {why}");
+			// The host gone, a client keeps what was played: the game as it stands here goes to its saves.
+			if (!net.IsHost)
+			{
+				string? saved = _session.SaveAsTheHostIsLost();
+				GD.Print(saved is null ? "Multiplayer: the game could not be saved." : $"Multiplayer: the game saved as {saved}.");
+			}
 			LeaveNet();
 			_music.LeaveGame();
 			CallDeferred(MethodName.ShowFrontEnd);

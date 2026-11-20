@@ -18,11 +18,25 @@ namespace OpenHOI3.Content.Checksum;
 public static class CPlayChecksum
 {
 	/// <summary>What the hash begins with: raised when what goes into it, or how, changes.</summary>
-	public const string Format = "OpenHOI3 play checksum 1";
+	public const string Format = "OpenHOI3 play checksum 2";
 
 	/// <summary>
-	/// The folders hashed, each with all its subfolders and every file whatever its extension: what the simulation is
-	/// made from and run by. Not the interface, the pictures, the localisation, the sound or the music, which change
+	/// The kinds of file counted, by their extension: those a game reads out of these folders. Anything else lying
+	/// there is a machine's own and no part of the game - a `Thumbs.db` Windows made, an archive or a `.bak` a player
+	/// kept, a map cache under another folder's name - and counting it parted two players of one game: on 2026-11-20
+	/// two installs of the same files were refused each other for sixteen such files in one of them.
+	/// </summary>
+	public static readonly string[] Extensions = { ".txt", ".lua", ".csv", ".bmp", ".dds", ".tga", ".map" };
+
+	/// <summary>Whether a file is of a kind that is counted.</summary>
+	public static bool Counts(string name)
+	{
+		return Extensions.Any(extension => name.EndsWith(extension, StringComparison.OrdinalIgnoreCase));
+	}
+
+	/// <summary>
+	/// The folders hashed, each with all its subfolders and every file of a kind a game reads (<see cref="Extensions"/>):
+	/// what the simulation is made from and run by. Not the interface, the pictures, the localisation, the sound or the music, which change
 	/// what a player sees and hears and nothing a game does.
 	/// </summary>
 	public static readonly string[] Folders =
@@ -94,7 +108,7 @@ public static class CPlayChecksum
 					Collect(search, path, paths);
 				}
 			}
-			else if (search.MayList(folder, path))
+			else if (Counts(name) && search.MayList(folder, path))
 			{
 				paths.Add(path);
 			}
