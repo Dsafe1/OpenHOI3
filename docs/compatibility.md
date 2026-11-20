@@ -600,6 +600,15 @@ player reads the chat's line and gets no dialog. **And the port may be another**
 `settings.txt`, a key of ours that the original drops when it writes that file ("Port setting, only via the
 settings.txt for now").
 
+**And of the chat in play** (`mechanics/chat.md`; built 2026-11-21 from the original's `chat.gui`, on "The missing
+chat is the only thing I want implemented"): the window, its button, Tab and Escape, the five channels by faction
+and Ctrl and Tab are the original's; **nine of its eleven slash commands, the channels players make, word
+completion and the lines of `menubar.gui`'s `chat_list` are not built**, their code not being read; `/whisper` and
+`/reply` are. **A mod's own shortcut on the window's `close` button is not followed** - Tab is the view's; a
+player who changes faction leaves the old channel at once; and a channel's line is sent only to the machines of
+the players in it. What a row looks like - the order of clock and name, the colours - is ours until the
+original's is read or seen.
+
 ## Stricter, with the same meaning
 
 Not departures - a file means what it meant - but a mod's author will see them, so they

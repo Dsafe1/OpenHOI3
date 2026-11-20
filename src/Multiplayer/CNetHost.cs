@@ -406,9 +406,15 @@ public sealed class CNetHost : CNetGame
 			}
 			while (!peer.Loading && peer.Link.TryReceive(out string line))
 			{
+				if (line.Length > 2 && line[0] == CWire.Chat)
+				{
+					TakePlayChat(peer, line[2..]);
+					continue;
+				}
 				session.Receive(peer.HostPeer!, line);
 			}
 		}
+		TellUsers();
 		session.Tell();
 		return 0;
 	}
@@ -522,6 +528,147 @@ public sealed class CNetHost : CNetGame
 			>= 100 => " (loading)",
 			int percent => $" ({percent}%)",
 		};
+	}
+
+	/// <summary>The host's own player's name in the chat: the lobby's, or "Host" where the game was hosted by a switch.</summary>
+	private string HostName => _lobbyHostName.Length > 0 ? _lobbyHostName : "Host";
+
+	/// <summary>The machines that play, or are being sent the game to play: whoever the chat in play reaches.</summary>
+	private IEnumerable<CNetPeer> InPlay => _peers.Where(peer => peer.Country is not null && peer.Name is not null);
+
+	private string _usersTold = "";
+
+	/// <summary>
+	/// The chat's users kept and told (docs/mechanics/chat.md, section 3): whenever who plays what changes every
+	/// machine is sent the list, and the General channel says who joined and who is gone. A machine that has not been
+	/// sent the list as it stands - one that has just joined - is sent it.
+	/// </summary>
+	private void TellUsers()
+	{
+		var users = new List<(string Name, CCountryTag? Country)> { (HostName, Country) };
+		users.AddRange(InPlay.Select(peer => (peer.Name!, peer.Country)));
+		string text = UsersText(users);
+		if (text != _usersTold)
+		{
+			// Not as the game begins, when everybody is new.
+			if (_usersTold.Length > 0)
+			{
+				foreach (string joined in users.Select(user => user.Name).Except(PlayUsers.Select(user => user.Name)).ToList())
+				{
+					SayOfPlayerInPlay("CHAT_USERJOINEDCHANNEL", joined);
+				}
+				foreach (string gone in PlayUsers.Select(user => user.Name).Except(users.Select(user => user.Name)).ToList())
+				{
+					SayOfPlayerInPlay("CHAT_USERDISCONNECTED", gone);
+				}
+			}
+			_usersTold = text;
+			PlayUsers = users;
+			PlayUsersVersion++;
+		}
+		foreach (CNetPeer peer in InPlay.Where(peer => peer.UsersSent != text))
+		{
+			peer.UsersSent = text;
+			peer.Link.Send(CWire.Line(CWire.Users, text));
+		}
+	}
+
+	/// <summary>A line the chat itself says of a player, in the General channel on every machine.</summary>
+	private void SayOfPlayerInPlay(string key, string name)
+	{
+		TakeChat(Interface.Chat.EChatLineKind.System, Interface.Chat.CChatChannels.General, name, key);
+		string sent = CWire.Line(CWire.Chat, $"s {Interface.Chat.CChatChannels.General} {key} {System.Uri.EscapeDataString(name)}");
+		foreach (CNetPeer peer in InPlay)
+		{
+			peer.Link.Send(sent);
+		}
+	}
+
+	/// <summary>Whether a player's country puts him in a channel: General holds everybody, a faction's channel its players.</summary>
+	private bool InChannel(CCountryTag? country, int channel)
+	{
+		return channel == Interface.Chat.CChatChannels.General
+			|| (country is { } tag && ChannelOf?.Invoke(tag) == channel);
+	}
+
+	/// <summary>
+	/// A player's line to a channel, sent to the machines of the players in that channel and to none other - the
+	/// sender's among them, who is shown his line as it comes back. One not in the channel sends nothing.
+	/// </summary>
+	private void Route(string name, CCountryTag? country, int channel, string text)
+	{
+		if (!Interface.Chat.CChatChannels.Is(channel) || !InChannel(country, channel) || text.Length == 0)
+		{
+			return;
+		}
+		if (InChannel(Country, channel))
+		{
+			TakeChat(Interface.Chat.EChatLineKind.Line, channel, name, text);
+		}
+		string sent = CWire.Line(CWire.Chat, $"p {channel} {System.Uri.EscapeDataString(name)} {text}");
+		foreach (CNetPeer peer in InPlay.Where(peer => InChannel(peer.Country, channel)))
+		{
+			peer.Link.Send(sent);
+		}
+	}
+
+	/// <summary>A line to one player: shown him as from its sender, and its sender as to him. To nobody where no player has that name.</summary>
+	private void RouteWhisper(string from, CNetPeer? fromPeer, string to, string text)
+	{
+		CNetPeer? target = InPlay.FirstOrDefault(peer => string.Equals(peer.Name, to, System.StringComparison.OrdinalIgnoreCase));
+		bool toHost = target is null && string.Equals(HostName, to, System.StringComparison.OrdinalIgnoreCase);
+		if ((target is null && !toHost) || text.Length == 0)
+		{
+			return;
+		}
+		if (toHost)
+		{
+			TakeChat(Interface.Chat.EChatLineKind.WhisperIn, 0, from, text);
+		}
+		else
+		{
+			target!.Link.Send(CWire.Line(CWire.Chat, $"i {System.Uri.EscapeDataString(from)} {text}"));
+		}
+		string name = toHost ? HostName : target!.Name!;
+		if (fromPeer is null)
+		{
+			TakeChat(Interface.Chat.EChatLineKind.WhisperOut, 0, name, text);
+		}
+		else
+		{
+			fromPeer.Link.Send(CWire.Line(CWire.Chat, $"o {System.Uri.EscapeDataString(name)} {text}"));
+		}
+	}
+
+	/// <summary>A machine's line of the chat in play: <c>c</c>, a channel and the text, or <c>w</c>, a name and the text.</summary>
+	private void TakePlayChat(CNetPeer peer, string rest)
+	{
+		string[] parts = rest.Split(' ', 3);
+		if (parts.Length < 3 || peer.Name is null)
+		{
+			return;
+		}
+		if (parts[0] == "c" && int.TryParse(parts[1], System.Globalization.NumberStyles.Integer,
+			System.Globalization.CultureInfo.InvariantCulture, out int channel))
+		{
+			Route(peer.Name, peer.Country, channel, parts[2]);
+		}
+		else if (parts[0] == "w")
+		{
+			RouteWhisper(peer.Name, peer, System.Uri.UnescapeDataString(parts[1]), parts[2]);
+		}
+	}
+
+	public override string PlayerName => HostName;
+
+	public override void SayInPlay(int channel, string text)
+	{
+		Route(HostName, Country, channel, text);
+	}
+
+	public override void Whisper(string to, string text)
+	{
+		RouteWhisper(HostName, null, to, text);
 	}
 
 	private void Remove(CNetPeer peer)

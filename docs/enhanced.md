@@ -449,6 +449,15 @@ What the enhanced engine's own save would have to hold, and what its load would 
 
 All of these are risk-free but for what the entry says.
 
+- **The chat in play** (`mechanics/chat.md`; `reversing/findings/FINDINGS-ingamechat.md`, section 7).
+  `menubar.gui`'s `chat_window`, with its recipient buttons None, Allies, Foes and All, is built and never shown,
+  and the rows of players it would tick are named by no code: choosing who a line goes to was planned and
+  dropped, and an enhanced chat could have it. A player who leaves a faction is not seen taken out of its channel
+  (here he is, at once). Any faction but the three the executable names shares the Neutral channel, so a mod's
+  own faction has no channel of its own. A row leaves `chat_list` only after eleven seconds from the last
+  arrival or removal, so ten lines take 110 seconds to clear. The lag lines are signed with the host's name, as
+  if the host had typed them.
+
 - **A text's first word too wide for its box leaves the first line empty, and a last word too wide places its line by that word alone.** The font's line breaking tests a word as its space arrives; with nothing laid out yet the long-word break cannot fire, so a first word wider than the box breaks before itself onto a second line; and at the end a last word wider than the box is kept on its line with the line's width for its placing taken as the word's. The first is built (`CFontLineBreak`), the second not, a line here being placed by its own measured width. `interface.md`, 6; `reversing/findings/FINDINGS-textdraw.md`. *Bug.*
 
 - **A `textBoxType` breaks a word that fills or overruns its box into empty lines and a character to a line.** Its routine (`CTextBoxLineBreak`) breaks before the word as soon as the line reaches the box, with no test of anything laid out, so a first word that fills the box leaves the first line empty - and the space after it, measured from a line count one short of the line, often a second; and the word's own count is never set back after such a break, so a word wider than the box goes on a character to a line. In a one-line box, cut off at its height less its border, that shows nothing at all. Built.

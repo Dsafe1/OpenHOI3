@@ -29,6 +29,7 @@ public sealed class CNetClient : CNetGame
 	public CNetClient(CLineLink link, string checksum, string name, CCountryTag? wanted)
 	{
 		_link = link;
+		_name = name;
 		_receiver = new CGameReceiver(link.Send, OwnGame);
 		link.Send(CClientSession.JoinLine(checksum, name));
 		// With no country named the host says how its lobby stands, or who plays its running game, and the country is
@@ -40,6 +41,64 @@ public sealed class CNetClient : CNetGame
 	}
 
 	public override bool IsHost => false;
+
+	/// <summary>The name this machine's player gave.</summary>
+	private readonly string _name;
+
+	public override string PlayerName => _name;
+
+	public override void SayInPlay(int channel, string text)
+	{
+		_link.Send(CWire.Line(CWire.Chat, $"c {channel} {text}"));
+	}
+
+	public override void Whisper(string to, string text)
+	{
+		_link.Send(CWire.Line(CWire.Chat, $"w {System.Uri.EscapeDataString(to)} {text}"));
+	}
+
+	/// <summary>A line of the chat in play from the host (CWire.PlayChatKinds): taken into this machine's chat.</summary>
+	private void TakePlayChat(string rest)
+	{
+		string[] parts = rest.Split(' ', 2);
+		if (parts.Length < 2)
+		{
+			return;
+		}
+		switch (parts[0])
+		{
+			case "p":
+			{
+				string[] line = parts[1].Split(' ', 3);
+				if (line.Length == 3 && int.TryParse(line[0], System.Globalization.NumberStyles.Integer,
+					System.Globalization.CultureInfo.InvariantCulture, out int channel))
+				{
+					TakeChat(Interface.Chat.EChatLineKind.Line, channel, System.Uri.UnescapeDataString(line[1]), line[2]);
+				}
+				break;
+			}
+			case "i" or "o":
+			{
+				string[] line = parts[1].Split(' ', 2);
+				if (line.Length == 2)
+				{
+					TakeChat(parts[0] == "i" ? Interface.Chat.EChatLineKind.WhisperIn : Interface.Chat.EChatLineKind.WhisperOut, 0,
+						System.Uri.UnescapeDataString(line[0]), line[1]);
+				}
+				break;
+			}
+			case "s":
+			{
+				string[] line = parts[1].Split(' ', 3);
+				if (line.Length == 3 && int.TryParse(line[0], System.Globalization.NumberStyles.Integer,
+					System.Globalization.CultureInfo.InvariantCulture, out int channel))
+				{
+					TakeChat(Interface.Chat.EChatLineKind.System, channel, System.Uri.UnescapeDataString(line[2]), line[1]);
+				}
+				break;
+			}
+		}
+	}
 
 	private bool _primary = true;
 
@@ -214,6 +273,14 @@ public sealed class CNetClient : CNetGame
 				{
 					_chat.Add(said);
 				}
+				else
+				{
+					TakePlayChat(rest);
+				}
+				return;
+			case CWire.Users:
+				PlayUsers = ReadUsers(rest);
+				PlayUsersVersion++;
 				return;
 			case CWire.Options:
 			{

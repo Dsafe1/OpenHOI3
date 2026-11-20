@@ -97,6 +97,19 @@ public static class CWire
 	public const char Chat = 'C';
 
 	/// <summary>
+	/// A line of the chat in play (<c>docs/mechanics/chat.md</c>, section 5), the kind <see cref="Chat"/> too, told
+	/// from the lobby's by its first letter. Client to host: <c>c</c>, a channel's number and what its player typed,
+	/// or <c>w</c>, a player's name and what was typed to him alone. Host to client: <c>p</c>, a channel, a name and
+	/// the line; <c>i</c>, the name of a player who sent this one a line alone, and the line; <c>o</c>, such a line of
+	/// this player's own come back, with the name it went to; <c>s</c>, a channel, a localisation key and the name it
+	/// speaks of. Names are escaped as a URL's are.
+	/// </summary>
+	public const string PlayChatKinds = "cwpios";
+
+	/// <summary>Host to client, in play: the players of the game, the host first, as <see cref="Lobby"/> writes them.</summary>
+	public const char Users = 'u';
+
+	/// <summary>
 	/// Host to client, before a game is offered: that game is to be looked at in the lobby and not played - the save
 	/// the host has chosen there, or the game that is running, for the map a country is chosen on.
 	/// </summary>

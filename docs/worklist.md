@@ -75,8 +75,15 @@ conditions button by request. What is next:
    after; a save chosen in the lobby looked for among the client's own and kept once sent; and a link that sends
    on a thread of its own, so that a sending holds up no frame and goes to every machine at once. **To be looked
    at over the internet**: the host's percentage beside each name, and a save kept on another machine;
-5. **left of ours** (`multiplayer.md`, section 6): chat and notices in play, which wants deciding; a screen for
-   the port.
+5. **the chat in play is built** (2026-11-21; `mechanics/chat.md`), after a reading that found the original's
+   `menubar.gui` chat window dead and its `chat.gui` one the chat players use
+   (`reversing/findings/FINDINGS-ingamechat.md`): the inbox button, Tab and Escape, the five channels by faction
+   with Ctrl and Tab, the users with their flags, `/whisper` and `/reply`, Up and Down, the alerts' row moved clear
+   of the button; a channel's line sent by the host to the players in it. Checked by two processes and on the
+   host's screen. **To be looked at in play**: the window on a client, Tab and Escape, a faction's channel, and
+   how a row reads beside the original's - its order and colours are ours. **Left of it**: the other nine slash
+   commands, channels players make, completion, and `chat_list` with its CHATMESSAGE - each wants reading first;
+6. **left of ours** (`multiplayer.md`, section 6): a screen for the port.
 **The screens no longer ask the AI's agent of a headquarters** (2026-11-20): the unit panel, the objectives, the plan
 markers and rows, the alert, Disband All, the order tooltip and the right click ask whether a plan is on
 (`CAgents.HighestAutomated`, `CUnit.Plan.Active`), which every machine holds, a client holding no agent. To be looked

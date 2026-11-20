@@ -301,8 +301,8 @@ host posts it: `CHostSession.Drop` for a client gone, with the pause; `Assign` f
 plays - any that owns land (`Unplayed`), so one who comes back chooses among them all, the one he had or another -
 the country he held going to the AI, and the client told which is his (`a`).
 
-**Not built** in the simulation's side: chat in play - the lobby's is the client's (section 7). What the client
-does with the rest is section 6.
+The chat in play is no part of the simulation's side: it is the client's, as the lobby's is (section 7;
+`mechanics/chat.md`). What the client does with the rest is section 6.
 
 ## 6. The client - begun 2026-11-20
 
@@ -381,8 +381,8 @@ the snapshot.
 
 **Built since**: the lobby with a name and an address entered on screen (section 7), a country chosen by a player
 joining a game that runs (section 10), the reason a game ended said on screen, a client's own Lua for an offer's
-chance (section 12). A client in step being sent nothing, and a sending that holds up no frame, are section 14. **Not built**: chat in
-play.
+chance (section 12). A client in step being sent nothing, and a sending that holds up no frame, are section 14. **The chat in play** is
+built since 2026-11-21, from the original's `chat.gui` (`mechanics/chat.md`).
 
 ## 7. The shared lobby - built 2026-11-20
 

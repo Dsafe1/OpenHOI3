@@ -60,6 +60,9 @@ public sealed class CNetPeer
 
 	public long SendChars { get; set; }
 
+	/// <summary>The chat's list of users it was last sent, in play.</summary>
+	public string? UsersSent { get; set; }
+
 	/// <summary>The Options panel's line it was last sent, while the host is in its lobby.</summary>
 	public string? OptionsSent { get; set; }
 

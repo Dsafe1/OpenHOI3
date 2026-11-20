@@ -40,6 +40,66 @@ public abstract class CNetGame : System.IDisposable
 	public abstract string Status { get; }
 
 	/// <summary>
+	/// The chat in play as this machine holds it (<c>docs/mechanics/chat.md</c>): kept here, so that it outlives the
+	/// loads that bring the machines into step.
+	/// </summary>
+	public Interface.Chat.CChatLog Chat { get; } = new();
+
+	/// <summary>The players in the game, the host first: each one's name and country. The chat's list of users.</summary>
+	public IReadOnlyList<(string Name, CCountryTag? Country)> PlayUsers { get; protected set; } = System.Array.Empty<(string, CCountryTag?)>();
+
+	/// <summary>Raised each time <see cref="PlayUsers"/> changes.</summary>
+	public int PlayUsersVersion { get; protected set; }
+
+	/// <summary>
+	/// The faction channel of a country as the game now stands, asked by the session that plays it: a host sends a
+	/// faction channel's line to the players in that channel alone.
+	/// </summary>
+	public System.Func<CCountryTag, int>? ChannelOf { get; set; }
+
+	/// <summary>A line this machine's player typed, to a channel he is in: every machine in that channel is shown it, this one too.</summary>
+	/// <summary>This machine's player's name, as the chat's users have it.</summary>
+	public abstract string PlayerName { get; }
+
+	public abstract void SayInPlay(int channel, string text);
+
+	/// <summary>A line this machine's player typed to one other player, by name.</summary>
+	public abstract void Whisper(string to, string text);
+
+	/// <summary>Whether each line of the chat that comes is also said in the log: the developer's <c>--netlog</c>.</summary>
+	public bool LogChat { get; set; }
+
+	/// <summary>A line of the chat taken into this machine's own, stamped with its clock as it comes.</summary>
+	protected void TakeChat(Interface.Chat.EChatLineKind kind, int channel, string name, string text)
+	{
+		Chat.Add(new Interface.Chat.CChatLine(kind, channel, name, text, System.DateTime.Now.ToString("HH:mm")));
+		if (LogChat)
+		{
+			Note($"chat, channel {channel}, {kind}, {name}: {text}");
+		}
+	}
+
+	/// <summary>The players written as a line's rest: <c>name=TAG</c> with <c>&amp;</c> between, the names escaped as a URL's are.</summary>
+	protected static string UsersText(IEnumerable<(string Name, CCountryTag? Country)> users)
+	{
+		return string.Join("&", System.Linq.Enumerable.Select(users,
+			user => System.Uri.EscapeDataString(user.Name) + "=" + (user.Country?.Value ?? "")));
+	}
+
+	/// <summary>Such a line read back.</summary>
+	protected static List<(string Name, CCountryTag? Country)> ReadUsers(string rest)
+	{
+		var users = new List<(string, CCountryTag?)>();
+		foreach (string user in rest.Split('&', System.StringSplitOptions.RemoveEmptyEntries))
+		{
+			int equals = user.LastIndexOf('=');
+			string tag = equals < 0 ? "" : user[(equals + 1)..];
+			users.Add((System.Uri.UnescapeDataString(equals < 0 ? user : user[..equals]), tag.Length > 0 ? new CCountryTag(tag) : null));
+		}
+		return users;
+	}
+
+	/// <summary>
 	/// Once a frame, whatever is on screen - a game, a loading screen: the connections looked after, and what of the
 	/// lines that came is no part of play taken. Never reads the game.
 	/// </summary>

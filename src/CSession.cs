@@ -97,6 +97,7 @@ public partial class CSession : Node
 	private Label _provinceLabel = null!;
 	private Debug.CDebugMenu? _debugMenu;
 	private CConsoleView? _console;
+	private CChatView? _chat;
 	private CTooltips? _tooltips;
 	private bool _tooltipDebug;
 	private Debug.CFrameLog? _frameLog;
@@ -353,6 +354,10 @@ public partial class CSession : Node
 	/// <summary>Whether <c>--netpart=</c> has done its one disturbance; kept for the whole run, the session being made again as the game is sent.</summary>
 	private static bool _netPartDone;
 
+	/// <summary>Whether <c>--say=</c> has typed its lines, and the hour this session's game stood at as it was entered.</summary>
+	private static bool _saidDone;
+	private long _saidFrom = long.MaxValue;
+
 	/// <summary>
 	/// A frame of a game between several machines, the game being this thread's to read: a host sends the game where a
 	/// machine waits to join or has parted; else the lines of play are taken, and a client runs the hours that have
@@ -380,7 +385,39 @@ public partial class CSession : Node
 				return -1;
 			}
 		}
+		// The chat: a faction channel's line goes to the players of that faction's countries as they now stand, and this
+		// machine's player is in his own country's channel.
+		net.ChannelOf ??= tag => Interface.Chat.CChatChannels.OfFaction(State.Country(tag)?.Faction);
 		int hours = net.Frame();
+		if (Player is not null)
+		{
+			net.Chat.SetFactionChannel(Interface.Chat.CChatChannels.OfFaction(Player.Faction));
+		}
+		_chat?.SetUsers(net.PlayUsers, net.PlayUsersVersion);
+		net.LogChat = _netLog;
+		// --say=text types a line into the chat once, a few days into the game played, as the box would take it: a
+		// slash command among them. For a check by processes, a client started by a switch playing no clicks.
+		if (_saidFrom == long.MaxValue && net.PlayUsers.Count > 1)
+		{
+			_saidFrom = State.TotalHours;
+		}
+		if (!_saidDone && Argument("--say=") is { } say && _saidFrom != long.MaxValue && State.TotalHours - _saidFrom > 72)
+		{
+			_saidDone = true;
+			foreach (string typed in say.Split('|'))
+			{
+				(Interface.Chat.EChatTyped kind, string target, string text) = net.Chat.Read(typed, net.PlayUsers.Select(user => user.Name));
+				if (kind == Interface.Chat.EChatTyped.Line)
+				{
+					net.SayInPlay(net.Chat.Current, text);
+				}
+				else if (kind == Interface.Chat.EChatTyped.Whisper)
+				{
+					net.Whisper(target, text);
+				}
+				GD.Print($"Multiplayer: --say, '{typed}' read as {kind} {target} {text}.");
+			}
+		}
 		ShowNetStatus(net.Status);
 		// --netpart=1936.2.10 on a client puts its game out of step with the host's from that day, once in the run: a
 		// little manpower its player's country never had. The next midnight's hash then differs, and the host sends the
@@ -693,7 +730,7 @@ public partial class CSession : Node
 
 		if (Player is not null)
 		{
-			_alerts = new CAlerts();
+			_alerts = new CAlerts { Multiplayer = Net is not null };
 			_alerts.Setup(gui, Player, _simulation);
 			layer.AddChild(_alerts);
 			_alerts.Pressed += AlertPressed;
@@ -1043,6 +1080,16 @@ public partial class CSession : Node
 			_console = new CConsoleView();
 			_console.Setup(gui, new Interface.Console.CConsoleRunner(new CConsoleHost(this)));
 			layer.AddChild(_console);
+		}
+		// The chat in play, made only in a game between machines, as the original's is (docs/mechanics/chat.md). It reads
+		// nothing of the game: the frame hands it who plays what and the player's channel (NetFrame).
+		if (gui is not null && Net is { } chatting)
+		{
+			_chat = new CChatView { CountryOf = tag => State.Country(tag), OwnName = chatting.PlayerName };
+			_chat.Setup(gui, chatting.Chat);
+			_chat.Said += chatting.SayInPlay;
+			_chat.Whispered += chatting.Whisper;
+			layer.AddChild(_chat);
 		}
 		_debugMenu.AddSwitch("Province readout", false, on => _provinceLabel.Visible = on);
 		// The original's console command debug fow, here for the countries played alone (intelligence.md, section 3;
@@ -2634,6 +2681,7 @@ public partial class CSession : Node
 	/// <c>--host</c> or <c>--host=port</c> hosts the game for other machines and <c>--join=address[:port]</c> joins one,
 	/// asking for the country of <c>--country=</c> under the name of <c>--name=</c>, with <c>--netlog</c> writing each new
 	/// day to the log and <c>--netpart=1936.3.10</c> on a client putting its game out of step from that day (docs/multiplayer.md, section 6),
+	/// <c>--say=text|text</c> typing those lines into the chat in play once, three days in (docs/mechanics/chat.md),
 	/// <c>--perf=60</c> writes once a second where a frame's time goes - the game's hours,
 	/// the session's own work, the drawing - and quits after sixty seconds with the sums, and
 	/// <c>--screenshot=path.png</c> saves what is on screen after a few frames and quits.

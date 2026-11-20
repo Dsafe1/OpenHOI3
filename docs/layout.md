@@ -151,6 +151,7 @@ lib/OpenHOI3.Interface/ what the screens show, with no engine: sliders and place
     Text/               colour escapes, number formats, templates, breaking and placing lines
     Screens/            the text of each screen's figures
     Alerts/             the sixteen alerts: which are up and what each says
+    Chat/               the chat in play: its channels, lines, unread marks and what a typed line comes to
     Ledger/             the Statistics screen's pages, tables and pies
     Tooltips/           a tooltip, what the box shows of it, where it goes and when its
                         second half comes; the map's, the top bar's, the production and

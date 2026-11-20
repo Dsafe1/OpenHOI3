@@ -119,14 +119,21 @@ public partial class CAlerts : Control
 		}
 	}
 
+	/// <summary>
+	/// Whether the game is one between machines: the row then begins <c>alerticon_mp_offset</c> further on, clear of the
+	/// chat's inbox button [exe] (<c>reversing/findings/FINDINGS-alerts.md</c>; <c>docs/mechanics/chat.md</c>).
+	/// </summary>
+	public bool Multiplayer { get; set; }
+
 	/// <summary>The first up stands at the start position and each after it an offset on.</summary>
 	private void Lay()
 	{
 		CGuiPoint start = _context.Types.FindPosition(StartName)?.Position ?? default;
 		CGuiPoint offset = _context.Types.FindPosition(OffsetName)?.Position ?? default;
+		int first = start.X + (Multiplayer ? _context.Types.FindPosition("alerticon_mp_offset")?.Position.X ?? 0 : 0);
 		for (int place = 0; place < _up.Count; place++)
 		{
-			_up[place].Window.MoveTo(new Vector2(start.X + place * offset.X, start.Y));
+			_up[place].Window.MoveTo(new Vector2(first + place * offset.X, start.Y));
 		}
 	}
 }
