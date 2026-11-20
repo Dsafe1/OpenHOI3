@@ -320,6 +320,9 @@ public partial class CSession : Node
 	private CDate? _netLogged;
 	private string _netStands = "";
 
+	/// <summary>Whether <c>--netpart=</c> has done its one disturbance; kept for the whole run, the session being made again as the game is sent.</summary>
+	private static bool _netPartDone;
+
 	/// <summary>
 	/// A frame of a game between several machines, the game being this thread's to read: a host sends the game where a
 	/// machine waits to join or has parted; else the lines of play are taken, and a client runs the hours that have
@@ -343,6 +346,16 @@ public partial class CSession : Node
 		}
 		int hours = net.Frame();
 		ShowNetStatus(net.Status);
+		// --netpart=1936.2.10 on a client puts its game out of step with the host's from that day, once in the run: a
+		// little manpower its player's country never had. The next midnight's hash then differs, and the host sends the
+		// game again - which nothing else brings about to be tried (docs/multiplayer.md, section 6).
+		if (!net.IsHost && !_netPartDone && Argument("--netpart=") is { } partAt && CDate.TryParse(partAt, out CDate from)
+			&& State.Date >= from && Player is not null)
+		{
+			_netPartDone = true;
+			Player.Manpower += CFixedPoint.One;
+			GD.Print($"Multiplayer: --netpart, this game put out of step on {State.Date}.");
+		}
 		// --netlog also says who plays and whether the clock stands, whenever either changes: a machine gone shows so.
 		if (_netLog)
 		{
@@ -2544,7 +2557,7 @@ public partial class CSession : Node
 	/// <c>--run</c> starts the clock at the top speed instead of paused,
 	/// <c>--host</c> or <c>--host=port</c> hosts the game for other machines and <c>--join=address[:port]</c> joins one,
 	/// asking for the country of <c>--country=</c> under the name of <c>--name=</c>, with <c>--netlog</c> writing each new
-	/// day to the log (docs/multiplayer.md, section 6),
+	/// day to the log and <c>--netpart=1936.3.10</c> on a client putting its game out of step from that day (docs/multiplayer.md, section 6),
 	/// <c>--perf=60</c> writes once a second where a frame's time goes - the game's hours,
 	/// the session's own work, the drawing - and quits after sixty seconds with the sums, and
 	/// <c>--screenshot=path.png</c> saves what is on screen after a few frames and quits.

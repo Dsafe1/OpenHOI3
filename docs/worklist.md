@@ -58,7 +58,8 @@ the client. What is next:
    closed - each tried by processes on 2026-11-20 and doing what it should, by the log (`multiplayer.md`, section
    6); and, built after the look, a client's hours beside its frame - 125 midnights the same by two processes - and
    the console refusing what would change the game;
-2. a parted game sent again - the code path is the join's, and nothing has made a game part to try it;
+2. ~~a parted game sent again~~ - tried 2026-11-20 with `--netpart=`, which puts a client out of step: sent again,
+   loaded by both, 88 midnights the same after it (`multiplayer.md`, section 6);
 3. **the multiplayer menu and the shared lobby are built** (2026-11-20; `mechanics/frontend.md`, section 8, from the
    original's `.gui` elements and a reading of its view; `multiplayer.md`, section 7): Host opens the lobby, which
    listens; Join Internet Game connects, the connect log saying how it went, and comes into the host's lobby, each
