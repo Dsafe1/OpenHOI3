@@ -578,12 +578,13 @@ in the gui files and is moddable we need to use that."
 | why | a drop-in engine cannot share a game with the original in any case, its simulation not being bit for bit the original's; and the original's transport is not worth making again |
 | to undo | a scan of the local network and a list of what it finds would fill `games` and enable `join` (`CMultiplayerMenu`); the port is `CLineLink.DefaultPort` |
 
-**And in the lobby** (`mechanics/frontend.md`, section 9), by the same decisions: **one country has one player**,
-where the original lets two share one - the host gives a choice only where nobody has it, since an order here is
-its sender's country's and no other's (`COrderCheck`); **a ban is a kick**, no list of the banned being kept; a
-client's Options panel is hidden where the original greys four of its arrows; a save the host chooses is not sent
-in the lobby but as the game starts; a thrown-out player reads the chat's line and gets no dialog. To undo the
-first, a country's orders would have to be let through from every machine that plays it.
+**And in the lobby** (`mechanics/frontend.md`, section 9), by the same decisions: ~~**one country has one
+player**, where the original lets two share one~~ - **reversed the day it was written**, 2026-11-20: "I want co-op.
+In the original the first player to choose the country is the 'primary' one, and gets event popups." Players may
+share a country as the original lets them (`docs/multiplayer.md`, section 8). What stands: **a ban is a kick**, no
+list of the banned being kept; a client's Options panel is hidden where the original greys four of its arrows; a
+save the host chooses is not sent in the lobby but as the game starts; a thrown-out player reads the chat's line
+and gets no dialog.
 
 ## Stricter, with the same meaning
 

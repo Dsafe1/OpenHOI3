@@ -37,6 +37,10 @@ public sealed class CNetClient : CNetGame
 
 	public override bool IsHost => false;
 
+	private bool _primary = true;
+
+	public override bool Primary => _primary;
+
 	/// <summary>How many midnights of the game now played this machine's hash has been the host's.</summary>
 	public int HashesAlike => _session?.HashesAlike ?? 0;
 
@@ -177,9 +181,14 @@ public sealed class CNetClient : CNetGame
 				_played = rest.Split(',', System.StringSplitOptions.RemoveEmptyEntries).Select(tag => new CCountryTag(tag)).ToList();
 				return;
 			case CWire.Assigned:
-				Country = new CCountryTag(rest);
-				_session?.Receive(line);
+			{
+				// The tag, then whether this machine's player is that country's primary: 0 where another chose it first.
+				string[] parts = rest.Split(' ');
+				Country = new CCountryTag(parts[0]);
+				_primary = parts.Length < 2 || parts[1] != "0";
+				_session?.Receive(CWire.Line(CWire.Assigned, parts[0]));
 				return;
+			}
 			case CWire.Lobby:
 			{
 				// The host's lobby as it stands: the bookmark's place, then the players.

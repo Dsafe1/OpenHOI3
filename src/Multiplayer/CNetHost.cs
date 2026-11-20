@@ -38,6 +38,30 @@ public sealed class CNetHost : CNetGame
 		_lobby = null;
 	}
 
+	/// <summary>Counts the choices of a country as they are made, the host's and the others'.</summary>
+	private long _choices;
+
+	/// <summary>When the host chose its own country.</summary>
+	private long _hostChoseAt;
+
+	/// <summary>The host's own player is its country's primary where no other player chose that country before it.</summary>
+	public override bool Primary => !_peers.Any(peer => peer.Country == Country && peer.ChoseAt < _hostChoseAt);
+
+	/// <summary>Whether a machine's player is the primary of the country it plays: nobody chose that country before it.</summary>
+	private bool IsPrimary(CNetPeer peer)
+	{
+		return !(Country == peer.Country && _hostChoseAt < peer.ChoseAt)
+			&& !_peers.Any(other => other != peer && other.Country == peer.Country && other.ChoseAt < peer.ChoseAt);
+	}
+
+	/// <summary>A machine told the country its player plays, and whether as its primary.</summary>
+	private void SayAssigned(CNetPeer peer)
+	{
+		bool primary = IsPrimary(peer);
+		peer.PrimarySent = primary;
+		peer.Link.Send(CWire.Line(CWire.Assigned, peer.Country!.Value.Value + (primary ? " 1" : " 0")));
+	}
+
 	/// <summary>The lobby's line as it stands, sent to every machine let in that has not been sent it; null outside the lobby.</summary>
 	private string? _lobby;
 
@@ -47,6 +71,10 @@ public sealed class CNetHost : CNetGame
 	/// </summary>
 	public void SetLobby(int bookmark, string hostName, CCountryTag? hostCountry)
 	{
+		if (hostCountry != Country)
+		{
+			_hostChoseAt = ++_choices;
+		}
 		Country = hostCountry;
 		_lobbyHostName = hostName;
 		_lobby = bookmark.ToString(System.Globalization.CultureInfo.InvariantCulture) + " " + string.Join("&",
@@ -131,9 +159,12 @@ public sealed class CNetHost : CNetGame
 					{
 						// A country another player has is not given: the choice stays as it was, which the lobby's line says.
 						var asked = new CCountryTag(line[2..].Trim());
-						if (asked != Country && !_peers.Any(other => other != peer && other.Wanted == asked))
+						// Any country, one another player has among them: players may share one, as the original lets them,
+						// and the first to have chosen it is its primary (docs/multiplayer.md, section 8).
+						if (asked != peer.Wanted)
 						{
 							peer.Wanted = asked;
+							peer.ChoseAt = ++_choices;
 						}
 					}
 					else if (line.Length > 2 && line[0] == CWire.Chat && _lobby is not null)
@@ -166,7 +197,7 @@ public sealed class CNetHost : CNetGame
 
 	public override void Bind(CSimulation simulation)
 	{
-		var session = new CHostSession(simulation);
+		var session = new CHostSession(simulation) { HostCountry = Country };
 		session.Parted += _ => _parted = true;
 		foreach (CNetPeer peer in _peers.Where(peer => peer.Country is not null))
 		{
@@ -190,10 +221,15 @@ public sealed class CNetHost : CNetGame
 		{
 			if (peer.Link.Closed)
 			{
-				// The game pauses and its country goes to the AI.
+				// The game pauses and its country goes to the AI, where no other player has it.
 				session.Drop(peer.HostPeer!);
 				Remove(peer);
 				continue;
+			}
+			// Told when it becomes its country's primary player, the one before it having gone.
+			if (peer.PrimarySent != IsPrimary(peer))
+			{
+				SayAssigned(peer);
 			}
 			while (!peer.Loading && peer.Link.TryReceive(out string line))
 			{
@@ -228,16 +264,25 @@ public sealed class CNetHost : CNetGame
 			Sim.Countries.COwnedCounts owned = Sim.Countries.COwnedCounts.Of(state);
 			CCountryTag? given = peer.Wanted ?? free.Where(tag => !played.Contains(tag))
 				.OrderByDescending(tag => owned.Count(tag)).Select(tag => (CCountryTag?)tag).FirstOrDefault();
-			if (given is not { } wanted || !free.Contains(wanted) || played.Contains(wanted))
+			// A country somebody plays may be shared; one nobody plays has to own land.
+			if (given is not { } wanted || (!free.Contains(wanted) && !played.Contains(wanted)))
 			{
 				peer.Link.Send(CWire.Line(CWire.Refused, "country"));
 				Remove(peer);
 				continue;
 			}
 			peer.Country = wanted;
-			played.Add(wanted);
+			if (peer.ChoseAt == 0)
+			{
+				peer.ChoseAt = ++_choices;
+			}
+			if (!played.Contains(wanted))
+			{
+				played.Add(wanted);
+			}
 			joined = true;
 		}
+		played = played.Distinct().ToList();
 		if (!joined && !_parted)
 		{
 			return false;
@@ -248,7 +293,7 @@ public sealed class CNetHost : CNetGame
 		{
 			peer.HostPeer = null;
 			peer.Link.Send(playedLine);
-			peer.Link.Send(CWire.Line(CWire.Assigned, peer.Country!.Value.Value));
+			SayAssigned(peer);
 			peer.Sender = new CGameSender(peer.Link.Send, game);
 			peer.Sender.Offer();
 		}

@@ -423,3 +423,28 @@ Kick, ban and the host gone from a lobby were not tried.
 | --- | --- |
 | `C`, from a client | what its player typed in the lobby's chat |
 | `C`, from the host | `t`, a name and what that player typed; or `k`, a localisation key and the name of the player it speaks of |
+
+## 8. Several players of one country - built 2026-11-20
+
+Decided that day: "I want co-op. In the original the first player to choose the country is the 'primary' one, and
+gets event popups." The original's rule is `reversing/findings/FINDINGS-multiplayerlobby.md`, section 2: no
+country is refused, and a human is marked primary where no other human of that country is.
+
+- **Any country may be chosen, one another player has among them**, in the lobby and by a machine joining a game
+  that runs; a country nobody plays still has to own land.
+- **The first to have chosen a country is its primary player** (`CNetHost`: a count that grows with each choice,
+  the host's own among them; a host started by switch chose first). The host tells each machine with its country
+  whether it is primary (`a TAG 1` or `a TAG 0`), and tells it again when it becomes so, the one before it gone.
+- **Only the primary is shown the country's events** (`CEventWindows.Shows`, by `CNetGame.Primary`). Everything
+  else is every player's alike: each may give the country's orders - the host lets an order through that is its
+  sender's country's, however many machines play it - and each sees the same screens. *Ours, beyond the events*:
+  what else the original keeps for the primary was not read - messages, the offers put to a player, the
+  automation, which a save keeps for one player.
+- **A machine gone takes its country to the AI only where no other player has it**, the host's own among them
+  (`CHostSession.Drop`, `HostCountry`); the game pauses either way.
+
+**Checked** by three processes: a client asked for Germany, which the host played - sent the game, **played by
+GER alone, the client not primary, 34 midnights the same**; the client stopped - the host paused and **Germany
+stayed played**; a second machine asked for Germany again and was let in, not primary. That a second player's
+orders run, that the events stay off its screen, and a primary handed on were not tried: the first two want
+looking at, and the third wants three machines.

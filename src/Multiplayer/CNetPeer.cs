@@ -42,4 +42,10 @@ public sealed class CNetPeer
 
 	/// <summary>The lobby's line it was last sent, while the host is in its lobby.</summary>
 	public string? LobbySent { get; set; }
+
+	/// <summary>When it chose its country, as a count that grows: of several players of one country the first to have chosen is its primary (docs/multiplayer.md, section 8).</summary>
+	public long ChoseAt { get; set; }
+
+	/// <summary>Whether it was last told it is its country's primary player; null where it has not been told.</summary>
+	public bool? PrimarySent { get; set; }
 }

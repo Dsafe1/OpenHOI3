@@ -19,6 +19,12 @@ public abstract class CNetGame : System.IDisposable
 	public CCountryTag? Country { get; protected set; }
 
 	/// <summary>
+	/// Whether this machine's player is the primary player of the country: the only one, or of several who share it the
+	/// first to have chosen it, who alone is shown its events (docs/multiplayer.md, section 8).
+	/// </summary>
+	public virtual bool Primary => true;
+
+	/// <summary>
 	/// A game to load in place of the one played, on this machine as on every other: the save's bytes, and the countries
 	/// played in it, the host's first.
 	/// </summary>

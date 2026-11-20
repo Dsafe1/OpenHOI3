@@ -270,9 +270,10 @@ too, with one row:
 | `save_progress` | empty; SAVE_PROG while a save is sent - **not built**, no save being sent in the lobby here |
 | `button_kick`, `button_ban` | at once, with no question; tooltips TIP_KICK and TIP_BAN. Every machine's chat says PLAYER_KICKED or PLAYER_BANNED, and PLR_DISC |
 
-**Choosing a country** [exe]: a map click is the same on the host and on a client. **The original refuses no
-country another player has - two may share one. Here one country has one player**, the host giving a choice only
-where nobody has it (`docs/compatibility.md`, entry 31). There is no un-choosing, and no chat line for a choice.
+**Choosing a country** [exe]: a map click is the same on the host and on a client. **No country another player has
+is refused - players may share one**, and the first to have chosen it is its primary, who alone is shown its
+events (`docs/multiplayer.md`, section 8; built so since 2026-11-20, a country having had one player for some
+hours before). There is no un-choosing, and no chat line for a choice.
 Only the chooser's own panel shows its country; the others see the row.
 
 **What is the host's alone** [exe]: on a client the tabs are greyed, the bookmark rows take no click, Play is

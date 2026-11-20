@@ -359,7 +359,8 @@ public partial class CSession : Node
 		// --netlog also says who plays and whether the clock stands, whenever either changes: a machine gone shows so.
 		if (_netLog)
 		{
-			string stands = string.Join(",", State.Played.Select(tag => tag.Value)) + (_simulation.Pace.Paused ? " paused" : " running");
+			string stands = string.Join(",", State.Played.Select(tag => tag.Value)) + (_simulation.Pace.Paused ? " paused" : " running")
+				+ (net.Primary ? ", primary here" : ", not primary here");
 			if (stands != _netStands)
 			{
 				_netStands = stands;
@@ -774,6 +775,7 @@ public partial class CSession : Node
 			// (docs/mechanics/countryviews.md).
 			_events = new CEventWindows();
 			_events.Setup(gui, _simulation, Player);
+			_events.Shows = () => Net is not { Primary: false };
 			layer.AddChild(_events);
 			layer.MoveChild(_events, _production!.GetIndex());
 

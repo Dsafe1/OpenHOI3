@@ -29,6 +29,9 @@ public sealed partial class CEventWindows : Control
 		_player = player;
 	}
 
+	/// <summary>Whether this machine's player is shown the country's events: not a player who shares it and was not the first. Null shows them.</summary>
+	public System.Func<bool>? Shows { get; set; }
+
 	public override void _Ready()
 	{
 		Name = "EventWindows";
@@ -41,7 +44,9 @@ public sealed partial class CEventWindows : Control
 		List<COpenEvent> open = _simulation.State.OpenEvents;
 		foreach (COpenEvent waiting in open)
 		{
-			if (waiting.Country == _player.Tag && !_shown.ContainsKey(waiting))
+			// Of several players of one country only the first to have chosen it is shown its events
+			// (docs/multiplayer.md, section 8).
+			if (waiting.Country == _player.Tag && !_shown.ContainsKey(waiting) && Shows?.Invoke() != false)
 			{
 				var view = new CEventWindowView();
 				view.Setup(_context, _simulation, waiting);

@@ -80,7 +80,13 @@ public sealed class CHostSession
 		return peer;
 	}
 
-	/// <summary>A client gone: the game pauses, and its country goes to the AI (<c>docs/multiplayer.md</c>, section 2).</summary>
+	/// <summary>The country the host's own player plays, which a client may share with it; null where it is not said.</summary>
+	public Countries.CCountryTag? HostCountry { get; set; }
+
+	/// <summary>
+	/// A client gone: the game pauses, and its country goes to the AI (<c>docs/multiplayer.md</c>, section 2) - unless
+	/// another player, the host among them, still plays it (section 8).
+	/// </summary>
 	public void Drop(CHostPeer peer)
 	{
 		if (!_peers.Remove(peer))
@@ -88,7 +94,7 @@ public sealed class CHostSession
 			return;
 		}
 		_simulation.Pace.Pause();
-		if (peer.Country is { } country)
+		if (peer.Country is { } country && country != HostCountry && !_peers.Any(other => other.Country == country))
 		{
 			_simulation.Post(new Commands.CSetPlayedCommand(country, played: false));
 		}

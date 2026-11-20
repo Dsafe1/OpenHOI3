@@ -72,7 +72,10 @@ the client. What is next:
    host's rows, a client's tabs greyed, the chat between machines, a dead lobby staying up. Left, each named there:
    a save sent in the lobby as its row is ticked, with `save_progress`; the options shown on a client with four
    arrows greyed; the dialog a thrown-out player gets; a row's shield centring the map; LOST_PLR; and a country
-   chosen by a machine joining a running game;
+   chosen by a machine joining a running game. **Several players of one country** (co-op, decided and built
+   2026-11-20; `multiplayer.md`, section 8): any country may be shared, the first to choose it is its primary and
+   alone is shown its events. To be looked at: two players giving one country orders, and the events on the
+   primary's screen only;
 4. a client's Lua for an offer's chance as a state of its own that can post nothing;
 5. the rest of section 6's *Not built*.
 **The screens no longer ask the AI's agent of a headquarters** (2026-11-20): the unit panel, the objectives, the plan
