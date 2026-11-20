@@ -502,5 +502,34 @@ land. *Ours*: the original's own screen for it, `CIngameLobby`, is not read.
 lobby - the host's row "Host (Germany)", its own row with no country, on a screenshot - the United Kingdom clicked,
 Play: **the game sent, played by GER and ENG, 82 midnights the same**. NOT_EXIST was not tried.
 
-**What it does not do**: the map is the start's, not the running game's - a country that has come to be since
-cannot be clicked, and one that is gone can and is refused; the header gives the start's date, not the game's.
+~~**What it does not do**: the map is the start's, not the running game's~~ - it is the running game's since the
+same evening, section 11.
+
+- **No hour runs while a machine is in that lobby** (asked for on 2026-11-20: "the running game should be paused
+  as long as someone is in the hot-join lobby"): the host's hours are held, not its clock stopped, so the game goes
+  on by itself once the machine has joined or gone, and every machine's waiting line says "Waiting for *name* to
+  choose a country" (`CNetHost.Choosing`, `CHostSession.AlsoWaitingFor`). Tried by processes: the host stood at one
+  hour from the joiner's coming to its joining. A machine that sits there holds the game for everybody until it
+  joins or leaves.
+
+## 11. A game sent to be looked at - built 2026-11-20
+
+"It should send over the running game, you could probably also do the lobby-savegame selection sending in the same
+stroke." One thing does both: **the host sends a game that is to be shown in a lobby and not played.**
+
+- Before the offer the host says so (`V`); the game then travels as any game does (`g`, `t`, `b`, `G`), and the
+  client, instead of leaving what it is in and loading the game to play, **loads it as its lobby's world**, as a
+  save's row loads one (`CNetClient.LobbyGame`, `CLobby.ShowHostGame`). It answers nothing when it has.
+- **A machine in the lobby of a game that runs is sent that game as it stands**, once: the host saves it at its
+  next frame that has the game to itself (`CNetHost.ViewWanted`, `SetView`). So the map a country is chosen on is
+  the game's own - a country that has come to be can be chosen, one that is gone is not there - and the header
+  gives the game's date.
+- **A save the host chooses in its own lobby is sent to every machine there as it is chosen**, as the original
+  sends it, and to a machine that comes in later; back on a bookmark, the lobby's line names it and the clients
+  make the start's world again. The host loads its save at once and does not wait for the others, where the
+  original loads only when every client has it; `save_progress` shows nothing; a client keeps no copy and is sent
+  the bytes each time.
+
+**Checked** by two processes: a joiner's lobby of a running game with the header "Saved Game, 15 of February, 1936",
+the host's date, on a screenshot; then the whole of it, the United Kingdom chosen and joined, 71 and 76 midnights
+the same. **A save chosen in a host's lobby reaching a client was not tried** - no check clicks a save's row.

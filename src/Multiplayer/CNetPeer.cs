@@ -46,6 +46,12 @@ public sealed class CNetPeer
 	/// <summary>Whether it named its country before it was told anything of a lobby: started with the country given, it chooses on no screen.</summary>
 	public bool Direct { get; set; }
 
+	/// <summary>The sending of the game it was last offered to look at in its lobby; null where none.</summary>
+	public CGameSender? ViewSender { get; set; }
+
+	/// <summary>The hash of that game; null where it has been offered none.</summary>
+	public string? ViewHash { get; set; }
+
 	/// <summary>When it chose its country, as a count that grows: of several players of one country the first to have chosen is its primary (docs/multiplayer.md, section 8).</summary>
 	public long ChoseAt { get; set; }
 

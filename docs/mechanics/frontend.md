@@ -300,8 +300,10 @@ host gone, a client's chat says SERVER_LOST once and nothing else happens**: it 
 Back. Thrown out, it says YOUKICKED - the original also raises a dialog whose button is Back, **not built**.
 
 **A save chosen by the host** [exe] is sent to every machine the moment its row is ticked, a client with a file of
-the same name and checksum loading its own, and the host loads it only when every client has it. **Not built**:
-here a save's game reaches the others as the game is started (`docs/multiplayer.md`, section 7).
+the same name and checksum loading its own, and the host loads it only when every client has it. **Built
+2026-11-20 as far as the sending** (`docs/multiplayer.md`, section 11): the save goes to every machine in the lobby
+as it is chosen and is shown there; the host does not wait for them, a client keeps no copy of its own, and
+`save_progress` and the save's chat lines are not written.
 
 ## Ours
 

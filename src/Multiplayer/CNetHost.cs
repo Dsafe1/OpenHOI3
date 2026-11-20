@@ -100,6 +100,54 @@ public sealed class CNetHost : CNetGame
 	/// <summary>The place of no bookmark that says a game is running: a machine joining chooses a country and joins with its Play.</summary>
 	public const int RunningGame = -2;
 
+	private byte[]? _view;
+	private string? _viewHash;
+
+	/// <summary>
+	/// The game the machines in the lobby are shown, as a save's bytes: the save the host has chosen in its lobby, or
+	/// null for none - the start, by its bookmark - and, where a game runs, that game as it stands for a machine that
+	/// would join it (docs/multiplayer.md, section 11). Sent where it is new to a machine.
+	/// </summary>
+	public void SetView(byte[]? game)
+	{
+		if (game is null)
+		{
+			if (_view is not null)
+			{
+				_view = null;
+				_viewHash = null;
+				foreach (CNetPeer peer in _peers)
+				{
+					peer.ViewHash = null;
+				}
+			}
+			return;
+		}
+		string hash = CGameSender.Hash(game);
+		if (hash != _viewHash)
+		{
+			_view = game;
+			_viewHash = hash;
+		}
+	}
+
+	/// <summary>
+	/// The machines in the lobby of the game that runs: let in, told of it, and not yet playing - choosing a country.
+	/// While there is one no hour runs. None while the host is in its own lobby.
+	/// </summary>
+	private IEnumerable<CNetPeer> Choosing()
+	{
+		return _session is null ? Enumerable.Empty<CNetPeer>()
+			: _peers.Where(peer => peer.Name is not null && peer.Country is null && !peer.Direct && peer.LobbySent is not null);
+	}
+
+	/// <summary>
+	/// Whether a machine that would join the running game has not been shown it: the game is to be saved and given to
+	/// <see cref="SetView"/>.
+	/// </summary>
+	public bool ViewWanted => _session is not null && _peers.Any(peer => peer.Name is not null && peer.Country is null
+		&& !peer.Direct && peer.LobbySent is not null && peer.ViewHash is null && peer.Wanted is null);
+
 	/// <summary>What a machine joining a running game is told in a lobby's line's form: no bookmark, and who plays what.</summary>
 	private string RunningGameLine()
 	{
@@ -130,7 +178,8 @@ public sealed class CNetHost : CNetGame
 			{
 				return "Sending the game to " + string.Join(", ", loading);
 			}
-			string[] waiting = _session?.WaitingFor().Select(peer => peer.Name).ToArray() ?? System.Array.Empty<string>();
+			string[] waiting = _session?.WaitingFor().Select(peer => peer.Name)
+				.Concat(Choosing().Select(peer => peer.Name + " to choose a country")).ToArray() ?? System.Array.Empty<string>();
 			return waiting.Length > 0 ? "Waiting for " + string.Join(", ", waiting) : "";
 		}
 	}
@@ -198,6 +247,11 @@ public sealed class CNetHost : CNetGame
 					{
 						SayTyped(peer.Name, line[2..]);
 					}
+					else if (line.Length > 0 && line[0] is CWire.GameKept or CWire.GameWanted)
+					{
+						// Its answer to a game offered it to look at.
+						peer.ViewSender?.Receive(line);
+					}
 				}
 				// The lobby as it stands - or, where a game is running, the players of it under the place -2 of no
 				// bookmark: a machine joining that game chooses its country on its own lobby's map and says so with its
@@ -207,6 +261,16 @@ public sealed class CNetHost : CNetGame
 				{
 					peer.LobbySent = lobby;
 					peer.Link.Send(CWire.Line(CWire.Lobby, lobby));
+				}
+				// The game to look at in its lobby: the save the host has chosen in its own, again whenever that changes,
+				// or the game that runs, once - the map a country is chosen on (docs/multiplayer.md, section 11).
+				if (_view is not null && peer.LobbySent is not null && !peer.Direct
+					&& (peer.ViewHash is null || (_lobby is not null && peer.ViewHash != _viewHash)))
+				{
+					peer.ViewHash = _viewHash;
+					peer.Link.Send(CWire.Line(CWire.View));
+					peer.ViewSender = new CGameSender(peer.Link.Send, _view);
+					peer.ViewSender.Offer();
 				}
 			}
 			else if (peer.Sender is { } sender)
@@ -228,6 +292,9 @@ public sealed class CNetHost : CNetGame
 
 	public override void Bind(CSimulation simulation)
 	{
+		// A game begins or is loaded again: what was shown in the lobby is of the lobby, and a machine that joins from
+		// here on is shown the game as it then stands.
+		SetView(null);
 		var session = new CHostSession(simulation) { HostCountry = Country };
 		session.Parted += peer =>
 		{
@@ -251,7 +318,10 @@ public sealed class CNetHost : CNetGame
 		}
 		// No hour until every machine has loaded the game (docs/multiplayer.md, section 4.1).
 		System.Func<bool>? waits = simulation.HourGate;
-		simulation.HourGate = () => !_peers.Any(peer => peer.Loading) && waits?.Invoke() != false;
+		// And none while a machine chooses its country to join: the game it is shown stays the game that is played, and
+		// the others are told who is waited for (section 10).
+		simulation.HourGate = () => !_peers.Any(peer => peer.Loading) && !Choosing().Any() && waits?.Invoke() != false;
+		session.AlsoWaitingFor = () => Choosing().Select(peer => peer.Name + " to choose a country");
 		_session = session;
 		Loaded();
 	}

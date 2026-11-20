@@ -195,13 +195,20 @@ public sealed class CHostSession
 		{
 			Broadcast(PaceLine());
 		}
-		string waiting = string.Join(",", WaitingFor().Select(peer => peer.Name));
+		string waiting = string.Join(",", WaitingFor().Select(peer => peer.Name)
+			.Concat(AlsoWaitingFor?.Invoke() ?? Enumerable.Empty<string>()));
 		if (waiting != _toldWaiting)
 		{
 			_toldWaiting = waiting;
 			Broadcast(CWire.Line(CWire.Waiting, waiting));
 		}
 	}
+
+	/// <summary>
+	/// Whoever else the game is held for, by name, beside the clients that are behind - a machine choosing its country
+	/// to join (<c>docs/multiplayer.md</c>, section 10): the clients are told of them with the rest.
+	/// </summary>
+	public Func<IEnumerable<string>>? AlsoWaitingFor { get; set; }
 
 	private string PaceLine()
 	{

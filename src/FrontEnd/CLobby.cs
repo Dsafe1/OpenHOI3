@@ -715,6 +715,21 @@ public partial class CLobby : Control
 	}
 
 	/// <summary>
+	/// On a client: a game the host sent to be looked at - the save it chose in its lobby, or the game that runs -
+	/// loaded as the lobby's world, as a save's row loads one; no country is chosen by it, between machines
+	/// (docs/multiplayer.md, section 11).
+	/// </summary>
+	public void ShowHostGame(string path)
+	{
+		_startChosen = false;
+		LightRow(null);
+		ClearShields();
+		_chosen = null;
+		_frontEnd.LoadSave(path);
+		RefreshPanel();
+	}
+
+	/// <summary>
 	/// The players' box of a game between machines: a row for each player, the host's first, with the shield of the
 	/// country each has chosen, and their number.
 	/// </summary>

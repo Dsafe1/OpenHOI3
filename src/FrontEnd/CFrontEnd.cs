@@ -442,15 +442,64 @@ public partial class CFrontEnd : Node
 					_lobbyPlayersShown = shown;
 					_lobby.ShowPlayers(players, host: true);
 				}
+				// A save chosen here is sent to every machine in the lobby as it is chosen, as the original sends it,
+				// and shown there; back on a bookmark, the lobby's line says which (docs/multiplayer.md, section 11).
+				string? saved = SaveLoaded ? _loadedSavePath : null;
+				if (saved != _lobbyViewPath)
+				{
+					_lobbyViewPath = saved;
+					try
+					{
+						host.SetView(saved is null ? null : File.ReadAllBytes(saved));
+					}
+					catch (IOException)
+					{
+						host.SetView(null);
+					}
+				}
 				break;
 			}
-			case Multiplayer.CNetClient client when client.LobbyVersion != _lobbyVersionShown:
-				_lobbyVersionShown = client.LobbyVersion;
-				_lobby.ShowHostBookmark(client.LobbyBookmark);
-				_lobby.ShowPlayers(client.LobbyPlayers);
+			case Multiplayer.CNetClient client:
+				if (client.LobbyVersion != _lobbyVersionShown)
+				{
+					_lobbyVersionShown = client.LobbyVersion;
+					_lobby.ShowHostBookmark(client.LobbyBookmark);
+					_lobby.ShowPlayers(client.LobbyPlayers);
+				}
+				// A game the host sent to be looked at - its lobby's save, or the game that runs: loaded as this lobby's
+				// world, its map the one a country is chosen on.
+				if (client.LobbyGameVersion != _lobbyGameShown && client.LobbyGame is { } game)
+				{
+					_lobbyGameShown = client.LobbyGameVersion;
+					string path = Path.Combine(Path.GetTempPath(), $"openhoi3_lobby_{System.Environment.ProcessId}.hoi3");
+					try
+					{
+						File.WriteAllBytes(path, game);
+						_lobby.ShowHostGame(path);
+						File.Delete(path);
+					}
+					catch (IOException failed)
+					{
+						CDiagnostics.Warn($"The game the host sent for the lobby could not be shown: {failed.Message}");
+					}
+					if (_lobbyOptions is not null)
+					{
+						_lobbyOptions.Visible = false;
+					}
+					_lobby.ShowPlayers(client.LobbyPlayers);
+				}
 				break;
 		}
 	}
+
+	/// <summary>The save loaded into the lobby's world, where one is.</summary>
+	private string? _loadedSavePath;
+
+	/// <summary>On a host: the save last given the machines in the lobby to look at; null for none.</summary>
+	private string? _lobbyViewPath;
+
+	/// <summary>On a client: which of the games the host sent to be looked at is shown.</summary>
+	private int _lobbyGameShown;
 
 	/// <summary>The main menu on its backdrop, the lobby hidden; a loaded save is let go and the world is the start again.</summary>
 	public void ShowMenu()
@@ -603,6 +652,7 @@ public partial class CFrontEnd : Node
 			return false;
 		}
 		SaveLoaded = true;
+		_loadedSavePath = path;
 		ShowOnMap(World);
 		ShowOptions();
 		return true;

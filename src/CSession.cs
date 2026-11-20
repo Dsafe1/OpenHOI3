@@ -334,6 +334,12 @@ public partial class CSession : Node
 		{
 			return -1;
 		}
+		// A machine that would join is shown the game as it stands, for the map it chooses its country on: saved here
+		// and handed over, the playing going on (docs/multiplayer.md, section 11).
+		if (net is Multiplayer.CNetHost { ViewWanted: true } shows)
+		{
+			shows.SetView(System.Text.Encoding.Latin1.GetBytes(Content.Saves.CSaveWriter.Write(State, _localisation.Localise)));
+		}
 		if (net is Multiplayer.CNetHost { ResendWanted: true } host)
 		{
 			// Every order given runs first, so that the save holds it.

@@ -96,6 +96,12 @@ public static class CWire
 	/// </summary>
 	public const char Chat = 'C';
 
+	/// <summary>
+	/// Host to client, before a game is offered: that game is to be looked at in the lobby and not played - the save
+	/// the host has chosen there, or the game that is running, for the map a country is chosen on.
+	/// </summary>
+	public const char View = 'V';
+
 	public static string Line(char kind, string rest = "") => kind + " " + rest;
 
 	/// <summary>A command as a recording writes one.</summary>

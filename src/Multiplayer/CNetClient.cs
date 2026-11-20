@@ -57,6 +57,15 @@ public sealed class CNetClient : CNetGame
 	/// <summary>The place of the bookmark the host has chosen in its lobby; -1 for none or a save.</summary>
 	public int LobbyBookmark { get; private set; } = -1;
 
+	private bool _viewNext;
+	private bool _takingView;
+
+	/// <summary>The game the host has sent to be looked at in the lobby, as a save's bytes - the save it chose in its own lobby, or the game that runs; null where none has come.</summary>
+	public byte[]? LobbyGame { get; private set; }
+
+	/// <summary>How many such games have come: raised with each.</summary>
+	public int LobbyGameVersion { get; private set; }
+
 	/// <summary>The players of the host's lobby, the host first: each one's name and the country chosen, if any.</summary>
 	public IReadOnlyList<(string Name, CCountryTag? Country, bool Secondary)> LobbyPlayers { get; private set; } = System.Array.Empty<(string, CCountryTag?, bool)>();
 
@@ -192,6 +201,10 @@ public sealed class CNetClient : CNetGame
 					: rest == "kicked" ? "The host has thrown this machine out of the lobby."
 					: "The host plays other files than this machine: its play checksum differs.";
 				return;
+			case CWire.View:
+				// The game next offered is to be looked at in the lobby, not played.
+				_viewNext = true;
+				return;
 			case CWire.Chat:
 				if (CLobbyChatLine.FromWire(rest) is { } said)
 				{
@@ -237,11 +250,21 @@ public sealed class CNetClient : CNetGame
 		{
 			if (line[0] == CWire.GameOffered)
 			{
-				// The game played is over for this machine: what comes from here on is of the one offered.
-				_session = null;
-				_simulation = null;
-				_waiting.Clear();
-				_taking = true;
+				if (_viewNext)
+				{
+					// One to look at in the lobby: nothing that is played is let go for it.
+					_viewNext = false;
+					_takingView = true;
+				}
+				else
+				{
+					// The game played is over for this machine: what comes from here on is of the one offered.
+					_takingView = false;
+					_session = null;
+					_simulation = null;
+					_waiting.Clear();
+					_taking = true;
+				}
 			}
 			if (_receiver.Failed)
 			{
@@ -252,6 +275,12 @@ public sealed class CNetClient : CNetGame
 			{
 				_taking = false;
 				SayGameToLoad(game, _played);
+			}
+			else if (_takingView && _receiver.Game is { } shown)
+			{
+				_takingView = false;
+				LobbyGame = shown;
+				LobbyGameVersion++;
 			}
 			return;
 		}
