@@ -47,11 +47,28 @@ internal static class CReplayCheck
 			sentToHost += line.Length;
 			toHost.Enqueue(line);
 		});
+		// What the same lines would come to compressed as one stream, flushed after every line so that each could be read
+		// as it arrives: by Deflate at its fastest and by Brotli at a middling quality, with the time each takes.
+		var deflated = new System.IO.MemoryStream();
+		var brotlied = new System.IO.MemoryStream();
+		var deflate = new System.IO.Compression.DeflateStream(deflated, System.IO.Compression.CompressionLevel.Fastest);
+		var brotli = new System.IO.Compression.BrotliStream(brotlied, System.IO.Compression.CompressionLevel.Fastest);
+		var deflateClock = new Stopwatch();
+		var brotliClock = new Stopwatch();
 		OpenHOI3.Sim.Multiplayer.CHostPeer peer = host.Add("client", line =>
 		{
 			sentToClient += line.Length;
 			longest = Math.Max(longest, line.Length);
 			toClient.Enqueue(line);
+			byte[] bytes = System.Text.Encoding.UTF8.GetBytes(line + "\n");
+			deflateClock.Start();
+			deflate.Write(bytes, 0, bytes.Length);
+			deflate.Flush();
+			deflateClock.Stop();
+			brotliClock.Start();
+			brotli.Write(bytes, 0, bytes.Length);
+			brotli.Flush();
+			brotliClock.Stop();
 		});
 		bool parted = false;
 		host.Parted += _ => parted = true;
@@ -111,6 +128,10 @@ internal static class CReplayCheck
 			$"{sentToClient / 1024} KiB to the client ({sentToClient / Math.Max(days, 1) / 1024} KiB a day, the longest line " +
 			$"{longest} characters), {sentToHost / 1024} KiB to the host; host {hostClock.ElapsedMilliseconds / 1000.0:0.0} s, " +
 			$"client {clientClock.ElapsedMilliseconds / 1000.0:0.0} s");
+		Console.WriteLine($"compressed as a stream flushed at every line: Deflate {deflated.Length / 1024} KiB " +
+			$"({100.0 * deflated.Length / Math.Max(sentToClient, 1):0.0}% of the text, {deflateClock.ElapsedMilliseconds} ms), " +
+			$"Brotli {brotlied.Length / 1024} KiB ({100.0 * brotlied.Length / Math.Max(sentToClient, 1):0.0}%, " +
+			$"{brotliClock.ElapsedMilliseconds} ms)");
 		Console.WriteLine(client.Parted || parted
 			? $"the client's game parted from the host's at hour {clientState.TotalHours}"
 			: hostState.TotalHours != clientState.TotalHours

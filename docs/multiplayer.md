@@ -185,7 +185,6 @@ All on 2026-11-20.
 
 ## 4. Open
 
-- The size of the window the host waits within: `CHostSession.DefaultWindow` is 3 hours, a guess.
 - Chat's place in play, and what a player is told of the others - who dropped, who paused.
 
 ## 5. A host and its clients - built 2026-11-20, with no network under it
@@ -233,7 +232,11 @@ between the two. And `OpenHOI3.SaveCheck twomachines <install> [date] [window]`:
 and the install's AI, the host an hour a frame, the client's frame every third of the host's, an order from the
 client's side once a day. On 2026-11-20, to 1 March 1936: **59 days, every midnight's hash the same and the two
 alike at the end**; 7.4 MiB sent to the client, about 128 KiB a game day as plain text, the longest line 163,466
-characters, and 17 KiB to the host. Nothing is compressed yet.
+characters, and 17 KiB to the host. **The lines stay plain text** (decided 2026-11-20), **and compressed they are a
+tenth**: the same run's lines to the client as one Deflate stream at its fastest, flushed at every line so that each
+can be read as it comes, are 809 KiB - 10.7% of the text, about 14 KiB a game day - for 144 ms of the host's time
+over the 59 days; Brotli at its fastest, flushed the same way, 37.8%. So what carries the lines compresses them with
+Deflate, as a stream. **The window of 3 hours stands** (decided the same day).
 
 **Not built**: a socket; sending a game to a machine, as it joins or after it has parted; the lobby; a dropped
 player's country to the AI; chat. And an entry is sent from the thread that runs the hour, where a client's hours
