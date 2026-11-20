@@ -28,13 +28,13 @@ public static class CPlanMarkers
 	public static CMarkers Of(CGameState state, CCountry? player, CUnit? selected)
 	{
 		var made = new CMarkers(new(), new());
-		if (player is null || selected is null || selected.Owner != player.Tag || CAgents.HighestOver(selected) is null)
+		if (player is null || selected is null || selected.Owner != player.Tag || CAgents.HighestAutomated(selected) is null)
 		{
 			return made;
 		}
 		foreach (CUnit unit in player.AllUnits())
 		{
-			if (CAgents.HighestOver(unit) is null)
+			if (CAgents.HighestAutomated(unit) is null)
 			{
 				continue;
 			}

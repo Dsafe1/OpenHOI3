@@ -1895,7 +1895,7 @@ public partial class CSession : Node
 		{
 			return;
 		}
-		if (CMovementRules.IsLandUnit(unit) && unit.Kind != EUnitKind.Division && unit.Agent is not null)
+		if (CMovementRules.IsLandUnit(unit) && unit.Kind != EUnitKind.Division && unit.Plan.Active)
 		{
 			if (!append)
 			{

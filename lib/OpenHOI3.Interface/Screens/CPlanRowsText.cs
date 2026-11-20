@@ -52,7 +52,7 @@ public static class CPlanRowsText
 	{
 		for (CUnit? above = unit.Parent; above is not null; above = above.Parent)
 		{
-			if (above.Agent is not null)
+			if (above.Plan.Active)
 			{
 				return true;
 			}

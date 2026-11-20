@@ -61,9 +61,11 @@ the client. What is next:
 3. before the lobby, the little the original has there: a player's name and an address to join; then hosting and
    joining from the lobby there is, and a country chosen from those nobody plays (`CHostSession.Unplayed`, `Assign`);
 4. a client's Lua for an offer's chance as a state of its own that can post nothing;
-5. the screens that still ask the AI's agent of a headquarters (`CAgents.HighestOver` in `src/Screens` and
-   `lib/OpenHOI3.Interface`) asked the game instead (`CAgents.HighestAutomated`), a client holding no agent;
-6. the rest of section 6's *Not built*.
+5. the rest of section 6's *Not built*.
+**The screens no longer ask the AI's agent of a headquarters** (2026-11-20): the unit panel, the objectives, the plan
+markers and rows, the alert, Disband All, the order tooltip and the right click ask whether a plan is on
+(`CAgents.HighestAutomated`, `CUnit.Plan.Active`), which every machine holds, a client holding no agent. To be looked
+at on a client: a headquarters handed to the AI and taken back, its rows and its lines on the map.
 **Each of these wants two clients running and looked at**; no tool can pass them. And two things changed for a player
 of one, to be looked at in play: a headquarters handed to the AI gets its area and front line with the AI's next pass
 and not while the clock stands, and a tooltip no longer has the supply network made again for the game

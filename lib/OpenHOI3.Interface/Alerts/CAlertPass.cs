@@ -399,13 +399,13 @@ public static class CAlertPass
 	/// <summary>The top of a command the AI has, with objectives and less power than its stance needs.</summary>
 	private static bool IsShortOfTroops(CUnit unit)
 	{
-		if (unit.Agent is null || unit.Plan.Objectives.Count == 0)
+		if (!unit.Plan.Active || unit.Plan.Objectives.Count == 0)
 		{
 			return false;
 		}
 		for (CUnit? above = unit.Parent; above is not null; above = above.Parent)
 		{
-			if (above.Agent is not null)
+			if (above.Plan.Active)
 			{
 				return false;
 			}

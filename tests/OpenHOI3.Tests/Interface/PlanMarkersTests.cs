@@ -18,7 +18,8 @@ public class PlanMarkersTests
 	{
 		var germany = new CCountry { Tag = Ger, Name = "Germany", DefinitionFile = "" };
 		var state = new CGameState(new CDate(1936, 1, 1), new[] { new CProvince(0, "", isSea: false), new CProvince(1, "Berlin", isSea: false) }, new[] { germany });
-		var theatre = new CUnit(EUnitKind.Theatre, Ger) { Id = 5, Agent = new CAgent(Ger, 1) };
+		var theatre = new CUnit(EUnitKind.Theatre, Ger) { Id = 5 };
+		theatre.Plan.Active = true;
 		germany.Units.Add(theatre);
 		return (state, germany, theatre);
 	}
@@ -40,7 +41,7 @@ public class PlanMarkersTests
 		theatre.Plan.Objectives.Add(new CObjective(1, 400));
 		Assert.Equal(new[] { (1, true) }, CPlanMarkers.Of(state, germany, theatre).Objectives);
 		Assert.Empty(CPlanMarkers.Of(state, germany, null).Objectives);
-		theatre.Agent = null;
+		theatre.Plan.Active = false;
 		Assert.Empty(CPlanMarkers.Of(state, germany, theatre).Objectives);
 	}
 

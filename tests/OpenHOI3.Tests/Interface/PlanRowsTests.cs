@@ -46,8 +46,7 @@ public class PlanRowsTests
 	{
 		var army = new CUnit(EUnitKind.Army, Ger);
 		var corps = new CUnit(EUnitKind.Corps, Ger) { Parent = army };
-		var agent = new OpenHOI3.Sim.Agents.CAgent(Ger, 1);
-		army.Agent = agent;
+		army.Plan.Active = true;
 		Assert.False(CPlanRowsText.AgentAboveItsOwn(army));
 		Assert.True(CPlanRowsText.AgentAboveItsOwn(corps));
 	}

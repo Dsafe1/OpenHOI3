@@ -179,7 +179,7 @@ public static class CUnitOrderTooltips
 			case "automate_checkbox":
 				return new CTooltip
 				{
-					Text = localise(CAgents.HighestOver(unit) is not null ? "AUTOMATED" : Automate(state, unit)),
+					Text = localise(CAgents.HighestAutomated(unit) is not null ? "AUTOMATED" : Automate(state, unit)),
 					Delayed = localise("AUTOMATED_DESC"),
 				};
 			case "reorg_hq_checkbox":

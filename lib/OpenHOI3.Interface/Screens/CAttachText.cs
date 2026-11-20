@@ -106,7 +106,7 @@ public static class CAttachText
 	/// <summary>Which of several selected units Disband All takes: not a land unit aboard anything, a theatre holding land, or a unit an AI agent runs.</summary>
 	public static List<CUnit> Disbandable(CGameState state, IEnumerable<CUnit> units)
 	{
-		return units.Where(unit => unit.Transport is null && unit.Plane is null && unit.Agent is null
+		return units.Where(unit => unit.Transport is null && unit.Plane is null && !unit.Plan.Active
 			&& !(unit.Kind == EUnitKind.Theatre && CTheatres.FindFor(state, unit) is { AllProvinces.Count: > 0 })).ToList();
 	}
 

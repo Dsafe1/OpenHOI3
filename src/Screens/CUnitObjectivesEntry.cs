@@ -75,7 +75,7 @@ public sealed class CUnitObjectivesEntry : CUnitPanelEntry
 
 	public override void Update()
 	{
-		bool underAi = CAgents.HighestOver(_unit) is not null;
+		bool underAi = CAgents.HighestAutomated(_unit) is not null;
 		if (_automate is not null)
 		{
 			_automate.Checked = underAi;

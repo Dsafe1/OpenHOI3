@@ -347,7 +347,7 @@ public partial class CUnitPanel : Control
 		// under it and on the battles it is in; when any of them changes the list is made
 		// again.
 		if (!Above(unit).SequenceEqual(_parents) || CUnitPanelText.Children(unit).Count > 0 != _hasChildren
-			|| !Battles(unit).SequenceEqual(_combats) || CAgents.HighestOver(unit) is not null != _underAi)
+			|| !Battles(unit).SequenceEqual(_combats) || CAgents.HighestAutomated(unit) is not null != _underAi)
 		{
 			Rebuild();
 			return;
@@ -557,7 +557,7 @@ public partial class CUnitPanel : Control
 		}
 		// Only the units it lists: an air group based on a carrier is under its fleet but not in this list.
 		_hasChildren = CUnitPanelText.Children(unit).Count > 0;
-		_underAi = CAgents.HighestOver(unit) is not null;
+		_underAi = CAgents.HighestAutomated(unit) is not null;
 		if (_hasChildren && CUnitChildrenEntry.Create(_context, state, owner, unit) is { } children)
 		{
 			children.Selected += ChooseRow;
@@ -619,7 +619,7 @@ public partial class CUnitPanel : Control
 			return;
 		}
 		change.Visible = false;
-		if (unit.Kind is not (EUnitKind.Theatre or EUnitKind.ArmyGroup or EUnitKind.Army or EUnitKind.Corps) || CAgents.HighestOver(unit) is null)
+		if (unit.Kind is not (EUnitKind.Theatre or EUnitKind.ArmyGroup or EUnitKind.Army or EUnitKind.Corps) || CAgents.HighestAutomated(unit) is null)
 		{
 			return;
 		}

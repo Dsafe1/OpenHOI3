@@ -948,13 +948,13 @@ public partial class CMapView : Node2D
 		}
 		foreach (CUnit unit in _fronts.Keys.ToArray())
 		{
-			if (!_units.Contains(unit) || CAgents.HighestOver(unit) is null)
+			if (!_units.Contains(unit) || CAgents.HighestAutomated(unit) is null)
 			{
 				_fronts.Remove(unit);
 				_surface.ClearFront(unit.Id);
 			}
 		}
-		if (_units.Single is not { } selected || selected.Owner != _player || CAgents.HighestOver(selected) is null || selected.Plan.Area.Count == 0
+		if (_units.Single is not { } selected || selected.Owner != _player || CAgents.HighestAutomated(selected) is null || selected.Plan.Area.Count == 0
 			|| (_fronts.TryGetValue(selected, out List<int>? built) && built.SequenceEqual(selected.Plan.Area)))
 		{
 			return;
