@@ -27,7 +27,7 @@ public static class CMarkConditions
 				answer = here.Flags.IsSet(name);
 				return true;
 			case "check_variable":
-				answer = country is not null && CheckVariable(country, trigger);
+				answer = country is not null && CheckVariable(state, country, trigger);
 				return true;
 			case "has_country_modifier":
 				// Its time is not looked at.
@@ -44,7 +44,7 @@ public static class CMarkConditions
 	}
 
 	/// <summary>The variable is at least the value; one that is not there is made, at nought, by asking.</summary>
-	private static bool CheckVariable(CCountry country, CTrigger trigger)
+	private static bool CheckVariable(CGameState state, CCountry country, CTrigger trigger)
 	{
 		string which = "";
 		CFixedPoint wanted = CFixedPoint.Zero;
@@ -61,7 +61,13 @@ public static class CMarkConditions
 		}
 		if (!country.Variables.TryGetValue(which, out CFixedPoint held))
 		{
-			country.Variables[which] = held = CFixedPoint.Zero;
+			held = CFixedPoint.Zero;
+			// Made by a command's asking alone: a screen's - a decision's tooltip, the music's pick - keeps nothing
+			// (CGameState.LooksOnly).
+			if (!state.LooksOnly)
+			{
+				country.Variables[which] = held;
+			}
 		}
 		return held >= wanted;
 	}

@@ -103,8 +103,24 @@ All on 2026-11-20.
     (`CGameState.LooksOnly`); only a running command makes the table or the network the game keeps, and remaps the
     areas. A tool or a test never sets it, and for them nothing has changed. So the game makes both at the moments
     its own commands ask, the same on every machine. *Ours*: until then a screen's asking made them for the game too.
-    Not tried in the running client. Any other thing the game keeps that is made on first asking, and whose making
-    hangs on when, wants the same test - none other was found, and they were not searched for one by one;
+    Not tried in the running client;
+  - **a second sweep, 2026-11-20, for anything else the game keeps that is made on first asking**: 37 such things
+    under `lib/OpenHOI3.Sim` and `lib/OpenHOI3.Lua` looked at, and every routine of the simulation a screen calls
+    scanned by script for writes; 26 are made from the game as it stands alone, their stamp covering all they read.
+    Two more a screen could reach are **mended**: an area's fronts (`CAreaFronts.Of`) kept from a screen's asking
+    against the network it had been shown, and `check_variable` making its variable, at nought, for whoever asks -
+    a decision's tooltip among them; each now keeps nothing for a look. **Left**, with the work they belong to:
+    - **the AI's steps are first askers too.** The host's AI makes the game's table of who stands where and its supply
+      network when it asks, a client takes the AI's steps without running them, and so makes both at its next asking
+      of its own - another moment. Latent: no order of events that shows it was found, and the state's hash holds
+      neither. To be settled with the AI out of the tick: the AI's steps made to look only, or both made at set
+      points of the hour that are not the AI's;
+    - **a dialog's chance asks the game's own Lua state**, whose own random and whatever its scripts keep move by it,
+      and a script that posts from a score function would post into the game. With the Lua a client keeps for the
+      chance alone (section 2), a state of its own for dialogs that can post nothing;
+    - **what listens to the state's events builds its message inside the running command**, where a look is not yet
+      a look; nothing it reads today is made on asking;
+    - `CAirBaseHolders` keeps an hour's air bases by a stamp that misses one built in that hour - the AI's alone.
   - the lobby writes its options, the played countries and the victory conditions into a made game, one of them by a
     draw of its own; a lobby between several machines has to send these in any case;
   - the console and the developer's switches make the game's entry pass run again or drain the queue themselves; a

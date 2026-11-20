@@ -29,7 +29,12 @@ public static class CAreaFronts
 				Flood(state, area, front, inFront, id);
 			}
 		}
-		area.Fronts = fronts;
+		// Kept by a command's asking alone. A screen's is worked out against the network it was shown, which may not be
+		// the one this area is of, and would be kept wrong (CGameState.LooksOnly).
+		if (!state.LooksOnly)
+		{
+			area.Fronts = fronts;
+		}
 		return fronts;
 	}
 
