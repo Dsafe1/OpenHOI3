@@ -50,6 +50,13 @@ public static class CPlayChecksum
 	/// </summary>
 	private static readonly string[] SkippedFolders = { "map/cache", ".svn", ".git" };
 
+	/// <summary>
+	/// The one folder under <c>map</c> a game reads: the terrain's pictures. Any other there is a machine's own - a cache
+	/// kept under another name held 1,774 tile pictures, of a kind that counts, and they parted two players of the same
+	/// files (2026-11-20).
+	/// </summary>
+	private const string MapSubfolder = "terrain";
+
 	/// <summary>The checksum as 32 bytes, and how many files went into it.</summary>
 	/// <param name="search">The folders a game reads through (<see cref="CChecksumSearchPath.ForPlay"/>).</param>
 	/// <param name="engineVersion">The engine's version as its <c>engine.txt</c> names it; empty for one run from its sources.</param>
@@ -116,7 +123,9 @@ public static class CPlayChecksum
 			if (search.IsFolder(path))
 			{
 				if (!SkippedFolders.Any(skipped => path.Equals(skipped, StringComparison.OrdinalIgnoreCase)
-					|| name.Equals(skipped, StringComparison.OrdinalIgnoreCase)))
+					|| name.Equals(skipped, StringComparison.OrdinalIgnoreCase))
+					&& (!folder.Equals("map", StringComparison.OrdinalIgnoreCase)
+						|| name.Equals(MapSubfolder, StringComparison.OrdinalIgnoreCase)))
 				{
 					Collect(search, path, paths);
 				}

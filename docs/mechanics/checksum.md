@@ -116,12 +116,17 @@ the rules, then a line for every file that went in, its path, its length and the
 SHA-256, and the checksum last; 13,646 files for Their Finest Hour. `python tools/checksumdiff.py <one> <other>`
 sets two machines' files beside each other and prints the files only one has and those that differ.
 
+**The two lists settled it the same evening**: every file both machines had was the same, and one had 1,774 more -
+`map/_cache/quad_textures/*.dds`, the tile pictures of a map cache kept under another folder's name, of a kind that
+counts. **Under `map` only the folder `terrain` is entered now** (`CPlayChecksum.MapSubfolder`), the one there a
+game reads; with that the one machine's figure is the other's, `CE28-F00E`, 11,872 files.
+
 Each text goes in with its length in front. So a file moved, two files exchanged and an empty file added each change
 it, and the AI's Lua is part of it - the things the original's figure lets by (section 7).
 
 **Which copy of a file** is the one a game here reads: a mod's folder, `tfh/`, the install, a replaced folder by the
 mod's alone - and **not the player's folder**, which is no layer of game files here (`docs/compatibility.md`, entry 28;
-`CChecksumSearchPath.ForPlay`). **Left out**: `map/cache`, which each machine makes for itself; `.svn` and `.git`
+`CChecksumSearchPath.ForPlay`). **Left out**: `map/cache`, which each machine makes for itself, and every folder under `map` but `terrain`; `.svn` and `.git`
 folders; and the interface, the pictures, the localisation, the sound and the music, which change what a player sees
 and hears and nothing a game does. A mod's interface or localisation may therefore differ between two players who are
 let play together.

@@ -66,10 +66,15 @@ public class PlayChecksumTests : IDisposable
 		Write("map/map.rar", "kept by a player");
 		Write("map/_cache/adjacencies.bin", "a cache under another name");
 		Write("map/_cache/time", "1");
+		// A tile picture of that cache is of a kind that counts, and lies in no folder of the map a game reads.
+		Write("map/_cache/quad_textures/quad_texture_1000.dds", "a cache's tile picture");
 		Write("history/provinces/holland/1851 - Haarlem.txt.bak", "kept by a player");
 		Assert.Equal(before, Label());
 		Write("map/definition.csv", "read by the game");
-		Assert.NotEqual(before, Label());
+		string withMap = Label();
+		Assert.NotEqual(before, withMap);
+		Write("map/terrain/colormap.dds", "the terrain's picture");
+		Assert.NotEqual(withMap, Label());
 	}
 
 	[Fact]
