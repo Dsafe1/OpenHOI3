@@ -380,8 +380,8 @@ public partial class CFrontEnd : Node
 			case Multiplayer.CNetHost host:
 			{
 				host.SetLobby(_lobby.BookmarkIndex, PlayerName, _lobby.Chosen);
-				System.Collections.Generic.List<(string Name, CCountryTag? Country)> players = host.LobbyPlayers();
-				string shown = string.Join("&", players.Select(player => player.Name + "=" + player.Country?.Value));
+				System.Collections.Generic.List<(string Name, CCountryTag? Country, bool Secondary)> players = host.LobbyPlayers();
+				string shown = string.Join("&", players.Select(player => player.Name + "=" + player.Country?.Value + (player.Secondary ? "*" : "")));
 				if (shown != _lobbyPlayersShown)
 				{
 					_lobbyPlayersShown = shown;

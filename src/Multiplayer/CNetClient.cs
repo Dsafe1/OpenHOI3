@@ -54,7 +54,7 @@ public sealed class CNetClient : CNetGame
 	public int LobbyBookmark { get; private set; } = -1;
 
 	/// <summary>The players of the host's lobby, the host first: each one's name and the country chosen, if any.</summary>
-	public IReadOnlyList<(string Name, CCountryTag? Country)> LobbyPlayers { get; private set; } = System.Array.Empty<(string, CCountryTag?)>();
+	public IReadOnlyList<(string Name, CCountryTag? Country, bool Secondary)> LobbyPlayers { get; private set; } = System.Array.Empty<(string, CCountryTag?, bool)>();
 
 	/// <summary>This machine's player's choice of a country in the host's lobby, sent to the host, who gives it where nobody has it.</summary>
 	public void Pick(CCountryTag country)
@@ -196,13 +196,16 @@ public sealed class CNetClient : CNetGame
 				string bookmark = space < 0 ? rest : rest[..space];
 				LobbyBookmark = int.TryParse(bookmark, System.Globalization.NumberStyles.Integer,
 					System.Globalization.CultureInfo.InvariantCulture, out int place) ? place : -1;
-				var players = new List<(string, CCountryTag?)>();
+				var players = new List<(string, CCountryTag?, bool)>();
 				foreach (string player in (space < 0 ? "" : rest[(space + 1)..]).Split('&', System.StringSplitOptions.RemoveEmptyEntries))
 				{
 					int equals = player.LastIndexOf('=');
 					string tag = equals < 0 ? "" : player[(equals + 1)..];
+					// An asterisk after the tag marks a player who shares the country and was not the first to choose it.
+					bool secondary = tag.EndsWith("*");
+					tag = tag.TrimEnd('*');
 					players.Add((System.Uri.UnescapeDataString(equals < 0 ? player : player[..equals]),
-						tag.Length > 0 ? new CCountryTag(tag) : null));
+						tag.Length > 0 ? new CCountryTag(tag) : null, secondary));
 				}
 				LobbyPlayers = players;
 				LobbyVersion++;

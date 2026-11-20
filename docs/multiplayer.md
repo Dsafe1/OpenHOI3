@@ -435,6 +435,8 @@ country is refused, and a human is marked primary where no other human of that c
 - **The first to have chosen a country is its primary player** (`CNetHost`: a count that grows with each choice,
   the host's own among them; a host started by switch chose first). The host tells each machine with its country
   whether it is primary (`a TAG 1` or `a TAG 0`), and tells it again when it becomes so, the one before it gone.
+- **In the lobby a player who shares a country and is not its primary has an asterisk after the row's name**,
+  "name (Country) *" - *ours*, asked for on 2026-11-20; the lobby's line carries it as an asterisk after the tag.
 - **Only the primary is shown the country's events** (`CEventWindows.Shows`, by `CNetGame.Primary`). Everything
   else is every player's alike: each may give the country's orders - the host lets an order through that is its
   sender's country's, however many machines play it - and each sees the same screens. *Ours, beyond the events*:

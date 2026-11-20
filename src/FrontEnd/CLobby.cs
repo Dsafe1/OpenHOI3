@@ -683,7 +683,7 @@ public partial class CLobby : Control
 	/// country each has chosen, and their number.
 	/// </summary>
 	/// <param name="host">Whether this machine hosts: the rows of the others are then <c>multiplayer_entry_server</c>, with the kick and ban buttons.</param>
-	public void ShowPlayers(IReadOnlyList<(string Name, CCountryTag? Country)> players, bool host = false)
+	public void ShowPlayers(IReadOnlyList<(string Name, CCountryTag? Country, bool Secondary)> players, bool host = false)
 	{
 		if (_window?.FindWindow("multiplayer") is not { } box || box.FindListBox("multiplayer_list") is not { } list)
 		{
@@ -697,7 +697,7 @@ public partial class CLobby : Control
 		list.Clear();
 		_playerRow = null;
 		bool first = true;
-		foreach ((string name, CCountryTag? tag) in players)
+		foreach ((string name, CCountryTag? tag, bool secondary) in players)
 		{
 			// The host's first row is its own; the others' rows on the host carry the kick and ban buttons.
 			bool server = host && !first;
@@ -725,7 +725,9 @@ public partial class CLobby : Control
 			if (row.FindTextBox("name") is { } label)
 			{
 				// The name alone, then "name (Country)" once a country is chosen.
-				label.Text = tag is { } has && World.Country(has) is { } named ? name + " (" + named.Name + ")" : name;
+				label.Text = (tag is { } has && World.Country(has) is { } named ? name + " (" + named.Name + ")" : name)
+					// Ours: an asterisk marks a player who shares the country and is not its primary (docs/multiplayer.md, section 8).
+					+ (secondary ? " *" : "");
 			}
 			if (row.FindTextBox("save_progress") is { } progress)
 			{

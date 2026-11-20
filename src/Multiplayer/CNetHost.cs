@@ -78,16 +78,22 @@ public sealed class CNetHost : CNetGame
 		Country = hostCountry;
 		_lobbyHostName = hostName;
 		_lobby = bookmark.ToString(System.Globalization.CultureInfo.InvariantCulture) + " " + string.Join("&",
-			LobbyPlayers().Select(player => System.Uri.EscapeDataString(player.Name) + "=" + (player.Country?.Value ?? "")));
+			LobbyPlayers().Select(player => System.Uri.EscapeDataString(player.Name) + "=" + (player.Country?.Value ?? "") + (player.Secondary ? "*" : "")));
 	}
 
 	private string _lobbyHostName = "";
 
 	/// <summary>The players of the lobby, the host first: each one's name and the country chosen, if any.</summary>
-	public List<(string Name, CCountryTag? Country)> LobbyPlayers()
+	public List<(string Name, CCountryTag? Country, bool Secondary)> LobbyPlayers()
 	{
-		var players = new List<(string, CCountryTag?)> { (_lobbyHostName, Country) };
-		players.AddRange(_peers.Where(peer => peer.Name is not null).Select(peer => (peer.Name!, peer.Wanted)));
+		// Of several players of one country every one but the first to have chosen it is marked.
+		var players = new List<(string, CCountryTag?, bool)>
+		{
+			(_lobbyHostName, Country, Country is not null && _peers.Any(peer => peer.Wanted == Country && peer.ChoseAt < _hostChoseAt)),
+		};
+		players.AddRange(_peers.Where(peer => peer.Name is not null).Select(peer => (peer.Name!, peer.Wanted, peer.Wanted is not null
+			&& ((Country == peer.Wanted && _hostChoseAt < peer.ChoseAt)
+				|| _peers.Any(other => other != peer && other.Wanted == peer.Wanted && other.ChoseAt < peer.ChoseAt)))));
 		return players;
 	}
 
