@@ -44,6 +44,33 @@ public static class CWire
 	/// <summary>Client to host: its hash of this hour is not the host's.</summary>
 	public const char Parted = 'x';
 
+	/// <summary>Client to host, first of all: its play checksum, then its player's name.</summary>
+	public const char Join = 'j';
+
+	/// <summary>Host to client: it is let in.</summary>
+	public const char Accepted = 'y';
+
+	/// <summary>Host to client: it is not let in, and why - the host's play checksum where the two differ.</summary>
+	public const char Refused = 'n';
+
+	/// <summary>Host to client: a game is to be had - its hash, then its length in bytes.</summary>
+	public const char GameOffered = 'g';
+
+	/// <summary>Client to host: it holds that game already, and is sent nothing.</summary>
+	public const char GameKept = 'k';
+
+	/// <summary>Client to host: it has not got that game, and is to be sent it.</summary>
+	public const char GameWanted = 't';
+
+	/// <summary>Host to client: a piece of the game, base64.</summary>
+	public const char GamePiece = 'b';
+
+	/// <summary>Host to client: the game's last piece has been sent.</summary>
+	public const char GameSent = 'G';
+
+	/// <summary>Client to host: it has loaded the game and is ready to go on.</summary>
+	public const char GameLoaded = 'r';
+
 	public static string Line(char kind, string rest = "") => kind + " " + rest;
 
 	/// <summary>A command as a recording writes one.</summary>

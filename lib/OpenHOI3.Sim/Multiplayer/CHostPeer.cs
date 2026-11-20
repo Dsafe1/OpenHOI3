@@ -18,6 +18,9 @@ public sealed class CHostPeer
 	/// <summary>Sends it one line.</summary>
 	public Action<string> Send { get; }
 
+	/// <summary>The country its player plays, or none yet: the only country its orders may be for.</summary>
+	public Countries.CCountryTag? Country { get; set; }
+
 	/// <summary>The hour it last said it had run the game to.</summary>
 	public long ConfirmedHour { get; set; }
 

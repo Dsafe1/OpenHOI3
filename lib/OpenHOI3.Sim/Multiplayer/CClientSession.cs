@@ -35,6 +35,9 @@ public sealed class CClientSession
 		};
 	}
 
+	/// <summary>A machine's first line to a host: its play checksum and its player's name.</summary>
+	public static string JoinLine(string checksum, string name) => CWire.Line(CWire.Join, checksum + " " + name);
+
 	/// <summary>Whether this game is no longer the host's, by a midnight's hash: nothing more is run until it is sent the game again.</summary>
 	public bool Parted { get; private set; }
 

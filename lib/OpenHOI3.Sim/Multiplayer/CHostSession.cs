@@ -41,6 +41,33 @@ public sealed class CHostSession
 	/// <summary>A client whose game is no longer the host's: it has to be sent the game again.</summary>
 	public event Action<CHostPeer>? Parted;
 
+	/// <summary>How many orders were dropped for naming another country than their sender's.</summary>
+	public int OrdersDropped { get; private set; }
+
+	/// <summary>
+	/// A machine's first line read, before it is a client: let in where its play checksum is the host's
+	/// (<c>mechanics/checksum.md</c>, section 8), and told so; told the host's where it is not, and not let in. Answers
+	/// the name it gave, or null where it was refused or the line was no asking.
+	/// </summary>
+	public static string? Admit(string line, string hostChecksum, Action<string> send)
+	{
+		if (line.Length < 2 || line[0] != CWire.Join)
+		{
+			return null;
+		}
+		string rest = line[2..];
+		int space = rest.IndexOf(' ');
+		string checksum = space < 0 ? rest : rest[..space];
+		string name = space < 0 ? "" : rest[(space + 1)..];
+		if (checksum != hostChecksum)
+		{
+			send(CWire.Line(CWire.Refused, hostChecksum));
+			return null;
+		}
+		send(CWire.Line(CWire.Accepted));
+		return name;
+	}
+
 	/// <summary>
 	/// A client that holds the host's game as it stands - made the same way, or loaded from the host's save - joined at
 	/// this hour. Sending it the game is not this class's.
@@ -84,8 +111,19 @@ public sealed class CHostSession
 		switch (line[0])
 		{
 			case CWire.Order:
-				_simulation.Post(CWire.Read(rest, _simulation.State));
+			{
+				// One for another country than its sender's is dropped; no more is checked (COrderCheck).
+				Commands.CCommand order = CWire.Read(rest, _simulation.State);
+				if (COrderCheck.MayGive(order, peer.Country))
+				{
+					_simulation.Post(order);
+				}
+				else
+				{
+					OrdersDropped++;
+				}
 				break;
+			}
 			case CWire.Confirmed:
 				peer.ConfirmedHour = Math.Max(peer.ConfirmedHour, long.Parse(rest, CultureInfo.InvariantCulture));
 				break;
