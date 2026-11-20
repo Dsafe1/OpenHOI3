@@ -549,6 +549,7 @@ public static class CMovement
 		// reads what only the AI's own steps make (docs/replay.md, section 3).
 		if (isLand)
 		{
+			Replay.CAiEntry.Prepare(state);
 			if (state.Replay is { } replay)
 			{
 				replay.RunCalledStep(state, "CSealiftArrival.OnEntered #" + unit.Id,

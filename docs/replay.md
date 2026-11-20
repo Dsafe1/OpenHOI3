@@ -84,6 +84,16 @@ the decision ran in the replay as in the game, deciding there on the first hour'
 parted on 5 January 1936 - Italy's 22a Divisione and its 4a Squadra - 3 of 31 days the same, until it was kept so. **A new
 call from the game into the AI must go the same way**, or be worked out from the game alone.
 
+**What the game keeps between askings is made ready before every step, by the game** (`CAiEntry.Prepare`), recorded,
+played back or neither. The supply network is kept until a province changes hands (`mechanics/supply.md`), and the AI
+asks for it all the time; a step that made it again left the game the network of that moment, where in a replay, the step
+not running, it was made later by whatever the game asked next. The network hangs on more than who holds what - the
+infrastructure, the naval bases, the capitals, the puppets - so the two could differ, and the day's gathering of what lies
+in cut-off land with them. *Found 2026-11-20*: a headless run's recording and its replay parted at midnight on 19 July
+1942, Germany's stockpile 35,422 supplies against 30,963 and 148 provinces' pools beside it, the generator, the units
+and the diplomacy the same, in two runs that agreed with each other to the byte. So a step never makes the network
+itself now, and **anything else the game keeps that a step can make on first asking goes into `Prepare` the same way.**
+
 ## 4. On disk
 
 `CReplayFile`, compressed with gzip: a line naming the format (`OpenHOI3 replay 2`); a line of what the game has to be

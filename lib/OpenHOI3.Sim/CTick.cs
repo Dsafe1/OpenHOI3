@@ -414,6 +414,7 @@ public static class CTick
 	private static void AiStep(CGameState state, Action<CGameState> step,
 		[CallerArgumentExpression(nameof(step))] string name = "")
 	{
+		Replay.CAiEntry.Prepare(state);
 		if (state.Replay is not { } replay)
 		{
 			Step(state, step, name);
@@ -485,6 +486,7 @@ public static class CTick
 			// Then its sliders, before the later countries' days trade with it (ministers.md, section 5). Ours: the
 			// original weighs them last in the country's day, after its later stretches too, none of which was found to
 			// change what the weighing reads.
+			Replay.CAiEntry.Prepare(state);
 			if (state.Replay is { } replay)
 			{
 				replay.RunCalledStep(state, "CProductionAi.BalanceCountry " + country.Tag.Value,
