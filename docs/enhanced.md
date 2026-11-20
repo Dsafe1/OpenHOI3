@@ -12,7 +12,7 @@ Add to it whenever a spec records something of the original's that looks like a 
 
 ## Asked for
 
-- **Everything BiceLib adds to the original.** BiceLib, the DLL the BlackICE mod injects into the game, adds tooltips, hooks and patches; all of them should be considered for the enhanced engine. They are not listed here, BiceLib being the place to see them. Its offsets are no part of this project. **The normal engine gives none of them** - decided on 2026-11-16: making compatibility patches for a DLL made for another binary is not prudent; the normal engine is finished first, and BlackICE tests the original's own modding API (it runs without the DLL, but for the max infrastructure fix, `docs/compatibility.md`, entry 29). The enhanced engine takes BiceLib's patches and mechanics in outright, with **an API for mod-defined native interface elements** in place of BiceLib's overlay. A first attempt at giving them to the normal engine as a Lua shim, `OpenHOI3.BiceLib`, was taken back off main and discarded on 2026-11-16; the enhanced engine starts afresh, natively.
+- **Everything BiceLib adds to the original.** BiceLib, the DLL the BlackICE mod injects into the game, adds tooltips, hooks and patches; all of them should be considered for the enhanced engine. They are not listed here: since 2026-11-20 they are written up as behaviour, with no address in it, in the mod's own `docs/bicelib/features.md`, which is what this project reads of BiceLib and all it reads (*The shape*, below). Its offsets are no part of this project. **The normal engine gives none of them** - decided on 2026-11-16: making compatibility patches for a DLL made for another binary is not prudent; the normal engine is finished first, and BlackICE tests the original's own modding API (it runs without the DLL, but for the max infrastructure fix, `docs/compatibility.md`, entry 29). The enhanced engine takes BiceLib's patches and mechanics in outright, with **an API for mod-defined native interface elements** in place of BiceLib's overlay. A first attempt at giving them to the normal engine as a Lua shim, `OpenHOI3.BiceLib`, was taken back off main and discarded on 2026-11-16; the enhanced engine starts afresh, natively.
 - **Shipped inside its mod.** Decided on 2026-11-18: a mod written for the enhanced engine ships the version of it the mod was made for, in the mod's own folder under `tfh/mod/`, laid over `tfh/` and the install as the normal engine lays a mod, and names it in its descriptor; the launcher runs that version. Its saves record the engine they were made with, and whatever players check between them checks it too, the file checksum not covering it. `launcher.md`.
 - **The brigade builder's technology list can overflow.** The list of what a brigade's technologies are runs out of its box when there are many. A scrollable window is suggested. `builders.md`, 7. *Display.* Risk: none.
 - **A building's line in an order of battle could name its building by key.** Asked for on 2026-11-19: a
@@ -25,6 +25,41 @@ Add to it whenever a spec records something of the original's that looks like a 
 - **A headquarters' supply tooltip could show its subordinates' use.** The unit panel's supply and fuel tooltips give only the unit's own use. For a headquarters it should show its own consumption and, separately, that of all the units under it. `unitpanel.md`, 10. *Unfinished.* Risk: none.
 - **A save could hold the AI's generator.** The original keeps two generators, the game's and the AI's, and a save holds where the game's stands (`seed`, `count`) and nothing of the AI's, which a load seeds afresh. Here a load restores the game's (`compatibility.md`, entry 15) and seeds the AI's from the save's `seed` at its first draw, so a save loaded twice plays the same, but the AI's rolls after a load are not those the saved game would have made. Writing its draws beside `count` would mend that; the decision of 2026-11-12 is to keep the save's keys the original's. `savegame.md`, 4; `landcombat.md`, 8. *Oversight.* Risk: none to a check; one key more in every save.
 - **A replay of a whole game, for the player to enjoy.** Wished for on 2026-11-12: a game recorded from its start to its end and played back to watch, through every save and load the player made on the way. The replay built today (`replay.md`) is **for development only**: it records from one starting point - a new game, or one save loaded - and plays back from that same point, so it never has to cross a load. A whole game's recording does, and that is the headache: **after a load the game must go on exactly as it would have without one**, or the recording's next command finds a different game. Today it does not: a save in the original's keys does not hold everything later play depends on, and entering a loaded game works some of it out again. The next section lists what. So this needs a save of the enhanced engine's own, holding all of it, and a load that does not enter the game afresh - or a recording that carries what a load loses. Every addition is to be checked against it (`CLAUDE.md`, *Always*; `OpenHOI3.SaveCheck reload`), and what it finds is listed there. *Unfinished.* Risk: none to the normal engine; the enhanced save's keys differ from the original's.
+
+## The shape, decided 2026-11-20
+
+Worked out while the normal engine still lacks multiplayer, which comes first. **Nothing of this is built.**
+
+- **A mode, not a branch.** The enhanced engine is switches in this one codebase, so the faithful rules stay under the
+  savegame checks. Should the faithful engine one day be retired, it is that one that becomes the branch.
+- **A game carries its rules.** They are an object on the game state, asked at the place a rule differs - never a static,
+  as nothing under `lib/` is - and part of what a game is: in the enhanced save, in the state's hash and in whatever
+  players check between them. A switch is added when a candidate of this file is taken up, with a test for each arm.
+- **A mod's data turns the mode on**, by a file of ours in its layer; with none a game is the faithful one, so Their
+  Finest Hour and every mod written for the original are untouched. **Every fix is on unless the mod names it** as one
+  it does not want: a mod moving to a newer engine gets that engine's fixes, which is acceptable because it names the
+  engine it ships (`launcher.md`).
+- **BiceLib's features come in by their kind, not as its functions.** A fix of the original is how the enhanced mode
+  behaves. A rule that is a mod's choice becomes a define or a key in the file that already holds its subject. A text
+  becomes variables the localisation may ask for. The overlay and what mods build on - windows, map modes, a day's
+  call into Lua, a mod's own commands - become an interface at the simulation's edge, a command's body an effect
+  block, so that every change stays a command. Not a `BiceLib` table in Lua, and not compiled code shipped by a mod.
+- **Where their description comes from.** `docs/bicelib/features.md` in the mod's repository, written on BiceLib's
+  side as behaviour - formulas, order, caps, edge cases, what a mod gives each - and the fact base's findings for what
+  the original does at each place. Never BiceLib's source or headers.
+- **BlackICE stays playable in the original for a version or two.** So one tree serves both engines, a third switch in
+  the mod's Lua beside the two it has, and what a rule needs declared twice for that time - once for the DLL, once
+  here - is declared twice.
+- **What a file meant for both engines may hold**, by the reading of 2026-11-20
+  (`reversing/findings/FINDINGS-unknownkeys.md`): the original passes over a key it does not know written as
+  `key = value`, in every kind of file read for it, and does **not** step over one written as a block - the block's
+  contents are read as the enclosing object's and its `}` closes that object early. So a new key in a file the original
+  reads is a scalar, always. `common/defines.lua` takes new entries and new sections, being fetched by name through
+  Lua, and a new file under `common/` is never parsed. No new key goes in a country's or a province's history, where
+  an unknown key is taken for a name and acted on. A new key may not be the name of anything a mod declares, the
+  original trying a key as a building, a technology, a unit type, a terrain and more before it gives up on it. And a
+  condition the original drops is a condition absent - an `and` of it alone holds - so script that leans on a new
+  condition needs a gate the original answers false.
 
 ## A whole game's replay: what a save does not give back
 
