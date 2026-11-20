@@ -552,6 +552,12 @@ All of these are risk-free but for what the entry says.
 - **A fleet sent out of its range still sounds its move**, the sound coming before the range is asked. `sound.md`, 7. *Oversight.* Risk: none.
 - **`buzzbeep`, `nuke` and `unit_upgraded` are never played**, nor a checkbox's `oversound`, nor `ambient_volume` read. `sound.md`, 5 and 7. *Dead.* Risk: none.
 
+## Save bloat
+
+What the original's save writes that later play does not need, and that grows with the game. Begun on 2026-11-20. The normal engine writes all of it, since its save keeps the original's keys (`savegame.md`, 7 to 10); an enhanced engine's own save could leave it out or write it shorter. Unlike the replay's list above, these are about what a save holds *beyond* what play needs, not what it lacks.
+
+- **Every sunk ship keeps its whole technology list.** `sunk_ships` holds every ship that has left the game - sunk at sea, finished by bombs, taken out with its fleet, or taken off by `remove_brigade` - and nothing is ever taken off it. Each is written as a ship still in a fleet is: its figures and a `<technology>={level progress}` line for every technology its type has. So the list grows with every loss for the whole game, and a late game with hundreds of sunk ships carries hundreds of technology lists nobody reads. What the game actually reads of a sunk ship is its id, owner, name, type and `sunk_by`: `total_of_ours_sunk` counts owners, `total_sunk_by_us` follows `sunk_by`, and a battle's `sunk_ship`, a ship's list of victims and the ledger page find ships by id and show their names and types. Only a brigade card left open on a ship that has gone shows its technology levels, under "Unit models". Keeping those five keys - and the card saying nothing under "Unit models" for a lost ship - would make each entry a few lines. The cost per ship depends on how many technologies its type has (`units/*.txt`, `technologies/*.txt`), so a mod with many ship technologies pays more. The game keeps the whole ship in memory too (`CSunkShips`), which the same change could trim. `savegame.md`, 7 and 10; `brigadecard.md`. *Oversight.* Risk: none to play; the save is no longer the original's, and a save written so is not known to load in the original.
+
 ## Existing departures that could become switches
 
 - **A released puppet joins its master's supply at once** here, where the original takes some days. `compatibility.md`, entry 9. Risk: event chains timed on it.
