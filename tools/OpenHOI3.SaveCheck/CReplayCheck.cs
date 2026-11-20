@@ -42,9 +42,36 @@ internal static class CReplayCheck
 		long sentToHost = 0;
 		int longest = 0;
 		var host = new OpenHOI3.Sim.Multiplayer.CHostSession(hostRun, window);
+		// With `tcp` the lines go over a real connection on this machine's loopback, compressed, where otherwise they are
+		// handed across in lists.
+		bool tcp = args.Contains("tcp");
+		OpenHOI3.Sim.Multiplayer.CLineListener? listener = tcp ? new OpenHOI3.Sim.Multiplayer.CLineListener(port: 0) : null;
+		OpenHOI3.Sim.Multiplayer.CLineLink? clientLink = listener is null ? null
+			: OpenHOI3.Sim.Multiplayer.CLineLink.Connect("127.0.0.1", listener.Port);
+		OpenHOI3.Sim.Multiplayer.CLineLink? hostLink = null;
+		while (listener is not null && !listener.TryAccept(out hostLink!))
+		{
+			System.Threading.Thread.Sleep(1);
+		}
+		void Carry()
+		{
+			while (clientLink is not null && clientLink.TryReceive(out string came))
+			{
+				toClient.Enqueue(came);
+			}
+			while (hostLink is not null && hostLink.TryReceive(out string came))
+			{
+				toHost.Enqueue(came);
+			}
+		}
 		var client = new OpenHOI3.Sim.Multiplayer.CClientSession(clientRun, line =>
 		{
 			sentToHost += line.Length;
+			if (clientLink is not null)
+			{
+				clientLink.Send(line);
+				return;
+			}
 			toHost.Enqueue(line);
 		});
 		// What the same lines would come to compressed as one stream, flushed after every line so that each could be read
@@ -59,7 +86,14 @@ internal static class CReplayCheck
 		{
 			sentToClient += line.Length;
 			longest = Math.Max(longest, line.Length);
-			toClient.Enqueue(line);
+			if (hostLink is not null)
+			{
+				hostLink.Send(line);
+			}
+			else
+			{
+				toClient.Enqueue(line);
+			}
 			byte[] bytes = System.Text.Encoding.UTF8.GetBytes(line + "\n");
 			deflateClock.Start();
 			deflate.Write(bytes, 0, bytes.Length);
@@ -99,6 +133,7 @@ internal static class CReplayCheck
 				clientRun.Post(new OpenHOI3.Sim.Commands.CFogOfWarCommand(days % 2 == 0));
 			}
 			// The client's frame comes every third of the host's: it falls behind, the host waits, it catches up.
+			Carry();
 			if (frames % 3 == 0)
 			{
 				clientClock.Start();
@@ -108,18 +143,33 @@ internal static class CReplayCheck
 				}
 				client.Step(mostHours: 8);
 				clientClock.Stop();
-				while (toHost.Count > 0)
-				{
-					host.Receive(peer, toHost.Dequeue());
-				}
+			}
+			Carry();
+			while (toHost.Count > 0)
+			{
+				host.Receive(peer, toHost.Dequeue());
 			}
 		}
-		// What is still under way, so that the two stand at the same hour.
-		while (toClient.Count > 0)
+		// What is still under way, so that the two stand at the same hour: over a connection it comes when it comes.
+		var patience = Stopwatch.StartNew();
+		do
 		{
-			client.Receive(toClient.Dequeue());
+			Carry();
+			while (toClient.Count > 0)
+			{
+				client.Receive(toClient.Dequeue());
+			}
+			client.Step(mostHours: 1000);
+			if (tcp && clientState.TotalHours < hostState.TotalHours)
+			{
+				System.Threading.Thread.Sleep(1);
+			}
 		}
-		client.Step(mostHours: 1000);
+		while (tcp && !client.Parted && clientState.TotalHours < hostState.TotalHours && patience.ElapsedMilliseconds < 10000);
+		clientLink?.Dispose();
+		hostLink?.Dispose();
+		listener?.Dispose();
+		Console.WriteLine(tcp ? "over a TCP connection on the loopback, compressed" : "the lines handed across in lists");
 
 		ulong[] hostHash = CStateHash.Of(hostState);
 		ulong[] clientHash = CStateHash.Of(clientState);

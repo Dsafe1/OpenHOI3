@@ -187,6 +187,25 @@ All on 2026-11-20.
 
 - Chat's place in play, and what a player is told of the others - who dropped, who paused.
 
+## 4.1 Decided for the network, 2026-11-20
+
+- **TCP.** Every line has to come, and in order, which it gives; the traffic is small, and a stall for a lost packet
+  is what the window of three hours is for.
+- **The host's port has to be reachable, and nothing is done about it**: on a local or a virtual network it is; over
+  the open one the host forwards the port. One port, which the host may change.
+- **A game is sent whole, compressed, with the game paused until every machine has it** - the save every machine
+  then loads (section 2). **A client that already holds the same save, by its hash, is sent nothing.** And **every
+  machine makes its Lua states afresh at that load, the host too**, so that the scripts' own random and memory begin
+  alike everywhere (section 3).
+- **A client's Lua for the chance of an offer is a state of its own that can post nothing.**
+- **A player who comes back chooses among every country nobody plays**, the one he had among them: "There should be
+  no limit on which country the rejoining player can choose."
+- **The host checks that an order is for the country of the player who sent it**, and drops one that is not. No more
+  than that: "in the grand scheme there is no need for a real trust model."
+- **The lobby is the one there is** - the map, the options, the bookmarks and the saves - with the little the
+  original has before it: a player's name, and an address to join in place of its list of servers, there being none.
+  Chat and the rest come later.
+
 ## 5. A host and its clients - built 2026-11-20, with no network under it
 
 `lib/OpenHOI3.Sim/Multiplayer`: `CHostSession` and `CClientSession`, each handed the lines that came and a way to
@@ -238,6 +257,13 @@ can be read as it comes, are 809 KiB - 10.7% of the text, about 14 KiB a game da
 over the 59 days; Brotli at its fastest, flushed the same way, 37.8%. So what carries the lines compresses them with
 Deflate, as a stream. **The window of 3 hours stands** (decided the same day).
 
-**Not built**: a socket; sending a game to a machine, as it joins or after it has parted; the lobby; a dropped
-player's country to the AI; chat. And an entry is sent from the thread that runs the hour, where a client's hours
-run beside its frame - what carries the lines has to take them from there.
+**The connection** (built the same day): `CLineLink` and `CLineListener` - TCP, each way one Deflate stream at its
+fastest flushed at every line, a line sent from any thread and taken on the thread that asks, the other side's going
+seen; the port 19390 where the host names no other (*ours*). `LineLinkTests` runs it over the machine's own
+loopback. And `twomachines ... tcp` puts the same real game through it: to 1 March 1936, **59 days, every
+midnight's hash the same**, the host waiting on 7 of 1,423 frames for the client to catch up - which the run that
+hands the lines across in lists never has it do.
+
+**Not built**: sending a game to a machine, as it joins or after it has parted; the check of the two machines'
+play checksum before they play; the host's check that an order is its sender's country's; the lobby; a dropped
+player's country to the AI; chat. Nothing in the client uses any of this yet: it is the simulation's side alone.
