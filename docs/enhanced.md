@@ -411,6 +411,28 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - **A garrison is rated higher the weaker it is.** `moving.md`, 18. *Bug.* Risk: AI land.
 - **The line's pull can pick the same division twice and leave a position short.** It counts its picks on a count of its own, and nothing refuses a division it has already sent to the position, so a second pick of it books it off the position and back on, orders the move again and uses up the pick: Smolensk HQ's 2390 wanted four on 16 July 1941 and got three. `moving.md`, 7.3, step 7; `reversing/findings/FINDINGS-liveread.md`, section 110. *Bug.* Risk: AI land; the fix is to pass over a division already bound for the position.
 - **What one country's AI sees of an ally's orders depends on thread timing.** The countries' passes run side by side and a unit's destination is written the moment it is sent, so a line counting an ally's divisions sees that hour's orders or not as the threads fall; two runs of one save can differ by it. Ours reads an ally as the hour began, which both July 1941 recordings agree with, but Germany - first on the main thread - as its orders stand, which the recordings agree with too. `moving.md`, 7.3, step 3; `reversing/findings/FINDINGS-liveread.md`, sections 111 and 143. *Bug.* Risk: none for the normal engine, which is already deterministic; an enhanced engine could keep ours on purpose.
+- **The countries' unit AI passes could run side by side, as the original's do, and stay deterministic.** Chosen on
+  2026-11-19 as the way to do it, to be taken up once the AI's behaviour is settled: ours runs every country's pass one
+  after another, which in a war is about a third of the hour's time. **The plan:**
+  - every read of another country's AI fields uses the copy taken as the hour began, as the line's count of an ally
+    already does. Those fields are where the AI sent a unit, held back, garrison, staging, sealift target, stranded,
+    invasion, agent and promised;
+  - the unit pass draws on a generator of its own for each country and hour, as the ministers' Lua already does;
+  - each country posts to an outbox of its own, the outboxes joined in the countries' order afterwards;
+  - the unit numbers a pass takes are given out again in that order, so they come out as today's.
+
+  Measured that day with eight workers, a probe timing each country's pass:
+  - in a 1941 war, 498 ms of a base game day down to about 226, and 776 of BlackICE's down to about 294;
+  - in 1936, 126 down to 47 and 220 down to 89;
+  - the floor is one country's pass, the Soviet Union's about 97 ms and 151 ms in 1941, so more workers give nothing.
+
+  The orders, ways, plans and joins already go through commands, the caches the pass reads are made again only when
+  land changes hands, and the route finder's arrays are safe across threads. *Unfinished.* Risk: AI land, sea and air,
+  where a country would no longer see another's same-hour orders; the game parts from today's at the first draw or such
+  read, so it needs a `docs/compatibility.md` entry if it is taken into the normal engine. A version keeping today's
+  results exactly was weighed and set aside: every draw and every such read would have to wait for the countries before
+  it - the draws and numbers alone cost up to a fifth of the gain, the reads more - and a missed read would make the game come apart only now and then.
+  `docs/performance.md`, section 2.
 - **The AI odds read a unit last battle figures.** The defence in `CAttackOdds` is the product its last battle left, nought for a unit that has never fought, so a fresh unit counts no toughness at all and a veteran is judged by a battle long over. `moving.md`, 11.4 and 18. *Oversight.* Risk: AI attacks.
 - **The terrain figure's neighbour term re-reads the province's own terrain.** `moving.md`, 18. *Bug.* Risk: AI attacks.
 - **The AI's air sunset ignores longitude.** `moving.md`, 17.4 and 18. *Oversight.* Risk: small.

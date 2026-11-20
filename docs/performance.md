@@ -107,6 +107,13 @@ As measured, with `OpenHOI3.SaveCheck profile` and the headless run, both in Rel
   Together: paused 144 frames a second, which the screen holds it to; at the top speed **Their Finest Hour 138 frames
   and 138 days a minute, BlackICE 138 frames and 48 days a minute**. BlackICE's top speed is the hour's own time now,
   its worker busy most of the minute.
+- **What keeps the machine's other cores idle** (looked into on 2026-11-19, about 1.6 of 32 busy): the hours run one
+  after another and their steps in the original's order, and the steps that already run side by side - the trading and
+  the five ministers' scripts on `CAiWorkers` - each wait for their slowest country, a single Lua call. Running the five
+  ministers as one batch would save at most 46 ms of a BlackICE day and 9 of a base game's, and was left alone. The one
+  large piece that would spread is the countries' unit AI passes, which the original runs side by side; how, and what it
+  would give - in a 1941 war 776 ms of a BlackICE day down to about 294 - is in `docs/enhanced.md`, *AI*, to be taken up
+  once the AI's behaviour is settled.
 - **Drawing is already C++** - it is Godot's renderer. The client's C# builds and sets nodes.
 
 ## 3. What C++ would buy, part by part
