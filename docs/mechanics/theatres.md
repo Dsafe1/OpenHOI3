@@ -49,8 +49,10 @@ land province with another holder - and in no front yet starts a front, which ta
 neighbour of the same area on a land border and in no front yet, each with its own neighbours before the next. So a
 front's provinces are in that walk's order.
 
-(The original keeps a second list of fronts by the sea, coastal provinces by their sea's regions. Nothing this piece or
-the readiness test reaches reads it; it is not built.)
+(The original keeps a second list of fronts by the sea, coastal provinces by their sea's regions. **Nothing in the
+original reads it** but its own making - built each time an area's fronts are, and freed (`confirmed` for the scans,
+`reversing/findings/FINDINGS-theatres.md`, B.1a) - and no saved theatre front carries `sea = yes`; so it is not built,
+and nothing is lost by it.)
 
 ## 3. A country's fronts of an area
 
@@ -154,7 +156,10 @@ other, **O**, as a **candidate** where
 - or both have the same largest area, S faces a front-worthy enemy, and **O faces exactly those** - as many, each found -
   or **their fronts meet**: an end province of one of O's front-worthy fronts touches an end province of one of S's.
 
-(A played country at war passes the first test too once it has made more theatres than it held.) The candidate with
+(A played country at war would pass the first test too once it had made more theatres than it held - **a clause that
+never binds**: its strategy holds no theatres wherever the whole making runs, a running game making a played country's
+again only where it holds none, so the limit is the original's 100000 and a played country at war merges as any other;
+`reversing/findings/FINDINGS-theatres.md`, G.1a, the test `confirmed`, that it never binds *inferred*.) The candidate with
 the least **1000 x distance + 1000 x (S's and O's provinces)** wins, distance being the integer square root of the least
 squared distance between their provinces. **No candidate: the merging is over.** Otherwise S's fronts go to the winner
 as they are, the winner hot if one was, then S's own provinces, and S is gone.
@@ -257,9 +262,9 @@ theatre-level unit that was removed - is put under it.
   United States' theatres are made with it, which the start save of that bookmark has - the island in a theatre of 31
   provinces of Alaska and the Pacific, numbered 76 - where it was made after the island had gone and the rest went into the
   mainland's (**measured**, `Ireland1941_12_11_00.hoi3`).
-- **Not built**: the fronts by the sea (section 2); the AI's unit agents, which the original tells of every theatre made,
-  kept or dropped and which put the history's other top-level units under a theatre - the next piece; and what the
-  original does for a played country at war in section 6.
+- **Not built**: the fronts by the sea (section 2), which nothing reads; the AI's unit agents, which the original tells of every theatre made,
+  kept or dropped and which put the history's other top-level units under a theatre - the next piece; ~~and what the
+  original does for a played country at war in section 6~~ - nothing, read 2026-11-21 (section 6).
 
 ## 13. Checked against the start save
 

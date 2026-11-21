@@ -639,8 +639,9 @@ gives the air unit with the most sea attack that reaches the province the raid f
 
 ### Not built
 
-- **The AI's raid from the air**: whether the original's AI gives the order was not read; the
-  AI here gives it to nobody. A carrier's aircraft in a battle are built since 2026-10-16
+- ~~**The AI's raid from the air**: whether the original's AI gives the order was not read~~ - **it never does**
+  (`confirmed`, `reversing/findings/FINDINGS-navalmissions.md`, 9.1a): the AI makes an order in one way only, and none
+  of the tokens it passes is the raid's; no script gives an order. So the AI here gives it to nobody, as the original's. A carrier's aircraft in a battle are built since 2026-10-16
   (`transport.md`, section 13.2), and the air missions are `aircombat.md`'s and `bombing.md`'s.
 - **Weather** and the **AI** - no fleet of a country nobody plays is ever given a mission but
   by `--mission`. The leaders a raid's battle asks are built since 2026-10-11

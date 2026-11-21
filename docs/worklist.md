@@ -2264,9 +2264,9 @@ None of these blocks the list above.
 - **The foreign minister leaves out** (2026-10-16, `docs/mechanics/foreignminister.md`, sections 10 and 12) where in
   the AI's pass a minister's hour falls. Its readiness for war is whole since 2026-10-17, and the unit agents
   move the units it counts - Japan ready against China as the original's (2026-11-02).
-- **The theatres leave out** (2026-10-17, `docs/mechanics/theatres.md`, section 12): the fronts by the sea; what a played
-  country at war does in a merge.
-- **The unit agents leave out** (2026-10-17, `docs/mechanics/agents.md`, section 13): the war stance's combat values. The
+- **The theatres leave out** (2026-10-17, `docs/mechanics/theatres.md`, section 12): ~~the fronts by the sea; what a played
+  country at war does in a merge~~ - neither changes anything in the original, read 2026-11-21.
+- **The unit agents leave out** (2026-10-17, `docs/mechanics/agents.md`, section 13): ~~the war stance's combat values~~ (built 2026-11-21). The
   air units' move between theatres by group difference is built since 2026-11-13 (`agents.md`, section 10.3). The division need is read whole since 2026-10-19, and
   the balancing agrees with the 4 January save in all 106 theatres since 2026-11-09, the AI's lending of units with it (`agents.md`, sections 10.5 and 14).
 - **Moving and attacking leaves out** (2026-10-19, `docs/mechanics/moving.md`, sections 19 and 20): the Allies' Baltic
@@ -2289,8 +2289,8 @@ None of these blocks the list above.
   for them** where the original sometimes makes the strategy at once.
 
 - **The tech and production ministers leave out** (2026-10-16, `docs/mechanics/ministers.md`, *Ours* and *Not
-  established*): a finished brigade's choice of division weighs no want of its type - a plan's wants are
-  built since (`CPlanWants`), and the join (`CAiDeployment`) does not ask them yet;
+  established*): ~~a finished brigade's choice of division weighs no want of its type~~ - nor does the original's, read
+  2026-11-21 (`ministers.md`, section 6);
   ~~**the Soviet Union's supply share runs low** in a run to 1937 (168 supplies on 1 January 1937)~~ - gone by 2026-11-21, 55,861 on that day and the original's figure at every save of 1937 and 1938 (`headless.md`, section 4); the
   order a session runs posted commands in, which the reverse order of lines moved to the front rests on; and the units
   loader's numbering of types, built as the files' order.

@@ -209,7 +209,9 @@ in it, then 4 where their average speed is 6 or more, 1 where half or more are n
 nothing; 1, 2 and 9 anything at a factor of 1; 3 takes 3 at a half and 4 at three times; 4 takes 4 at a half and 3 at
 three times; 5 to 8 only their own role.
 
-The score is `brigades x 10 x factor` less the unit's plan's want of that type (the AI's unit plans, not built: nought);
+The score is `brigades x 10 x factor` less the unit's plan's want of that type - **nought in the original too**: the
+want is filled only for a headquarters of the three lowest command levels, and a candidate is a division, a fleet or an
+air unit, whose want is never filled (`confirmed`, `reversing/findings/FINDINGS-ministers.md`, B.6a);
 **the lowest under 100000 wins, the first of equals**, where the unit stands in a province the unit may be placed in - in
 practice the acting capital's area (`buildqueue.md`, section 7).
 
@@ -317,7 +319,8 @@ Do not tidy:
   posts runs within its call.
 - **Commands posted in the day's pass run before the next hour**, so the stop a finished level posts is in place before
   any minister's next hour; where the original runs it beside its AI pass was not read.
-- **The AI's unit plans are not built**, so a unit's want of a type is nought when a finished unit chooses whom to join.
+- ~~**The AI's unit plans are not built**, so a unit's want of a type is nought when a finished unit chooses whom to join.~~
+  Nought in the original as well (section 6); the brigade count and its factor decide.
 
 ## Not established
 
