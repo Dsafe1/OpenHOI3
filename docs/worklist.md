@@ -2324,8 +2324,6 @@ None of these blocks the list above.
   Everything the *Not built* list once named is built: a landless country's units and the based units and radar at a change
   of hands (2026-11-21, section 11), the revolt war (`rebels.md`, section 10), a puppet's cabinet, an exile's free
   supply, its brigades at its leader's levels and its partisans turned to militia.
-- **Factions leave out** (`factions.md`, *Not built*): the victory conditions' random fill for a faction with fewer
-  primaries than the count, reported.
 - **The agreements leave out** (`agreements.md`, section 9): the player handing his diplomacy to the AI as the
   original does it, under which his own offers are answered like an AI's and the 96-hour drop applies to him - the
   lobby's automation gives his country a foreign minister (`frontend.md`, section 4), and offers to him are not checked

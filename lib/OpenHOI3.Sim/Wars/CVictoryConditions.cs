@@ -20,13 +20,18 @@ public static class CVictoryConditions
 
 	/// <summary>
 	/// A new game's choice: each faction's list walked in order, each condition chosen where it is primary and each
-	/// primary spending one of the count, the walk stopping when none is left. Answers the factions left short of the
-	/// count, which the original fills with draws of a generator of its own and this does not.
+	/// primary spending one of the count, the walk stopping when none is left. A faction left short of the count is
+	/// filled as the original fills it: once for each one missing, while any is unchosen, a draw's signed remainder
+	/// by the number unchosen picks that many back from the last unchosen condition - and a remainder below nought
+	/// takes the list's last condition, chosen or not. The original draws on a generator of its own seeded from the
+	/// wall clock; here it is one seeded from the game's seed, so that every machine makes the same game. Answers the
+	/// factions so filled.
 	/// </summary>
 	public static List<string> ChooseAtStart(CGameState state)
 	{
 		var shortOf = new List<string>();
 		int number = Number(state);
+		CRandom? random = null;
 		foreach ((string faction, List<CVictoryCondition> conditions) in state.VictoryConditions)
 		{
 			if (state.VictoryChoicesMade.Contains(faction))
@@ -45,10 +50,42 @@ public static class CVictoryConditions
 			if (budget > 0 && conditions.Exists(c => !c.Chosen))
 			{
 				shortOf.Add(faction);
+				random ??= new CRandom(state.Seed);
+				Fill(conditions, budget, random);
 			}
 		}
 		state.GameFinished = false;
 		return shortOf;
+	}
+
+	private static void Fill(List<CVictoryCondition> conditions, int missing, CRandom random)
+	{
+		for (int i = 0; i < missing; i++)
+		{
+			int unchosen = conditions.FindAll(c => !c.Chosen).Count;
+			if (unchosen == 0)
+			{
+				return;
+			}
+			int pick = random.Next() % unchosen;
+			if (pick < 0)
+			{
+				conditions[^1].Chosen = true;
+				continue;
+			}
+			for (int at = conditions.Count - 1; at >= 0; at--)
+			{
+				if (conditions[at].Chosen)
+				{
+					continue;
+				}
+				if (pick-- == 0)
+				{
+					conditions[at].Chosen = true;
+					break;
+				}
+			}
+		}
 	}
 
 	/// <summary>A faction's choice made in the lobby: these conditions chosen and no others. A choice also clears a finished game, as the original's does.</summary>

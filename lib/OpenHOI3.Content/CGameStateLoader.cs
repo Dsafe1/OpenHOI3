@@ -303,8 +303,8 @@ public static class CGameStateLoader
 		IEnumerable<string> shortOf = chooseVictoryConditions ? Sim.Wars.CVictoryConditions.ChooseAtStart(state) : Array.Empty<string>();
 		foreach (string faction in shortOf)
 		{
-			warn($"victory conditions: {faction} has fewer primaries than NUMBER_OF_VICTORY_CONDITIONS; the original fills the rest " +
-				"by draws of a generator of its own, which is not built");
+			warn($"victory conditions: {faction} has fewer primaries than NUMBER_OF_VICTORY_CONDITIONS; the rest are drawn, as the " +
+				"original draws them, on a generator seeded from the game's seed where the original's is seeded from the clock");
 		}
 
 		// Entering a new game brings every country forward, the player's too, before its order of battle is read: its laws

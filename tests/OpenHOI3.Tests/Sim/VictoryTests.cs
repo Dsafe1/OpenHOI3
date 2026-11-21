@@ -83,6 +83,47 @@ public class VictoryTests
 		Assert.Equal(new[] { true, false, true, false }, axis.ConvertAll(c => c.Chosen));
 		Assert.Equal(new[] { "allies" }, shortOf);
 		Assert.Equal(2, CVictoryConditions.Chosen(state, "axis"));
+		// The allies have one primary of the two: the one left is drawn, there being no other.
+		Assert.Equal(new[] { true, true }, allies.ConvertAll(c => c.Chosen));
+	}
+
+	[Fact]
+	public void A_faction_short_of_primaries_is_filled_by_draws_counted_back_from_its_last_unchosen_condition()
+	{
+		CGameState state = World();
+		state.Defines.Set(CVictoryConditions.Section, "NUMBER_OF_VICTORY_CONDITIONS", CFixedPoint.FromInt(3));
+		var axis = new List<CVictoryCondition>
+		{
+			Condition("a", "always = yes", true), Condition("b", "always = yes", false), Condition("c", "always = yes", false),
+			Condition("d", "always = yes", false), Condition("e", "always = yes", false),
+		};
+		state.VictoryConditions = new() { ("axis", axis) };
+
+		CVictoryConditions.ChooseAtStart(state);
+
+		// The same draws by hand, on a generator seeded as the game is.
+		var expected = new List<bool> { true, false, false, false, false };
+		var random = new CRandom(state.Seed);
+		for (int i = 0; i < 2; i++)
+		{
+			int pick = random.Next() % expected.FindAll(chosen => !chosen).Count;
+			if (pick < 0)
+			{
+				expected[^1] = true;
+				continue;
+			}
+			for (int at = expected.Count - 1; at >= 0; at--)
+			{
+				if (!expected[at] && pick-- == 0)
+				{
+					expected[at] = true;
+					break;
+				}
+			}
+		}
+		Assert.Equal(expected, axis.ConvertAll(c => c.Chosen));
+		Assert.True(axis[0].Chosen);
+		Assert.InRange(CVictoryConditions.Chosen(state, "axis"), 2, 3);
 	}
 
 	[Fact]

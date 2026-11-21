@@ -180,10 +180,13 @@ has 33, allies 22 and comintern 30, fifteen of each primary.
 
 **The chosen** (C.5): a new game chooses each faction's: walking its list in order, each condition is chosen
 where it is primary, and each primary spends one of `NUMBER_OF_VICTORY_CONDITIONS` (15) - the walk stopping
-when none is left. Their Finest Hour has fifteen primaries a faction, so each faction has its fifteen. Where
-a faction has fewer primaries than the count, the original fills the rest with draws of a generator of its
-own seeded from the wall clock; that is not built (*Not built*). A chosen condition starts unmet, with no
-date.
+when none is left. Their Finest Hour has fifteen primaries a faction, so each faction has its fifteen. **Where
+a faction has fewer primaries than the count, the rest is drawn**: once for each one missing, while any condition is
+unchosen, a draw's signed remainder by the number unchosen is counted back from the last unchosen condition and that one
+is chosen - and **a remainder below nought takes the list's last condition whether it is chosen or not**, so a faction
+may end a condition short [exe]. The original draws on a generator of its own seeded from the wall clock; *ours* is one
+seeded from the game's seed, so that every machine and every replay makes the same game (*Ours*). A chosen condition
+starts unmet, with no date.
 
 **The test** (C.6) is the last thing of every day: each faction's chosen conditions in turn, each trigger
 asked **with no country in scope**; a condition **is met while its trigger holds** - one that stops holding
@@ -219,6 +222,9 @@ the current game?", Resign and Continue (C.8). **Built since 2026-11-08: `endgam
 
 ## Ours
 
+- **The victory conditions' fill draws on a generator seeded from the game's seed**, where the original's is seeded
+  from the wall clock (section 8): a game is made the same on every machine that makes it, and in a replay. Whether
+  one generator serves every faction or each has its own was not read; here it is one. Not raised for a decision.
 - **A faction's rules are read off its group** wherever they are asked, where the original copies them onto
   each member as a game is entered, monthly, on a join and on a leave: the same answer at every moment either
   is asked.
@@ -230,9 +236,8 @@ the current game?", Resign and Continue (C.8). **Built since 2026-11-08: `endgam
 
 - **The custom game's leave and join** (B.1): there is no custom game.
 - **The AI inviting, and limited wars by the AI**: the foreign minister is not built.
-- **The victory conditions' random fill**, for a faction with fewer primaries than the count: the original
-  draws on a generator seeded from the wall clock. Their Finest Hour never needs it; a mod that does gets
-  only its primaries, reported.
+- ~~**The victory conditions' random fill**~~ - built 2026-11-21 (section 8); Their Finest Hour never needs it, and a
+  mod that does is told so.
 - **`release_vassal`** and the liberation and puppet commands that also join a faction.
 
 ## Not established
