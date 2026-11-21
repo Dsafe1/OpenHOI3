@@ -131,7 +131,31 @@ public partial class CGuiListBox : CGuiObject
 	/// <summary>Brings a row to the top of the view, as far as the list goes.</summary>
 	public void ScrollTo(int first)
 	{
+		_kept = -1;
 		ShowFrom(first);
+	}
+
+	/// <summary>
+	/// The row that was first in view when the list was emptied, until the frame is over: a list made again - emptied and
+	/// filled anew, as most screens do when what they list changes - comes back where it was scrolled to and not at its
+	/// top. -1 for none. See <c>docs/mechanics/interface.md</c>, section 2.
+	/// </summary>
+	private int _kept = -1;
+
+	private void Keep()
+	{
+		if (_kept < 0 && _entries.Count > 0 && !_byHeights)
+		{
+			_kept = _first;
+			SetProcess(true);
+		}
+	}
+
+	/// <summary>The frame after a list was emptied: whatever it was filled with since is what it holds, and nothing is kept.</summary>
+	public override void _Process(double delta)
+	{
+		_kept = -1;
+		SetProcess(false);
 	}
 
 	/// <summary>How many entries the list holds.</summary>
@@ -160,6 +184,7 @@ public partial class CGuiListBox : CGuiObject
 	/// </summary>
 	public List<Control> Detach()
 	{
+		Keep();
 		var entries = new List<Control>(_entries);
 		foreach (Control entry in entries)
 		{
@@ -173,6 +198,7 @@ public partial class CGuiListBox : CGuiObject
 	/// <summary>Empties the list.</summary>
 	public void Clear()
 	{
+		Keep();
 		foreach (Control entry in _entries)
 		{
 			_content.RemoveChild(entry);
@@ -201,6 +227,7 @@ public partial class CGuiListBox : CGuiObject
 	/// <summary>Shows the last entries - a log's newest, at its bottom.</summary>
 	public void ShowLast()
 	{
+		_kept = -1;
 		ShowFrom(Unseen);
 	}
 
@@ -235,7 +262,8 @@ public partial class CGuiListBox : CGuiObject
 			}
 			return;
 		}
-		ShowFrom(_first);
+		// A list being made again goes as near to where it was as it has entries for yet.
+		ShowFrom(_kept >= 0 ? _kept : _first);
 	}
 
 	/// <summary>

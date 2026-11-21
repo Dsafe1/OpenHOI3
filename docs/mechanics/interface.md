@@ -171,6 +171,14 @@ does neither.
   - **A box shows a whole number of lines.** One with no row is not drawn at all.
     Nothing is cut off at the box's edge, top, bottom or side, and there is never half
     a line at the bottom.
+  - **A list made again stays where it was scrolled to.** *Ours*, since 2026-11-21 (`CGuiListBox`): a list emptied
+    and filled anew within a frame - how most screens show a change in what they list - comes back at the row it was
+    at, as near as it has entries for, and not at its top; an explicit scroll (`ScrollTo`, `ShowLast`) still wins. The
+    original does this caller by caller - a routine that puts a list's scrollbar back where it was before the list
+    was emptied, with seven callers, the diplomacy screen's lists among them
+    (`reversing/findings/FINDINGS-diplomacyview.md`) - so a list of its that is not one of the seven may go back to
+    its top where this one does not; which of its lists do was not read. Asked for on seeing the research queue jump
+    to its top at every change; the build queue had been given the same by hand on 2026-11-19.
   - **A list's scrollbar is never stopped by what holds the list.** A list told whether to take
     the mouse hands it to its rows and keeps it in a byte of its own, which none of its own methods
     reads; its scrollbar is not told. So where a screen's automation stops a window taking the
