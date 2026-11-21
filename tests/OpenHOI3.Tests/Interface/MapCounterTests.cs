@@ -172,6 +172,14 @@ public class MapCounterTests
 		Assert.Equal(ECounterRing.Under, CMapCounters.RingOf(division, Set(army)));     // however far down
 		Assert.Equal(ECounterRing.None, CMapCounters.RingOf(other, Set(army)));
 
+		// An AI in command of the selected unit, or of one above it, turns its own ring green and no other.
+		army.Agent = new OpenHOI3.Sim.Agents.CAgent(army.Owner, 0);
+		Assert.Equal(ECounterRing.SelectedUnderAi, CMapCounters.RingOf(army, Set(army)));
+		Assert.Equal(ECounterRing.SelectedUnderAi, CMapCounters.RingOf(division, Set(division)));
+		Assert.Equal(ECounterRing.Under, CMapCounters.RingOf(corps, Set(army)));
+		Assert.Equal(ECounterRing.Selected, CMapCounters.RingOf(other, Set(other)));
+		army.Agent = null;
+
 		// Nothing above the selected unit is marked.
 		Assert.Equal(ECounterRing.None, CMapCounters.RingOf(army, Set(corps)));
 		Assert.Equal(ECounterRing.Selected, CMapCounters.RingOf(corps, Set(corps)));

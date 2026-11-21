@@ -2588,8 +2588,8 @@ None of these blocks the list above.
   original's picture and colours, a unit out of radio range by a broken dark red line
   (since 2026-10-11); H switches the lines off and on, as the settings' `render_hierarchy` does; and the counter of
   every unit under it wears the original's second ring colour. The lines are
-  drawn at any zoom, and a selected unit an AI commands does not wear the original's green ring (`ECounterRing`),
-  though a headquarters is handed to the AI since 2026-11-09 (`unitpanel.md`, section 9).
+  drawn at any zoom, and a selected unit an AI commands wears the original's green ring since 2026-11-21
+  (`ECounterRing.SelectedUnderAi`; `unitpanel.md`, section 9).
   `docs/mechanics/mapunits.md`, section 8.
 - **What shows on the map at which zoom is the original's, told in its camera's heights**:
   nothing but the map from a height of 500 up, the far counter under that, the near one

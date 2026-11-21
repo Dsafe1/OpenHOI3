@@ -152,7 +152,12 @@ public sealed class CCounterKind
 		// The selected unit's ring white, a unit's under it the type's second colour; with none the colour is left alone.
 		if (ring != ECounterRing.None)
 		{
-			Set(material, "SelectionColor", ring == ECounterRing.Selected ? Colors.White : Colour(Type.Color2));
+			Set(material, "SelectionColor", ring switch
+			{
+				ECounterRing.Selected => Colors.White,
+				ECounterRing.SelectedUnderAi => Colour(Type.Color1),
+				_ => Colour(Type.Color2),
+			});
 		}
 		Set(material, "Selected", ring == ECounterRing.None ? 0f : 1f);
 		Set(material, "CounterScale", 1f);

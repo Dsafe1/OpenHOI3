@@ -32,6 +32,14 @@ public static class CMapCounters
 		}
 		if (selected.Contains(unit))
 		{
+			// An AI in command of it, or of a unit above it, turns its ring the counter type's first colour.
+			for (CUnit? above = unit; above is not null; above = above.Parent)
+			{
+				if (above.Agent is not null)
+				{
+					return ECounterRing.SelectedUnderAi;
+				}
+			}
 			return ECounterRing.Selected;
 		}
 		for (CUnit? above = unit.Parent; above is not null; above = above.Parent)
