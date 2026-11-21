@@ -38,7 +38,7 @@ content and no modders. So OpenHOI3 reads an install **as it is**:
 main menu: the map and its map modes, the economy, production and research, units and their
 movement, land, naval and air combat, supply and convoys, leaders, events and decisions, diplomacy,
 trade, war and peace, factions, politics, espionage, occupation and revolts, weather, the AI of every
-country nobody plays, saving and loading, and most of the original's screens. Expect rough edges and
+country nobody plays, saving and loading, multiplayer over the network, and most of the original's screens. Expect rough edges and
 missing pieces.
 
 Wherever the original can be checked, it is checked: a tool loads an install and sets what OpenHOI3

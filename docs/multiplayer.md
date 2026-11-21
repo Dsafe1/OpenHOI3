@@ -1,8 +1,9 @@
 # Multiplayer
 
-What is decided about playing one game on several machines. **Nothing of this is built.** It is the last large piece
-the normal engine lacks, and its shape is being worked out from 2026-11-20; this file holds what has been decided, in
-the order it was, and what is still open.
+What is decided about playing one game on several machines, and what of it is built. **It is built since
+2026-11-20, sections 5 to 14** - a host and its clients, the shared lobby, several players of one country, joining a
+game that runs. The file holds what was decided, in the order it was, what was built, and what is still open
+(section 4).
 
 ## 1. What the original gives us to go by
 
