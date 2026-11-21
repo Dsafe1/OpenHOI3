@@ -30,8 +30,14 @@ A strategy is **made again from nothing** every time, never added to:
    making; and, in any game, where it has never been made (a country that owned nothing until now).
 3. **At once, in a running game**: for both countries of each pair a war newly sets against each other, and each pair
    a leaving country stops fighting; for a country joining a faction and each of its neighbours; for each attacker of a
-   war that a peace ends. (And in the original when `add_ai_strategy` fires, and on a change of government it keeps in
-   the history - section 12.)
+   war that a peace ends. (And in the original when `add_ai_strategy` fires - section 12.)
+4. **At once, in any game, on a change of government the original keeps in the history** (`confirmed`,
+   `reversing/findings/FINDINGS-aistrategy.md`, A.1b): the `government` effect; `coup_by` with `THIS` or `FROM`, the
+   instigator's government taken; `release_vassal` and a puppet made - `create_vassal`, a peace's puppet, the politics
+   screen's row - each taking the overlord's. Its ten days start again and its theatres are left as they are. A change
+   of ruling party alone - an election, a coup by an ideology - and the history's own `government` lines make nothing;
+   nor does a rebel faction's government on its independence, which the original sets by no such caller. The original's
+   last caller, a command whose poster was not found, has nothing here.
 
 **A strategy is not made** for the rebels, for a country that owns no province, or for one whose acting capital is in
 no area of the supply network (`supply.md`, section 2).
@@ -211,7 +217,7 @@ provinces or fewer; where that is anything, +10 for a one-province T; added wher
 (`confirmed`, `reversing/findings/FINDINGS-aistrategy.md`, G.4a.) **The history's `historical_friend = TAG` appends the
 tag to the country's list**, with no test of one already held, and a save keeps the list as `historical_friends = { ... }`,
 written only where it is not empty, straight before `mobilize` (`savegame.md`, section 15). Only the strategy reads it:
-the antagonism's two terms (section 8, steps 2 and 8) and the befriend builder's pass-over and +400 (section 9). **No
+the antagonism's two terms (section 7) and the befriend builder's pass-over and +400 (section 8). **No
 file of Their Finest Hour or BlackICE gives a country any**, and the reference saves hold none, so every term is inert
 there; a mod's are read since 2026-11-21 (`CCountry.HistoricalFriends`).
 
@@ -257,20 +263,26 @@ BlackICE fire none.
 ## 12. Ours, and not built
 
 - **The ten days are asked once a day**, before a country's daily pass. The original asks them also at every diplomatic
-  change - a trade, an influence, an agreement, a change of hands - so its ten-day making can fall within a day; here
-  it falls at its start.
+  change - a trade, an influence, an agreement, a change of hands - but its days are whole calendar days and the daily
+  pass runs in the tick of the day's first hour, after that hour's own work, so a change can bring a due making forward
+  only inside that tick: a capture in the hour, or an earlier country's capitulation in the day's loop; one made by a
+  command after it finds the country made already (`reversing/findings/FINDINGS-aistrategy.md`, A.1a; the timing
+  *inferred*). Here such a making falls at the head of the country's day all the same.
 - **The border share is made when a strategy is**, from the map as it stands; the original's is made at the day's start.
 - **The daily making comes before every country's day, not before each in turn**: the original makes a country's
   strategy between the day of the country before it and its own.
 - **A faction's new member's neighbours are taken in the countries' order**; the original's list is in the order its
   walk of the provinces met them, which matters only to a personality not yet made.
-- **A change of government does not make the strategy at once**: the original does where the change is kept in the
-  history, and which of its callers do was not read; here it waits for the ten days.
-- **Not built**: military access, the production shares and the brigades the AI aims for - the military AI's, read but
-  not needed yet (`FINDINGS-aistrategy.md`, sections C and I); `add_ai_strategy` (section 10); a scenario's
+- ~~**A change of government does not make the strategy at once**~~ - it does since 2026-11-21, section 1.
+- **Not built**: military access, the production shares and the brigades the AI aims for - **read by nothing the AI
+  does** (`FINDINGS-aistrategy.md`, C.1a): military access and the two Lua getters no script calls, `max_subunits` and the
+  land and air shares only by the save; the naval share and the armour bias only by the force needs of a played
+  country's automated theatres (`FINDINGS-forceneeds.md`, 6.1a), not built here; `add_ai_strategy` (section 10); a scenario's
   `ai_hard_strategy` and missions, there being one start (`CLAUDE.md`, *Settled decisions*); `static` and
   `consolidate`. A save's military access, shares, brigades and the two flags are kept as it holds them and written back
-  (`savegame.md`, section 16), and nothing here acts on them; and in the walk `has_building` and a unit type, which are reported where met. Historical friends are
+  (`savegame.md`, section 16), and nothing here acts on them; and in the walk `has_building` and a unit type, whose lists **feed nothing** in the original (`FINDINGS-aistrategy.md`,
+  D.3a) - a building's list is saved, as `building_prov`, whose entries' form was not read - and no file of the base game
+  or BlackICE uses either: both still reported where met. Historical friends are
   read since 2026-11-21 (9.2).
 
 ## 13. Checked against the start save

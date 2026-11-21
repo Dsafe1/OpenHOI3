@@ -34,6 +34,7 @@ public static class CPoliticsEffects
 				{
 					country.GovernmentType = government.Name;
 					CMinisterPosts.Fill(state, country, refillAll: true, electedOnly: false);
+					Ai.CAiStrategies.AfterGovernmentChanged(state, country);
 				}
 				return true;
 			case "coup_by":
@@ -129,6 +130,11 @@ public static class CPoliticsEffects
 		CMinisterPosts.Fill(state, country, refillAll: true, electedOnly: false);
 		country.LastElection = state.Date;
 		CCabinet.Allot(state, country);
+		// A coup by a country changes the government, and the strategy is made again; one by an ideology alone does not.
+		if (instigator is not null)
+		{
+			Ai.CAiStrategies.AfterGovernmentChanged(state, country);
+		}
 	}
 
 	/// <summary>

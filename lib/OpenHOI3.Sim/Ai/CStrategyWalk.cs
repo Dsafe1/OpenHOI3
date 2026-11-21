@@ -74,7 +74,9 @@ public static class CStrategyWalk
 				return;
 			case ETriggerKind.Building:
 			case ETriggerKind.UnitType:
-				// They fill the strategy's buildings and brigades to aim for, which are the military AI's and not kept.
+				// They fill the strategy's buildings and brigades to aim for, which nothing of the original's AI reads; the
+				// buildings' list is saved as building_prov, whose entries were not read, so neither is kept here
+				// (aistrategy.md, section 12).
 				if (!negated)
 				{
 					state.ScriptReport?.Add(trigger.Key, EScriptGap.Unbuilt);

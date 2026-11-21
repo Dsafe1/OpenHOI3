@@ -33,6 +33,7 @@ public static class CPuppets
 		if (vassal.GovernmentType != overlord.GovernmentType && state.Governments.GetValueOrDefault(overlord.GovernmentType) is { ValidForNewCountry: true })
 		{
 			vassal.GovernmentType = overlord.GovernmentType;
+			Ai.CAiStrategies.AfterGovernmentChanged(state, vassal);
 		}
 		Politics.CMinisterPosts.Fill(state, vassal, refillAll: true, electedOnly: false);
 	}
@@ -92,6 +93,7 @@ public static class CPuppets
 		// The overlord's government, and every post filled again for it (politics.md, section 7).
 		vassal.GovernmentType = overlord.GovernmentType;
 		Politics.CMinisterPosts.Fill(state, vassal, refillAll: true, electedOnly: false);
+		Ai.CAiStrategies.AfterGovernmentChanged(state, vassal);
 		// The change of diplomacy, the overlord's and then the vassal's: so a vassal at peace gives up the laws only a war
 		// allowed (politics.md, section 9; measured: China's three at the 1939 bookmark).
 		Politics.CLaws.OnDiplomacyChanged(state, overlord);

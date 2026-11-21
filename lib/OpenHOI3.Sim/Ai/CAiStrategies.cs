@@ -72,6 +72,16 @@ public static class CAiStrategies
 		}
 	}
 
+	/// <summary>
+	/// Made again at once where a change of government is the kind the original keeps in the history - the
+	/// <c>government</c> effect, a coup by a country, a puppet made - with no test of the ten days or of a game running,
+	/// and the theatres left as they are (<c>docs/mechanics/aistrategy.md</c>, section 4).
+	/// </summary>
+	public static void AfterGovernmentChanged(CGameState state, CCountry country)
+	{
+		Make(state, country);
+	}
+
 	/// <summary>A faction's new member's strategy made again, then each of its neighbours', in a running game only.</summary>
 	public static void AfterFactionJoined(CGameState state, CCountry country)
 	{
