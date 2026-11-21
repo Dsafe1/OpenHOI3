@@ -153,13 +153,49 @@ whatever its revolt risk would make it, where the province is not greyed.
 No reference save holds an underground, so `OpenHOI3.SaveCheck underground <install> [occupier] [occupied]
 [days] [seed]` is a trial: the occupier at war with the occupied and holding ten of its provinces away from its
 capital, an underground of the occupied finished in each of the first three - to spread, to raise partisans and to
-build up - and the days run.
+build up - and the days run. The occupied is played, so the three keep their actions; with `ai` after the rest nobody
+plays it and the AI sets them (section 10).
 
 On 2026-10-15, Germany and Poland for ninety days: the three start at 0.33, 0.32 and 0.33, from Poland's nearest air
 base, and grow 0.01 a day. Braslaw raises partisans on its eighteenth day, paying 0.5 - **in Zarasai beside it, which
 they hand back to Poland, and Zarasai's own underground is dissolved with it**, the province being its owner's again -
 and again fifty days later. Szarkowszczyzna, building up, is full on the sixty-ninth day and stays so. Braslaw could not
 have spread: its two Polish neighbours have undergrounds.
+
+On 2026-11-21 with `ai`, the same ninety days: the ten held provinces are an area of their own, too small for three to
+be under 4% of it, so the AI sets all three to build up at once and raises them together once the last is at 0.5 -
+as a score of nought would, no unit of either side standing on the area's fronts.
+
+## 10. What the AI does with them
+
+Read whole (`reversing/findings/FINDINGS-occupation.md`, section E.9a); `CUndergroundAi`. **Every hour**, for every
+country but `REB` and the player - whatever the player has handed to the AI - and a government in exile with them, ahead
+of its ministers. All of it is the engine's; none of its figures is a define.
+
+1. A country's undergrounds are **grouped by the supply area of their province**; one in a province with no area is left
+   out.
+2. **A score, 0 to 1000**, for each area with provinces, from nought and only where the area touches a hostile area,
+   over its land fronts in order (`theatres.md`, section 2):
+   - **C** is the controller of the front's first province held by somebody other than its owner; a front with none is
+     passed over;
+   - **L** is the owner of the first neighbour of that province, by any edge, that its owner holds and whose owner is
+     C's enemy; **a front with no L ends the walk of every front after it**;
+   - a front is passed over where L is the country's enemy;
+   - every unit in the front's provinces counts its power (`agents.md`, section 7.3) **for its lender where it is lent**,
+     else its owner: to C's side where that country is C's friend with military access, otherwise to L's where it is
+     L's;
+   - a front is passed over where L's side has power and C's is under 1.1 times it; otherwise it adds a tenth of the
+     difference, half again where the area's controller is the country - every division towards nought;
+   - the score is held to at most 1000.
+3. With t = 1000 less the score and n the area's undergrounds:
+   - **spread** where n / min(the area's provinces, 200) is under (20 + 20t/1000) / 1000 - both sides in fifteen binary
+     places, truncated - so a share of 2% to 4%: every one of them not spreading is set to spread;
+   - otherwise, where fewer of them may raise partisans (section 4) than n × t / 1000, truncated, every one is set to
+     **build up**, and else every one to **raise partisans**.
+
+Each change is a change of the underground's mission (section 6), posted only where the action is not already that;
+the day then carries it out (section 3). **The AI gives no other order**: it never spawns partisans or an underground at
+once, and never presses Organized Revolt.
 
 ## What looks wrong and is built so
 
@@ -173,6 +209,10 @@ have spread: its two Polish neighbours have undergrounds.
 - Growth comes before it may be found and before it is not needed.
 - Being found is rounded half to even.
 - `UNDERGROUND_PARTISAN_STRENGTH` is read and used for nothing.
+- The AI's score (section 10): a front with nobody across the line ends the walk of the rest, lent units count for their
+  lender, and with no hostile border the score is nought, so the AI spreads to 4% of the area, waits until every one is
+  ready and raises them all; where the occupier's side holds the fronts strongly it spreads to 2% and raises partisans
+  as soon as one can.
 
 ## Ours
 
@@ -182,6 +222,8 @@ have spread: its two Polish neighbours have undergrounds.
   rebuilds its list in each day; one a spread makes is first walked the next day.
 - **A country's air bases are its provinces with an air base, in their numbers' order**, and its allies' after them
   in the order they are allied; the original keeps a list of each in the order they came.
+- **The AI takes a country's areas in the order their first underground comes in**; the original's map is keyed by the
+  area's address in memory. Only the order the commands are posted in hangs on it.
 - **The console's `alwayspartisants`**, which lets an underground raise partisans whatever its strength, is not built.
 
 ## Not established
@@ -190,4 +232,3 @@ have spread: its two Polish neighbours have undergrounds.
   for anyone else's).
 - ~~`CCountry::GetRandomUnderGroundTarget`, which the AI's production minister builds them with~~ - built
   (`CCountryEconomyMethods`; `lua.md`).
-- The AI's management of its undergrounds, which asks a unit's power and an unread test of an area.

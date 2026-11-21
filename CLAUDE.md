@@ -928,13 +928,14 @@ beside the repository.
   organisation after its first hour**, the rebels having no officers (`rebels.md`, section 13) - the original's, by the
   account of 2026-10-15: they "dont" have organisation. Run it after touching
   `Sim/Revolts`, `CRelease` or the capture in `CCombats`.
-  `OpenHOI3.SaveCheck underground <install> [occupier] [occupied] [days] [seed]` is a trial too - no save holds an
+  `OpenHOI3.SaveCheck underground <install> [occupier] [occupied] [days] [seed] [ai]` is a trial too - no save holds an
   underground: the same war and ten provinces held, an underground of the occupied finished in each of the first three,
   to spread, to raise partisans and to build up, as a line of the queue would finish it - the queue holds no buildings -
   and the days run, telling each one's strength and action (`docs/mechanics/undergrounds.md`, section 9). On 2026-10-15,
   ninety days: they start at about 0.33 from Poland's nearest air base and grow 0.01 a day, and Braslaw's partisans
-  rise in Zarasai, hand it back to Poland and dissolve Zarasai's own underground with it. Run it after touching
-  `CUndergrounds` or what a province's suppression is made of.
+  rise in Zarasai, hand it back to Poland and dissolve Zarasai's own underground with it. The occupied is played, so the
+  three keep their actions; with `ai` the AI sets them (section 10) - on 2026-11-21 all three built up, then raised
+  together. Run it after touching `CUndergrounds`, `CUndergroundAi` or what a province's suppression is made of.
   `OpenHOI3.SaveCheck load <install> <savegame> [hours] [later savegame]` loads a save of the original's as a game here: it
   lists every key not loaded yet by its block, sets the owners, laws and technology levels beside the save's, then every
   unit, brigade, leader in service and line of the queue, found by its number, and runs the hours given - or, given a later

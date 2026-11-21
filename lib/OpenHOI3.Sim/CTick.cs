@@ -122,6 +122,8 @@ public static class CTick
 		Step(state, Agreements.CPactPasses.AskPlayers);
 		// Each AI country answers the offers made to it (docs/mechanics/agreements.md, section 2).
 		AiStep(state, Agreements.CPactPasses.AnswerOffers);
+		// Then what it does with its undergrounds, every hour and ahead of its ministers (undergrounds.md, section 10).
+		AiStep(state, Revolts.CUndergroundAi.RunHourly);
 		// Then its politics minister, in its own hour of the day (docs/mechanics/politics.md, section 12).
 		AiStep(state, Politics.CPoliticsAi.RunHourly);
 		// And its intelligence minister, in its own hour (espionage.md, section 15; ours: where beside the politics).
@@ -363,6 +365,7 @@ public static class CTick
 	{
 		Agreements.CPactPasses.AskPlayers(state);
 		Agreements.CPactPasses.AnswerOffers(state);
+		Revolts.CUndergroundAi.RunHourly(state);
 		Politics.CPoliticsAi.RunHourly(state);
 		Espionage.CEspionageAi.RunHourly(state);
 		Ai.CForeignAi.RunHourly(state);

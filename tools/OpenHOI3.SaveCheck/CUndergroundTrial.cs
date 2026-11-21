@@ -16,9 +16,10 @@ using OpenHOI3.Sim.Wars;
 /// A trial, not a check: no reference save holds an underground. On a new game the occupier is put at war
 /// with the occupied and given ten of its provinces away from its capital; an underground of the occupied is finished
 /// in each of the first three, as a line of the queue would finish it, to spread, to raise partisans and to build up; and the days are run,
-/// telling each underground's strength, the partisans it raises, its spreading and its end:
+/// telling each underground's strength, the partisans it raises, its spreading and its end. The occupied is played, so the
+/// three keep their actions; with <c>ai</c> nobody plays it and the AI sets them (section 10):
 ///
-///   OpenHOI3.SaveCheck underground &lt;install folder&gt; [occupier] [occupied] [days] [seed]
+///   OpenHOI3.SaveCheck underground &lt;install folder&gt; [occupier] [occupied] [days] [seed] [ai]
 ///
 /// Germany and Poland for ninety days with nothing given. See <c>docs/mechanics/undergrounds.md</c>.
 /// </summary>
@@ -31,7 +32,7 @@ internal static class CUndergroundTrial
 	{
 		if (args.Length < 2)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck underground <install folder> [occupier] [occupied] [days] [seed]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck underground <install folder> [occupier] [occupied] [days] [seed] [ai]");
 			return 2;
 		}
 		string[] tags = args.Skip(2).Where(a => a.Length == 3 && !int.TryParse(a, out _)).ToArray();
@@ -39,6 +40,7 @@ internal static class CUndergroundTrial
 		CCountryTag occupierTag = new(tags.Length > 0 ? tags[0] : "GER");
 		CCountryTag occupiedTag = new(tags.Length > 1 ? tags[1] : "POL");
 		int days = numbers.Length > 0 ? numbers[0] : 90;
+		bool byAi = args.Skip(2).Contains("ai");
 
 		var warnings = new List<string>();
 		CDirectorySettings directories = CToolDirectories.At(args[1]);
@@ -64,6 +66,10 @@ internal static class CUndergroundTrial
 		}
 		Console.WriteLine($"the underground is '{building.Key}', most level {building.MaxLevel}, {(building.IsRepaired ? "repaired" : "not repaired")}");
 
+		if (!byAi)
+		{
+			state.Played.Add(occupiedTag);
+		}
 		CDeclarations.Apply(state, occupier, occupied, true, null);
 		foreach (var unit in occupied.UnitsInOrder())
 		{

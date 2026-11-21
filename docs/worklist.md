@@ -1505,7 +1505,7 @@ section 6). The cut proposed, this project's, in four pieces as politics and esp
       the dissolution when the owner's side retakes a province; and red on the revolt map. **Ordering one is not
       built**: the queue holds units only, and the decision of 2026-10-15 was "Undergrounds now, queue
       later" - `--underground=POL:1440:0` finishes one as a line would. No save holds one, so `OpenHOI3.SaveCheck
-      underground` is a trial. The province view gives their mission and spawns (`provinceview.md`); the AI's management of them is not built. **It
+      underground` is a trial. The province view gives their mission and spawns (`provinceview.md`); the AI's management of them is built since 2026-11-21 (`CUndergroundAi`, section 10). **It
       has not been reviewed in play.**
 
 **Then: buildings in the build queue - built** (2026-10-15, by decision: "Undergrounds now, queue
