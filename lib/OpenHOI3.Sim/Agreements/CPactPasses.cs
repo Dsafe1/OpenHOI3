@@ -41,8 +41,13 @@ public static class CPactPasses
 			{
 				continue;
 			}
+			// A country with no land and no government in exile has no pass past its landless units, its list left to the
+			// day's drop (agreements.md, section 2).
+			if (CCountryLists.OwnedCount(state, country.Tag) <= 0 && !country.InExile)
+			{
+				continue;
+			}
 			var kept = new List<COffer>();
-			if (CCountryLists.OwnedCount(state, country.Tag) > 0)
 			{
 				bool tradeAccepted = false;
 				foreach (COffer offer in country.PendingOffers)

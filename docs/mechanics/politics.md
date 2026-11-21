@@ -494,9 +494,13 @@ country's dissent (101 of 101, from 85), national unity (101 of 101, from 99) an
 
 **Its hour.** Each hour, after the trading, every politics minister in the countries' order: one whose country owns
 land or is in exile counts down to its first work, and from then on is asked every hour, but does something only in
-its country's hour of the day, `(number + 17) mod 24` - *ours*: the number is its place among the countries plus one,
-the original's numbering not read; borne out by New Zealand, 79 so, whose minister alone works at hour 0 of both 1941
-bookmarks' start saves (below).
+its country's hour of the day, `(number + 17) mod 24` - the number its database index, `---` 0 and then
+`common/countries.txt`'s order from 1, which is its place among the countries plus one (`confirmed`,
+`reversing/findings/FINDINGS-ai.md`, section 1a); borne out by New Zealand, 79 so, whose minister alone works at hour 0 of
+both 1941 bookmarks' start saves (below). **The five ministers' offsets - intelligence 1, technology 3, production 5,
+foreign 13, politics 17 - are distinct in a day**, so no two of a country's work in one hour. A country with no land that is no
+government in exile runs none of them, its pass ending at its landless units; each works before the country's units
+move.
 
 **The hour before the first (not built).** The original's first AI pass runs at the new game's hour 0, the frame after
 its entry, before the first hour is played (`reversing/findings/FINDINGS-government.md`, E.1; `FINDINGS-aisched.md`), so
@@ -613,7 +617,6 @@ run behind the look's changes (section 9, the peace-time revert; section 12); 70
 - What laws a country starts with that its history gives none - the rebels' conscription, economy and press (section
   10). Section 13's pass gives such a group the latest law it is allowed, where the original's country holds no law of
   it; whether it holds a null law there that the walk meets first was not read.
-- The original's numbering of a country, which its minister's hour hangs on (section 12).
 - What normalises an existing country's organisation a second time before the first screen (section 2) -
   built as measured.
 - The minister pool at a new game (section 7): the bytes and the start save disagree; built as the save.

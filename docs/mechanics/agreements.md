@@ -57,7 +57,9 @@ answer: **they take effect when they are proposed**.
 ## 2. The AI's answer
 
 **Every country nobody plays answers the offers on its list every hour** (`confirmed`), in the order
-they came, after the hour's other business:
+they came, after the hour's other business - its foreign minister's work, so **not a country with no land that is no
+government in exile**, whose pass ends at its landless units and whose list is left to the 96-hour drop
+(`reversing/findings/FINDINGS-ai.md`, section 1a):
 
 - an offer is answered only where the AI answers its kind: an **alliance** or a **non-aggression
   pact** with value yes; **military access**, asked or offered, while proposed with value yes. Others

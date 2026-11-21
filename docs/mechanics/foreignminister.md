@@ -259,5 +259,10 @@ Do not tidy:
 
 ## 12. Not established
 
-- Where in the AI's pass a minister's hour falls beside the others'; built as one step per minister.
+- ~~Where in the AI's pass a minister's hour falls beside the others'~~ - read 2026-11-21
+  (`reversing/findings/FINDINGS-ai.md`, section 1a): each country's pass runs its ministers in the order foreign,
+  production, intelligence, technology, politics, then answers its offers, then moves its units; a landless country not
+  in exile runs none. **Ours runs one step per minister over every country**: what each posts waits for the hour's end,
+  so what differs is the order of the posted commands and of the draws on the AI's one generator - which in the original
+  hangs on its worker threads too, the countries' passes running side by side (`tick.md`).
 - What one figure of the original's minister, -1 from its constructor, is (`FINDINGS-foreignminister.md`).

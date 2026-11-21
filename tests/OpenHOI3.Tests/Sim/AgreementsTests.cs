@@ -362,6 +362,24 @@ public class AgreementsTests
 	}
 
 	[Fact]
+	public void A_country_with_no_land_leaves_its_offers_unanswered_but_a_government_in_exile_answers()
+	{
+		CGameState state = World();
+		state.AiScripts = new FixedScripts(100);
+		CCountryTag slo = ScriptWorld.Slo;
+		Run(state, Offer(state, EOfferKind.Alliance, Pol, slo));
+		CPactPasses.AnswerOffers(state);
+		Assert.Empty(state.Outbox);
+		Assert.Single(C(state, slo).PendingOffers);
+
+		C(state, slo).InExile = true;
+		CPactPasses.AnswerOffers(state);
+		RunPosted(state);
+		Assert.Empty(C(state, slo).PendingOffers);
+		Assert.True(CCountryLists.HasAlliance(state, Pol, slo));
+	}
+
+	[Fact]
 	public void A_played_countrys_offers_are_the_AIs_to_answer_and_drop_once_its_diplomacy_is_handed_over()
 	{
 		CGameState state = World();
