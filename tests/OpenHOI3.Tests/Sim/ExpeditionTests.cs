@@ -289,4 +289,60 @@ public class ExpeditionTests
 		Assert.Equal((Fra, (CCountryTag?)Eng), (nobodys.Owner, nobodys.Lender));
 		Assert.Equal(new[] { nobodys }, britain.LentUnits);
 	}
+
+	[Fact]
+	public void A_country_with_no_land_hands_its_fleets_to_its_leader_and_each_land_unit_to_whoever_of_its_faction_holds_the_ground()
+	{
+		var usa = new CCountryTag("USA");
+		var hol = new CCountryTag("HOL");
+		CProvince Land(int id, CCountryTag owner) => new(id, $"p{id}", isSea: false) { Owner = owner, Controller = owner };
+		var state = new CGameState(new CDate(1940, 6, 1),
+			new[] { new CProvince(0, "", isSea: false), Land(1, Eng), Land(2, hol), Land(3, usa), new CProvince(4, "sea", isSea: true) },
+			new[]
+			{
+				new CCountry { Tag = Eng, Name = "England", DefinitionFile = "", Faction = "allies" },
+				new CCountry { Tag = Fra, Name = "France", DefinitionFile = "", Faction = "allies" },
+				new CCountry { Tag = hol, Name = "Holland", DefinitionFile = "", Faction = "allies" },
+				new CCountry { Tag = usa, Name = "America", DefinitionFile = "", Faction = "" },
+			});
+		CCountry france = state.Country(Fra)!;
+		CUnit Unit(int id, EUnitKind kind, int at)
+		{
+			var unit = new CUnit(kind, Fra) { Id = id, Name = $"u{id}", Location = at, ListOrder = id };
+			france.Units.Add(unit);
+			return unit;
+		}
+		Unit(1, EUnitKind.Theatre, 1);
+		Unit(2, EUnitKind.Division, 1);
+		Unit(3, EUnitKind.Division, 2);
+		Unit(4, EUnitKind.Division, 3);
+		Unit(5, EUnitKind.Navy, 4);
+
+		CLandlessUnitsRun(state);
+		Assert.Equal(4, state.Outbox.Count);
+		foreach (CCommand command in state.Outbox.ToList())
+		{
+			command.Execute(state);
+		}
+		Assert.Equal(Fra, france.Units.Single().Owner);
+		Assert.Equal(Eng, CUnitFinder.Find(state, Eng, 2)!.Owner);
+		Assert.Equal(hol, CUnitFinder.Find(state, hol, 3)!.Owner);
+		// On a factionless country's ground, and at sea: the leader's.
+		Assert.Equal(Eng, CUnitFinder.Find(state, Eng, 4)!.Owner);
+		Assert.Equal(Eng, CUnitFinder.Find(state, Eng, 5)!.Owner);
+		Assert.Equal(Fra, CUnitFinder.Find(state, Eng, 5)!.Lender);
+
+		// A country in exile, or with land, keeps its units; one in no faction has nobody to give them to.
+		state.Outbox.Clear();
+		Unit(6, EUnitKind.Division, 1);
+		france.InExile = true;
+		CLandlessUnitsRun(state);
+		Assert.Empty(state.Outbox);
+		france.InExile = false;
+		france.Faction = "";
+		CLandlessUnitsRun(state);
+		Assert.Empty(state.Outbox);
+	}
+
+	private static void CLandlessUnitsRun(CGameState state) => OpenHOI3.Sim.Agents.CLandlessUnits.RunHourly(state);
 }

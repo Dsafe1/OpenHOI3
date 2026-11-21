@@ -22,7 +22,7 @@ A withdrawal sets only the date, the return define's days from now; nobody is to
 
 **Going home**, in order (`CUnit::ReturnFromExpedition`, read whole): the unit leaves its commander; it leaves its lender's list and has no lender; the host's AI lets it go; it is the lender's; what was under it is detached where it stands; and both sides are told. `EXPRETURNEDWE` to the host and `EXPRETURNED` to the lender, each with the player's standard values, ACTOR the host, RECIPIENT the lender, MESSENGER the foreign office and NAME the unit's, about the province the unit stands in, the host first and the lender second, and **carrying the unit**: its Goto selects it - the lender's by then - and centres on it, and the popup closes (`messages.md`, section 4.1; `reversing/findings/FINDINGS-expedition.md`, the addition of 2026-11-14). Checked on screen: a save's Phillippine Force sent home to the United States is selected at Manila by the popup's Go to. No peace, change of alliance or end of a war sends one home.
 
-**The AI's own route** (`CSendExpeditionCommand`, `agents.md`, section 10.5) asks nobody and waits for nothing: the unit and **everything under it go to the other country together, the tree kept**. Each that came from that country first is its own again, nobody's loan; any other is lent, remembering who lent it first - its owner where it came from nobody - with no recall standing. Nobody is told. The AI's agents detach what is under a unit before they give one back and lend only a unit with nothing under it, so here, where a landless country's sending abroad is not built (section 6), a tree is not carried yet.
+**The AI's own route** (`CSendExpeditionCommand`, `agents.md`, section 10.5) asks nobody and waits for nothing: the unit and **everything under it go to the other country together, the tree kept**. Each that came from that country first is its own again, nobody's loan; any other is lent, remembering who lent it first - its owner where it came from nobody - with no recall standing. Nobody is told. The AI's agents detach what is under a unit before they give one back and lend only a unit with nothing under it, so a tree is carried only by a landless country's hand-out (section 6).
 
 **Ours**: a unit home, by either route, has its date cleared, where the original leaves its old one, which nothing reads without a lender.
 
@@ -50,8 +50,16 @@ Tried with `OpenHOI3.SaveCheck declare <install> GER FRA occupy lend=ENG` on 202
 
 **Kept as read**: a unit at sea is never asked about; a corps' divisions come back each as a unit of its own, not under it.
 
-## 6. Not built
+## 6. A landless country's units, and the AI and the player
 
-The AI lending or giving back by an offer, and a landless country's units sent abroad by the AI's own route (`agents.md`, section 13). A player asked to accept one, which only an AI's offer could raise.
+(`confirmed`, `reversing/findings/FINDINGS-expedition.md`, 3.1a; `CLandlessUnits`.) **A country that owns nothing and is not in exile hands its units to its faction every hour** - all its AI pass does for it - and only where it is in a faction. Each of its units but a theatre, in its list's order, goes by the AI's route (section 3), to each other member not in exile that takes it:
+
+- **a fleet or an air unit to the faction's leader**, its first member, alone;
+- **a land unit to the member holding the province it stands in**, and to the leader where a country of no faction or another one holds it - or nobody;
+- so a unit on its own ground or an enemy's stays, and is taken out of the game in its hour (`war.md`, section 11), and a landless leader gives its fleets and air units to nobody.
+
+The posted commands run before the next hour, and the hour takes the country's units in its own pass, before the AI's: so **only a country made landless in the hour after its units' turn has any to hand out**, a capture by a later country's battle - the original's order too, its AI pass running the frame after the hour. A unit with a superior in the list's order goes with the superior's tree, its own command then refused; one before it goes alone (*ours*: which of the list's units are the children of others in the original was not read). No test of a person: a played landless country's go the same way (*inferred*).
+
+**The AI never offers an expeditionary force**, to anyone - nothing of the AI's makes the offer, and the Lua names it only to answer one - so the player is asked to accept one only by another player. **But it lends to a played country by its own route** (`agents.md`, section 10.5): where a person plays the controller of the area its unit stands in, only while it holds one of its priority provinces there; and **it never gives back a unit a played country lent it**, which goes home only by its date, an annexation or an exile. Both built.
 
 **Ours**: the original's AI is told of a unit going home, every agent that holds it letting it go; the agents here keep their lists until they next sort their subordinates (`agents.md`, section 5.1), and only the unit's own agent is told.

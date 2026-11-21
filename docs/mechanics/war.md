@@ -503,7 +503,7 @@ straight after each unit's own look at its order - a fleet's base check with it 
 rebels, owns no province and is not a government in exile is taken out of the game **at once**, not at the hour's end,
 with its officers (`CGameState::RemoveUnit` with its flags 0 and 1). Every unit of such a country is taken, busy or not.
 So a country made landless by a peace, a release or an effect keeps its army only for the rest of the hour; one in exile
-keeps it (section 14).
+keeps it (section 14). Its AI pass hands what is left of it to its faction first (`expeditions.md`, section 6).
 
 **A change of owner** (`CMapProvince::ChangeOwner`, D.3) sets the controller first with the same flags,
 then the owner - never the rebels; where the old owner was a country, the province's nationalism is set to

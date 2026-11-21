@@ -124,6 +124,9 @@ public static class CTick
 		AiStep(state, Agreements.CPactPasses.AnswerOffers);
 		// Then what it does with its undergrounds, every hour and ahead of its ministers (undergrounds.md, section 10).
 		AiStep(state, Revolts.CUndergroundAi.RunHourly);
+		// And a country with no land and no government in exile hands its units to its faction, which is all its pass
+		// does (expeditions.md, section 6).
+		AiStep(state, Agents.CLandlessUnits.RunHourly);
 		// Then its politics minister, in its own hour of the day (docs/mechanics/politics.md, section 12).
 		AiStep(state, Politics.CPoliticsAi.RunHourly);
 		// And its intelligence minister, in its own hour (espionage.md, section 15; ours: where beside the politics).
@@ -366,6 +369,7 @@ public static class CTick
 		Agreements.CPactPasses.AskPlayers(state);
 		Agreements.CPactPasses.AnswerOffers(state);
 		Revolts.CUndergroundAi.RunHourly(state);
+		Agents.CLandlessUnits.RunHourly(state);
 		Politics.CPoliticsAi.RunHourly(state);
 		Espionage.CEspionageAi.RunHourly(state);
 		Ai.CForeignAi.RunHourly(state);

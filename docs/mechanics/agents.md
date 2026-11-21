@@ -638,7 +638,8 @@ priority province in the area or beside it against an enemy, or the holder unpla
 
 - **Moving and attacking** - the land block, `ManageLandUnits`, `IsUnitReservedForTransport`, the reserve and what is committed,
   and `RebuildHoldProvinces` - the third piece; and with it the axis (the path to the objectives at stance 3 and 4), embark and debark, the
-  movers between theatres, invasions, the pride, the leaders promoted and the units sent abroad by a landless country.
+  movers between theatres, invasions, the pride, the leaders promoted and the units sent abroad by a landless country
+  (built since, `expeditions.md`, section 6).
 - **The transport plane and strategic bomber wants**, and a term of the
   division demand whose source was not read, taken as nought.
 - **The front coverage's hold positions at stance 0**, a stance the AI never chooses.
