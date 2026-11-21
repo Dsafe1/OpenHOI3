@@ -65,13 +65,21 @@ public static class CGameStateLoader
 	/// The hour the game begins at, a bookmark's - the defines' <c>start_date</c> where none is given
 	/// (<c>docs/mechanics/bookmarks.md</c>).
 	/// </param>
+	/// <param name="seed">
+	/// The game's seed, set before anything of the new game is drawn; the state's own, 1, where none is given - which the
+	/// savegame tool's checks keep (<c>docs/mechanics/frontend.md</c>, *Ours*).
+	/// </param>
 	public static CGameState LoadStart(CDirectorySettings directories, CMap map,
 		CLocalisation localisation, CCountries countries, Action<string>? warn = null, bool fill = true,
 		bool firstDays = true, IAiScripts? aiScripts = null, IEnumerable<CCountryTag>? played = null,
-		Action<CGameState>? beforeFirstDays = null, CDate? date = null)
+		Action<CGameState>? beforeFirstDays = null, CDate? date = null, uint? seed = null)
 	{
 		warn ??= CDiagnostics.Problem;
 		CGameState state = BuildWorld(directories, map, localisation, countries, warn, aiScripts, date);
+		if (seed is { } given)
+		{
+			state.Seed = given;
+		}
 		IReadOnlyDictionary<string, CSubUnitType> unitTypes = state.SubUnitTypes;
 		return SetUpNewGame(directories, state, countries, unitTypes, warn, fill, firstDays, played, beforeFirstDays);
 	}
@@ -277,15 +285,20 @@ public static class CGameStateLoader
 
 	/// <summary>
 	/// A new game from a world <see cref="BuildWorld"/> made, as the lobby's Play makes one of the world it shows
-	/// (<c>docs/mechanics/frontend.md</c>, section 3): the played countries, then the rest of a new game.
+	/// (<c>docs/mechanics/frontend.md</c>, *Ours*): the played countries, then the rest of a new game.
 	/// </summary>
 	/// <param name="chooseVictoryConditions">
 	/// Whether the victory conditions are chosen: as a bookmark chosen in the lobby chooses them, and not for a Quick Start,
 	/// which chooses none (<c>docs/mechanics/bookmarks.md</c>, section 4).
 	/// </param>
+	/// <param name="seed">The game's seed, set before anything of the new game is drawn; the world's own where none is given.</param>
 	public static CGameState StartNewGame(CDirectorySettings directories, CGameState world, CCountries countries,
-		IEnumerable<CCountryTag> played, Action<string>? warn = null, bool chooseVictoryConditions = true)
+		IEnumerable<CCountryTag> played, Action<string>? warn = null, bool chooseVictoryConditions = true, uint? seed = null)
 	{
+		if (seed is { } given)
+		{
+			world.Seed = given;
+		}
 		return SetUpNewGame(directories, world, countries, world.SubUnitTypes, warn ?? CDiagnostics.Problem, fill: true,
 			firstDays: true, played, beforeFirstDays: null, chooseVictoryConditions);
 	}

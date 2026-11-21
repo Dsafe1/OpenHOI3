@@ -2404,6 +2404,24 @@ public partial class CSession : Node
 		}
 	}
 
+	/// <summary>
+	/// The seed a new game is made with: <c>--seed=N</c>'s, or else one taken from the clock as Play is pressed, as the
+	/// original takes one - so two games of one start differ, and one played again with its seed given is the same game
+	/// (<c>docs/mechanics/frontend.md</c>, *Ours*). It is printed, so a game can be had again.
+	/// </summary>
+	internal static uint NewGameSeed()
+	{
+		if (Argument("--seed=") is { } text && uint.TryParse(text, out uint given))
+		{
+			GD.Print($"--seed: the new game is seeded with {given}.");
+			return given;
+		}
+		long ticks = System.DateTime.UtcNow.Ticks;
+		uint seed = unchecked((uint)ticks ^ (uint)(ticks >> 32));
+		GD.Print($"The new game is seeded with {seed}, from the clock; --seed={seed} makes it again.");
+		return seed;
+	}
+
 	/// <summary>What follows a switch on the command line - the recording of <c>--replay=</c> or <c>--record=</c> - or null.</summary>
 	internal static string? Argument(string switchName)
 	{
@@ -2624,7 +2642,8 @@ public partial class CSession : Node
 	/// (read before anything is, by <c>Main</c>; <c>docs/launcher.md</c>, section 5),
 	/// <c>--centre=1861</c> puts a province in the middle and selects it,
 	/// <c>--country=ENG</c> plays that country and not Germany, <c>--date=1939.9.1</c> begins its game at that date as the
-	/// lobby's bookmark of it would (read as the game is made, not here),
+	/// lobby's bookmark of it would (read as the game is made, not here), <c>--seed=12345</c> makes a new game - the
+	/// lobby's too - with that seed and not one from the clock (read as the game is made; a replay takes its recording's),
 	/// <c>--record=path.gz</c> records the game played - the player's orders and the AI's - and <c>--replay=path.gz</c>
 	/// plays a recording back, played by whoever played it and taking no orders, the map alone shown where nobody did, the
 	/// clock stopping where the recording ends (<c>docs/replay.md</c>, sections 6 and 8; both read as the session loads,

@@ -321,8 +321,11 @@ how far the save has come is said in the chat and not on the rows' `save_progres
 - **`version_label`** says `OpenHOI3` where the original writes its version name, then in brackets the four letters of its
   file checksum, the original's for the same files - `OpenHOI3 (GSKH)` for Their Finest Hour (`checksum.md`, since
   2026-11-13).
-- **The seed of a new game is the game's own**, where the original takes one from the clock at Play (`docs/compatibility.md`,
-  entry 11's reasoning: a game is replayable from its seed).
+- ~~**The seed of a new game is the game's own**, where the original takes one from the clock at Play~~ - since 2026-11-21 a
+  new game takes **its seed from the clock as Play is pressed**, as the original does, and prints it; **`--seed=N`** makes
+  the game with that seed instead, the same game again. A replay takes its recording's seed, and a save, which carries it,
+  its own - so a game is still replayable from its seed and its commands (entry 11's reasoning) and a client is given the
+  host's with the game. The savegame tool's games keep seed 1, which its checks' figures are pinned to.
 - **The chat log has no lines of a save's transfer**, the original's "Savegame transfer started..." and the rest.
 - **Choosing a save holds the frame while it loads** - two or three seconds - where the original's transfer runs over a
   few frames with a line in the chat.

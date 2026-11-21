@@ -38,9 +38,13 @@ public sealed record CSwitchedGame(CGameState State, CMap Map, CLocalisation Loc
 		string? recordTo = CSession.Argument("--record=");
 		string asked = CSession.PlayerArgument() ?? DefaultPlayer;
 		IReadOnlyList<CCountryTag> played;
+		// A recording is played back on the seed it was made with; any other new game on --seed='s or the clock's.
+		uint seed;
 		if (replayFrom is not null)
 		{
-			played = CReplayFile.ReadHeader(replayFrom).Played;
+			CReplayHeader header = CReplayFile.ReadHeader(replayFrom);
+			played = header.Played;
+			seed = header.Seed;
 			if (CSession.PlayerArgument() is not null)
 			{
 				GD.Print($"--replay: the recording says who plays, so --country={asked} is left aside.");
@@ -54,6 +58,7 @@ public sealed record CSwitchedGame(CGameState State, CMap Map, CLocalisation Loc
 				asked = DefaultPlayer;
 			}
 			played = new[] { new CCountryTag(asked) };
+			seed = CSession.NewGameSeed();
 		}
 		CGameState state;
 		// --load= a save of the original's: the game it holds, as far as the loader reads it (docs/mechanics/savegame.md),
@@ -71,7 +76,7 @@ public sealed record CSwitchedGame(CGameState State, CMap Map, CLocalisation Loc
 			// --date=1939.9.1 begins the game at that date, as a bookmark of it chosen in the lobby does (bookmarks.md).
 			CDate? date = CSession.Argument("--date=") is { } dateText && CDate.TryParse(dateText, out CDate at) ? at : null;
 			state = CGameStateLoader.LoadStart(directories, map, localisation, countries, aiScripts: aiScripts, played: played,
-				date: date);
+				date: date, seed: seed);
 		}
 		GD.Print($"Loaded {map.ProvinceCount - 1} provinces and {countries.Count} countries " +
 			$"for {state.Date} in {clock.ElapsedMilliseconds} ms.");

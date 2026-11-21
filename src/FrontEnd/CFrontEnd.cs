@@ -801,7 +801,7 @@ public partial class CFrontEnd : Node
 			CGameState world = BuildWorldAt(quick.Hours);
 			world.Automation.CopyFrom(ChosenAutomation);
 			CGameState made = CGameStateLoader.StartNewGame(_directories, world, _countries, new[] { chosen },
-				chooseVictoryConditions: false);
+				chooseVictoryConditions: false, seed: CSession.NewGameSeed());
 			GD.Print($"Quick Start as {chosen} at {made.Date}.{made.Hour} set up in {clock.ElapsedMilliseconds} ms.");
 			_handedOver = true;
 			return new CPreparedGame(made, _map, _localisation, _gui, _aiScripts!, _mapCache, _quadTiles);
@@ -827,7 +827,7 @@ public partial class CFrontEnd : Node
 		else
 		{
 			var clock = Stopwatch.StartNew();
-			state = CGameStateLoader.StartNewGame(_directories, World, _countries, new[] { chosen });
+			state = CGameStateLoader.StartNewGame(_directories, World, _countries, new[] { chosen }, seed: CSession.NewGameSeed());
 			GD.Print($"New game as {chosen} set up in {clock.ElapsedMilliseconds} ms.");
 		}
 		_handedOver = true;
