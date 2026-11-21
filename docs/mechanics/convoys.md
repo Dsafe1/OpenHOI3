@@ -57,7 +57,7 @@ while it has fewer transports than it wants, four more with above ten, and for a
 sank a ship of five more for three days, three for a week and one for a fortnight. `confirmed`
 
 **What a harbour can land in a day**: `NAVAL_BASE_EFFICIENCY` (military; 6) for each level of
-its naval base, times one and its holder's `naval_base_efficiency`, from modifier and
+its naval base **in working order** - a bombed port lands less (`bombing.md`, section 7) - times one and its holder's `naval_base_efficiency`, from modifier and
 technology. `confirmed`
 
 ## 3. Making one, and what a new game gives away
@@ -87,7 +87,8 @@ A best-first search from the harbour it loads in to the harbour it unloads in. `
   replace the first. So the way is not always the shortest.
 - A step costs the edge's distance. It costs **eight times** that out of a province with land
   beside it that an enemy of the owner holds - thirteen and twice its level where the province
-  has a naval base, and five and twice the level more for an air base. And **five times** dearer
+  has a naval base, and five and twice the level more for an air base - the naval base's level as built, the air
+  base's as it works now where one is built (`bombing.md`, section 7). And **five times** dearer
   again out of water where a raid fought a convoy in the last five days.
 - What is looked at next is whatever has the least of `cost so far + 1.25 x the straight line
   still to go`, in whole pixels between the centres, the short way round the map.

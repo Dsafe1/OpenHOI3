@@ -301,8 +301,23 @@ For every wing of the bombers, after its fire, in a bombing of any kind. `confir
 **A building has two levels**: what was built, and what of it is in working order. The
 province's modifier - its IC, its roads, its guns, its radar - is made from the second, when
 the day's pass makes it again; whether a province *has* a port or an airfield is asked of the
-first. `confirmed` for the modifier; **Ours** for which of the rules that ask "how much naval
-base" mean which, where it was not read: they are given what was built.
+first. `confirmed` for the modifier, and since 2026-11-21 for each rule that asks "how much naval base"
+(`reversing/findings/FINDINGS-bombing.md`, section 13), all of it [exe]:
+
+| what is asked | which level |
+| --- | --- |
+| is this a port: an area's list of harbours, an area landlocked or fit for a depot, both ends of a convoy | built, above nought - a port bombed to nothing is still a port |
+| the order of an area's harbours | **working**, fraction and all |
+| an area's air bases, which and in what order | built, in whole levels |
+| the depot's score: the naval base's term and the roads' most | built |
+| what a harbour can land in a day (`convoys.md`, section 2) | **working**, fraction and all |
+| the transports a convoy wants | built |
+| a convoy's way beside an enemy: the naval base's term | built |
+| the same: the air base's term | built says whether, **working** says how much |
+
+**Ours**: the original sorts an area's harbours only when the area's provinces change or a province gets its first
+naval base level, so a port bombed since keeps its place until then; here the areas are made whole whenever they are
+asked for (`supply.md`, section 9), and the order follows the working level at once (`docs/enhanced.md`).
 
 ## 8. The fire that comes back
 

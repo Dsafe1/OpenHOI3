@@ -236,6 +236,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 
 ## Sea
 
+- **An area's harbours keep their order after a bombing.** The original sorts an area's ports by the naval base's working level only when the area's provinces change or a province gets its first naval base level, so a port bombed since - or repaired - keeps its old place, and which harbour a convoy starts from or a tie goes to follows a stale order. The normal engine sorts by the working level whenever the areas are made (ours, `supply.md`, 9). `bombing.md`, 7. *Oversight.* Risk: small.
 - **A technology's `radar_efficiency` does nothing.** It is loaded, summed for the country and shown in the technology's tooltip, and nothing in the simulation reads it: the radar takes the station's level and `radio_strength`, not this (`reversing/findings/FINDINGS-fleetbasehour.md`, section 4, a static search with a positive control). Their Finest Hour gives it once, BlackICE five times. Making it scale a radar's reach would make the effect mean what it says. `intelligence.md`, 4. *Dead.* Risk: small - what countries with it see.
 - **An interceptor goes out once,** then lies in port under its order. On the "may be bugs" list. `navalmissions.md`, 5 and 12. *Bug.* Risk: moderate.
 - **A sortie from away from base stalls,** given a path that does not begin where the fleet is. `navalmissions.md`, 6 and 12. *Bug.* Risk: small.

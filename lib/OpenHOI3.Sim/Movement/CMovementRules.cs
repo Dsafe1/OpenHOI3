@@ -112,6 +112,12 @@ public static class CMovementRules
 		return CBuildingRoles.Find(state, key) is { } building ? province.BuildingMaxLevel(building) : CFixedPoint.Zero;
 	}
 
+	/// <summary>What works now of a building in a province, by the building's name: what bombing lowers and the day's repair raises.</summary>
+	public static CFixedPoint WorkingLevel(CGameState state, CProvince province, string key)
+	{
+		return CBuildingRoles.Find(state, key) is { } building ? province.BuildingLevel(building) : CFixedPoint.Zero;
+	}
+
 	/// <summary>
 	/// Whether a country's ships may lie in a land province: it has to belong to
 	/// somebody, have a port with a naval base in it, and be held by a friend who is no

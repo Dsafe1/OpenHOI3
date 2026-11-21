@@ -2515,10 +2515,11 @@ None of these blocks the list above.
 - **A building has two levels now, and most rules were written when it had one.** A
   province's modifier is made from what works of a building, and whether there is a port or
   an airfield is asked of what was built. The supply network's roads are what was built, as
-  the original keeps that figure, and a base's room is what works of it, as was read. **The
-  rest were not read for which they mean** - the order of an area's harbours, where a depot
-  may be, a convoy's choice of harbour - and are given what was built, so that bombing does
-  not rearrange a network. `bombing.md`, section 7.
+  the original keeps that figure, and a base's room is what works of it, as was read. The
+  rest are read since 2026-11-21 (`bombing.md`, section 7, the table): a harbour lands by what works of its naval
+  base and a convoy's way weighs an air base by what works of it, both built so that day. **Left, ours**: the
+  original sorts an area's harbours only when the area changes, so a port bombed since keeps its place; here the
+  order follows the working level at once.
 - **A building's picture is drawn at a size and from a zoom that are the reading's
   and ours**, never set beside the original; and a selected fleet in port has nothing on
   the map to show it is selected. `docs/mechanics/mapunits.md`, section 9.

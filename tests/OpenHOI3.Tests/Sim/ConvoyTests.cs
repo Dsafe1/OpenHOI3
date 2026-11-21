@@ -345,6 +345,20 @@ public class ConvoyTests
 	}
 
 	[Fact]
+	public void A_bombed_harbour_lands_by_what_works_of_its_naval_base()
+	{
+		var world = TwoShores(tsingtaoPort: 2);
+		CGameState state = State();
+		CProvince tsingtao = state.Province(world.Tsingtao);
+		Assert.Equal(12000L, CConvoyRules.PortCapacity(state, tsingtao));
+
+		tsingtao.SetBuildingCurrentLevel(NavalBase, CFixedPoint.Parse("0.5"));
+
+		// Half a level in working order of the two built: 6 x 0.5.
+		Assert.Equal(3000L, CConvoyRules.PortCapacity(state, tsingtao));
+	}
+
+	[Fact]
 	public void No_more_is_landed_than_the_harbour_can_take_in_a_day()
 	{
 		var world = TwoShores(tsingtaoPort: 1);

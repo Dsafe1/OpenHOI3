@@ -151,9 +151,10 @@ public static class CConvoyRoute
 		{
 			times = port * PerLevel / CFixedPoint.Scale + BesideAnEnemyWithPort;
 		}
-		long airfield = CMovementRules.BuildingLevel(state, here, CMovementRules.AirBase).Raw;
-		if (airfield > 0)
+		// An air base built counts by what works of it, where the port counts by what was built (bombing.md, section 7).
+		if (CMovementRules.BuildingLevel(state, here, CMovementRules.AirBase).Raw > 0)
 		{
+			long airfield = CMovementRules.WorkingLevel(state, here, CMovementRules.AirBase).Raw;
 			times += airfield * PerLevel / CFixedPoint.Scale + WithAirBase;
 		}
 		return times;

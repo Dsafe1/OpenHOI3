@@ -31,12 +31,12 @@ public static class CConvoyRules
 	private const int LargeConvoy = 10;
 
 	/// <summary>
-	/// What a harbour can land in a day: so much for each level of its naval base, and
-	/// more where whoever holds it runs its ports better.
+	/// What a harbour can land in a day: so much for each level of its naval base that works - a bombed port lands
+	/// less - its fraction with it, and more where whoever holds it runs its ports better (bombing.md, section 7).
 	/// </summary>
 	public static long PortCapacity(CGameState state, CProvince province)
 	{
-		long level = CMovementRules.BuildingLevel(state, province, CMovementRules.NavalBase).Raw;
+		long level = CMovementRules.WorkingLevel(state, province, CMovementRules.NavalBase).Raw;
 		long room = state.Defines[MilitarySection, CBaseCrowding.NavalBaseEfficiency].Raw * level / CFixedPoint.Scale;
 		long better = CFixedPoint.Scale;
 		if (state.Country(province.Controller) is { } holder)
