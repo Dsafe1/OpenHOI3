@@ -181,6 +181,7 @@ public static class CMovement
 	private static void RunCountryUnits(CGameState state, CCountry country)
 	{
 		bool atWar = state.IsAtWar(country.Tag);
+		bool landless = IsLandless(state, country);
 		List<(CUnit Unit, bool Busy)>? taken = null;
 		// The units in the order of the country's own list: a unit earlier in it looks at its order before a later one's
 		// look ahead can begin a battle that hour (movement.md, section 6). An idle unit's hour does nothing and is passed
@@ -197,7 +198,7 @@ public static class CMovement
 				|| (unit.Kind == EUnitKind.Air && unit.Base != 0 && !Missions.CAirMissions.IsAtOwnBase(unit))
 				// And one aboard a carrier with no order, whose hour gives it the carrier's duty.
 				|| (unit.Kind == EUnitKind.Air && unit.CarriedBy is not null);
-			if (busy || unit.Kind == EUnitKind.Navy)
+			if (busy || unit.Kind == EUnitKind.Navy || landless)
 			{
 				(taken ??= new List<(CUnit, bool)>()).Add((unit, busy));
 			}
@@ -219,7 +220,23 @@ public static class CMovement
 			{
 				CFleetBase.Check(state, owner, unit);
 			}
+			// A country that owns nothing and is not in exile loses each unit straight after its hour, at once and not at
+			// the hour's end (war.md, section 11; reversing/findings/FINDINGS-surrender.md, C.5).
+			if (landless && !unit.IsRemoved)
+			{
+				CPendingUnitRemovals.Remove(state, unit);
+			}
 		}
+	}
+
+	/// <summary>
+	/// Whether the country's units are taken out of the game in its hour: a real country, not the rebels, owning no province
+	/// and not a government in exile.
+	/// </summary>
+	public static bool IsLandless(CGameState state, CCountry country)
+	{
+		return country.Tag.Value != Revolts.CRebelFactions.Rebels && !country.InExile
+			&& CCountryLists.OwnedCount(state, country.Tag) <= 0;
 	}
 
 	/// <summary>

@@ -38,7 +38,8 @@ public static class CProvinceHands
 		CCountryTag? old = province.Controller;
 		if (consequences && !peaceful)
 		{
-			if (CMovementRules.IsEnemy(state, old, controller))
+			// An enemy at war, the rebels, or in a war nobody declared over the province (FINDINGS-surrender.md, D.2).
+			if (CMovementRules.IsEnemyIn(state, controller, old, province.Id))
 			{
 				DamageBuildings(state, province);
 			}
@@ -56,6 +57,9 @@ public static class CProvinceHands
 		if (consequences)
 		{
 			Intelligence.CRadarProvinces.ControllerChanged(state, province, old, controller);
+			// Then the air and naval units an enemy of the new holder had based here, rebased or left with none (war.md,
+			// section 11).
+			CCapturedBases.ControllerChanging(state, province, old, controller);
 		}
 		// The new controller's policy towards the old, where it has none yet (occupation.md, section 2).
 		Occupation.COccupationPolicies.Capture(state, controller, old);

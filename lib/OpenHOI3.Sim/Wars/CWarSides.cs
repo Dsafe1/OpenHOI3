@@ -226,7 +226,7 @@ public static class CWarSides
 	}
 
 	/// <summary>
-	/// The original's <c>RemoveLandlessCountriesFromWars</c>, as a new game's entry ends: every country owning no province
+	/// The original's <c>RemoveLandlessCountriesFromWars</c>, as a new or a loaded game's entry ends: every country owning no province
 	/// and not in exile taken off each war it is on - a side left empty leaves the war standing - and, in a real faction,
 	/// out of it, its modifier made again (war.md, section 4; measured, the 1941 bookmarks' start saves, whose Invasion of the
 	/// Baltic States has Germany alone).

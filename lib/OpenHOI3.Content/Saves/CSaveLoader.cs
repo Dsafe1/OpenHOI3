@@ -794,6 +794,9 @@ public static class CSaveLoader
 				CAiStrategies.Make(state, country);
 			}
 		}
+		// Entering takes every country owning no province and not in exile off its wars and out of its faction, a loaded game
+		// as a new one (war.md, section 4; reversing/findings/FINDINGS-savegame.md, A.5).
+		Sim.Wars.CWarSides.RemoveLandless(state);
 		state.IsRunning = true;
 	}
 }

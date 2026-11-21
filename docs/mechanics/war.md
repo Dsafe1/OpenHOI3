@@ -189,7 +189,8 @@ the bookmarks' start saves of 1939.9.1, 1941.6.22 and 1941.12.11 and the 1936 on
 - **The entry ends by taking every country that owns no province and is not in exile off each war it is on**, and out of a
   real faction, its modifier made again (`RemoveLandlessCountriesFromWars`; `CWarSides.RemoveLandless`, after the two
   days). A side left empty leaves the war standing: the 1941 saves' Invasion of the Baltic States has Germany alone, and
-  World War II no Luxembourg. Ours: only a new game runs it; the original's entry runs it for a loaded one too.
+  World War II no Luxembourg. **A loaded game's entry runs it too**, as the original's does (since 2026-11-21, at the end of
+  the loader's set-up; until then only a new game ran it).
 
 ## 5. Declaring a war
 
@@ -469,7 +470,8 @@ being at peace before they are brought up to date (section 4).
 **Changing hands with consequences** (`Province_SetController`, `FINDINGS-surrender.md` D.2), as far as it
 is built: where the controller is not the same and somebody owns the province, and not peacefully -
 
-- where the new holder is an enemy of the old - at war, or either the rebels - each building there is any of,
+- where the new holder is an enemy of the old - at war, either the rebels, or in a war nobody declared whose regions take
+  the province in (section 15) - each building there is any of,
   in the buildings' order, takes **a draw of the game's generator** and, under
   `COMBAT_PUSHBACK_CHANCE_FOR_DAMAGE` (50) per cent, loses `COMBAT_PUSHBACK_DAMAGE` (1) of its working level,
   to no less than nought; so **a province a peace gives back is damaged as if retaken**, the war standing;
@@ -477,6 +479,16 @@ is built: where the controller is not the same and somebody owns the province, a
   brings it back (`bombing.md`);
 - where it is the old holder's acting capital (section 14), **a quarter of the old holder's money and
   resources** - out of its stockpile - goes to the new holder's stockpile; supplies, fuel and the rest stay;
+- with consequences, peaceful or not, the province's radar moves from the old holder's list to the new one's
+  (`intelligence.md`, section 4), and then **the air and naval units based there** go (`CCapturedBases`, built
+  2026-11-21): where the province has an air base built, to any level, **the candidates** are the old holder's air bases
+  - the provinces it holds with one built - or, where it is in a real faction, every member's in the faction's order and
+  each member's in the order it took them; the nearest other than this province **in a straight line** (`CMapDistance`
+  x 1000), strictly nearer than 1,410,000,920 and the first of equals, is the base. Then **every air unit based there
+  whose owner is an enemy of the new holder** (the same test as the damage's) is given that base, and sent to it with
+  `rebase_air` where it stands in the province; with none, it loses its base, and where it is neither moving nor
+  fighting it is queued to go out of the game at the hour's end. The same for a naval base, its fleets and `rebase`
+  (`confirmed` on the listing);
 - and, with consequences, peaceful or not, the old holder's government is seated again at once.
 
 And with consequences or without, before the new holder is written, the new holder's occupation policy towards
@@ -484,6 +496,14 @@ the old is set where it has none (`occupation.md`, section 2).
 
 A battle's capture goes through it so (`landcombat.md`, section 7), as do a peace, the day's return and the
 effects that move land.
+
+**A country owning nothing loses its units, every hour** (built 2026-11-21; `CMovement.IsLandless`;
+`FINDINGS-surrender.md` C.5, the per-country hourly pass, `confirmed` on the listing): in its units' hour,
+straight after each unit's own look at its order - a fleet's base check with it - a unit of a country that is not the
+rebels, owns no province and is not a government in exile is taken out of the game **at once**, not at the hour's end,
+with its officers (`CGameState::RemoveUnit` with its flags 0 and 1). Every unit of such a country is taken, busy or not.
+So a country made landless by a peace, a release or an effect keeps its army only for the rest of the hour; one in exile
+keeps it (section 14).
 
 **A change of owner** (`CMapProvince::ChangeOwner`, D.3) sets the controller first with the same flags,
 then the owner - never the rebels; where the old owner was a country, the province's nationalism is set to
@@ -867,14 +887,14 @@ The two are enemies **only in its regions**: fleets and air units there fight, a
 
 ## Not built
 
-- **The NAP's border balance** (`agreements.md`, section 9): a NAP inside its three windows cannot be
-  broken, and the tooltip's balance is nought.
+- ~~**The NAP's border balance**~~: built (`agreements.md`, section 6).
 - **Units on ground they may no longer stand on** (`FINDINGS-war.md` A.9): the original marks them and
   works it out again hourly - no attack, no capture, full speed, may pass through. Nothing marks them
   here.
-- **Undeclared wars** and the revolt war.
-- **The AI declaring war, offering peace or calling its allies** of its own accord - the foreign minister
-  is not built. A war starts by the player or by script. For trials: `--war=GER:POL` stays a bare war -
+- ~~**Undeclared wars** and the revolt war.~~ Built: a war nobody declared (section 15), and the revolt war - the war a
+  rebel faction's new country declares on each former owner as it is freed (`rebels.md`, section 10).
+- ~~**The AI declaring war or calling its allies** of its own accord~~: built with the foreign minister
+  (`foreignminister.md`). **The AI offering peace** is not: no script of the original's makes one (section 11). A war starts by the player or by script. For trials: `--war=GER:POL` stays a bare war -
   the two put at war and nobody else, as the savegame tool's trials want them, though they join it as any
   joiner does and so are mobilised (the raid trial sinks 38 transports and 3 escorts since, 37 and none
   before); `--declare=TUR:IRQ` declares as the dialog would with the first goal it offers, whatever the
@@ -883,9 +903,9 @@ The two are enemies **only in its regions**: fleets and air units there fight, a
 - **Countries that warned another** (`CW_WARNWARN2`): nothing warns.
 - **A peace offer put to the player** (`CAskPeace`, `FINDINGS-war.md` C.7): only another player's offer
   brings it, and there is one player.
-- **What else a change of hands does** (`FINDINGS-surrender.md` D.2, D.3): air and naval units based in the
-  province sent to the old side's nearest base or deleted, radar,
-  trespassers and the province's history. A battle's capture goes through the same setter with consequences
+- **What else a change of hands does** (`FINDINGS-surrender.md` D.2, D.3): the trespassers' marks. ~~Air and naval
+  units based in the province sent to the old side's nearest base or deleted, radar and the province's history~~ - built
+  (section 11; `intelligence.md`, section 4; `CProvinceHistory`). A battle's capture goes through the same setter with consequences
   (`landcombat.md`, section 7). The occupation policy a capture sets and the nationalism a change of owner
   sets are built since 2026-10-14 (`occupation.md`, sections 2 and 5), and what the rebels' factions make of land
   they take and lose since 2026-10-15 (`rebels.md`, section 10) - of the history, the last day the rebels took it -
@@ -894,13 +914,16 @@ The two are enemies **only in its regions**: fleets and air units there fight, a
   unit goes over on an even draw - and `release_vassal`.~~ Built: `release_vassal` since 2026-11-09 and its `REB`
   since 2026-11-16 (`rebels.md`, section 12), the surrender mode since 2026-11-16 (section 13). `release` is built
   since 2026-10-15 (`rebels.md`, section 12).
-- **The cabinet refilled** when a puppet takes its overlord's government; the government's type alone is taken.
-- **What else an exile is**: its units drawing on friends' depots for free, its brigades built at its leader's
-  technology, liberation, and its partisans turned to militia when it comes home. Organized Revolt, its undergrounds
+- ~~**The cabinet refilled** when a puppet takes its overlord's government~~: built - every post filled from the puppet's
+  own ministers (`CPuppets`, section 13).
+- ~~**What else an exile is**: its units drawing on friends' depots for free, its brigades built at its leader's
+  technology, liberation, and its partisans turned to militia when it comes home.~~ Built: the free draw
+  (`supply.md`, section 13), the leader's levels (`CUpgrades.ExileLeader`), liberation (`politics.md`, section 11.1)
+  and the militia (`CExile`, section 14). Organized Revolt, its undergrounds
   raised at once, is built since 2026-10-15 (`undergrounds.md`, section 6).
-- **The puppet's tribute** (`FINDINGS-capitalreaders.md` 4), which stops while a puppet's government has fled.
-- **A country owning nothing**: the original destroys its units each hour unless it is in exile, and takes it out of
-  its wars as a game is loaded.
+- ~~**The puppet's tribute**~~: built (`stockpile.md`, section 7).
+- ~~**A country owning nothing**: the original destroys its units each hour unless it is in exile, and takes it out of
+  its wars as a game is loaded.~~ Built 2026-11-21 (section 11; section 4).
 
 ## Not established
 
