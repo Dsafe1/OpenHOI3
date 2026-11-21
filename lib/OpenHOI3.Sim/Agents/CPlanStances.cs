@@ -22,6 +22,12 @@ public static class CPlanStances
 
 	private const long BlitzingAt = 1980;
 
+	/// <summary>The friends' armies over the enemies' under which an attacking stance drops by one [exe].</summary>
+	private const float Outweighed = 0.9f;
+
+	/// <summary>The ratio of armies taken where the enemies weigh nothing [exe].</summary>
+	private const float NoEnemyStrength = 10f;
+
 	/// <summary>
 	/// Every hour while the country's stances are unsettled, and once a day on the forced hour. An agent with no unit ends
 	/// the pass unsettled.
@@ -71,6 +77,7 @@ public static class CPlanStances
 				least = agent;
 			}
 		}
+		float strength = StrengthRatio(state, country, allEnemies);
 		bool unsettled = false;
 		foreach (CAgent agent in ai.Agents)
 		{
@@ -102,6 +109,11 @@ public static class CPlanStances
 				}
 				long value = agent.Coverage * ratio / Whole;
 				stance = value < AttackingAt ? CUnitPlan.Defensive : value < BlitzingAt ? CUnitPlan.Attacking : CUnitPlan.Blitzing;
+				// Outweighed by the enemies of every hot front, an attacking or blitzing stance drops by one.
+				if (stance >= CUnitPlan.Attacking && strength < Outweighed)
+				{
+					stance--;
+				}
 			}
 			if (stance != plan.Stance)
 			{
@@ -112,6 +124,37 @@ public static class CPlanStances
 		{
 			ai.StancesSettled = true;
 		}
+	}
+
+	/// <summary>
+	/// The friends' armies over the enemies', in single precision: the enemies every hot front of any agent faces, each once,
+	/// at war with the country or not; the friends every country holding land beside land an enemy owns that counts the
+	/// country a friend - itself among them only so - each once; each army its combat value in whole units. Ten where the
+	/// enemies weigh nothing (reversing/findings/FINDINGS-agents.md, D.2a).
+	/// </summary>
+	private static float StrengthRatio(CGameState state, CCountry country, List<CCountryTag> enemies)
+	{
+		var values = new Dictionary<CCountryTag, long>();
+		float enemySum = 0f;
+		float friendSum = 0f;
+		var friends = new List<CCountryTag>();
+		foreach (CCountryTag tag in enemies)
+		{
+			if (state.Country(tag) is not { } enemy)
+			{
+				continue;
+			}
+			enemySum += CAreaScores.CombatValue(state, enemy, values) / (float)Whole;
+			foreach (CCountry neighbour in CCountryLists.ControllerNeighbours(state, enemy))
+			{
+				if (!friends.Contains(neighbour.Tag) && CCountryLists.IsFriend(state, neighbour, country.Tag, withAccess: true))
+				{
+					friends.Add(neighbour.Tag);
+					friendSum += CAreaScores.CombatValue(state, neighbour, values) / (float)Whole;
+				}
+			}
+		}
+		return enemySum <= 0f ? NoEnemyStrength : friendSum / enemySum;
 	}
 
 	/// <summary>Slot 77: the ground stance posted, the plan marked posted, and the subordinates sorted again.</summary>

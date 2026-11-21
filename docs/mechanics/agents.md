@@ -343,7 +343,11 @@ Every hour while the country's stances are unsettled, then once a day at hour (n
    the pass unsettled. At peace, stance **1**. At war: r = our / their power, or 10 with their power at nought, halved
    where more than one hot enemy exists over all agents and this one is not the least threatened; g = the friends' summed
    `army_combat_value` / the enemies', or 10; v = the front coverage (8.4) x r: **under 0.99 stance 2, under 1.98 stance 3,
-   else 4**, and a 3 or 4 with g under 0.9 one less.
+   else 4**, and a 3 or 4 with g under 0.9 one less. **`g` is one figure for the whole country** (built 2026-11-21;
+   `reversing/findings/FINDINGS-agents.md`, D.2a): the enemies are every hot front's enemy of any agent at war on its
+   frontier, each once, **at war with the country or not**; the friends every country holding land beside land an enemy
+   owns that counts the country a friend (military access counted), each once - the country itself only so; each army
+   its combat value (`CAreaScores.CombatValue`) over a thousand, summed in single precision.
 3. A stance that differs is set, pushed down to the agent's children, and **plan posted** set - and **the reserve released**: every
    held-back division's mark cleared and the list emptied, so the next sort decides it again at the new stance
    (`reversing/findings/FINDINGS-liveread.md`, section 45). The area's provinces are scored again and the axis made
@@ -638,8 +642,8 @@ priority province in the area or beside it against an enemy, or the holder unpla
 - **The transport plane and strategic bomber wants**, and a term of the
   division demand whose source was not read, taken as nought.
 - **The front coverage's hold positions at stance 0**, a stance the AI never chooses.
-- **The friends' and enemies' combat value in the war stance** (`g`, the country's `army_combat_value`): taken as 10, so a
-  war stance is never lowered for it.
+- ~~**The friends' and enemies' combat value in the war stance** (`g`, the country's `army_combat_value`): taken as 10, so a
+  war stance is never lowered for it.~~ Built 2026-11-21 (section 7.2, step 2).
 - **The prune of an area by the priority provinces** (`SetArea`, step 6), which needs a war and a friend's request, and
   the second list of countries whose requests count (`non_hostile_countries`).
 - ~~**The air groups' rebasing** (`ManageAirUnits`' second phase) and the busy groups the first phase sends to rest.~~
