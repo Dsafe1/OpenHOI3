@@ -295,6 +295,19 @@ public static class CCountryHistory
 					// The file is read once the country is otherwise set up; a later line replaces an earlier one.
 					country.OrderOfBattleFile = entry.Value;
 				}
+				else if (entry.Key.Equals("officers", StringComparison.OrdinalIgnoreCase))
+				{
+					// Sets the pool outright, with no floor; the officers the order of battle brings are added to it
+					// afterwards (units.md, section 7).
+					if (CFixedPoint.TryParse(entry.Value, out CFixedPoint officers))
+					{
+						country.Officers = officers;
+					}
+					else
+					{
+						Bad(entry);
+					}
+				}
 				else if (entry.Key.Equals("officers_ratio", StringComparison.OrdinalIgnoreCase))
 				{
 					if (CFixedPoint.TryParse(entry.Value, out CFixedPoint ratio))

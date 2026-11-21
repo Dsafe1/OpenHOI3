@@ -2713,7 +2713,9 @@ None of these blocks the list above.
   free spies without end, as the original's does. Officers are used - the ratio of them to what the units call for is what holds
   organisation - and are lost in battle and with a unit
   taken out of the game (`CPendingUnitRemovals`), cut on exile and moved by `split_troops`; nothing spends or decays
-  them day by day. A country does start with
+  them day by day - **and nothing does in the original either**, read on 2026-11-21 over every writer of the pool
+  (`reversing/findings/FINDINGS-officers.md`): no cap, no decay, no spend on building, reinforcing or promoting, and a
+  disband gives nothing back; `MAX_OFFICERS` caps the ratio alone. So this is the original's and no loose end. A country does start with
   the officers its units bring (`docs/mechanics/units.md`, section 7).
 - **The savegame check's main run still reasons from day nought.** It loads a game with
   its two days not run and takes two days of each figure off the save, system by system,

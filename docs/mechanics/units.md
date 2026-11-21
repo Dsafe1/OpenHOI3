@@ -414,6 +414,11 @@ Straight after its order of battle is read: `confirmed`
         if the history gave an officers_ratio:  n = n x officers_ratio
         officers += n
 
+**A history may also set the pool itself**: `officers = N` in a country's file, dated or not, sets the country's
+officers outright - no floor, no cap - and the sum above is then added on top
+(`reversing/findings/FINDINGS-officers.md`, section 2; that the sum comes after is *inferred*). No file of Their
+Finest Hour or BlackICE has the key. Read since 2026-11-21.
+
 The ratio is applied unit by unit, each rounded down. "The officers its own brigades call
 for" is the unit's own figure, which is a sum over its brigades - except that on land a
 brigade that holds no frontage (`combat_width` of nothing: a headquarters, engineers)

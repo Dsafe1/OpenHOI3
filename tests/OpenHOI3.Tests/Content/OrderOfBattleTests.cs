@@ -1000,7 +1000,9 @@ public class OrderOfBattleTests : IDisposable
 			capital = 1
 			oob = "a_1936.txt"
 			officers_ratio = 1.5
+			officers = 12.5
 			1938.9.1 = {
+				officers = 40
 				oob = "a_1938.txt"
 				officers_ratio = 1.25
 			}
@@ -1012,6 +1014,7 @@ public class OrderOfBattleTests : IDisposable
 		CCountry country = countries.Find("AAA")!;
 		Assert.Equal("a_1936.txt", country.OrderOfBattleFile);
 		Assert.Equal(CFixedPoint.Parse("1.5"), country.OfficersRatio);
+		Assert.Equal(CFixedPoint.Parse("12.5"), country.Officers);          // the history's own pool, set outright
 		Assert.Equal("", countries.Find("BBB")!.OrderOfBattleFile);
 		Assert.Equal(CFixedPoint.Zero, countries.Find("BBB")!.OfficersRatio);
 	}
