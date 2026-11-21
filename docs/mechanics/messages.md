@@ -140,13 +140,19 @@ box, `messagelog`, a close button and the button that opens it again, and six ca
   clearing one makes the list again from the oldest message kept, **stopping after 101** - so with more
   than that shown, the newest are left out until the next is added.
 - A left click on a row of an event's or a decision's message does nothing.
+- *Ours*: the list's rows are made once a frame, however many messages the frame brought (since 2026-11-21). Each
+  message made every row again until then, and fifty units detached together stalled the game on fifty lists of a
+  hundred rows - **measured**: 46 detached in BlackICE, 0.9 s in the making of rows with the log nearly empty. What
+  the list ends as is the same.
 
 ## 6. On the map
 
 [exe; `reversing/findings/FINDINGS-messageshow.md`, sections 5 and 5.1.] Built 2026-11-21 (`CAnimatedMapTextTypes`
 in `Content/Map`, `CMapTextRise` and `CMapTextLayout` in `Interface/Map`, `CMapTexts` in `src/Map`), looked at once
-with a text made by hand; not set beside the original. **No type of Their Finest Hour says `onmap = yes`**: a text
-is written only where the player ticks "Show on map" in a type's settings.
+with a text made by hand; not set beside the original. ~~No type of Their Finest Hour says `onmap = yes`~~ **56 types of Their Finest Hour's
+`tfh/interface/messagetypes.txt` say `onmap = yes`**, and 57 of BlackICE's - `UNITDEPLOYED`, `DETACHEDUNIT`,
+`ATTACHEDUNIT`, `SHATTERED`, `BUILDING_DONE`, the declarations of war and the rest (counted 2026-11-21; the sentence
+struck through was written off the wrong file). The player's "Show on map" in a type's settings changes it type by type.
 
 - **The text** is `<TYPE>_MAP` with the message's variables, over the middle of the message's province's bounding
   box - with no province, the first country's acting capital, else the second's. An empty text is still made.

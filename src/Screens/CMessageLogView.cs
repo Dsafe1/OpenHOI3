@@ -230,7 +230,19 @@ public sealed partial class CMessageLogView : Control
 	public void Add(CMessage message)
 	{
 		Log.Add(message);
-		Refill();
+		// Ours: the rows are made again once a frame however many messages it brought, where each made them all again -
+		// fifty units detached together were fifty lists of a hundred rows. What the list ends as is the same.
+		_stale = true;
+	}
+
+	private bool _stale;
+
+	public override void _Process(double delta)
+	{
+		if (_stale)
+		{
+			Refill();
+		}
 	}
 
 	/// <summary>Ours: the open button shows only while the log is shut, which was not read.</summary>
@@ -248,6 +260,7 @@ public sealed partial class CMessageLogView : Control
 
 	private void Refill()
 	{
+		_stale = false;
 		if (_list is null)
 		{
 			return;
