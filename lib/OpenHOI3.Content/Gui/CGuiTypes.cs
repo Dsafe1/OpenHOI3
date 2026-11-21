@@ -21,6 +21,13 @@ public sealed class CGuiTypes
 {
 	private const string InterfaceDirectory = "interface";
 
+	/// <summary>
+	/// Where a mod keeps the <c>.gui</c> files it has for an enhanced game alone, read after the others: a folder of its
+	/// own, as everything of this engine's in a mod is. The original does not create a window it has no code for, so what
+	/// is declared there is nothing to it even where it reads the file (<c>docs/mechanics/gameoptions.md</c>, section 5).
+	/// </summary>
+	public const string EnhancedDirectory = "interface/openhoi";
+
 	/// <summary>The five keys every element takes.</summary>
 	private static readonly string[] CommonKeys = { "name", "dontrender", "pdx_tooltip", "pdx_tooltip_delayed", "scope" };
 
@@ -111,7 +118,13 @@ public sealed class CGuiTypes
 	{
 		warn ??= CDiagnostics.Problem;
 		var types = new CGuiTypes();
-		foreach (string file in directories.ListFiles(InterfaceDirectory, "*.gui"))
+		// An enhanced game's own declarations after the rest, from a folder of their own (EnhancedDirectory).
+		IEnumerable<string> files = directories.ListFiles(InterfaceDirectory, "*.gui");
+		if (Rules.CRulesReader.IsEnhanced(directories))
+		{
+			files = files.Concat(directories.ListFiles(EnhancedDirectory, "*.gui"));
+		}
+		foreach (string file in files)
 		{
 			ClausewitzNode root;
 			try

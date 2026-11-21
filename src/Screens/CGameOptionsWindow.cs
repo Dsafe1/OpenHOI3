@@ -296,37 +296,33 @@ public sealed partial class CGameOptionsWindow : Control
 	}
 
 	/// <summary>
-	/// An enhanced game's rows, each the tab's own autosave row over again further down (<see cref="CEnhancedOptionRows"/>),
-	/// its arrows stepping its choice. A tab with no autosave row to copy gets none, which is said.
+	/// An enhanced game's rows: the window <c>openhoi_game_options</c>, which a mod's <c>interface/openhoi</c> declares,
+	/// made as a part of the Game tab and its elements found by their names (<see cref="CEnhancedOptionRows"/>), each row's
+	/// arrows stepping its choice. With no file declaring the window there are no rows, which is reported as any window
+	/// missing is.
 	/// </summary>
 	private void AddEnhancedRows(CGuiWindow game)
 	{
-		if (EnhancedPath is null || game.GuiType is not Content.Gui.CGuiWindowType type)
+		if (EnhancedPath is null)
 		{
 			return;
 		}
-		List<Content.Gui.CGuiType> elements = CEnhancedOptionRows.Build(type, CEnhancedOptions.Rows);
-		if (elements.Count == 0)
+		_enhancedWindow = CGuiWindow.Create(_context, CEnhancedOptionRows.WindowName);
+		if (_enhancedWindow is null)
 		{
-			Content.CDiagnostics.Problem("interface: menu_settings_GAME has no autosave row for the enhanced options to be laid out by; they are not shown");
 			return;
 		}
-		foreach (Content.Gui.CGuiType element in elements)
-		{
-			game.AddElement(element, _context);
-		}
+		game.AddChild(_enhancedWindow);
 		foreach (string row in CEnhancedOptions.Rows)
 		{
 			string stepped = row;
-			Bind(game.TryFindButton(CEnhancedOptionRows.DecreaseName(row)), () => StepEnhanced(stepped, -1));
-			Bind(game.TryFindButton(CEnhancedOptionRows.IncreaseName(row)), () => StepEnhanced(stepped, 1));
-			if (game.FindTextBox(CEnhancedOptionRows.LabelName(row)) is { } label)
-			{
-				label.Text = CEnhancedOptionsText.Label(row, _context.Localisation.Find);
-			}
+			Bind(_enhancedWindow.FindButton(CEnhancedOptionRows.DecreaseName(row)), () => StepEnhanced(stepped, -1));
+			Bind(_enhancedWindow.FindButton(CEnhancedOptionRows.IncreaseName(row)), () => StepEnhanced(stepped, 1));
 		}
 		_enhancedRows = true;
 	}
+
+	private CGuiWindow? _enhancedWindow;
 
 	private void StepEnhanced(string row, int by)
 	{
@@ -352,13 +348,13 @@ public sealed partial class CGameOptionsWindow : Control
 		{
 			autosave.Text = _context.Localisation.Localise(_options.AutosaveKey);
 		}
-		if (_enhancedRows && _game is not null)
+		if (_enhancedRows && _enhancedWindow is not null)
 		{
 			foreach (string row in CEnhancedOptions.Rows)
 			{
-				if (_game.FindTextBox(CEnhancedOptionRows.ValueName(row)) is { } value)
+				if (_enhancedWindow.FindTextBox(CEnhancedOptionRows.ValueName(row)) is { } value)
 				{
-					value.Text = CEnhancedOptionsText.Value(row, _enhanced, _context.Localisation.Find);
+					value.Text = CEnhancedOptionsText.Value(row, _enhanced, _context.Localisation.Localise);
 				}
 			}
 		}

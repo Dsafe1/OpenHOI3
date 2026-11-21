@@ -105,12 +105,19 @@ this is there. They stand on the Game tab and not on a tab of their own by the u
 is 240 wide and its four tabs fill it, in the base game and in BlackICE, and a fifth declared in `settings.gui` the
 original would draw, its contents never hidden.
 
-- **No file declares them.** Each row is the tab's own autosave row over again - `autosave_label`, `autosave_value`
-  and the two arrows, as the file in play draws them - 46 pixels below the row before it (`CEnhancedOptionRows`). So
-  the rows wear what a mod made of the tab, and a mod adds nothing to `settings.gui`, which the original reads too. A
-  tab with no autosave row to copy gets none, which is reported. Their names: `openhoi_<row>_label`,
-  `openhoi_<row>_value`, `decrease_openhoi_<row>_button`, `increase_openhoi_<row>_button`, the rows `premonth`,
-  `timed`, `edge` and `event`.
+- **The mod's interface files declare them**, as they declare every element (the user's word, 2026-11-21: "it should
+  become its own elements in the .gui files", the utility's windows having to come the same way): one window,
+  `openhoi_game_options`, which the engine makes as a part of `menu_settings_GAME`, so that its position is measured
+  from that tab's corner. In it, for each of the rows `premonth`, `timed`, `edge` and `event`: `openhoi_<row>_label`,
+  whose text is the file's own; `openhoi_<row>_value`, which the screen writes; and the arrows
+  `decrease_openhoi_<row>_button` and `increase_openhoi_<row>_button` (`CEnhancedOptionRows`). The names are the
+  contract, as everywhere; the layout is the mod's. With no file declaring the window there are no rows, reported as
+  any missing window is. The first shape of it, the engine copying the tab's autosave row, lasted an hour.
+- **A mod keeps such files in `interface/openhoi/`**, a folder of its own, read after `interface/*.gui` and only in an
+  enhanced game (`CGuiTypes.EnhancedDirectory`). They are not in `settings.gui` because the original reads that and
+  draws what it finds in a window it makes. What stands in a folder of ours is nothing to the original even should it
+  read the file: it makes a window only where its code asks for one by name, and none asks for these. BlackICE's is
+  `interface/openhoi/gameoptions.gui`, each row its `settings.gui`'s autosave row 46 pixels further down.
 - **Each is stepped by its arrows and wraps at its ends**, as the frequency above them (`CEnhancedOptions`):
   - *Save before the month ends*: Off, then 1 to 27 days before the 1st of the next month (`savegame.md`, section
     11.1);
@@ -122,18 +129,20 @@ original would draw, its contents never hidden.
     screen: nought, or half of what the screen is wider than the window, at the height its file gives it. Default
     leaves it where the file puts it. A province's event window is never moved. The next window shown goes by it; no
     restart is asked.
-- **Their words** have keys a mod's localisation may give - `OPENHOI_OPT_PREMONTH`, `_PREMONTH_ONE`, `_PREMONTH_DAYS`
-  (`$DAYS$`), `OPENHOI_OPT_TIMED`, `_TIMED_MINUTES` (`$MINUTES$`), `OPENHOI_OPT_EDGE`, `OPENHOI_OPT_EVENT`,
-  `_EVENT_DEFAULT`, `_EVENT_LEFT`, `_EVENT_CENTRE`, `OPENHOI_OPT_ON`, `OPENHOI_OPT_OFF` - and English of the engine's
-  own where no table has one, the original's having none (`CEnhancedOptionsText`). A value has the width between the
-  two arrows and no more.
+- **Every word is the localisation's** (the user's word, 2026-11-21: "Please dont build it in. Always use
+  localisation."): the engine words nothing, and a key no table has shows as itself, as every missing text does. A
+  label's key is whatever its file says. A value's is the engine's (`CEnhancedOptionsText`): `OPENHOI_OPT_OFF`,
+  `OPENHOI_OPT_ON`, `OPENHOI_OPT_PREMONTH_ONE`, `OPENHOI_OPT_PREMONTH_DAYS` with `$DAYS$`, `OPENHOI_OPT_TIMED_MINUTES`
+  with `$MINUTES$`, `OPENHOI_OPT_EVENT_DEFAULT`, `OPENHOI_OPT_EVENT_LEFT`, `OPENHOI_OPT_EVENT_CENTRE`. BlackICE's are in
+  `localisation/openhoi_options.csv`, which the original reads too and has no use for. A value has the width between
+  the two arrows and no more.
 - **Made again from their file at every opening and stored by Apply**, after `settings.txt` is written: in force at
   once and written to **`openhoi_settings.txt`** in the player's folder, beside `settings.txt` and not in it - the
   original reads that one too and has to find it as it wrote it (`CEnhancedSettingsFile`; UTF-8, four keys:
   `premonth_autosave_days`, `timed_autosave_minutes`, `edge_scrolling`, `event_window`). A failure to write is told as
   the settings' own is. Back drops what was not applied. The front end's Settings window has the rows too.
 - **Checked on 2026-11-21 with `--click`**, BlackICE's working copy played from a linked stand-in install: the rows
-  drawn in BlackICE's style, stepped, applied - `openhoi_settings.txt` written and `settings.txt` byte for byte what it
+  drawn from its `gameoptions.gui` and worded from its table, stepped, applied - `openhoi_settings.txt` written and `settings.txt` byte for byte what it
   was - and in a second run an event's window at the left where the mod's file puts it in the middle, at the same
   height, and `autosave_premonth.hoi3` written on 30 January. The timer and the edge were tried by their tests alone.
 

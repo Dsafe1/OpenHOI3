@@ -84,8 +84,10 @@ This file is the order of work across the two repositories and what was decided 
    - *More game options*. **Built 2026-11-21** (`mechanics/gameoptions.md`, section 5): two more rotating autosaves,
      scrolling at the screen's edge and where an event's window comes up, as four rows on the game options' **Game
      tab** - not a tab of their own, by the user's choice: the window's four tabs fill its width, and a fifth in
-     `settings.gui` the original would draw. The rows are the tab's own autosave row copied, so the mod adds no
-     file; their words may be given in its localisation under `OPENHOI_OPT_...` keys and are English without. Kept
+     `settings.gui` the original would draw. **The mod declares the rows' elements itself**, in
+     `interface/openhoi/gameoptions.gui`, which this engine reads in an enhanced game after the other `.gui` files -
+     the first use of that folder, and the way the utility's windows are to come - and **every word is the mod's
+     localisation**, `localisation/openhoi_options.csv`: the engine words nothing (both the user's, 2026-11-21). Kept
      in `openhoi_settings.txt` beside `settings.txt`. A tab of their own can come with the release made for this
      engine alone.
    - *The utility as windows of the game*: the interface for windows a mod defines, laid out in `.gui` files under

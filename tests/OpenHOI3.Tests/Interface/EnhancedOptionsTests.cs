@@ -103,55 +103,79 @@ public class EnhancedOptionsTests
 	}
 
 	[Fact]
-	public void ARowSaysItsChoiceInTheModsWordsOrTheEnginesOwn()
+	public void ARowShowsItsKeysTextFromTheLocalisationWithItsFigurePutIn()
 	{
+		var table = new Dictionary<string, string>
+		{
+			["OPENHOI_OPT_OFF"] = "Aus",
+			["OPENHOI_OPT_ON"] = "An",
+			["OPENHOI_OPT_PREMONTH_ONE"] = "Am letzten Tag",
+			["OPENHOI_OPT_PREMONTH_DAYS"] = "$DAYS$ Tage vorher",
+			["OPENHOI_OPT_TIMED_MINUTES"] = "Alle $MINUTES$ Minuten",
+			["OPENHOI_OPT_EVENT_LEFT"] = "Links",
+		};
+		// As the localisation answers: a key no table has is itself.
+		string Localise(string key) => table.TryGetValue(key, out string? text) ? text : key;
+
 		var options = new CEnhancedOptions();
 		options.Refresh(new CEnhancedSettings(2, 15, false, EEventWindowPlace.Left));
-		string? None(string key) => null;
-		Assert.Equal("Save before the month ends", CEnhancedOptionsText.Label("premonth", None));
-		Assert.Equal("2 days before", CEnhancedOptionsText.Value("premonth", options, None));
-		Assert.Equal("Every 15 minutes", CEnhancedOptionsText.Value("timed", options, None));
-		Assert.Equal("Off", CEnhancedOptionsText.Value("edge", options, None));
-		Assert.Equal("On the left", CEnhancedOptionsText.Value("event", options, None));
+		Assert.Equal("2 Tage vorher", CEnhancedOptionsText.Value("premonth", options, Localise));
+		Assert.Equal("Alle 15 Minuten", CEnhancedOptionsText.Value("timed", options, Localise));
+		Assert.Equal("Aus", CEnhancedOptionsText.Value("edge", options, Localise));
+		Assert.Equal("Links", CEnhancedOptionsText.Value("event", options, Localise));
 
-		options.Refresh(new CEnhancedSettings(1, 0));
-		Assert.Equal("On its last day", CEnhancedOptionsText.Value("premonth", options, None));
-		Assert.Equal("Off", CEnhancedOptionsText.Value("timed", options, None));
-		Assert.Equal("On", CEnhancedOptionsText.Value("edge", options, None));
-
-		// A mod's table comes first.
-		string? Mod(string key) => key == "OPENHOI_OPT_OFF" ? "Aus" : null;
-		Assert.Equal("Aus", CEnhancedOptionsText.Value("timed", options, Mod));
+		options.Refresh(new CEnhancedSettings(1, 0, true, EEventWindowPlace.Centre));
+		Assert.Equal("Am letzten Tag", CEnhancedOptionsText.Value("premonth", options, Localise));
+		Assert.Equal("Aus", CEnhancedOptionsText.Value("timed", options, Localise));
+		Assert.Equal("An", CEnhancedOptionsText.Value("edge", options, Localise));
+		// Nothing is worded by the engine: a text no table gives shows as its key.
+		Assert.Equal("OPENHOI_OPT_EVENT_CENTRE", CEnhancedOptionsText.Value("event", options, Localise));
+		options.Refresh(CEnhancedSettings.Default);
+		Assert.Equal("OPENHOI_OPT_EVENT_DEFAULT", CEnhancedOptionsText.Value("event", options, Localise));
 	}
 
 	[Fact]
-	public void EachRowIsTheAutosaveRowOverAgainFurtherDown()
+	public void TheRowsElementsAreFoundByTheNamesAModDeclaresThemUnder()
 	{
-		var tab = new CGuiWindowType { Name = "menu_settings_GAME" };
-		tab.Children.Add(new CGuiTextBoxType { Name = "autosave_label", Position = new CGuiPoint(30, 50), Font = "Arial12_bold", MaxWidth = 172, Text = "SM_AUTOSAVE_INTERVAL" });
-		tab.Children.Add(new CGuiTextBoxType { Name = "autosave_value", Position = new CGuiPoint(30, 69), Font = "Arial12_headline", MaxWidth = 172 });
-		tab.Children.Add(new CGuiButtonType { Name = "decrease_autosave_button", Position = new CGuiPoint(30, 60), Sprite = "option_prev", Shortcut = "a" });
-		tab.Children.Add(new CGuiButtonType { Name = "increase_autosave_button", Position = new CGuiPoint(165, 60), Sprite = "option_next" });
+		Assert.Equal("openhoi_game_options", CEnhancedOptionRows.WindowName);
+		Assert.Equal("openhoi_timed_label", CEnhancedOptionRows.LabelName("timed"));
+		Assert.Equal("openhoi_timed_value", CEnhancedOptionRows.ValueName("timed"));
+		Assert.Equal("decrease_openhoi_timed_button", CEnhancedOptionRows.DecreaseName("timed"));
+		Assert.Equal("increase_openhoi_timed_button", CEnhancedOptionRows.IncreaseName("timed"));
+	}
 
-		List<CGuiType> rows = CEnhancedOptionRows.Build(tab, CEnhancedOptions.Rows);
-		Assert.Equal(16, rows.Count);
-		Assert.Equal(16, rows.Select(row => row.Name).Distinct().Count());
+	[Fact]
+	public void AModsEnhancedInterfaceFolderIsReadOnlyWhereTheModeIsOn()
+	{
+		string root = Path.Combine(Path.GetTempPath(), "openhoi3-enhgui-" + Guid.NewGuid().ToString("N"));
+		try
+		{
+			Directory.CreateDirectory(Path.Combine(root, "interface", "openhoi"));
+			Directory.CreateDirectory(Path.Combine(root, "tfh", "common"));
+			File.WriteAllText(Path.Combine(root, "interface", "core.gui"),
+				"guiTypes = { windowType = { name = \"plain_window\" size = { x = 10 y = 10 } } }");
+			File.WriteAllText(Path.Combine(root, "interface", "openhoi", "gameoptions.gui"),
+				"guiTypes = { windowType = { name = \"openhoi_game_options\" size = { x = 240 y = 300 }\n"
+				+ "guiButtonType = { name = \"increase_openhoi_edge_button\" position = { x = 165 y = 10 } quadTextureSprite = \"option_next\" } } }");
+			var warnings = new List<string>();
 
-		var label = Assert.IsType<CGuiTextBoxType>(rows.Single(row => row.Name == "openhoi_timed_label"));
-		Assert.Equal(new CGuiPoint(30, 50 + 2 * CEnhancedOptionRows.Pitch), label.Position);
-		Assert.Equal("Arial12_bold", label.Font);
-		Assert.Equal(172, label.MaxWidth);
-		Assert.Equal("", label.Text);
+			// A faithful game: the folder is not read, whatever lies in it.
+			CGuiTypes faithful = CGuiTypes.Load(OpenHOI3.Content.CDirectorySettings.At(root), warnings.Add);
+			Assert.NotNull(faithful.FindWindow("plain_window"));
+			Assert.Null(faithful.FindWindow(CEnhancedOptionRows.WindowName));
 
-		var decrease = Assert.IsType<CGuiButtonType>(rows.Single(row => row.Name == "decrease_openhoi_premonth_button"));
-		Assert.Equal(new CGuiPoint(30, 60 + CEnhancedOptionRows.Pitch), decrease.Position);
-		Assert.Equal("option_prev", decrease.Sprite);
-		Assert.Equal("", decrease.Shortcut);
-		var increase = Assert.IsType<CGuiButtonType>(rows.Single(row => row.Name == "increase_openhoi_event_button"));
-		Assert.Equal(new CGuiPoint(165, 60 + 4 * CEnhancedOptionRows.Pitch), increase.Position);
-
-		// A tab with no autosave row has nothing to copy.
-		Assert.Empty(CEnhancedOptionRows.Build(new CGuiWindowType { Name = "menu_settings_GAME" }, CEnhancedOptions.Rows));
+			// An enhanced one: its declarations are there with the rest.
+			File.WriteAllText(Path.Combine(root, "tfh", "common", "openhoi_enhanced.txt"), "");
+			CGuiTypes enhanced = CGuiTypes.Load(OpenHOI3.Content.CDirectorySettings.At(root), warnings.Add);
+			Assert.NotNull(enhanced.FindWindow("plain_window"));
+			CGuiWindowType? window = enhanced.FindWindow(CEnhancedOptionRows.WindowName);
+			Assert.NotNull(window);
+			Assert.NotNull(window!.Find<CGuiButtonType>("increase_openhoi_edge_button"));
+		}
+		finally
+		{
+			Directory.Delete(root, recursive: true);
+		}
 	}
 
 	// --- the extra autosaves ---
