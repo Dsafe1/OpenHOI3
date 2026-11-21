@@ -2147,10 +2147,11 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 ## Loose ends
 
 - **The AI's strategic bombers fly once and not again** (2026-11-21, `moving.md`, section 17.4): from the 1944.6.20
-  bookmark ours orders the original's first-day groups within an hour or two of the original's, but over five days
-  gives them no second raid where the original's give three on the 24th. Which of a raided group's organisation, rest
-  and rebase keeps it out of the pool wants an hourly series of the original over several days; one day of it is in
-  this session's scratchpad (`s44`, 25 saves), and the fifth day's save is `aigaps1944_06_25_00` in the player's folder.
+  bookmark ours orders the original's first-day groups within an hour or two of the original's, but they come back from
+  their first raid shattered and rest out the five days. The bombing and the air battle are the original's; the lead is
+  **the German fighters' places** (5 of 18 air units where the original's are at 09:00) and **when an intercept engages**
+  - the 6th Air wing at 2687 engages ours and not the original's. One day of the original's hourly saves is in the
+  scratchpad of the session of 2026-11-21 (`s44`), and the fifth day's save is `aigaps1944_06_25_00` in the player's folder.
 
 - **The full headless run of 2026-11-20 left three leads** (reported by the session that ran it, and not written up
   elsewhere): the war after 1942 - Germany collapses in late 1944 and France goes over to the Comintern - which wants a

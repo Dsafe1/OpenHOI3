@@ -1079,6 +1079,16 @@ months on) - at least three hours left, and the order ends then.
     then gives none of them another in the five days**, the groups never coming back to the pool, where the original's
     three stand on the 25th: how soon a group is a candidate again after a raid - its organisation, its rest at its base,
     its rebase (8th Group stands at 1964 here and 1857 there) - is what to look at next, on an hourly series of more days.
+    **Looked at on 2026-11-21** with the original's hourly saves of the first day: the groups rest because they come back
+    shattered - the 8th Air Force at nought organisation and a quarter of its strength after its first raid, where the
+    original's is at 27 and 83 - and **neither the bombing nor the air battle is what differs**. Over 2687 the bombing's
+    losses are the original's to the thousandth (47.64, 47.45, 47.34, 46.19 against 47.64, 47.30, 46.09, 45.99), and the
+    original's own air battle over 2023 played on from its 15:00 save costs ours 5, 7 and 5 organisation an hour to the
+    original's 3, 6 and 6. What differs is **whom the bombers meet on the way**: at 09:00 only 5 of Germany's 18 air units
+    stand where the original's do, so ours flies into more fighters - and in a new game made at the bookmark, the 6th Air
+    wing on its intercept at 2687 engages the 8th Air Force where the original's, there on the same order, does not. So
+    the second raid waits on the German fighters' places and on when an intercept engages; and a game loaded in the middle
+    of a day holds its groups to the other stance's bar (0.7) until the AI's next pass sets stance 2.
   - **Naval strike**, till sunset: over the seas of the enemy fleets handed to the agent at sea - and the sea each sails
     into next - in weather to 0.330, **every one in reach, in that order and repeats and all, is the mission's**, the first
     its province; with none, a **port strike** over the harbours of those in port the same way (`reversing/findings/
