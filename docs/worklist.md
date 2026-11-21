@@ -2163,6 +2163,7 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   new recorded run, the old recording predating `CAiEntry.Prepare`; Germany's supplies, about three times the original's
   from 1937, for which `OpenHOI3.SaveCheck supplyledger` is the tool; and a year taking seven times as
   long by 1947 while the units only doubled. Paused on 2026-11-20 for the multiplayer work, which is finished.
+  ~~Germany's supplies~~ - closed on 2026-11-21 as the original's own run-to-run spread (below).
   **Germany's supplies were narrowed on 2026-11-21** to who proposes its supply sales. Against the Ireland game's save of
   5 July 1937: Berlin holds 23,278 supplies in ours, 8,486 in the original's; the units, laws, mobilisation, air units,
   the units' demand (158 a day either way) and the sales (120 against 109) agree. What differs is that the original's
@@ -2190,8 +2191,15 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   to spare. Which of `ai_trade.lua`'s two cancel rules fires - losing money, after which the freed money buys again, or
   money to spare with a supply surplus, after which it does not - hangs on the Soviet money balance at each review. No
   rule of ours was found wrong: the supply share, the ledgers, `GetDailyBalance`, `AICalculateExpense` and the route
-  accessors all agree with the readings. Next: the trade script's inputs at each Soviet turn, ours beside the running
-  game's (the fact base's `probes/hoiresvalues.lua` reads `CResourceValues` there).
+  accessors all agree with the readings. ~~Next: the trade script's inputs at each Soviet turn~~ - done the same day:
+  the Soviet Union's seven `CResourceValues` at its turn on 13 March 1936 are the running game's (money -0.147 both,
+  metal, oil, energy and rare materials to the thousandth, supplies 206 against 211), and it acts on 12 of 61 days in
+  both. **Closed as the original's own randomness**: three runs of the original on the live game from the same save of
+  11 March 1936 give Germany 18,311, 20,071 and 15,150 supplies on 1 December 1936, against ours's six seeds 13,815 to
+  22,140, and in the second Germany proposes 51 a day of its own sales against 20 on buyers' routes - ours's pattern; the
+  Soviet Union proposes 40, 5 and 20 a day of its own purchases where the Ireland game's kept 74 to 88. The Ireland
+  game's 8,486 in July 1937 is one draw of a wide spread, not the original's rule; two runs of the original from one
+  save already part on the third day.
 
 - ~~**A fleet's base check in its hour**~~ - built 2026-11-20: every fleet's hour ends in it, and a fleet with no base and
   no port left to its country is removed at the hour's end (`fleetsandair.md`, section 2.1). The air unit's own check is
