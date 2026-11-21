@@ -2161,8 +2161,16 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 - **The full headless run of 2026-11-20 left three leads** (reported by the session that ran it, and not written up
   elsewhere): the war after 1942 - Germany collapses in late 1944 and France goes over to the Comintern - which wants a
   new recorded run, the old recording predating `CAiEntry.Prepare`; Germany's supplies, about three times the original's
-  from 1937, for which `OpenHOI3.SaveCheck supplyledger` is the tool; and a year taking seven times as
-  long by 1947 while the units only doubled. Paused on 2026-11-20 for the multiplayer work, which is finished.
+  from 1937, for which `OpenHOI3.SaveCheck supplyledger` is the tool; and ~~a year taking seven times as
+  long by 1947 while the units only doubled~~ - mostly mended on 2026-11-21, every change hash-identical to before: the
+  AI's recall of stranded units searched a route to each of its own provinces in turn for a unit with no way home, and
+  now walks what it can reach once (12.9 of the 1944 bookmark's first ten days' 31 s, 0.06 now; 540 late-war days in
+  13 minutes where main's build had not finished in 48), a surrender or an annexation made the supply network again
+  for every province handed over (5 to 6 s at a puppet's making, 0.6 now), and the AI's undergrounds walked the provinces
+  for each country (now once an hour). A late-war day from the 1944 bookmark is about twice a day of 1936 now, in line
+  with twice the units and the wars; the largest left are the AI's sea targets (every enemy convoy against every agent,
+  path step and port, the original's own walk) and the land block. `OpenHOI3.SaveCheck profile` names the steps of every
+  hour over a second. Paused on 2026-11-20 for the multiplayer work, which is finished.
   ~~Germany's supplies~~ - closed on 2026-11-21 as the original's own run-to-run spread (below).
   **Germany's supplies were narrowed on 2026-11-21** to who proposes its supply sales. Against the Ireland game's save of
   5 July 1937: Berlin holds 23,278 supplies in ours, 8,486 in the original's; the units, laws, mobilisation, air units,
