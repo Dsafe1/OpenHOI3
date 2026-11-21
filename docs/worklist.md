@@ -2421,8 +2421,9 @@ None of these blocks the list above.
 - **Which end of a scrollbar that runs up and down adds is not settled** (2026-10-12): the
   original's scrollbar is given a flag that swaps its two buttons, and what sets it was not
   read (`interface.md`, section 2). The sliders, across, take away on the left as here.
-- **What is left of the battle window's list** (`docs/mechanics/combatview.md` ends with it): a land marker's first three
-  hours - the naval map mode's icons are built (`mapmodes.md`, section 11). Units in a battle stand in a stack for the attackers and one
+- **What is left of the battle window's list** (`docs/mechanics/combatview.md` ends with it): nothing to build - the
+  naval map mode's icons are built (`mapmodes.md`, section 11), and a land battle has no marker in its first three hours
+  in the original either (`combatview.md`, section 8). Units in a battle stand in a stack for the attackers and one
   for the defenders since 2026-11-14, as the original's (`mapunits.md`, section 3); what a click on the original's marker does was not read - here it opens the window.
   An enemy the player knows under intel level 3
   shows the unknown counter's "?" since 2026-11-13, its picture alone, as the original's
