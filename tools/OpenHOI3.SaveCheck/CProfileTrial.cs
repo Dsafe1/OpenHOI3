@@ -25,7 +25,7 @@ internal static class CProfileTrial
 	{
 		if (args.Length < 2)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck profile <install folder> [days] [tag] [from=DATE] [lua]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck profile <install folder> [days] [tag] [from=DATE] [warm=DAYS] [lua]");
 			return 2;
 		}
 		int days = args.Length > 2 && int.TryParse(args[2], out int given) ? given : 30;
@@ -48,6 +48,22 @@ internal static class CProfileTrial
 		var simulation = new CSimulation(state);
 		Console.WriteLine($"a new game as {tag}, {state.Date}, loaded in {loading.ElapsedMilliseconds} ms");
 
+		// warm=N: N days played before anything is measured, so that a start's first passes are left out.
+		if (args.FirstOrDefault(a => a.StartsWith("warm=", StringComparison.Ordinal)) is { } warmArgument
+			&& int.TryParse(warmArgument["warm=".Length..], out int warm) && warm > 0)
+		{
+			var warming = Stopwatch.StartNew();
+			simulation.RunHours(warm * CGameState.HoursPerDay);
+			Console.WriteLine($"{warm} days played first, to {state.Date}, in {warming.ElapsedMilliseconds} ms");
+		}
+		// The world's size as the measuring begins.
+		var units = state.Countries.SelectMany(c => c.AllUnits()).Where(u => !u.IsRemoved).ToList();
+		Console.WriteLine($"the world: {units.Count(u => u.Kind == OpenHOI3.Sim.Units.EUnitKind.Division)} divisions, " +
+			$"{units.Count(u => u.Kind is not (OpenHOI3.Sim.Units.EUnitKind.Division or OpenHOI3.Sim.Units.EUnitKind.Navy or OpenHOI3.Sim.Units.EUnitKind.Air))} headquarters, " +
+			$"{units.Count(u => u.Kind == OpenHOI3.Sim.Units.EUnitKind.Navy)} fleets, {units.Count(u => u.Kind == OpenHOI3.Sim.Units.EUnitKind.Air)} air units, " +
+			$"{units.Sum(u => u.SubUnits.Count)} brigades, ships and wings; {state.Wars.Count} wars, " +
+			$"{state.Countries.Count(c => state.IsAtWar(c.Tag))} countries at war, {state.Combats.Count} battles, " +
+			$"{state.Countries.Sum(c => c.Convoys.Count)} convoys, {state.TradeRoutes.Count} trade routes");
 		state.Profile = new CTickProfile();
 		// With `lua`, the time the scripts spend in each method of ours they call, on the game's own state.
 		bool lua = args.Skip(2).Contains("lua");
