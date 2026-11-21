@@ -172,8 +172,14 @@ and fuel in 2 (`firstdays`, **measured**) - 15 and 1 on 2026-11-21.
 `reversing/findings/FINDINGS-liveread.md`, section 153). A new game of the original's, read as its entry ends, has
 Japan's supplies within 4.4 of the save and 114.8 under ours, the United States' 34.9 under ours and Colombia's fuel
 4.55 under ours - and nothing moves them in its first fourteen frames, the game standing paused. So those three are
-made in the entry's two days: ours leaves more in the stockpile than the original, and `supplypass` has Japan's two
-networks and Washington's among those that differ (`supply.md`, section 17). Two runs of the original part by a few
+made in the entry's two days. **Followed point by point the same day** (section 154 of the same file;
+`firstdays ... points=JAP,USA`): the first day is the original's to the thousandth, capital and provinces alike, for
+every country looked at; both run 251 passes of the filling; and it is the filling they part in - by thousandths in
+its first passes and then by where its lumps of 36 and 59.5 supplies stand along Korea's roads at its end. **The
+original parts from itself there too**: three runs ended Japan at 14724.280 and a fourth at 14760.076, one lump
+more, Colombia at 180.028 and at 184.571. Ours ends Japan at 14839.053, about three lumps over the lowest. So what is
+left is the filling's sensitivity to its beginnings - a new game's weather, which differs from run to run and whose
+mud the pass's tax reads, is the likely source (*inferred*) - and not a rule found wrong. Two runs of the original part by a few
 supplies themselves - 8.9 for the United States, the save having the more - as a new game's weather does, so the
 ten countries a few thousandths to a tenth apart are inside the original's own spread.
 

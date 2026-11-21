@@ -74,6 +74,7 @@ public static class CSupplyStart
 
 		for (int pass = 0; pass < passes; pass++)
 		{
+			state.FirstDaysLook?.Invoke($"pass {pass}");
 			for (int i = 0; i < kept.Length; i++)
 			{
 				if (state.Stockpile(state.Countries[i]) is { } stockpile)

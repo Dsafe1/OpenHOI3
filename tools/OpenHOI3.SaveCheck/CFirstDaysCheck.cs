@@ -39,6 +39,61 @@ internal static class CFirstDaysCheck
 		"regiment", "ship", "wing",
 	};
 
+	private static void Look(CGameState state, string where, string[] tags)
+	{
+		// A pass of the filling: with OPENHOI3_PASS_PROVINCES naming provinces ("4896,5281"), their supplies and fuel at
+		// its head, as the fact base's probe hoifillpasses.lua writes them of the running game.
+		if (where.StartsWith("pass ", StringComparison.Ordinal))
+		{
+			if (Environment.GetEnvironmentVariable("OPENHOI3_PASS_PROVINCES") is { Length: > 0 } list)
+			{
+				Console.WriteLine(where + " : " + string.Join(" | ", list.Split(',').Select(int.Parse).Select(id =>
+					$"{id} {state.Province(id).Pool[OpenHOI3.Sim.Economy.EGoods.Supplies].Raw} {state.Province(id).Pool[OpenHOI3.Sim.Economy.EGoods.Fuel].Raw}")));
+			}
+			return;
+		}
+		foreach (string tag in tags)
+		{
+			if (!CCountryTag.TryParse(tag, out CCountryTag asked) || state.Country(asked) is not { } country)
+			{
+				continue;
+			}
+			long supplies = 0, fuel = 0;
+			int holding = 0;
+			foreach (var province in state.Provinces)
+			{
+				if (province.Controller != country.Tag || province.Id == country.ActingCapital)
+				{
+					continue;
+				}
+				long s = province.Pool[OpenHOI3.Sim.Economy.EGoods.Supplies].Raw, f = province.Pool[OpenHOI3.Sim.Economy.EGoods.Fuel].Raw;
+				if (s != 0 || f != 0)
+				{
+					supplies += s;
+					fuel += f;
+					holding++;
+				}
+			}
+			// With OPENHOI3_POINTS_DUMP naming a folder, every such province to a file there: "id supplies fuel".
+			if (Environment.GetEnvironmentVariable("OPENHOI3_POINTS_DUMP") is { Length: > 0 } folder)
+			{
+				var lines = new List<string>();
+				foreach (var province in state.Provinces)
+				{
+					long s = province.Pool[OpenHOI3.Sim.Economy.EGoods.Supplies].Raw, f = province.Pool[OpenHOI3.Sim.Economy.EGoods.Fuel].Raw;
+					if (province.Controller == country.Tag && (s != 0 || f != 0))
+					{
+						lines.Add($"{province.Id} {s} {f}");
+					}
+				}
+				System.IO.File.WriteAllLines(System.IO.Path.Combine(folder, $"{tag}_{where.Replace(' ', '_')}.txt"), lines);
+			}
+			var pool = state.Province(country.ActingCapital).Pool;
+			Console.WriteLine($"{where} : {tag} pool {pool[OpenHOI3.Sim.Economy.EGoods.Supplies].Raw} {pool[OpenHOI3.Sim.Economy.EGoods.Fuel].Raw} "
+				+ $"{pool[OpenHOI3.Sim.Economy.EGoods.Money].Raw} ; provinces {holding} supplies {supplies} fuel {fuel}");
+		}
+	}
+
 	public static int Run(string[] args)
 	{
 		if (args.Length < 3)
@@ -56,8 +111,15 @@ internal static class CFirstDaysCheck
 		ClausewitzNode save = ClausewitzParser.ParseFile(args[2]);
 		using var scripts = new OpenHOI3.Lua.CAiScripts(directories, warnings.Add);
 		var clock = System.Diagnostics.Stopwatch.StartNew();
+		// "points=TAG,TAG": those countries' goods at the four points of the two days, as the fact base's probe
+		// hoientrydays.lua writes them of the running game - the capital's pool, and the supplies and fuel lying in every
+		// other province the country holds.
+		string[] points = args.Skip(3).FirstOrDefault(a => a.StartsWith("points=", StringComparison.Ordinal))?["points=".Length..]
+			.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
 		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts,
-			played: new[] { new CCountryTag(save.GetString("player")) }, date: CStartSave.Date(args[2]));
+			played: new[] { new CCountryTag(save.GetString("player")) },
+			beforeFirstDays: points.Length == 0 ? null : made => made.FirstDaysLook = where => Look(made, where, points),
+			date: CStartSave.Date(args[2]));
 		Console.WriteLine($"a new game, its two days run: made in {clock.ElapsedMilliseconds} ms");
 
 		Console.WriteLine($"savegame: date {save.GetString("date")}, player {save.GetString("player")}");

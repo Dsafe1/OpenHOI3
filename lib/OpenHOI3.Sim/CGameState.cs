@@ -732,6 +732,12 @@ public sealed class CGameState
 	/// </summary>
 	public Action<Units.CUnit>? UnitRemovedTrace { get; set; }
 
+	/// <summary>
+	/// Told the points of a new game's first days as they are reached - before and after each of the two days - so that a
+	/// tool can look at the game there. Only a tool sets it (<c>OpenHOI3.SaveCheck firstdays ... points=</c>).
+	/// </summary>
+	public Action<string>? FirstDaysLook { get; set; }
+
 	/// <summary>Told of each battle's hour and each unit's firing, for a tool setting them beside the original's. Null in a game.</summary>
 	public Action<string>? CombatTrace { get; set; }
 

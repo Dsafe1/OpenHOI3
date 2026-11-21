@@ -2571,10 +2571,12 @@ None of these blocks the list above.
   every stockpile's metal, rare materials and money, every brigade, technology, ability and line of the queue and every
   country's manpower are the save's, Germany's every figure but 0.030 of supplies; what is left is **supplies in 15
   countries and fuel in 1** (2026-11-21), the 2.010 each headquarters the AI makes in the first hour takes being
-  explained (`stockpile.md`, section 2). Read on the running game that day: **Japan's 115 and the United States' 35
-  too many supplies, and Colombia's 4.55 of fuel, are made in the entry's two days and not by the AI's first pass**;
-  the rest is within what two runs of the original differ by. Next: the day's ledger for Japan on the two days, live,
-  beside `supplypass`'s. **The AI's own
+  explained (`stockpile.md`, section 2). Read on the running game that day: **they are made in the filling between the entry's two
+  days, not by the AI's first pass, and the original's own runs part there too** - Japan 14724.280 three times and
+  14760.076 once, Colombia 180.028 and 184.571 - the first day being ours to the thousandth and both running 251
+  passes (`stockpile.md`, section 2; `firstdays ... points=TAG` prints the four points, as the fact base's
+  `hoientrydays.lua` does of the running game). Not a rule found wrong. What would make it like for like: the running
+  game's mud at the filling read and given to ours. **The AI's own
   shares by the save** are its production minister's, and when the original's first sets them, before the first hour,
   was not read. The Lua's look at a new game's laws is made once since 2026-11-15 (`politics.md`, section 12). The filling of empty posts
   does not wait on the queue (read 2026-11-21, `reversing/findings/FINDINGS-startshares.md`, section 9): the engine

@@ -259,9 +259,13 @@ public static class CTick
 		// Entering gives every province still without one a depot, before the days run, the history's changes of controller having
 		// counted theirs once already (supply.md, section 18).
 		Supply.COutOfSupplyDays.Enter(state);
+		state.FirstDaysLook?.Invoke("before day 1");
 		RunDailyPass(state);
+		state.FirstDaysLook?.Invoke("after day 1");
 		CSupplyStart.Fill(state);
+		state.FirstDaysLook?.Invoke("before day 2");
 		RunDailyPass(state);
+		state.FirstDaysLook?.Invoke("after day 2");
 		RunMonthlyPass(state);
 		RunHourlyPass(state);
 		// The entry's end: every country owning no province and not in exile taken off its wars and out of its faction, and
