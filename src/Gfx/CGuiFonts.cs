@@ -152,6 +152,124 @@ public sealed class CGuiFonts
 		return font;
 	}
 
+	/// <summary>The install and mods, as their layers, whose fonts the log has had - one report a process each.</summary>
+	private static readonly HashSet<string> Reported = new(StringComparer.Ordinal);
+
+	/// <summary>
+	/// Writes into the run's log every font file - each <c>bitmapfont</c> entry's <c>fontname</c> and every descriptor in
+	/// <c>gfx/fonts</c> - and what it is drawn from: its own glyphs as distance fields, a typeface supplied beside it, or a
+	/// shipped stand-in at the size that fits the original's widths, with why and how far narrowed; and every
+	/// <c>font = { }</c> entry's stand-in. Once a process for an install and its mods, however often the interface is read.
+	/// Every font but the large ones is made for it, which is cheap; a large one's distance fields are built only when it
+	/// is first drawn. <c>docs/mechanics/interface.md</c>, section 6.
+	/// </summary>
+	public void Report()
+	{
+		if (!Reported.Add(string.Join("|", _directories.Layers)))
+		{
+			return;
+		}
+		var clock = System.Diagnostics.Stopwatch.StartNew();
+		var files = new SortedDictionary<string, List<CGuiFont>>(StringComparer.OrdinalIgnoreCase);
+		foreach (CGuiFont entry in _fonts.Values)
+		{
+			if (entry.File.Length == 0 || entry.FontName.Length == 0)
+			{
+				continue;
+			}
+			if (!files.TryGetValue(entry.FontName, out List<CGuiFont>? named))
+			{
+				files[entry.FontName] = named = new List<CGuiFont>();
+			}
+			named.Add(entry);
+		}
+		foreach (string path in _directories.ListFiles("gfx/fonts", "*.fnt"))
+		{
+			files.TryAdd(Path.GetFileNameWithoutExtension(path), new List<CGuiFont>());
+		}
+
+		int width = 0;
+		foreach (string name in files.Keys)
+		{
+			width = Math.Max(width, name.Length);
+		}
+		var lines = new List<(CFontSourceKind Kind, string Text)>();
+		foreach ((string name, List<CGuiFont> named) in files)
+		{
+			named.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
+			CFontSource source = Source(name);
+			CGuiFont? made = source.Kind == CFontSourceKind.OwnGlyphs ? null
+				: named.Count > 0 ? Make(name, named[0].File, named[0].Line) : Make(name);
+			string what = source.Kind switch
+			{
+				CFontSourceKind.OwnGlyphs => $"its own glyphs as distance fields, capital H {source.CapHeight} px, "
+					+ $"line {source.Descriptor!.LineHeight}",
+				CFontSourceKind.Supplied => $"the typeface {_directories.Relative(source.SuppliedPath)} beside it"
+					+ (made is null ? "" : $", size {made.Size}"),
+				_ => StandIn(name, source, made),
+			};
+			string where = source.DescriptorPath.Length > 0 ? _directories.Relative(source.DescriptorPath) : "no descriptor";
+			string by = named.Count == 0 ? "no bitmapfont entry"
+				: string.Join(", ", named.ConvertAll(entry => entry.Name));
+			lines.Add((source.Kind, $"{Label(source.Kind),-10} {name.PadRight(width)}  {what}; {where}; named by {by}"));
+		}
+
+		var trueType = new List<string>();
+		foreach (CTrueTypeFont entry in _trueType.Values)
+		{
+			CGuiFont? made = Find(entry.Name);
+			_shipped.For(entry.FontName, bold: false, italic: false, out _, out string file);
+			trueType.Add(made is null
+				? $"font={{}}    {entry.Name}: not made - '{entry.FontName}' at height {entry.Height}"
+				: $"font={{}}    {entry.Name}: stand-in {file} for '{entry.FontName}', height {entry.Height}, size {made.Size}");
+		}
+		trueType.Sort(StringComparer.OrdinalIgnoreCase);
+
+		int Count(CFontSourceKind kind) => lines.FindAll(line => line.Kind == kind).Count;
+		GD.Print($"Fonts: {files.Count} font files - {Count(CFontSourceKind.OwnGlyphs)} drawn from their own glyphs, "
+			+ $"{Count(CFontSourceKind.Supplied)} in a typeface supplied beside them, "
+			+ $"{Count(CFontSourceKind.StandIn)} in a shipped stand-in; "
+			+ $"{trueType.Count} font = {{ }} entries, each a stand-in ({clock.ElapsedMilliseconds} ms):");
+		foreach (CFontSourceKind kind in new[] { CFontSourceKind.OwnGlyphs, CFontSourceKind.Supplied, CFontSourceKind.StandIn })
+		{
+			foreach ((CFontSourceKind lineKind, string text) in lines)
+			{
+				if (lineKind == kind)
+				{
+					GD.Print("  " + text);
+				}
+			}
+		}
+		foreach (string text in trueType)
+		{
+			GD.Print("  " + text);
+		}
+	}
+
+	private static string Label(CFontSourceKind kind) => kind switch
+	{
+		CFontSourceKind.OwnGlyphs => "own glyphs",
+		CFontSourceKind.Supplied => "supplied",
+		_ => "stand-in",
+	};
+
+	/// <summary>A stand-in font for the report: the shipped file, the size and narrowing it is drawn at, and why it is one.</summary>
+	private string StandIn(string name, CFontSource source, CGuiFont? made)
+	{
+		string why = source.Descriptor is null ? "no descriptor"
+			: !source.HasTexture ? "no glyph texture"
+			: source.CapHeight == 0 ? "no capital H in its glyphs"
+			: $"capital H {source.CapHeight} px, under {CDistanceFieldAtlas.LeastCapHeight}";
+		if (made is null || !_standIns.TryGetValue(name, out (string File, bool SameWidths) standIn))
+		{
+			return $"not made, the shipped typeface missing ({why})";
+		}
+		string face = source.Descriptor?.Face is { Length: > 0 } named ? $"'{named}'" : "no typeface named";
+		string narrowed = made.Narrowing < 1f ? $", narrowed to {made.Narrowing * 100f:0}%" : "";
+		string widths = standIn.SameWidths ? ", the original's widths" : "";
+		return $"{standIn.File} for {face}, size {made.Size}{narrowed}{widths} - {why}";
+	}
+
 	/// <summary>
 	/// A <c>font = { }</c> entry as a font to draw with: the shipped typeface that stands for its <c>fontname</c>, at the
 	/// size whose cell - from the top of its tallest letter to the foot of its lowest - is the entry's <c>height</c>, as
@@ -201,29 +319,30 @@ public sealed class CGuiFonts
 			return cached;
 		}
 
-		string descriptorPath = _directories.Resolve($"gfx/fonts/{fontName}.fnt");
-		CFontDescriptor? descriptor = File.Exists(descriptorPath) ? CFontDescriptor.Load(descriptorPath) : null;
-
-		bool sameWidths = false;
-		Image? texture = GlyphTexture(fontName);
-		Font? face = Supplied(fontName);
-		if (face is null && descriptor is { LineHeight: > 0 } && texture is not null && Atlas(descriptor, texture) is { } atlas)
+		CFontSource source = Source(fontName);
+		CFontDescriptor? descriptor = source.Descriptor;
+		if (source is { Kind: CFontSourceKind.OwnGlyphs, Descriptor: { } own, Page: { } page })
 		{
 			// Large enough to be drawn from its own glyphs, in the descriptor's own pixels.
-			int size = descriptor.LineHeight;
-			var own = new CGuiFont
+			CDistanceFieldAtlas atlas = CDistanceFieldAtlas.Build(own, page);
+			source.Page = null;
+			int size = own.LineHeight;
+			var drawn = new CGuiFont
 			{
 				Name = fontName,
 				FontName = fontName,
-				Font = CDistanceFieldFont.Make(descriptor, atlas, size),
-				Color = Ink(texture),
+				Font = CDistanceFieldFont.Make(own, atlas, size),
+				Color = source.Ink,
 				Size = size,
-				Ascent = descriptor.Base,
-				LineHeight = descriptor.LineHeight,
+				Ascent = own.Base,
+				LineHeight = own.LineHeight,
 			};
-			_files[fontName] = own;
-			return own;
+			_files[fontName] = drawn;
+			return drawn;
 		}
+
+		bool sameWidths = false;
+		Font? face = source.Supplied;
 		if (face is null)
 		{
 			if (descriptor is null)
@@ -231,17 +350,61 @@ public sealed class CGuiFonts
 				CDiagnostics.Problem(namedIn, line, $"The font '{fontName}' has no descriptor in gfx/fonts and no typeface beside one");
 			}
 			face = _shipped.For(descriptor?.Face ?? "", descriptor is { Bold: true }, descriptor is { Italic: true },
-				out sameWidths);
+				out sameWidths, out string standIn);
+			_standIns[fontName] = (standIn, sameWidths);
 		}
 
 		CGuiFont? made = null;
 		if (face is not null)
 		{
-			made = new CGuiFont { Name = fontName, FontName = fontName, Font = face, Color = Ink(texture) };
+			made = new CGuiFont { Name = fontName, FontName = fontName, Font = face, Color = source.Ink };
 			Measure(made, descriptor, sameWidths);
 		}
 		_files[fontName] = made;
 		return made;
+	}
+
+	/// <summary>Which shipped typeface each stand-in font file was given, and whether its letters are the original's widths.</summary>
+	private readonly Dictionary<string, (string File, bool SameWidths)> _standIns = new(StringComparer.OrdinalIgnoreCase);
+
+	private readonly Dictionary<string, CFontSource> _sources = new(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>
+	/// What a font file is made from, in the order <see cref="CGuiFonts"/> gives: a typeface beside its descriptor, else its
+	/// own glyphs where its capital H stands at least <see cref="CDistanceFieldAtlas.LeastCapHeight"/> pixels, else a stand-in.
+	/// </summary>
+	private CFontSource Source(string fontName)
+	{
+		if (_sources.TryGetValue(fontName, out CFontSource? known))
+		{
+			return known;
+		}
+		string descriptorPath = _directories.Resolve($"gfx/fonts/{fontName}.fnt");
+		bool hasDescriptor = File.Exists(descriptorPath);
+		CFontDescriptor? descriptor = hasDescriptor ? CFontDescriptor.Load(descriptorPath) : null;
+		Image? texture = GlyphTexture(fontName);
+		Font? supplied = Supplied(fontName, out string suppliedPath);
+
+		CGlyphPage? page = texture is null ? null : Page(texture);
+		int capHeight = descriptor is not null && page is not null ? CDistanceFieldAtlas.CapHeight(descriptor, page) : 0;
+		CFontSourceKind kind = supplied is not null ? CFontSourceKind.Supplied
+			: descriptor is { LineHeight: > 0 } && page is not null && CDistanceFieldAtlas.Suits(descriptor, page)
+				? CFontSourceKind.OwnGlyphs
+				: CFontSourceKind.StandIn;
+		var source = new CFontSource
+		{
+			Kind = kind,
+			Descriptor = descriptor,
+			DescriptorPath = hasDescriptor ? descriptorPath : "",
+			HasTexture = texture is not null,
+			CapHeight = capHeight,
+			Ink = Ink(texture),
+			Supplied = supplied,
+			SuppliedPath = suppliedPath,
+			Page = kind == CFontSourceKind.OwnGlyphs ? page : null,
+		};
+		_sources[fontName] = source;
+		return source;
 	}
 
 	/// <summary>The font's glyph texture, <c>gfx/fonts/&lt;name&gt;.tga</c> in whichever layer has it, as RGBA; null where none decodes.</summary>
@@ -268,11 +431,8 @@ public sealed class CGuiFonts
 		return image;
 	}
 
-	/// <summary>
-	/// The font's glyphs as distance fields, where its capital H stands at least
-	/// <see cref="CDistanceFieldAtlas.LeastCapHeight"/> pixels; null for a smaller font, which a stand-in draws.
-	/// </summary>
-	private static CDistanceFieldAtlas? Atlas(CFontDescriptor descriptor, Image texture)
+	/// <summary>The glyph texture's coverage, its alpha, which the distance fields and the capital H's height are read from.</summary>
+	private static CGlyphPage Page(Image texture)
 	{
 		byte[] pixels = texture.GetData();
 		var alpha = new byte[pixels.Length / 4];
@@ -280,8 +440,7 @@ public sealed class CGuiFonts
 		{
 			alpha[i] = pixels[4 * i + 3];
 		}
-		var page = new CGlyphPage(texture.GetWidth(), texture.GetHeight(), alpha);
-		return CDistanceFieldAtlas.Suits(descriptor, page) ? CDistanceFieldAtlas.Build(descriptor, page) : null;
+		return new CGlyphPage(texture.GetWidth(), texture.GetHeight(), alpha);
 	}
 
 	/// <summary>
@@ -309,11 +468,11 @@ public sealed class CGuiFonts
 	}
 
 	/// <summary>A typeface file of the font's own name beside its descriptor, in whichever layer has one.</summary>
-	private Font? Supplied(string fontName)
+	private Font? Supplied(string fontName, out string path)
 	{
 		foreach (string extension in new[] { ".ttf", ".otf" })
 		{
-			string path = _directories.Resolve($"gfx/fonts/{fontName}{extension}");
+			path = _directories.Resolve($"gfx/fonts/{fontName}{extension}");
 			if (!File.Exists(path))
 			{
 				continue;
@@ -327,6 +486,7 @@ public sealed class CGuiFonts
 			}
 			CDiagnostics.Problem(path, 0, $"Could not load the typeface ({error})");
 		}
+		path = "";
 		return null;
 	}
 

@@ -57,6 +57,12 @@ public sealed class CShippedTypefaces
 	/// <param name="sameWidths">Whether its letters are as wide as the original's.</param>
 	public Font? For(string face, bool bold, bool italic, out bool sameWidths)
 	{
+		return For(face, bold, italic, out sameWidths, out _);
+	}
+
+	/// <summary>The same, saying which file of <c>fonts/</c> it is, for a report.</summary>
+	public Font? For(string face, bool bold, bool italic, out bool sameWidths, out string fileName)
+	{
 		if (!Stands.TryGetValue(face, out CShippedTypeface? typeface))
 		{
 			typeface = Default;
@@ -74,6 +80,7 @@ public sealed class CShippedTypefaces
 			(false, true) => typeface.Italic ?? typeface.Regular,
 			_ => typeface.Regular,
 		};
+		fileName = name;
 		if (typeface.Fetched && !Exists(name))
 		{
 			// Not downloaded: Liberation Sans in its place, said once (fonts/readme.md).
@@ -82,7 +89,7 @@ public sealed class CShippedTypefaces
 				CDiagnostics.Warn($"The typeface '{Directory}{name}' is not downloaded, so text in '{face}' is drawn in "
 					+ "Liberation Sans; fonts/readme.md says where to get it");
 			}
-			return For("", bold, italic, out sameWidths);
+			return For("", bold, italic, out sameWidths, out fileName);
 		}
 		FontFile? file = Load(name);
 		if (file is null || !bold || !typeface.VariableWeight)

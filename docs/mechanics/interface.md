@@ -813,6 +813,14 @@ never the font's own letters. So:
     steps. `old_english`, whose lower case is 17, is a little soft at four times.
   - *Measured:* the far map of the base game and of BlackICE, 2026-11-18, every faction's
     name in its own font's letters.
+  - *The log says which way each font went* (2026-11-21, `CGuiFonts.Report`): as the interface is first read, the
+    run's log has a line for every font file - each `bitmapfont` entry's `fontname` and every descriptor in `gfx/fonts` -
+    marked `own glyphs`, `supplied` or `stand-in`, with its H's height, the shipped typeface and the size and narrowing
+    a stand-in is drawn at and why it is one, its descriptor's place and the entries that name it; then each
+    `font = { }` entry's stand-in. Once a process for an install and its mods. Every font but the large ones is made for
+    it, so a `bitmapfont` entry with no descriptor is reported in the validation log even when nothing draws it; a large
+    one's fields are still built only when it is first drawn. On the base game, 2026-11-21: 34 font files, 3 from their
+    own glyphs and 31 stand-ins, and 5 `font = { }` entries, in 114 ms.
 - **A typeface's size is whatever makes the text as wide as the original's glyphs made it.** The
   descriptor gives how far the pen moves for each character; the letters and digits it
   has are measured in both, and the typeface is drawn at the size where the two agree.

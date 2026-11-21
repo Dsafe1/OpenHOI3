@@ -60,7 +60,7 @@ public sealed class CGuiContext
 		var textures = new CTextureManager(directories);
 		var effects = new CEffectShaders(directories);
 		string messageTypesPath = System.IO.Path.Combine(directories.UserFolder, CMessageTypes.CustomFile);
-		return new CGuiContext
+		var context = new CGuiContext
 		{
 			MessageTypesPath = messageTypesPath,
 			Localisation = localisation,
@@ -73,5 +73,8 @@ public sealed class CGuiContext
 			MessageTypes = CMessageTypes.Load(directories, messageTypesPath),
 			Effects = effects,
 		};
+		// Which fonts are drawn from their own glyphs and which by a stand-in, into the run's log once (interface.md, section 6).
+		context.Fonts.Report();
+		return context;
 	}
 }
