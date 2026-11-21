@@ -520,9 +520,14 @@ So the same headquarters keeps its country's officers where the AI disbands it a
 of theatres drops it - the original's, kept (`docs/enhanced.md`).
 
 **A fleet whose last ship is sunk is not taken out where it is emptied** in the original: it stands empty, still on
-its side of the battle, until its side loses with nowhere to run, or its next hour disbands it. *Ours*: it goes at
-once (`navalcombat.md`), at most an hour early and at no cost either way - whether an empty fleet on a side changes
-who has lost was not read. **An air unit's wings are never taken out by a battle**; away from its base with no
+its side of the battle, until its side loses with nowhere to run, or its next hour disbands it. Read on 2026-11-21
+(`reversing/findings/FINDINGS-effectrun.md`, section 3.13): an empty fleet weighs nothing in either of the figures
+that say a side has lost, and a side with no ship at all has lost at the next asking, which is from a battle's fourth
+hour; the fleet's own next hour posts its disband, which runs before the hour after - so a fleet emptied in one hour
+stands through the whole of the next, that hour's round of its battle with it, and its going ends a battle it was
+alone on its side of. *Ours*: it goes at once (`navalcombat.md`), ending such a battle then - an hour or so early, by
+the unit leaving and not by a side having lost, and at no cost in officers either way (`docs/enhanced.md` is not
+where this belongs: it is ours to mend, listed in the worklist). **An air unit's wings are never taken out by a battle**; away from its base with no
 strength left it goes in its next hour, and at its base it stands and reinforces.
 
 *Ours*: going into exile, the original lets what such a unit carries go where it stands; here it goes with the unit.

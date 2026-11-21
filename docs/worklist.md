@@ -2222,8 +2222,11 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 - **Script still unbuilt**: `add_division` (unused by TFH and BlackICE, its starting strength not read through), `remove_fow`, the four mission conditions (an Europa Universalis III leftover, no mission file in either install), `has_hostile_spy_mission` (the original compares against an unset byte) and the AI's `add_ai_strategy` / `fixed_ai_strategy`. Built on 2026-11-16, for BlackICE's layer above all: `remove_brigade` with the original's end-of-hour removal queue, `military_construction` in a running game's `load_oob`, `total_of_ours_sunk`, `total_sunk_by_us`, `surrender_inherit`'s surrender mode and `release_vassal = REB` (`effects.md`, section 8), and `lost_IC`, the four war-record counters and the six `last_*_losses` (`triggers.md`, sections 5.1 and 5.2). **The undeclared war's** hostility is asked at battles, convoy raids and air and fleet targets, not at the AI's war-time gates or the land's movement (`war.md`, section 15).
 - ~~**A unit taken out of the game, everywhere but the new paths**~~ - read whole and built 2026-11-21 (`units.md`,
   section 9): every removal leaves what the unit commanded at the top, and the paths the original charges officers on
-  charge them. Left: an emptied fleet goes at once where the original's stands for up to an hour, and an exile's
-  carried units go with their carrier. As it stood: the original's `RemoveUnit` leaves the removed unit's
+  charge them. Left: **an emptied fleet goes at once** where the original's stands, empty and on its side of
+  the battle, through the whole of the next hour (read whole 2026-11-21, `units.md`, section 9) - so a battle a fleet
+  was alone in ends an hour or so early here, and as a unit leaving, not a side lost; and an exile's carried units go
+  with their carrier. The original's hourly disband of an empty unit asks no kind, where `CEmptyUnits` posts it for
+  land units alone - of no effect while no fleet or air unit stands empty here. As it stood: the original's `RemoveUnit` leaves the removed unit's
   children at the top of the order of battle (a theatre's marked orphans) and, with its first flag clear, charges the
   country - the lender for a lent unit - the officers of the strength removed
   (`reversing/findings/FINDINGS-effectrun.md`, section 3.11). `CCombatRetreat.RemoveFromGame` does that only where it is
