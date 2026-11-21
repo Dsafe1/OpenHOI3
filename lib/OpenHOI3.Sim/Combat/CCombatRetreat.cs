@@ -199,38 +199,85 @@ public static class CCombatRetreat
 		return sum / CFixedPoint.Scale;
 	}
 
+	/// <summary>The share of its strength a shattered unit is re-formed with, in thousandths.</summary>
+	public const long ShatteredStrength = 100;
+
 	/// <summary>
-	/// A unit worn too thin is taken out of every battle and off the map, and stands at
-	/// its country's capital, under its theatre. A country with no capital loses it.
+	/// Where a shattered unit is re-formed: its country's acting capital - but for a theatre's headquarters the depot
+	/// its province draws on, where no enemy holds that and it stands elsewhere, and for any other unit the province of
+	/// the theatre's headquarters at the top of its chain, where that stands elsewhere. 0 for none.
+	/// </summary>
+	public static int ShatterHome(CGameState state, CCountry owner, CUnit unit)
+	{
+		int home = owner.ActingCapital;
+		if (unit.Kind == EUnitKind.Theatre)
+		{
+			int depot = Supply.CSupplyNetworks.Refresh(state).DepotOf(unit.Location);
+			if (depot > 0 && depot != unit.Location && !CMovementRules.IsEnemy(state, state.Province(depot).Controller, owner.Tag))
+			{
+				home = depot;
+			}
+			return home;
+		}
+		CUnit? top = unit.Parent;
+		while (top is not null && top.Kind != EUnitKind.Theatre)
+		{
+			top = top.Parent;
+		}
+		if (top is not null && top.Location != unit.Location)
+		{
+			home = top.Location;
+		}
+		return home;
+	}
+
+	/// <summary>
+	/// A unit worn too thin is taken out of every battle and re-formed at its home (<see cref="ShatterHome"/>) with a
+	/// tenth of each brigade's strength, its place in the order of battle as it was, its player told. With no home, or
+	/// standing there already, it is lost instead: it leaves its commander, what it commanded is put under that
+	/// commander, and it goes with its officers. See <c>docs/mechanics/landcombat.md</c>, section 6.
 	/// </summary>
 	public static void Shatter(CGameState state, CCountry owner, CUnit unit)
 	{
-		CCombats.LeaveAll(state, unit);
-		if (owner.ActingCapital == 0)
+		int home = ShatterHome(state, owner, unit);
+		if (home <= 0 || home == unit.Location)
 		{
-			// The one removal that hands what the unit commanded to whatever commanded it; its officers go with it.
+			CCombats.LeaveAll(state, unit);
+			// The one removal that hands what the unit commanded to whatever commanded it; with nobody above it they
+			// are left as they are. Its officers go with it.
 			Units.CPendingUnitRemovals.LoseOfficers(state, unit);
-			RemoveFromGame(state, unit, childrenToTop: false);
+			RemoveFromGame(state, unit, childrenToTop: unit.Parent is null);
 			return;
+		}
+		if (state.Played.Contains(owner.Tag))
+		{
+			state.RaisePactMessage(new Agreements.CPactMessage("SHATTERED", "", "", owner.Tag, owner.Tag)
+			{
+				Told = owner.Tag,
+				Values = new[]
+				{
+					("UNIT", unit.Name), ("LOCATION", state.Province(unit.Location).Name),
+					("NEWHOME", state.Province(home).Name),
+				},
+			});
+		}
+		CCombats.LeaveAll(state, unit);
+		foreach (CSubUnit brigade in unit.SubUnits)
+		{
+			long most = brigade.Stats[CSubUnitType.MaxStrength].Raw;
+			long left = System.Math.Max(0, System.Math.Min(most, brigade.Strength.Raw * ShatteredStrength / CFixedPoint.Scale));
+			brigade.Strength = new CFixedPoint(left);
+			if (brigade.Highest.Raw < left)
+			{
+				brigade.Highest = new CFixedPoint(left);
+			}
 		}
 		CMovement.Cancel(unit);
 		CUnitOrders.Clear(unit);
 		unit.IsRetreating = false;
-		state.Positions.Move(unit, unit.Location, owner.ActingCapital);
+		state.Positions.Move(unit, unit.Location, home);
 		unit.Previous = 0;
-		unit.Location = owner.ActingCapital;
-
-		CUnit? top = unit.Parent;
-		while (top?.Parent is not null)
-		{
-			top = top.Parent;
-		}
-		if (top is { Kind: EUnitKind.Theatre } && top != unit.Parent)
-		{
-			unit.Parent!.Children.Remove(unit);
-			unit.Parent = top;
-			top.Children.Add(unit);
-		}
+		unit.Location = home;
 	}
 
 	/// <summary>

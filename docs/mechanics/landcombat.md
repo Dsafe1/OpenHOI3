@@ -449,9 +449,15 @@ Then, for each unit, with `men` the strength it lost times a hundred:
   A country with officers to spare has units that hold together longer; one short of them
   shatters at a half, like everyone else.
 
-**A shattered unit** leaves every battle it is in and stands at its country's capital, under
-its theatre. *Ours* in part: the original picks the capital, or a supply depot where the
-unit stands - there are no depots yet - and a country with no capital loses the unit here.
+**A shattered unit** leaves every battle it is in and is re-formed at its **home with a tenth of each brigade's
+strength** [exe; `reversing/findings/FINDINGS-effectrun.md`, section 3.12], its place in the order of battle as it
+was, and its player is told (`SHATTERED`: the unit, where it stood, its new home). Home is the country's acting
+capital - but for a theatre's headquarters the depot its province draws on, where no enemy holds that and it stands
+elsewhere, and for any other unit the province of the theatre's headquarters at the top of its chain, where that
+stands elsewhere. **With no home, or standing there already, it is lost**: it leaves its commander, what it commanded
+is put under that commander - the one removal that does so (`units.md`, section 9) - and it goes with its officers,
+nobody told. Built so since 2026-11-21; until then every shattered unit stood at the capital at the strength it had
+and was put under its theatre.
 
 **The unit's own leader takes a hundredth off the threshold for each point of his skill**,
 whatever his rank. `confirmed`

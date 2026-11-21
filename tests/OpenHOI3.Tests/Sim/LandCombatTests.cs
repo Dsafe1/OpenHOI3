@@ -503,6 +503,34 @@ public class LandCombatTests
 		Assert.False(defender.IsFighting);
 		Assert.Empty(combat.Defender.Units);
 		Assert.Contains(defender, state.UnitsIn(Warsaw));
+		// Re-formed with a tenth of what each brigade had left: 10 of 30, so 1.
+		Assert.All(defender.SubUnits, brigade => Assert.Equal(CFixedPoint.One, brigade.Strength));
+	}
+
+	[Fact]
+	public void AShatteredUnitIsReformedWhereItsTheatresHeadquartersStandsAndLostWhereItStandsThereAlready()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		var theatre = new CUnit(EUnitKind.Theatre, Pol) { Id = ++state.LastUnitId, Location = Lodz, Name = "Theatre" };
+		poland.Units.Add(theatre);
+		CUnit division = Division(state, poland, Posen);
+		poland.Units.Remove(division);
+		division.Parent = theatre;
+		theatre.Children.Add(division);
+
+		Assert.Equal(Lodz, CCombatRetreat.ShatterHome(state, poland, division));
+		CCombatRetreat.Shatter(state, poland, division);
+		Assert.Equal(Lodz, division.Location);
+		Assert.Same(theatre, division.Parent);
+
+		// Shattered again where its headquarters stands, its home is the capital.
+		CCombatRetreat.Shatter(state, poland, division);
+		Assert.Equal(Warsaw, division.Location);
+
+		// And with its headquarters there too it has no home but where it stands, and is lost.
+		theatre.Location = Warsaw;
+		CCombatRetreat.Shatter(state, poland, division);
+		Assert.True(division.IsRemoved);
 	}
 
 	// --- the end ---
