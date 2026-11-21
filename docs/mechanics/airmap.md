@@ -129,6 +129,14 @@ is left out; and a picture is a square of twice its scale a side, as the buildin
 For every province with an air base, `large_air_base` at the air base's place; for every one with
 anti-aircraft guns, `large_anti_air` at theirs. `confirmed`:
 
+**The place is the building's that has the role** (`CBuildingRoles`; `buildinglines.md`, section 1.1), as the level
+is: in BlackICE the air base is `fake_air_base`, which `positions.txt` places, where its `air_base` is placed almost
+nowhere. Until 2026-11-21 the place was asked by the name `air_base` and fell to the province's middle, so a
+BlackICE province showed two air bases, the large picture in its middle and the small one where the file puts it -
+seen in play, and set right beside a screenshot of the same view before. The rings, an air unit at its base and the
+naval mode's large port ask the same way (`CMapBuildings.PlaceOfRole`). *Ours*, in that the original's own lookup of
+the place was not read; it follows from where its small picture stands.
+
     n = the level built - what was built, not what works of it after bombing -
         where the player knows the province better than 1; otherwise 1 where there is one
     the picture's size = (n - 1) x 0.2 + 1 times its scale

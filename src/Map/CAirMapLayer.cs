@@ -85,7 +85,7 @@ public partial class CAirMapLayer : Node2D
 		{
 			return;
 		}
-		(float x, float y) = CMapBuildings.PlaceOf(_map.BuildingPositions, _map.LabelPositions, province.Id, building);
+		(float x, float y) = CMapBuildings.PlaceOfRole(_state, _map.BuildingPositions, _map.LabelPositions, province.Id, building);
 		_large.Add(new Large(province.Id, picture, x, y, CAirMapIcons.Size(level), frame));
 	}
 

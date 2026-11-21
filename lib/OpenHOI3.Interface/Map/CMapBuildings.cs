@@ -116,6 +116,18 @@ public static class CMapBuildings
 		return (labels[province].X, labels[province].Y);
 	}
 
+	/// <summary>
+	/// Where the building with a role stands - the air base, the naval base, anti-aircraft - asked by the role's name: the
+	/// place of whichever building carries the role's modifier (<see cref="CBuildingRoles"/>), which in BlackICE is
+	/// `fake_air_base` for the air base, so that a large picture, a ring and an air unit at its base stand where the
+	/// building's own picture does and not at an `air_base` the file places nowhere.
+	/// </summary>
+	public static (float X, float Y) PlaceOfRole(CGameState state, IReadOnlyList<CBuildingPosition[]> placed,
+		IReadOnlyList<CMapPosition> labels, int province, string role)
+	{
+		return PlaceOf(placed, labels, province, CBuildingRoles.Find(state, role)?.Key ?? role);
+	}
+
 	/// <summary>Whether a unit is a fleet lying in a port.</summary>
 	public static bool IsInPort(CGameState state, CUnit unit)
 	{

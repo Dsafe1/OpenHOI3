@@ -74,11 +74,11 @@ public static class CBoxSelection
 		int province = unit.Location;
 		if (CMapBuildings.IsInPort(state, unit))
 		{
-			return CMapBuildings.PlaceOf(placed, labelPoints, province, CMovementRules.NavalBase);
+			return CMapBuildings.PlaceOfRole(state, placed, labelPoints, province, CMovementRules.NavalBase);
 		}
 		if (CMapBuildings.IsAtAirfield(unit))
 		{
-			return CMapBuildings.PlaceOf(placed, labelPoints, province, CMovementRules.AirBase);
+			return CMapBuildings.PlaceOfRole(state, placed, labelPoints, province, CMovementRules.AirBase);
 		}
 		CMapPosition point = unitPoints[province];
 		return (point.X, point.Y);

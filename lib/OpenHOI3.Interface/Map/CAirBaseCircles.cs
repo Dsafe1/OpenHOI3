@@ -76,7 +76,7 @@ public static class CAirBaseCircles
 			{
 				continue;
 			}
-			(float x, float y) = CMapBuildings.PlaceOf(placed, labels, id, CMovementRules.AirBase);
+			(float x, float y) = CMapBuildings.PlaceOfRole(state, placed, labels, id, CMovementRules.AirBase);
 			foreach (Group group in Groups(based, selected))
 			{
 				float share = group.Most > 0

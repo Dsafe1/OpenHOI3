@@ -65,7 +65,7 @@ public partial class CNavalMapLayer : Node2D
 			{
 				continue;
 			}
-			(float x, float y) = CMapBuildings.PlaceOf(_map.BuildingPositions, _map.LabelPositions, id, CMovementRules.NavalBase);
+			(float x, float y) = CMapBuildings.PlaceOfRole(_state, _map.BuildingPositions, _map.LabelPositions, id, CMovementRules.NavalBase);
 			_large.Add(new Large(x, y, CAirMapIcons.Size(level), ports.Contains(id) ? 1 : 0));
 		}
 		QueueRedraw();

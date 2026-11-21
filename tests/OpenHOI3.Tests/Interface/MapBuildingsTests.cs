@@ -103,6 +103,24 @@ public class MapBuildingsTests
 	}
 
 	[Fact]
+	public void TheAirBaseStandsWhereTheBuildingWithItsRoleIsPlacedAndNotAtAnotherOfItsName()
+	{
+		// As BlackICE has it: `air_base` carries nothing and is placed nowhere, `fake_air_base` carries air_capacity.
+		var named = new CBuilding(0, "air_base", 10, "", CFixedPoint.Zero);
+		var role = new CBuilding(1, "fake_air_base", 10, "air_capacity", CFixedPoint.One) { IsOnMap = true };
+		var state = new CGameState(new CDate(1936, 1, 1),
+			new[] { new CProvince(0, "", isSea: false), new CProvince(Kiel, "Kiel", isSea: false) },
+			Array.Empty<CCountry>(), buildings: new[] { named, role });
+		var placed = new[] { Array.Empty<CBuildingPosition>(), new[] { new CBuildingPosition("fake_air_base", 3f, 4f) } };
+
+		Assert.Equal((3f, 4f), CMapBuildings.PlaceOfRole(state, placed, Own, Kiel, "air_base"));
+		Assert.Equal((10f, 10f), CMapBuildings.PlaceOf(placed, Own, Kiel, "air_base"));       // by the name alone: the label point
+		// With no building carrying the role, the building of the name, as before.
+		CGameState plain = State(out _, out _);
+		Assert.Equal((12.5f, 8.25f), CMapBuildings.PlaceOfRole(plain, Placed, Own, Kiel, "naval_base"));
+	}
+
+	[Fact]
 	public void ABuildingPlacedOnItsLabelPointStandsWhereOneTheFileDoesNotPlaceStands()
 	{
 		CGameState state = State(out _, out _);

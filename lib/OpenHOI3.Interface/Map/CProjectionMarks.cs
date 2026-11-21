@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using OpenHOI3.Content.Map;
+using OpenHOI3.Sim;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Units;
 
@@ -58,7 +59,7 @@ public static class CProjectionMarks
 	/// fleet in a land province at its naval base, an air unit at its own base there at the air base - or, aboard a
 	/// carrier, the naval base - and anything else at the province's unit point. World x and z, z north.
 	/// </summary>
-	public static (float X, float Z) PointOf(CMap map, CUnit unit, int province)
+	public static (float X, float Z) PointOf(CGameState state, CMap map, CUnit unit, int province)
 	{
 		bool sea = map.IsSea(province);
 		if (unit.Kind == EUnitKind.Navy && !sea)
@@ -70,7 +71,7 @@ public static class CProjectionMarks
 		{
 			if (unit.CarriedBy is null)
 			{
-				return CMapBuildings.PlaceOf(map.BuildingPositions, map.LabelPositions, province, CMovementRules.AirBase);
+				return CMapBuildings.PlaceOfRole(state, map.BuildingPositions, map.LabelPositions, province, CMovementRules.AirBase);
 			}
 			if (!sea)
 			{

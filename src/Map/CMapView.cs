@@ -283,7 +283,7 @@ public partial class CMapView : Node2D
 			return;
 		}
 		bool sea = _map.IsSea(province);
-		(float x, float z) = CProjectionMarks.PointOf(_map, unit, province);
+		(float x, float z) = CProjectionMarks.PointOf(_state, _map, unit, province);
 		surface.AddMark(new CProjectionMark(type, province, !sea, x, CProjectionMarks.AnchorHeight(sea), z, CMapSurface.MarkClock));
 	}
 
