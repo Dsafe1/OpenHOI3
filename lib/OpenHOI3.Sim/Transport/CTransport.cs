@@ -117,6 +117,8 @@ public static class CTransport
 		{
 			return;
 		}
+		// The fleet's agent is told before the unit is off it (moving.md, section 15).
+		Agents.CSealiftArrival.OnUnloaded(fleet, unit);
 		unit.Transport = null;
 		unit.DigIn = CFixedPoint.Zero;
 		if (bringSupplies && state.Country(unit.Owner) is { } owner)

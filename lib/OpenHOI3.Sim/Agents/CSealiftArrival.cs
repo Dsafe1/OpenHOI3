@@ -18,7 +18,17 @@ public static class CSealiftArrival
 	/// <summary>Called by the march after a land unit has entered a province.</summary>
 	public static void OnEntered(CGameState state, CUnit unit)
 	{
-		if (unit.SealiftTarget <= 0 || unit.IsRemoved || CAgentUnits.NearestAgent(unit) is not { } agent)
+		if (unit.IsRemoved || CAgentUnits.NearestAgent(unit) is not { } agent)
+		{
+			return;
+		}
+		// Come ashore from a sea zone, the agent looks at its areas again the next hour, a target or none
+		// (reversing/findings/FINDINGS-moving.md, F.7a).
+		if (unit.Previous > 0 && unit.Previous < state.Provinces.Count && state.Province(unit.Previous).IsSea)
+		{
+			agent.ReassignAreasNow = true;
+		}
+		if (unit.SealiftTarget <= 0)
 		{
 			return;
 		}
@@ -35,6 +45,23 @@ public static class CSealiftArrival
 			return;
 		}
 		Board(state, agent, unit);
+	}
+
+	/// <summary>
+	/// A land unit taken off a fleet, told to the first agent up the fleet's chain before the unit is off it: the unit's
+	/// held-back and garrison marks cleared, and the agent's areas looked at again the next hour. The original's
+	/// <c>CAIUnit</c> slot 70 (reversing/findings/FINDINGS-moving.md, F.7a); not built of it, the fleet's order taken away
+	/// where its carrier holds a second list of objectives, and the unit hung under a headquarters, which is not read.
+	/// </summary>
+	public static void OnUnloaded(CUnit fleet, CUnit unit)
+	{
+		if (CAgentUnits.NearestAgent(fleet) is not { } agent)
+		{
+			return;
+		}
+		unit.IsHeldBack = false;
+		unit.IsGarrison = false;
+		agent.ReassignAreasNow = true;
 	}
 
 	/// <summary>

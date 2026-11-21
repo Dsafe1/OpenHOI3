@@ -786,7 +786,12 @@ makes nobody at war (`war.md`, section 1).
 ## 15. The sealift (`CAIUnit::AssignAreaTargetsAndSealift`, `FINDINGS-moving.md` F.1 to F.7)
 
 At the agent's hour A6 - and at its next hour while its **reassign** flag is set, which a new agent's is, so a loaded game's
-agents run it in its second entering pass (`reversing/findings/FINDINGS-liveread.md`, section 43) - for a country the AI runs - **and only where its units can carry at least one whole unit of
+agents run it in its second entering pass (`reversing/findings/FINDINGS-liveread.md`, section 43) - **and which is set again
+when a land unit is taken off one of the agent's fleets** (its held-back and garrison marks cleared with it), **when a land
+unit of the agent comes ashore from the sea, and when one reaches its sealift target's area**, and not when a unit is made
+for the agent (built 2026-11-21; `reversing/findings/FINDINGS-moving.md`, F.7a; not built of the unloading, the fleet's
+order taken away where its carrier holds a second list of objectives, and the unit hung under a headquarters, unread) -
+for a country the AI runs - **and only where its units can carry at least one whole unit of
 troops**, else nothing at all:
 
 1. **The areas** are its theatre's, each with a **need** (`agents.md`, 7.5) relaxed where the country is at war and the area
