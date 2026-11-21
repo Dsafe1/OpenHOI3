@@ -45,8 +45,12 @@ public class HeadquartersHandOverTests
 		Assert.True(CAutomateUnitCommand.MayHandOver(corps));
 		new CAutomateUnitCommand(germany.Tag, corps.Id).Execute(state);
 		Assert.True(corps.Plan.Active);
-		// Below a theatre the plan keeps its stances: nothing is posted.
-		Assert.Empty(state.Outbox);
+		// Every stance starts defensive, by decision (compatibility.md, entry 32).
+		corps.Plan.Stance = CUnitPlan.Blitzing;
+		corps.Plan.AirStance = CUnitPlan.Offensive;
+		Run(state);
+		Assert.Equal((CUnitPlan.Defensive, CUnitPlan.DefensiveAirOrNaval, CUnitPlan.DefensiveAirOrNaval),
+			(corps.Plan.Stance, corps.Plan.AirStance, corps.Plan.NavalStance));
 
 		CAgents.Adopt(state, germany);
 		CAgent agent = Assert.Single(germany.UnitAi.Agents);

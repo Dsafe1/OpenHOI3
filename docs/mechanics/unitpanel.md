@@ -399,8 +399,9 @@ heading no theatre keeps the box greyed - the original's would read a null theat
 ### 9.1 A headquarters below a theatre handed to the AI
 
 (`confirmed` but where marked, `reversing/findings/FINDINGS-hqrows.md`, 7a; `reversing/findings/FINDINGS-aiplans.md`,
-slot 76; `CPlanBuilder`, `CAgents.Adopt`.) Ticking the box on a corps, an army or an army group switches its plan on and
-nothing else: **its stances stay what its plan held**, or what the player picks on the rows of the headquarters holding
+slot 76; `CPlanBuilder`, `CAgents.Adopt`.) Ticking the box on a corps, an army or an army group switches its plan on, and
+**every stance begins defensive** - ground, air and naval - as for a theatre (*ours*, `compatibility.md`, entry 32: the
+original's keeps what its plan held); after that they are what the player picks on the rows of the headquarters holding
 it. In the AI's next pass the unit is given an agent of **no theatre**, appended last, and its area is made at once by
 the plan builder. A plain right click with it selected sets its objectives as a theatre's (`mapunits.md`, section 12).
 Its hour is any agent's (`agents.md`, section 3) - its subordinates, its land block, its air and its fleets - but what

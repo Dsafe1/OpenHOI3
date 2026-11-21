@@ -42,18 +42,16 @@ public sealed class CAutomateUnitCommand : CCommand
 			}
 			return;
 		}
-		if (CAgents.TheatreHeadedBy(state, country, unit) is not null)
+		if (CAgents.TheatreHeadedBy(state, country, unit) is not null || MayHandOver(unit))
 		{
 			// Only the plan is switched on here. The agent is the AI's to make, in its next pass (CAgents.Adopt), with the
 			// area, the powers and the sorting of what is under the headquarters, which reach every machine as its commands.
 			unit.Plan.Active = true;
-			// A theatre's plan begins at Prepare, its air and naval stances as low as they go.
-			state.Outbox.Add(new CSetPlanCommand(country.Tag, unit.Id, CUnitPlan.Prepare, 0, 0));
-		}
-		else if (MayHandOver(unit))
-		{
-			// Below a theatre the plan keeps the stances it held; the agent and its area are the AI's to make (CAgents.Adopt).
-			unit.Plan.Active = true;
+			// Ours, by decision: every stance begins defensive, ground, air and naval, where the original's theatre begins
+			// at Prepare and its air and naval stances at nought, and a lower headquarters keeps what it held
+			// (docs/compatibility.md, entry 32).
+			state.Outbox.Add(new CSetPlanCommand(country.Tag, unit.Id, CUnitPlan.Defensive, CUnitPlan.DefensiveAirOrNaval,
+				CUnitPlan.DefensiveAirOrNaval));
 		}
 	}
 

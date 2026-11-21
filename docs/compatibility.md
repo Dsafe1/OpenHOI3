@@ -609,6 +609,19 @@ player who changes faction leaves the old channel at once; and a channel's line 
 the players in it. What a row looks like - the order of clock and name, the colours - is ours until the
 original's is read or seen.
 
+## 32. A headquarters handed to the AI starts defensive
+
+**Decided** 2026-11-21: "When a player sets a unit to ai control, make the initial stance be the defensive one for all 3
+kinds."
+
+| | |
+| --- | --- |
+| the original | a theatre's headquarters handed over is adopted by its agent at stance 1, Prepare, its air and naval stances 0; a corps, an army or an army group keeps the stances its plan held (`reversing/findings/FINDINGS-aiplans.md`, slot 76, step 1; `FINDINGS-hqrows.md`, 7a) |
+| here | every headquarters handed over - a theatre's, a corps, an army, an army group - starts **defensive** on the ground (2) and in the air and at sea (1), posted with the box (`CAutomateUnitCommand`; `mechanics/unitpanel.md`, section 9.1; `mapunits.md`, section 12) |
+| a mod loses | nothing: no file sets these stances |
+| why | a handed-over headquarters should neither sit at Prepare nor keep whatever its plan last held |
+| to undo | post Prepare, 0, 0 for a theatre and nothing for the levels below it, in `CAutomateUnitCommand.Execute` |
+
 ## Stricter, with the same meaning
 
 Not departures - a file means what it meant - but a mod's author will see them, so they
