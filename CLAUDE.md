@@ -1307,7 +1307,7 @@ beside the repository.
   paths as loaded and 297 as entered, every one under an entry of `docs/enhanced.md`, *A whole game's replay*, or one
   of the two of ours `savegame.md`, section 20, names, the
   check leaving out its own noise (`CReloadCheck.Skipped`; `savegame.md`, section 20), the two games parting in the
-  first hour. On 2026-11-21, 229 paths as loaded and 391 as entered - 263 and 451 before that day's first-frame AI pass - not sorted under their entries again. Run it after adding anything the game keeps, and list what it shows lost.
+  first hour. On 2026-11-21, 229 paths as loaded and 391 as entered - 263 and 451 before that day's first-frame AI pass; sorted again that day, 218 and 380 with a modifier set beside its like by key, three paths under no entry listed since (`savegame.md`, section 20). Run it after adding anything the game keeps, and list what it shows lost.
   `OpenHOI3.SaveCheck supply <install> <savegame>` checks the supply network against what a
   save says of it, with the save's own owners, controllers and capitals, so a save of any
   day will do: the provinces marked `out_of_supply_days` are ours that draw on no depot -

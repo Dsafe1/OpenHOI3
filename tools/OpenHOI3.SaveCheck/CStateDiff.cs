@@ -39,6 +39,23 @@ internal sealed class CStateDiff
 	/// <summary>Each path that differs, its numbers taken out, with how many times and one example.</summary>
 	public IReadOnlyDictionary<string, (int Count, string Example)> Groups => _groups;
 
+	private static readonly BindingFlags Hidden = BindingFlags.Instance | BindingFlags.NonPublic;
+
+	/// <summary>A modifier's kinds and what it holds of each, in thousandths, those of one spelling added up.</summary>
+	private static Dictionary<string, long> ModifierValues(OpenHOI3.Sim.Modifiers.CModifier modifier)
+	{
+		Type type = typeof(OpenHOI3.Sim.Modifiers.CModifier);
+		var keys = (string[])type.GetField("_keys", Hidden)!.GetValue(modifier)!;
+		var values = (OpenHOI3.Sim.CFixedPoint[])type.GetField("_values", Hidden)!.GetValue(modifier)!;
+		int count = (int)type.GetField("_count", Hidden)!.GetValue(modifier)!;
+		var held = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+		for (int place = 0; place < count; place++)
+		{
+			held[keys[place]] = held.GetValueOrDefault(keys[place]) + values[place].Raw;
+		}
+		return held;
+	}
+
 	public void Compare(object? a, object? b, string path)
 	{
 		Walk(a, b, path, 0);
@@ -87,6 +104,27 @@ internal sealed class CStateDiff
 		}
 		if (depth > _maxDepth || !_visited.Add((a, b)))
 		{
+			return;
+		}
+		if (a is OpenHOI3.Sim.Modifiers.CModifier ma && b is OpenHOI3.Sim.Modifiers.CModifier mb)
+		{
+			// A modifier is read by key alone, so the order its kinds were added in is no difference: set beside each other
+			// as key and value, a kind of nought the same as none.
+			Dictionary<string, long> left = ModifierValues(ma);
+			Dictionary<string, long> right = ModifierValues(mb);
+			if (ma.Name != mb.Name)
+			{
+				Note(path + ".Name", $"{Show(ma.Name)} / {Show(mb.Name)}");
+			}
+			foreach (string key in left.Keys.Union(right.Keys))
+			{
+				long l = left.GetValueOrDefault(key);
+				long r = right.GetValueOrDefault(key);
+				if (l != r)
+				{
+					Note($"{path}[{key}]", $"{new OpenHOI3.Sim.CFixedPoint(l)} / {new OpenHOI3.Sim.CFixedPoint(r)}");
+				}
+			}
 			return;
 		}
 		if (a is IDictionary da && b is IDictionary db)

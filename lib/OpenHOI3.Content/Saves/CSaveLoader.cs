@@ -784,6 +784,8 @@ public static class CSaveLoader
 		// The game's screen made and entered gives a country that does not own its capital one it owns, as each day's head
 		// does (war.md, section 14).
 		Sim.Countries.CActingCapital.EnsureCapitals(state);
+		// The countries the save's wars mobilised as they were read are a new game's set-up's alone, and empty after it.
+		state.MobilisedByHistory.Clear();
 		// A fresh AI for every country, as the original makes one: the ministers' first hours, in its order.
 		Sim.Settings.CAutomation.MakeMinistersOfLoad(state);
 		CForeignAi.TellOfWars(state);

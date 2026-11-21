@@ -906,6 +906,21 @@ was on this line - the history had put them in its file's order and a load in th
 walked the posts in `government_positions.txt`'s order, as the original walks its cabinet's fixed slots, the same
 day (`modifiers.md`, section 4).
 
+**Sorted again on 2026-11-21**, the game saved on 1 March 1936, after that day's first frame's AI pass and a new
+game's ministers drawn as a load's (`ministers.md`, section 1): **218 paths as loaded and 380 as
+entered**, each read against the classes above. Of the 218, the AI's own - agents, the unit pass, the strategy and its
+theatres, the ministers, the generator - and the listed state the save leaves out make nearly all; the 162 more on
+entering are all the AI's agents, positions, plans and the orders its two passes give. **Three were under no entry
+and are listed since** (`docs/enhanced.md`): a theatre's priority, nought until its upkeep runs; the order of a
+country's triggered modifiers; and a carrier's air group that a merge or a moved ship had left under another fleet,
+which a load puts under its ship's. **The loader's gap, mended**: the countries the save's wars mobilised as they
+were read stayed in the set a new game's set-up alone reads. **Noise, left out by the check since**: a modifier's
+kinds are set beside each other by key, the order they were added in being read by nothing - which took a country's
+technology modifier, 194 figures a country, off the list - and the two counts of how often the supply network and the
+units' positions were made. Left on the list and no loss: `FactionProgress` holds an entry for no faction until the
+first hour makes it again, and five provinces' distances to their depot differ by three, the network following the
+order a country took its provinces in (*inferred*; the entry on that order).
+
 **The counts**, `groups=5000`: at 1 March, **215 paths as loaded to 154, 410 as entered to 297**; at 5 January, **243 to
 197 and 524 to 460** (at 1 March as loaded, 314 before the sweep of section 19 and 228 after it; the same day's later
 work brought it to the 215 this began from). The two games still part in

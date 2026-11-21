@@ -121,6 +121,7 @@ internal static class CReloadCheck
 	private static readonly string[] Skipped =
 	{
 		"CUnit.LeaderId", "CUnit.LeaderLine", "CUnit.IsReserve", "CGameState.LoadedFromSave",
+		"CGameState.SupplyNetworksMade", "CGameState.PositionsMade",
 		"CGameState._navalDistances", "CGameState.RouteScratch", "CProvince.NearProvinces", "CGameState.AirBaseHolders",
 		"CGameState._handChanges", "CProvince._handChanges", "CGameState._controlledCounts", "CGameState._controlledCountsAt",
 		"CGameState.IntelFingerprint", "CCountryFacts.ControlChanges", "COwnedCounts.ControlChanges", "CGameState.PlanTypeOrder", "CGameState.ContinentNames", "CGameState.PlanGroups", "CGameState.ControlledLists", "CModifier._slots", "CModifier._view",
