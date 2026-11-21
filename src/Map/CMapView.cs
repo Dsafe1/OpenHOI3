@@ -1837,10 +1837,12 @@ public partial class CMapView : Node2D
 		}
 		// The pointer at the screen's edge, after the keys as the original's camera takes it (map.md, section 8): only
 		// in the window that has the keyboard, and not where the wheel is held either - the lobby, a main window, the menu.
+		// Asked of the screen and not of the window, which hears nothing of a pointer that has left it: past an edge,
+		// on a second screen, it scrolls on.
 		if (direction == Vector2.Zero && EdgeScrolling && !WheelStill && GetWindow().HasFocus())
 		{
-			Vector2 pointer = GetViewport().GetMousePosition();
-			Vector2 view = GetViewportRect().Size;
+			Vector2I pointer = DisplayServer.MouseGetPosition() - GetWindow().Position;
+			Vector2I view = GetWindow().Size;
 			System.Numerics.Vector2 edge = CMapEdgeScroll.Direction(new System.Numerics.Vector2(pointer.X, pointer.Y),
 				new System.Numerics.Vector2(view.X, view.Y));
 			direction = new Vector2(edge.X, edge.Y).Normalized();

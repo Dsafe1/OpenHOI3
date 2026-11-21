@@ -243,9 +243,12 @@ depends on.
   screen edge. The result is clamped to the camera's limits. `confirmed`
 - There is one scroll speed for all three; the original has no setting for the edge alone.
 - **The edge is built since 2026-11-21** (`CMapEdgeScroll`, `CMapView`): after the keys, four tests of the pointer
-  against the view's edges with the six pixels, at the keys' speed; only in the window that has the keyboard and with
-  the pointer on the view, and not where the wheel is held either - the lobby, a main window, the menu - which is
-  *ours*, what the original does under a window not being read. A run driven by `--click` or `--screenshot` has it
+  against the view's edges with the six pixels, at the keys' speed; only in the window that has the keyboard, and not
+  where the wheel is held either - the lobby, a main window, the menu - which is *ours*, what the original does under
+  a window not being read. **A pointer past an edge scrolls on** (the user's, 2026-11-22: moved onto a second
+  screen "it keeps scrolling"): the pointer is asked of the screen and measured from the window's corner in the
+  screen's pixels, the window hearing nothing of a pointer that has left it. *Ours* - what the original does with a
+  pointer off its window was not read. Clicking into another program takes the keyboard and stops it. A run driven by `--click` or `--screenshot` has it
   off, the pointer lying wherever it was left. An enhanced game's option turns it off (`gameoptions.md`, section 5).
 - The zoom arithmetic has not been read.
 

@@ -259,9 +259,11 @@ public class EnhancedOptionsTests
 		Assert.Equal(new Vector2(1, 0), CMapEdgeScroll.Direction(new Vector2(1914, 540), view));
 		Assert.Equal(new Vector2(0, -1), CMapEdgeScroll.Direction(new Vector2(960, 0), view));
 		Assert.Equal(new Vector2(1, 1), CMapEdgeScroll.Direction(new Vector2(1919, 1079), view));
-		// Off the view - a window that is not the whole screen - nothing.
-		Assert.Equal(Vector2.Zero, CMapEdgeScroll.Direction(new Vector2(-3, 540), view));
-		Assert.Equal(Vector2.Zero, CMapEdgeScroll.Direction(new Vector2(960, 1100), view));
+		// Past an edge - off the window, on a second screen - it scrolls on as at the edge.
+		Assert.Equal(new Vector2(-1, 0), CMapEdgeScroll.Direction(new Vector2(-3, 540), view));
+		Assert.Equal(new Vector2(-1, 0), CMapEdgeScroll.Direction(new Vector2(-1500, 540), view));
+		Assert.Equal(new Vector2(0, 1), CMapEdgeScroll.Direction(new Vector2(960, 1100), view));
+		Assert.Equal(new Vector2(1, -1), CMapEdgeScroll.Direction(new Vector2(2500, -40), view));
 	}
 
 	[Fact]
