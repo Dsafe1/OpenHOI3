@@ -42,6 +42,12 @@ public static class CRouteFinder
 		{
 			return null;
 		}
+		// A fleet's goal is asked once more before any search: whether the sea it lies in joins the fleet's own past the
+		// closed waters, by region (movement.md, section 3). Each step then asks where the fleet may stand.
+		if (unit.Kind == EUnitKind.Navy && !CMovementRules.SeaConnected(state, country, goal, state.Province(from)))
+		{
+			return null;
+		}
 
 		// Only a settled province's figures are read, and each is written as it is settled; the start's are set here.
 		CRouteScratch scratch = CRouteScratch.Take(state, count);

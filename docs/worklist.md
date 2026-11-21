@@ -2523,9 +2523,6 @@ None of these blocks the list above.
 - **A building's picture is drawn at a size and from a zoom that are the reading's
   and ours**, never set beside the original; and a selected fleet in port has nothing on
   the map to show it is selected. `docs/mechanics/mapunits.md`, section 9.
-- **A fleet's route does not ask whether closed waters cut its goal off** (`fleetsandair.md`, section 1): the click's
-  test asks it since 2026-11-14 (`CMovementRules.MayMoveTo`), and the AI's moves ask that test first (`CAiMoves`), but
-  no route finder does.
 - **The march's speed is checked against savegames and its arrival is not.** The
   distances agree with the original's cache exactly and what an hour adds agrees with
   saves hours apart, division by division; the hour a unit arrives and what it keeps are

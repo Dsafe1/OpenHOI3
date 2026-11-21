@@ -55,8 +55,8 @@ no region counts as in the region of a name the map lacks. From one sea to anoth
     otherwise                                                               -> joined
 
 "Closed" is the closed water below, asked of the define's sea province. The click asks it of a fleet first, and the whole
-test of where a unit may be sent asks it last (`movement.md`, section 1). *Ours:* the route does not ask it of a fleet's
-goal, which the original's does (it only saves a search that would fail anyway).
+test of where a unit may be sent asks it last (`movement.md`, section 1). The route asks it of a fleet's
+goal before it searches, as the original's does, since 2026-11-21 (`CRouteFinder`).
 
 **The five waters a country can close.** The defines' `map` section names five pairs, a sea
 province and a land one: `SUEZ`, `PANAMA`, `BALTIC`, `BLACKSEA` and `GIBRALTAR`, each with its
@@ -73,7 +73,10 @@ neutral's**. It is not sent to a province whose sky is as much cloud as
 section 3). The original also asks a province's owner area one thing that was not read, and
 before any search asks whether the two ends lie in seas that closed waters cut off from each
 other - the Black Sea, the Baltic, the Mediterranean - which only saves a search that would
-fail anyway: the test is built since 2026-11-14 (above), and the route does not ask it.
+fail anyway: the test is built since 2026-11-14 (above), and the route asks it since 2026-11-21. Read whole that day
+(`reversing/findings/FINDINGS-movement.md`, section 14): closed water is refused step by step as well, each step
+asking where the fleet may stand, and a fleet whose search fails keeps its path and order - there is no way to the
+nearest sea it can reach.
 
 ## 2. Ports
 
