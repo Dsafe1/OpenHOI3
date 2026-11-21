@@ -618,6 +618,10 @@ public static class CSaveLoader
 				case "slider_locks" when child.IsBlock:
 					country.SliderLocks = child.Children.Select(value => (int)CSaveValues.Whole(value.Value)).ToArray();
 					continue;
+				// Its historical friends, written only where it has any (aistrategy.md, section 9.2).
+				case "historical_friends" when child.IsBlock:
+					country.HistoricalFriends.AddRange(child.Children.Select(tag => new CCountryTag(tag.Value)));
+					continue;
 			}
 			if (!CountryKeys.Contains(key) && !laws.Contains(key) && !posts.Contains(key) && !categories.Contains(key)
 				&& !CSavePolitics.Keys.Contains(key) && !CSaveEspionage.Keys.Contains(key) && !CSaveLedgers.Keys.Contains(key)

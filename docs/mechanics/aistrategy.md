@@ -208,8 +208,12 @@ provinces or fewer; where that is anything, +10 for a one-province T; added wher
 
 ### 9.2 Historical friends
 
-No file of Their Finest Hour or BlackICE gives a country any - the history's `historical_friends` - so no country is
-another's historical friend, and that is not read (section 12).
+(`confirmed`, `reversing/findings/FINDINGS-aistrategy.md`, G.4a.) **The history's `historical_friend = TAG` appends the
+tag to the country's list**, with no test of one already held, and a save keeps the list as `historical_friends = { ... }`,
+written only where it is not empty, straight before `mobilize` (`savegame.md`, section 15). Only the strategy reads it:
+the antagonism's two terms (section 8, steps 2 and 8) and the befriend builder's pass-over and +400 (section 9). **No
+file of Their Finest Hour or BlackICE gives a country any**, and the reference saves hold none, so every term is inert
+there; a mod's are read since 2026-11-21 (`CCountry.HistoricalFriends`).
 
 ### 9.3 The scaling
 
@@ -267,7 +271,7 @@ BlackICE fire none.
   `ai_hard_strategy` and missions, there being one start (`CLAUDE.md`, *Settled decisions*); `static` and
   `consolidate`. A save's military access, shares, brigades and the two flags are kept as it holds them and written back
   (`savegame.md`, section 16), and nothing here acts on them; and in the walk `has_building` and a unit type, which are reported where met. Historical friends are
-  not read (9.2).
+  read since 2026-11-21 (9.2).
 
 ## 13. Checked against the start save
 

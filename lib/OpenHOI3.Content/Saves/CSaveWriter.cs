@@ -439,6 +439,11 @@ public static class CSaveWriter
 		writer.Quoted("last_mission_cancel", NullMissionCancel);
 		// Its AI's strategies and theatres (savegame.md, section 16).
 		CSaveAiStrategy.Write(writer, state, country);
+		// Its historical friends where it has any, straight before mobilize as the original writes them.
+		if (country.HistoricalFriends.Count > 0)
+		{
+			writer.Words("historical_friends", country.HistoricalFriends.Select(tag => tag.Value));
+		}
 		if (country.Mobilised)
 		{
 			writer.Bool("mobilize", true);

@@ -190,12 +190,12 @@ public static class CStrategyFigures
 	}
 
 	/// <summary>
-	/// Whether the other is one of the country's historical friends. No file of the base game or BlackICE gives a country
-	/// any, and the history's <c>historical_friends</c> is not read, so nobody is (aistrategy.md, section 9.2).
+	/// Whether the other is one of the country's historical friends, the history's <c>historical_friend</c> lines. No file
+	/// of the base game or BlackICE gives a country any (aistrategy.md, section 9.2).
 	/// </summary>
 	public static bool IsHistoricalFriend(CCountry country, CCountryTag other)
 	{
-		return false;
+		return country.HistoricalFriends.Contains(other);
 	}
 
 	/// <summary>Whether any province of the strategy's <c>conquer_prov</c> is owned by the other.</summary>

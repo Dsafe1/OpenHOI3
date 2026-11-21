@@ -97,6 +97,24 @@ public class SaveWriterTests
 	}
 
 	[Fact]
+	public void Historical_friends_are_written_where_there_are_any_straight_before_mobilize()
+	{
+		var norway = new CCountry { Tag = new CCountryTag("NOR"), Name = "Norway", DefinitionFile = "", Mobilised = true };
+		var sweden = new CCountry { Tag = new CCountryTag("SWE"), Name = "Sweden", DefinitionFile = "" };
+		// Given twice in the history, held twice.
+		norway.HistoricalFriends.Add(sweden.Tag);
+		norway.HistoricalFriends.Add(sweden.Tag);
+		var state = new CGameState(new CDate(1936, 1, 7), new[] { new CProvince(0, "", isSea: false) }, new[] { norway, sweden });
+
+		string text = CSaveWriter.Write(state);
+
+		Assert.Contains("\thistorical_friends=\r\n\t{\r\nSWE SWE \t}\r\n\tmobilize=yes", text);
+		Assert.Single(System.Text.RegularExpressions.Regex.Matches(text, "historical_friends"));
+		Assert.True(OpenHOI3.Sim.Ai.CStrategyFigures.IsHistoricalFriend(norway, sweden.Tag));
+		Assert.False(OpenHOI3.Sim.Ai.CStrategyFigures.IsHistoricalFriend(sweden, norway.Tag));
+	}
+
+	[Fact]
 	public void A_province_is_written_in_the_originals_order_each_key_where_the_original_writes_it()
 	{
 		var nor = new CCountryTag("NOR");

@@ -101,6 +101,13 @@ public sealed class CCountry
 	public string Faction { get; set; } = "";
 
 	/// <summary>
+	/// Its historical friends, the history's <c>historical_friend</c> lines in order, a tag given twice held twice, as the
+	/// original appends them; saved as <c>historical_friends</c>. Only the AI's strategy reads them
+	/// (<c>docs/mechanics/aistrategy.md</c>, section 9.2).
+	/// </summary>
+	public List<CCountryTag> HistoricalFriends { get; } = new();
+
+	/// <summary>
 	/// Where it stands among its faction's members, which are listed by this and then in the countries'
 	/// order: nought for the history's members, more for each country to join since, less for one put at the
 	/// front. The first member leads. See <see cref="CFactionMembership"/>.

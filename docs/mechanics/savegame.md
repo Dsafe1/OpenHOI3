@@ -633,6 +633,7 @@ Both ways, each where the original writes it in a country block [exe] (`FINDINGS
 | `home`, `usage`, `to`, `back`, `convoyed_out` | the day's ledgers so far: made at home, used - by industry, and the supplies and fuel the network and the units took out of the capital (`supply.md`, section 11; one pool since 2026-11-15) - supplies and fuel sent out and come back, carried out by convoy | each | |
 | `traded_for`, `traded_for_sans_allied`, `traded_away`, `traded_away_sans_allied` | paid and paid for, with and without allied supply | each | |
 | `land_battles_fought`, `air_battles_fought`, `naval_battles_fought` | the battles it has fought | each | then, each only above nought |
+| `historical_friends` | `{ TAG TAG }`, on one line, a tag given twice held twice | its historical friends (`aistrategy.md`, section 9.2) | straight before `mobilize`, only where it has any - since 2026-11-21; no reference save holds one |
 | `alignment` | `position = { x y }`, an empty line after it | where it stands on the triangle | after `mobilize` |
 | `lendlease_targets`, `lendlease_distributions`, `lendlease_effectiveness` | whom it gives to, each one's weight and effectiveness | the giving, in order | after `cabinet`, only while it gives (`CSaveLendLease`) |
 | `lend_lease_from`, `lend_lease_from_values`, `lend_lease_income` | whom it receives from, what each has sent not yet made IC, and the whole of that | the receipts, in order, and the income | then, only while it receives |

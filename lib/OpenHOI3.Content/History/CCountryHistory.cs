@@ -273,6 +273,11 @@ public static class CCountryHistory
 					country.Faction = entry.Value;
 					country.HistoryJoinedLate = late;
 				}
+				else if (entry.Key.Equals("historical_friend", StringComparison.OrdinalIgnoreCase))
+				{
+					// Appended with no test of one already held, as the original's (aistrategy.md, section 9.2).
+					country.HistoricalFriends.Add(new CCountryTag(entry.Value));
+				}
 				else if (entry.Key.Equals("leave_faction", StringComparison.OrdinalIgnoreCase))
 				{
 					if (country.Faction.Equals(entry.Value, StringComparison.OrdinalIgnoreCase))
