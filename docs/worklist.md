@@ -2659,7 +2659,8 @@ None of these blocks the list above.
 - **What the original does with a name in `extra_amphibious_defence` that is no unit type** was not read; ours reports
   it (`units.md`, section 1).
 - **Strategic resources shared across continents** (`docs/mechanics/modifiers.md`, sections 6 and 7): the original's
-  list of a country's naval bases is a day behind a base finished in play, here it is not; and neither the sharing nor
+  list of a country's naval bases is a day behind a base finished in play, here it is not - left so by choice,
+  since no save holds the list (`modifiers.md`, section 6); and neither the sharing nor
   a resource once had never being lost was watched in a running game - no save shows a country's levels.
 - **Leadership makes officers that nothing takes away.** Influence is spent by diplomacy and
   spies are placed by espionage; a country whose presences are full or at priority 0 adds to its

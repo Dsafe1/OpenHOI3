@@ -462,7 +462,10 @@ the first day is run, which is why a new game's starting manpower leaves black s
   `CCoastlineReach`). *Ours*: the original's list of a country's naval bases is made again
   each day after the resources are worked out, and at a change of hands, so a base finished
   in play joins it a day late; here the bases are taken from the provinces as they stand
-  each time. What changed: nothing at the start, where the Allies are the United Kingdom and
+  each time. Tried on 2026-11-21 and left so by choice: the lag is a list kept between days, which a save in the
+  original's keys does not hold, so a game loaded - or joined between machines - on the day a first naval base level
+  was finished would part from one that was not. The original's own list is made afresh on a load too, so it has the
+  same difference with itself (`docs/enhanced.md`, *A whole game's replay*). What changed: nothing at the start, where the Allies are the United Kingdom and
   France, both in Europe; in the Ireland game's saves of September 1939, May 1940 and July
   1941 the United Kingdom and France gain 13 to 25 resources by the coasts - South Africa's
   gold, Canada's uranium and tungsten, the United States' among them (`OpenHOI3.SaveCheck
