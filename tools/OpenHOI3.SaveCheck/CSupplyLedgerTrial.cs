@@ -57,6 +57,12 @@ internal static class CSupplyLedgerTrial
 			(state, _) = CSaveLoader.Load(directories, map, localisation, countries, args[2], aiScripts: scripts, warn: warnings.Add);
 		}
 		state.Played.Clear();
+		// seed=N: the AI's generator seeded afresh after the load, for runs from one state that differ only in its draws.
+		if (args.FirstOrDefault(a => a.StartsWith("seed=", StringComparison.Ordinal)) is { } seedArgument
+			&& uint.TryParse(seedArgument["seed=".Length..], out uint seed))
+		{
+			state.AiRandom.Seed(seed);
+		}
 		var simulation = new CSimulation(state);
 		string? dump = args.FirstOrDefault(a => a.StartsWith("dump=", StringComparison.Ordinal))?["dump=".Length..];
 		Console.WriteLine($"{state.Date} {state.Hour}h, nobody playing");
@@ -98,6 +104,14 @@ internal static class CSupplyLedgerTrial
 		foreach (string tag in tags)
 		{
 			Where(state, tag);
+			if (state.Country(new OpenHOI3.Sim.Countries.CCountryTag(tag)) is { } country)
+			{
+				var sums = Totals(state, tag);
+				long own = state.TradeRoutes.Where(r => r.From == country.Tag).Sum(r => r.Terms.From(EGoods.Supplies));
+				long theirs = state.TradeRoutes.Where(r => r.To == country.Tag).Sum(r => r.Terms.To(EGoods.Supplies));
+				Console.WriteLine($"SUMMARY {tag} {state.Date} stock {sums.Stockpile / 1000} own {own / 1000.0:F1} buyers {theirs / 1000.0:F1} " +
+					$"share {country.ProductionShares[(int)OpenHOI3.Sim.Economy.EProductionCategory.Supplies].Raw / 32768.0:F5}");
+			}
 		}
 		return 0;
 	}
