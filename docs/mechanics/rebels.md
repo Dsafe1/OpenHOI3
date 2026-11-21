@@ -309,6 +309,11 @@ owner:
   (`organisation.md`). So an army made at full organisation is at nought an hour later, and marches and fights so.
   That is what the rules as read come to, and it was confirmed of the original on 2026-10-15: rebels "dont"
   have organisation.
+- **A rebel unit worn to nothing goes.** [exe; `reversing/findings/FINDINGS-effectrun.md`, section 3.12.] In its own
+  hour, a unit of the rebels' tag that is in no battle and whose brigades' strength adds up to less than 0.1 - all
+  of them together, not each, and a unit with no brigade too - is put on the queue of units to remove, and goes at the
+  hour's end as everything queued does (`units.md`, section 9). The rebels have no officers to lose. Built
+  2026-11-21 (`CSpentRebels`); the 0.1 is the executable's own, no define.
 
 ## 14. Against the saves
 
@@ -377,5 +382,3 @@ first target does not begin.
 
 - The order of the history the month reads the last day the rebels took a province from.
 - `Province_Defect`, which nothing reaches, read off the decompiler only.
-- What the original does with a rebel army of under 0.1 strength in all, which its unit's hour hands to the game state's
-  queue of units to remove - likely the army taken away, the queue's handling not read.

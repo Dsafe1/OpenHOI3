@@ -76,6 +76,8 @@ public static class CTick
 		// (docs/replay.md).
 		Step(state, s => CMovement.RunHourly(s, country => Theatres.CTheatres.RunCountryHour(s, country)),
 			"CMovement.RunHourly and CTheatres.RunCountryHour");
+		// A rebel unit worn to nothing is queued to go at the hour's end (rebels.md, section 13).
+		Step(state, Revolts.CSpentRebels.RunHourly);
 		Step(state, Units.CEmptyUnits.RunHourly);
 		// The units go before their countries, so an hour's organisation is worked out
 		// with the officer ratio the hour before left.

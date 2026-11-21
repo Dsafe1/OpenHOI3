@@ -124,6 +124,43 @@ public class RebelTests
 	}
 
 	[Fact]
+	public void A_rebel_army_worn_under_a_tenth_of_a_point_goes_at_the_hours_end()
+	{
+		CGameState state = RebelWorld.State();
+		CRisings.Rise(state, state.Province(1), TypeOf(state, "disgruntled_rabble"), 2);
+		CRebelFaction faction = Assert.Single(state.RebelFactions);
+		CUnit army = CRebelFactions.FindUnit(state, Assert.Single(faction.Armies))!;
+		Assert.False(CSpentRebels.IsSpent(army));
+
+		// The brigades' strength is added up: 0.05 and 0.05 is a tenth, which stays.
+		foreach (CSubUnit brigade in army.SubUnits)
+		{
+			brigade.Strength = new CFixedPoint(50);
+		}
+		Assert.False(CSpentRebels.IsSpent(army));
+		army.SubUnits[0].Strength = new CFixedPoint(49);
+		Assert.True(CSpentRebels.IsSpent(army));
+
+		// Queued in the hour, and gone when the queue is emptied.
+		CSpentRebels.RunHourly(state);
+		Assert.False(army.IsRemoved);
+		Assert.Equal(new[] { army.Id }, state.PendingUnitRemovals);
+		CPendingUnitRemovals.Drain(state);
+		Assert.True(army.IsRemoved);
+	}
+
+	[Fact]
+	public void Only_the_rebels_own_units_go_for_being_worn()
+	{
+		CGameState state = RebelWorld.State();
+		var division = new CUnit(EUnitKind.Division, RebelWorld.Ger) { Id = 900, Location = 1 };
+		state.Country(RebelWorld.Ger)!.Units.Add(division);
+		Assert.False(CSpentRebels.IsSpent(division));
+		CSpentRebels.RunHourly(state);
+		Assert.Empty(state.PendingUnitRemovals);
+	}
+
+	[Fact]
 	public void Rebels_in_their_owners_own_land_take_it_and_a_second_rising_joins_them()
 	{
 		CGameState state = RebelWorld.State();
