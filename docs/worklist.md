@@ -2717,8 +2717,7 @@ None of these blocks the list above.
 - **Whether a long line of the technology panel's `effects` list runs under its scrollbar or over it** - the order
   they are drawn in - was not read; where the bar stands is, since 2026-11-19 (`interface.md`, section 2, whose item
   11 of *What is not established* still lists it).
-- **Of the rebels, what is left out** (2026-10-15, `rebels.md`, *Ours*): a resilient
-  faction's weighing of the odds, which asks a unit's power (built since, `CUnitPower`), no type of either install being resilient; what the
+- **Of the rebels, what is left out** (2026-10-15, `rebels.md`, *Ours*): what the
   original does with a rebel army of under 0.1 strength, a routine not read; a brigade's home province; and the
   province's history, of which only the last day the rebels took it is kept.
 - **An underground is ordered as any building is** since 2026-10-15 (`buildinglines.md`); `--underground=` and the

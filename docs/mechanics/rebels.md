@@ -362,8 +362,8 @@ first target does not begin.
   history, which is not built; it is set where the rebels become its holder with a capture's consequences.
 - **The month's defection is not walked**: the original's walk asks the country to defect to of each province not yet
   due and always finds nobody, draws nothing and changes nothing.
-- **A resilient faction's weighing of the odds is not built**: it asks a unit's power, which is built since
-  (`CUnitPower`), and its side's dice, which are not. No type of Their Finest Hour or BlackICE is resilient. A resilient army falling back here leaves its
+- ~~**A resilient faction's weighing of the odds is not built**~~: built 2026-11-21 (section 11),
+  from the reading alone: the order its sums are cut in is ours. No type of Their Finest Hour or BlackICE is resilient. A resilient army falling back here leaves its
   battles first, as an order to march does.
 - **A siege won is raised whatever the effect says**, and the interface drops it where the effect's words are one
   character or none, which is where the original does not raise it.

@@ -336,4 +336,32 @@ public class RebelTests
 		CProvinceHands.SetController(state, state.Province(2), RebelWorld.Ger, consequences: true);
 		Assert.Empty(faction.Provinces);
 	}
+
+	[Fact]
+	public void A_resilient_and_smart_factions_army_breaks_off_a_battle_whose_odds_are_too_long()
+	{
+		CGameState state = RebelWorld.State();
+		CUnit garrison = Garrison(state, RebelWorld.Ger, 4);
+		garrison.SubUnits[0].Stats.Values.Set(CUnitTotals.SoftAttack, CFixedPoint.FromInt(5));
+		state.Province(5).Controller = RebelWorld.Ger;   // occupied too: somewhere hostile to fall back to
+		CRebelType partisans = TypeOf(state, "partisans");
+		CRisings.Rise(state, state.Province(4), partisans, 1);
+		CRebelFaction faction = Assert.Single(state.RebelFactions);
+		CUnit army = CRebelFactions.FindUnit(state, Assert.Single(faction.Armies))!;
+		Assert.True(army.IsFighting);
+
+		// Not resilient: nothing. Resilient and not smart: it fights no friend, so nothing.
+		CResilientRetreat.Run(state, faction);
+		partisans.Resilient = true;
+		CResilientRetreat.Run(state, faction);
+		Assert.True(army.IsFighting);
+
+		// Smart: one brigade to one, a garrison with power against partisans with none - far above five to one.
+		partisans.Smart = true;
+		CResilientRetreat.Run(state, faction);
+		Assert.False(army.IsFighting);
+		Assert.Single(army.Path);
+		partisans.Resilient = false;
+		partisans.Smart = false;
+	}
 }

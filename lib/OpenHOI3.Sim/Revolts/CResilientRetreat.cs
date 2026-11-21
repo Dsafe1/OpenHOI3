@@ -9,8 +9,8 @@ namespace OpenHOI3.Sim.Revolts;
 
 /// <summary>
 /// The original's <c>RebelFaction_ResilientRetreat</c>: a resilient faction's armies break off a battle against a
-/// country they count a friend. No type of Their Finest Hour or BlackICE is resilient. A smart type's weighing of the
-/// odds, which asks a unit's power, is not built. See <c>docs/mechanics/rebels.md</c>, section 11.
+/// country they count a friend, and a smart type's also one whose odds are too long. No type of Their Finest Hour or
+/// BlackICE is resilient. See <c>docs/mechanics/rebels.md</c>, section 11.
 /// </summary>
 public static class CResilientRetreat
 {
@@ -19,6 +19,15 @@ public static class CResilientRetreat
 	private const long HeldByRebels = 4000;
 	private const long HeldByFriend = -10000;
 	private const long Floor = -1000;
+
+	/// <summary>Under this many of their brigades to one of ours, in thousandths, nothing is weighed.</summary>
+	private const long LeastRatio = 750;
+
+	/// <summary>What our power counts as where it is nought.</summary>
+	private const long LeastPower = 10;
+
+	/// <summary>Their power over ours, times the ratio, above which the rebels fall back: five to one.</summary>
+	private const long TooLong = 5000;
 
 	public static void Run(CGameState state, CRebelFaction faction)
 	{
@@ -43,7 +52,8 @@ public static class CResilientRetreat
 				{
 					weighed.Add(fellow);
 				}
-				if (!FightsAFriend(state, faction, combat.Other(ours)))
+				if (!FightsAFriend(state, faction, combat.Other(ours))
+					&& !(faction.Type.Smart && OddsAreTooLong(state, combat, ours)))
 				{
 					continue;
 				}
@@ -51,6 +61,81 @@ public static class CResilientRetreat
 				break;
 			}
 		}
+	}
+
+	/// <summary>
+	/// A smart type's weighing of a battle. Units marching into its province from a land neighbour join the sides - the
+	/// rebels' to ours, everybody else's to theirs. Their brigades over ours, ours at least one, land units alone: under
+	/// three to four nothing is weighed. Then each side's power together, ours ten where nought; the side whose dice are
+	/// the higher has its power raised - theirs by an eighteenth a point of the difference, ours by one in four and a
+	/// half - and their power over ours, times the ratio, above five is too long.
+	/// </summary>
+	private static bool OddsAreTooLong(CGameState state, CCombat combat, CCombatSide ours)
+	{
+		CCombatSide them = combat.Other(ours);
+		var our = new List<CUnit>(ours.Units);
+		var their = new List<CUnit>(them.Units);
+		foreach (CProvinceEdge edge in state.Province(combat.Province).Edges)
+		{
+			CProvince beside = state.Province(edge.To);
+			if (edge.Kind == EProvinceEdgeKind.Impassable || beside.IsSea)
+			{
+				continue;
+			}
+			foreach (CUnit marching in state.UnitsIn(beside.Id))
+			{
+				if (marching.Path.Count > 0 && marching.Path[^1] == combat.Province
+					&& !our.Contains(marching) && !their.Contains(marching))
+				{
+					(CRebelFactions.IsRebels(marching.Owner) ? our : their).Add(marching);
+				}
+			}
+		}
+		long ourBrigades = System.Math.Max(1, Brigades(our));
+		long ratio = Brigades(their) * 1000 / ourBrigades;
+		if (ratio < LeastRatio)
+		{
+			return false;
+		}
+		long ourPower = Power(our);
+		long theirPower = Power(their);
+		if (ourPower == 0)
+		{
+			ourPower = LeastPower;
+		}
+		long dice = them.Dice - ours.Dice;
+		if (dice > 0)
+		{
+			theirPower = theirPower * (1000 + dice * 1000 / 18) / 1000;
+		}
+		else if (dice < 0)
+		{
+			ourPower = ourPower * (1000 + -dice * 1000 * 1000 / 4500) / 1000;
+		}
+		return theirPower * 1000 / ourPower * ratio / 1000 > TooLong;
+	}
+
+	private static long Brigades(List<CUnit> units)
+	{
+		long brigades = 0;
+		foreach (CUnit unit in units)
+		{
+			if (CMovementRules.IsLandUnit(unit))
+			{
+				brigades += unit.SubUnits.Count;
+			}
+		}
+		return brigades;
+	}
+
+	private static long Power(List<CUnit> units)
+	{
+		long power = 0;
+		foreach (CUnit unit in units)
+		{
+			power += Agents.CUnitPower.Of(unit);
+		}
+		return power;
 	}
 
 	private static bool FightsAFriend(CGameState state, CRebelFaction faction, CCombatSide them)
@@ -104,6 +189,15 @@ public static class CResilientRetreat
 		if (chosen == 0)
 		{
 			return;
+		}
+		// The faction's armies still marching into the battle turn back.
+		foreach (int id in faction.Armies)
+		{
+			if (CRebelFactions.FindUnit(state, id) is { IsRetreating: false } marching && marching.Location != battle.Id
+				&& marching.Path.Count > 0 && marching.Path[^1] == battle.Id)
+			{
+				CMovement.Cancel(marching);
+			}
 		}
 		foreach (CUnit unit in new List<CUnit>(ours.Units))
 		{
