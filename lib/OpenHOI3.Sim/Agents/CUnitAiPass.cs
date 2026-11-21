@@ -36,6 +36,7 @@ public static class CUnitAiPass
 				unit.AiBoundAtHour = unit.AiBound;
 			}
 		}
+		var sideBySide = new List<Ai.CAiRun>();
 		foreach (CCountry country in state.Countries)
 		{
 			country.UnitAi.InRevolt = revolting.Contains(country.Tag);
@@ -44,8 +45,69 @@ public static class CUnitAiPass
 			{
 				continue;
 			}
-			Run(state, country, hour);
+			var run = new Ai.CAiRun(state, country, Salt);
+			if (country.Index > FirstOnMainThread)
+			{
+				sideBySide.Add(run);
+				continue;
+			}
+			run.Run((s, c) => Run(s, c, hour));
+			run.Finish();
 			ShowOrdersOfTheHour(country);
+		}
+		RunSideBySide(state, sideBySide, hour);
+	}
+
+	/// <summary>The salt of the unit pass's runs' generators (<see cref="Ai.CAiRun"/>).</summary>
+	private const uint Salt = 0x554E4954;
+
+	/// <summary>How many threads at most run the countries side by side: as many as are worth it (section 2, *Ours*).</summary>
+	private const int Workers = 8;
+
+	/// <summary>
+	/// The passes of every country after the main thread's first, side by side on worker threads, as the original's: each
+	/// reads the world as the main thread's countries left it, and what each posts is put after the rest in the countries'
+	/// order once all are done - so it comes out as their passes in turn would. What a pass asks for that is made on first
+	/// use, and would be made by the first to ask, is made before (<c>docs/mechanics/agents.md</c>, section 2, *Ours*).
+	/// In turn instead where the game asks for it, and where a tool traces the AI or plays back the original's draws.
+	/// </summary>
+	private static void RunSideBySide(CGameState state, List<Ai.CAiRun> runs, int hour)
+	{
+		if (runs.Count == 0)
+		{
+			return;
+		}
+		_ = state.Positions;
+		Supply.CSupplyNetworks.Refresh(state);
+		if (state.AiInTurn || state.AiTrace is not null || state.SharedAiRandom.Feed is not null || runs.Count == 1)
+		{
+			foreach (Ai.CAiRun run in runs)
+			{
+				run.Run((s, c) => Run(s, c, hour));
+			}
+		}
+		else
+		{
+			var options = new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = Workers };
+			try
+			{
+				System.Threading.Tasks.Parallel.ForEach(System.Collections.Concurrent.Partitioner.Create(0, runs.Count, 1), options,
+					range =>
+					{
+						for (int i = range.Item1; i < range.Item2; i++)
+						{
+							runs[i].Run((s, c) => Run(s, c, hour));
+						}
+					});
+			}
+			catch (System.AggregateException failed) when (failed.InnerExceptions.Count >= 1)
+			{
+				System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failed.InnerExceptions[0]).Throw();
+			}
+		}
+		foreach (Ai.CAiRun run in runs)
+		{
+			run.Finish();
 		}
 	}
 

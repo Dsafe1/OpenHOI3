@@ -140,7 +140,9 @@ public static class CAgentUnits
 	/// </summary>
 	public static int Destination(CUnit unit)
 	{
-		return Destination(unit, unit.AiBound);
+		// Another country's pass sees where the AI had the unit bound as the hour's passes began: what this one has sent it
+		// to is its own until the queue runs (moving.md, section 7.3).
+		return Destination(unit, Ai.CAiRun.IsForeign(unit) ? unit.AiBoundAtHour : unit.AiBound);
 	}
 
 	private static int Destination(CUnit unit, int aiBound)

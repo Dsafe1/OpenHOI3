@@ -228,7 +228,10 @@ is cleared - on every pass that runs the dispatcher, full or every third hour, a
    list up to Germany are read as their orders stand, the rest as the hour began. It is a race all the same - Hungary and
    Bulgaria, whose passes begin soon after Germany's, often give their own orders before Germany's first - and a
    country whose pass begins at once on a worker thread may count before Germany's orders are given. A country's own
-   units are read as they are.
+   units are read as they are. **Since 2026-11-21 every place** that asks where a unit is going reads another country's
+   unit so, not the count alone (`CAgentUnits.Destination`, as `CAiRun.IsForeign` says): two allies' passes had sent
+   each a unit to the one province, which of them did hanging on which ran first - which, with the passes side by side
+   (`agents.md`, section 12), it may not.
 4. **The rest**: nothing given out - every position wants 1; otherwise while the carry is
    over 0.1, +1 to the position with the least want (an over-cap one sorted after), one scoring under 1 left out where the scores come to 1 or more.
    The original gives 2 where a unit standing there has an entry on a list of the unit's own, **not where it is dug in**

@@ -287,9 +287,38 @@ public sealed class CGameState
 
 	/// <summary>
 	/// The last number given to a unit or a sub unit. The next one made takes the one
-	/// after it.
+	/// after it. Never set from a country's part of a pass run side by side, which takes
+	/// its numbers through <see cref="TakeUnitIds"/>.
 	/// </summary>
-	public int LastUnitId { get; set; }
+	public int LastUnitId
+	{
+		get => _lastUnitId;
+		set
+		{
+			if (Ai.CAiRun.Of(this) is not null)
+			{
+				throw new InvalidOperationException("a unit numbered from an AI run side by side, not through TakeUnitIds");
+			}
+			_lastUnitId = value;
+		}
+	}
+
+	private int _lastUnitId;
+
+	/// <summary>
+	/// That many new numbers, one after another, as the AI takes them when it posts the command that makes the units: the
+	/// first. In a country's part of a pass run side by side, stand-ins the run numbers when it is over (<see cref="Ai.CAiRun"/>).
+	/// </summary>
+	public int TakeUnitIds(int count)
+	{
+		if (Ai.CAiRun.Of(this) is { } run)
+		{
+			return run.Take(count);
+		}
+		int first = LastUnitId + 1;
+		LastUnitId += count;
+		return first;
+	}
 
 	/// <summary>
 	/// The first number not made by the history: what a new game's order of battle and queue gave are below it, and
@@ -691,9 +720,18 @@ public sealed class CGameState
 
 	/// <summary>
 	/// What the game itself posts while a command runs - an AI's answer to an event, an event that
-	/// answers itself - which the queue takes after that command and runs at its next turn.
+	/// answers itself - which the queue takes after that command and runs at its next turn. In a country's part of an AI
+	/// pass run side by side, that run's own list, put after this one when the pass is over (<see cref="Ai.CAiRun"/>).
 	/// </summary>
-	public List<Commands.CCommand> Outbox { get; } = new();
+	public List<Commands.CCommand> Outbox => Ai.CAiRun.Of(this)?.Posted ?? _outbox;
+
+	private readonly List<Commands.CCommand> _outbox = new();
+
+	/// <summary>
+	/// Whether the AI's passes that may run their countries side by side run them in turn instead, on the game's own thread:
+	/// what a check sets beside a run side by side, which should come out the same. Changes nothing the AI does.
+	/// </summary>
+	public bool AiInTurn { get; set; }
 
 	/// <summary>
 	/// The changes of law the install's Lua posted as a new game was set up, waiting on the queue until the game's two
@@ -935,8 +973,11 @@ public sealed class CGameState
 	/// <summary>Each unit type's group in the AI's plans, kept by <see cref="Agents.CPlanWants.GroupOf"/>. Derived, and never saved.</summary>
 	internal System.Collections.Concurrent.ConcurrentDictionary<Units.CSubUnitType, Units.CSubUnitType>? PlanGroups { get; set; }
 
-	/// <summary>The route finder's working arrays, kept from one search to the next by <see cref="Movement.CRouteScratch"/>.</summary>
-	internal Movement.CRouteScratch? RouteScratch { get; set; }
+	/// <summary>
+	/// The route finder's working arrays not in use, kept from one search to the next by <see cref="Movement.CRouteScratch"/>:
+	/// one set for each search that has run at once, threads side by side among them.
+	/// </summary>
+	internal System.Collections.Concurrent.ConcurrentBag<Movement.CRouteScratch> RouteScratch { get; } = new();
 
 	/// <summary>Every holder's air bases this hour, kept by <see cref="Agents.CAirBaseHolders"/>.</summary>
 	public Agents.CAirBaseHolders? AirBaseHolders { get; set; }
@@ -958,22 +999,32 @@ public sealed class CGameState
 		{
 			_seed = value;
 			Random.Seed(value);
-			AiRandom.Seed(value);
+			SharedAiRandom.Seed(value);
 		}
 	}
 
 	private uint _seed = 1;
 
-	/// <summary>The game's source of chance: battles, espionage, events, revolts, the weather and the rest.</summary>
-	public CRandom Random { get; } = new();
+	/// <summary>
+	/// The game's source of chance: battles, espionage, events, revolts, the weather and the rest. Never drawn on from an AI
+	/// pass run side by side (<see cref="Ai.CAiRun"/>), whose order of draws no country could know.
+	/// </summary>
+	public CRandom Random => Ai.CAiRun.Of(this) is null ? _random
+		: throw new InvalidOperationException("the game's generator drawn on from an AI run side by side");
+
+	private readonly CRandom _random = new();
 
 	/// <summary>
 	/// The AI's own source of chance, as the original keeps one beside the game's: its trading roll, its answer to an offer,
 	/// its ministers' countdowns and decision scopes, the Lua's <c>GetAIRand</c> and <c>CAIIntel</c>, the invasion planner,
 	/// the convoy raid and the patrol - so what the AI decides never moves a battle's or an event's rolls
-	/// (<c>reversing/findings/FINDINGS-liveread.md</c>, section 59). Seeded with the game's seed, which is ours.
+	/// (<c>reversing/findings/FINDINGS-liveread.md</c>, section 59). Seeded with the game's seed, which is ours. In a
+	/// country's part of an AI pass run side by side, that run's own generator (<see cref="Ai.CAiRun"/>).
 	/// </summary>
-	public CRandom AiRandom { get; } = new();
+	public CRandom AiRandom => Ai.CAiRun.Of(this)?.Random ?? SharedAiRandom;
+
+	/// <summary>The AI's generator that every run but a side-by-side pass's draws on (<see cref="AiRandom"/>).</summary>
+	public CRandom SharedAiRandom { get; } = new();
 
 	/// <summary>
 	/// Where the AI's estimate of a battle takes the half of a unit's modifier that hangs on the unit alone - its attacking
@@ -1052,6 +1103,10 @@ public sealed class CGameState
 	/// </summary>
 	public void DoInStep(Commands.CCommand command)
 	{
+		if (Ai.CAiRun.Of(this) is not null)
+		{
+			throw new InvalidOperationException("the game changed at once from an AI run side by side");
+		}
 		command.Execute(this);
 		DoneInStep?.Add(command);
 	}

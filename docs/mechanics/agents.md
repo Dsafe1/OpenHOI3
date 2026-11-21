@@ -619,8 +619,25 @@ priority province in the area or beside it against an enemy, or the holder unpla
 
 ## 12. Ours
 
-- **The pass runs as one step of the hour, after the ministers, for every country in turn**, where the original runs each
-  country's ministers and agents together on a worker thread from the frame after the hour.
+- **The pass runs as one step of the hour, after the ministers**, where the original runs each country's ministers and
+  agents together on a worker thread from the frame after the hour. **Since 2026-11-21 its countries run side by side**
+  too, at most eight at once: the main thread's first, REB and Germany, in turn as before (`moving.md`, section 7.3), then
+  every other on worker threads, each reading the world as those left it - which is what a country's pass read in turn,
+  since what one posts waits on the queue and where it has bound its units is read by the others as the hour began
+  (`CAiRun`, `CUnitAiPass.RunSideBySide`). So that a game runs the same on every machine and however the threads fall:
+  what each posts is put on the queue in the countries' order once all are done; a pass draws on a generator of its own,
+  seeded from the game's seed, the hour and the country, where it drew on the AI's one in turn - a change of play, every
+  draw of the invasion planner and the naval body falling otherwise; the numbers it takes for new units are stand-ins,
+  given the next real numbers in the countries' order, so they are those the countries in turn took; what is made on
+  first use - who stands where, the supply network - is made before, where the first to ask would have made it; and a
+  pass may change nothing of the game itself - a number taken, a draw on the game's generator or a change made at once
+  throws. The original's threads take countries as they come free, their draws and numbers in whatever order that gives.
+  `OpenHOI3.SaveCheck headless ... inturn` runs them in turn on the game's thread, which should come out the same hash for
+  hash; so does a run with the AI traced or the original's draws played back. On 2026-11-21 that was so for 90 days from
+  1936, 71 from the 1941 bookmark and 153 from the 1944 one, three runs side by side of each, and the countries in turn
+  backwards came out the same as forwards. Germany played from the 1944 bookmark, the pass took 28.0 ms an hour in turn
+  and 13.5 side by side, a day 1,181 ms and 813; from 1941, 794 and 595. The Soviet Union's pass and Germany's, on the
+  main thread, set the floor.
 - **The first of equals by the order things were made**, as in `theatres.md`.
 - **A fleet's way to port at war** is any port, the original's route test at war not read.
 - **A group of one wing is passed over for the split only**, and may still look for another to join: the reading has it

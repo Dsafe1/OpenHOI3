@@ -25,7 +25,7 @@ internal static class CProfileTrial
 	{
 		if (args.Length < 2)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck profile <install folder> [days] [tag] [from=DATE] [warm=DAYS] [lua]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck profile <install folder> [days] [tag] [from=DATE] [warm=DAYS] [lua] [inturn]");
 			return 2;
 		}
 		int days = args.Length > 2 && int.TryParse(args[2], out int given) ? given : 30;
@@ -45,6 +45,8 @@ internal static class CProfileTrial
 			played: new[] { new CCountryTag(tag) }, date: from);
 		state.Played.Clear();
 		state.Played.Add(new CCountryTag(tag));
+		// inturn: the AI's passes that run their countries side by side run them in turn, to time the one beside the other.
+		state.AiInTurn = args.Contains("inturn");
 		var simulation = new CSimulation(state);
 		Console.WriteLine($"a new game as {tag}, {state.Date}, loaded in {loading.ElapsedMilliseconds} ms");
 

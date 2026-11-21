@@ -220,7 +220,7 @@ public static class CFleetRegroup
 	/// <summary>A new unit's number, taken now as the original takes it as it posts the command.</summary>
 	public static int NewId(CGameState state)
 	{
-		return ++state.LastUnitId;
+		return state.TakeUnitIds(1);
 	}
 
 	private static void SplitAndMerge(CGameState state, CCountry country, CUnit headquarters, List<CUnit> ready,

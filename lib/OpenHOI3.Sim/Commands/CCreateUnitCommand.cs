@@ -10,10 +10,10 @@ namespace OpenHOI3.Sim.Commands;
 /// made. The AI's agents post it as they split a fleet or an air group (<c>docs/mechanics/agents.md</c>, section 5.4),
 /// and the new-unit button for an empty unit beside the one selected (<c>unitpanel.md</c>, section 7.1).
 /// </summary>
-public sealed class CCreateUnitCommand : CCommand
+public sealed class CCreateUnitCommand : CCommand, INewUnitIds
 {
 	private readonly CCountryTag _owner;
-	private readonly int _id;
+	private int _id;
 	private readonly EUnitKind _kind;
 	private readonly int _province;
 	private readonly int _base;
@@ -30,6 +30,11 @@ public sealed class CCreateUnitCommand : CCommand
 		_province = province;
 		_base = baseProvince;
 		_headquarters = headquarters;
+	}
+
+	public void GiveIds(System.Func<int, int> real)
+	{
+		_id = real(_id);
 	}
 
 	public override bool MayExecute(CGameState state)

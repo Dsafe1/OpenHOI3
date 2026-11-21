@@ -17,22 +17,26 @@ namespace OpenHOI3.Sim.Commands;
 /// a leader. Its ids are taken as it is posted - three, of which two are used. The AI's agents post it as they make their
 /// commands (<c>docs/mechanics/agents.md</c>, section 4.4).
 /// </summary>
-public sealed class CCreateHigherCommand : CCommand
+public sealed class CCreateHigherCommand : CCommand, INewUnitIds
 {
 	/// <summary>A new headquarters' brigade's share of its strength and of its men, in thousandths: a twentieth.</summary>
 	private const long Twentieth = 50;
 
 	private readonly CCountryTag _owner;
 	private readonly int[] _units;
-	private readonly int _id;
+	private int _id;
 
 	/// <summary>Takes the ids as it is posted: the headquarters', its brigade's, and one left unused.</summary>
 	public CCreateHigherCommand(CGameState state, CCountryTag owner, int unit)
 	{
 		_owner = owner;
 		_units = new[] { unit };
-		_id = state.LastUnitId + 1;
-		state.LastUnitId += 3;
+		_id = state.TakeUnitIds(3);
+	}
+
+	public void GiveIds(Func<int, int> real)
+	{
+		_id = _id == 0 ? 0 : real(_id);
 	}
 
 	/// <summary>The player's, for one unit or several: the ids are taken as it runs, so that a replay comes out the same (attaching.md, section 5).</summary>

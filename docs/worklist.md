@@ -2171,9 +2171,10 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   enemy convoy (now once a pass). **Set beside the original on 2026-11-21**, each a day at top speed ten days past the
   start (`profile ... warm=10` here; the original's `RunHourlyTick` and `CGameState::RunAIPass` timed by breakpoint, its
   drawing left out): 1936 307 ms here to its 305, 1941 798 to 682, 1944 1,047 to 809. The original's AI pass runs the
-  countries on worker threads and ours runs them in turn; our unit AI alone is 23 ms an hour in 1944 to the original's
-  whole AI pass's 12 (`docs/mechanics/tick.md`). With its drawing, which shares the original's thread and not ours, the
-  original plays 23, 51 and 51 ms an hour. `OpenHOI3.SaveCheck profile` names the steps of every hour over a second.
+  countries on worker threads, and since the same day so does our unit AI's (`agents.md`, section 12): 1941 595 ms a day
+  and 1944 813, the unit AI 28 ms an hour in 1944 down to 13.5 against the original's whole AI pass's 12 - a change of
+  play, each country's pass drawing on a generator of its own. With its drawing, which shares the original's thread and
+  not ours, the original plays 23, 51 and 51 ms an hour. `OpenHOI3.SaveCheck profile` names the steps of every hour over a second.
   Paused on 2026-11-20 for the multiplayer work, which is finished.
   ~~Germany's supplies~~ - closed on 2026-11-21 as the original's own run-to-run spread (below).
   **Germany's supplies were narrowed on 2026-11-21** to who proposes its supply sales. Against the Ireland game's save of

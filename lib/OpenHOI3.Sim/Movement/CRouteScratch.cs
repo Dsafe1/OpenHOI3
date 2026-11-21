@@ -1,4 +1,4 @@
-using System.Threading;
+using System.Collections.Concurrent;
 
 namespace OpenHOI3.Sim.Movement;
 
@@ -9,16 +9,18 @@ namespace OpenHOI3.Sim.Movement;
 /// and big enough to land in the large object heap, where they set off every full collection.
 ///
 /// A province has figures from this walk when its stamp is the walk's own, so nothing is cleared between walks; what a
-/// walk reads of a province it has not stamped is its own default, never what the arrays hold.
+/// walk reads of a province it has not stamped is its own default, never what the arrays hold. The state keeps the sets not
+/// in use, so that walks at once - the AI's countries side by side - each take one of their own and hand it back.
 /// </summary>
 internal sealed class CRouteScratch
 {
+	private readonly ConcurrentBag<CRouteScratch> _pool;
+
 	private int _stamp;
 
-	private int _inUse;
-
-	private CRouteScratch(int count)
+	private CRouteScratch(ConcurrentBag<CRouteScratch> pool, int count)
 	{
+		_pool = pool;
 		Settled = new int[count];
 		Cost = new long[count];
 		Estimate = new long[count];
@@ -41,21 +43,22 @@ internal sealed class CRouteScratch
 	public int Stamp => _stamp;
 
 	/// <summary>
-	/// The state's arrays for a walk over this many provinces, with a stamp no province holds yet - or arrays of the
-	/// walk's own when a walk is using the state's already, whether on this thread or another.
+	/// A set of the state's arrays for a walk over this many provinces, with a stamp no province holds yet: one not in use,
+	/// or a new one where every set is in use, whether on this thread or another. A set too small is let go.
 	/// </summary>
 	public static CRouteScratch Take(CGameState state, int count)
 	{
-		CRouteScratch? scratch = state.RouteScratch;
-		if (scratch is null || scratch.Settled.Length < count)
+		ConcurrentBag<CRouteScratch> pool = state.RouteScratch;
+		CRouteScratch? scratch = null;
+		while (pool.TryTake(out CRouteScratch? kept))
 		{
-			scratch = state.RouteScratch = new CRouteScratch(count);
+			if (kept.Settled.Length >= count)
+			{
+				scratch = kept;
+				break;
+			}
 		}
-		if (Interlocked.CompareExchange(ref scratch._inUse, 1, 0) != 0)
-		{
-			scratch = new CRouteScratch(count);
-			scratch._inUse = 1;
-		}
+		scratch ??= new CRouteScratch(pool, count);
 		if (scratch._stamp == int.MaxValue)
 		{
 			System.Array.Clear(scratch.Settled);
@@ -68,6 +71,6 @@ internal sealed class CRouteScratch
 	/// <summary>Hands the arrays back for the next walk.</summary>
 	public void Release()
 	{
-		Volatile.Write(ref _inUse, 0);
+		_pool.Add(this);
 	}
 }

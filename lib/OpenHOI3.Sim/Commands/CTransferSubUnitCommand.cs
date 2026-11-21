@@ -9,17 +9,22 @@ namespace OpenHOI3.Sim.Commands;
 /// or a land unit left with one brigade, loses its leader. A carrier's air groups ride on it. The AI's agents post it as they split a fleet or an air group
 /// (<c>docs/mechanics/agents.md</c>, section 5.4).
 /// </summary>
-public sealed class CTransferSubUnitCommand : CCommand
+public sealed class CTransferSubUnitCommand : CCommand, INewUnitIds
 {
 	private readonly CCountryTag _owner;
 	private readonly int _subUnit;
-	private readonly int _unit;
+	private int _unit;
 
 	public CTransferSubUnitCommand(CCountryTag owner, int subUnit, int unit)
 	{
 		_owner = owner;
 		_subUnit = subUnit;
 		_unit = unit;
+	}
+
+	public void GiveIds(System.Func<int, int> real)
+	{
+		_unit = real(_unit);
 	}
 
 	/// <summary>The original's eleven tests, the two units in one province (<c>docs/mechanics/reorganise.md</c>, section 4).</summary>
