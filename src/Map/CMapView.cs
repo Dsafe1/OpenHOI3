@@ -242,10 +242,29 @@ public partial class CMapView : Node2D
 		_names.Setup(_map, _state, gui.Fonts);
 		_provinceNames = new CProvinceNames { Name = "ProvinceNames" };
 		_provinceNames.Setup(_map, _state, gui.Fonts);
+		_mapTexts = new CMapTexts { Name = "MapTexts", GameSpeed = () => MapTextSpeed() };
+		_mapTexts.Setup(_map, gui.Fonts, CAnimatedMapTextTypes.Load(directories));
 		_projectionTypes = CProjectionTypes.Load(directories);
 	}
 
 	private CProvinceNames? _provinceNames;
+
+	/// <summary>The messages written on the map, over the counters (messages.md, section 6).</summary>
+	private CMapTexts? _mapTexts;
+
+	/// <summary>The game's speed, nought to four, which the texts on the map age by.</summary>
+	public Func<int> MapTextSpeed { get; set; } = () => 0;
+
+	/// <summary>A message's text written over a province's middle, where the map draws such texts at all.</summary>
+	public void ShowMessageText(int province, string text)
+	{
+		if (_mapTexts is null || province <= 0 || province >= _state.Provinces.Count)
+		{
+			return;
+		}
+		Sim.Provinces.CProvince at = _state.Provinces[province];
+		_mapTexts.Add(new Vector2(at.CentreX + 0.5f, _map.DisplayRow(at.CentreY) + 0.5f), text);
+	}
 
 	/// <summary>The interface's projection types, which the click's marks are: read with the surface they are drawn on.</summary>
 	private CProjectionTypes? _projectionTypes;
@@ -626,6 +645,11 @@ public partial class CMapView : Node2D
 			_counters.Selection = _units;
 			_counters.SelectionLost += () => UnitsChanged(keepGroup: true);
 			AddChild(_counters);
+		}
+		// The texts of messages are drawn late, over the counters.
+		if (_mapTexts is not null)
+		{
+			AddChild(_mapTexts);
 		}
 		// The drag box, over everything else on the map.
 		_box = new CSelectionBox { Name = "SelectionBox", Visible = false };
@@ -1811,6 +1835,7 @@ public partial class CMapView : Node2D
 		// The surface follows the 2D camera wherever it was moved from; nothing is made again where it has not.
 		_surface?.SetView(_camera.Position, _camera.Zoom.X, GetViewportRect().Size);
 		_provinceNames?.SetView(_camera.Position, _camera.Zoom.X, GetViewportRect().Size, delta);
+		_mapTexts?.SetView(CameraHeight);
 		_sinceBorders += delta;
 		// While the game's hours run beside the frame the camera moves and nothing of the game is read: what follows
 		// reads it, and waits for them.

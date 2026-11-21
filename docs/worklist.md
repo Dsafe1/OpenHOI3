@@ -2400,7 +2400,8 @@ None of these blocks the list above.
   - **`on_encirclement` fires since 2026-11-14**, a province's days without supply counted as the
     original counts them (`supply.md`, section 18), the start save's every figure given; a battle's
     `last_*_losses` are kept since 2026-11-16 (`triggers.md`, section 5.2), not saved, as the original's;
-  - **of messages, none is written on the map** (`onmap`, `messages.md`, *Ours*); whether the original's button that opens the log shows only while it
+  - **messages are written on the map** since 2026-11-21 where their type says `onmap` (`messages.md`, section 6),
+    looked at once and not set beside the original; whether the original's button that opens the log shows only while it
     is shut was not read;
   - **of a loaded save** (`savegame.md`, *Ours* and *Not established*), a land side's list
     of units falling back is not held - the original's is filled by nothing but a load, so it is

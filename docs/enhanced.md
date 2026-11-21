@@ -460,6 +460,8 @@ What the enhanced engine's own save would have to hold, and what its load would 
 
 All of these are risk-free but for what the entry says.
 
+- **A message's text on the map lives by frames, not time**: its time grows by the game's speed and one each drawn frame, paused or not, so it is shorter on a faster machine. `messages.md`, 6. *Oversight.*
+- **A long text on the map is measured in lines and drawn in one row**, starting half its widest line left of its point and running off to the right. `messages.md`, 6. *Bug.*
 - **The credits play twice on a second visit.** Each visit reads the file again onto the lines of the visits before, which nothing empties, so the roll is as many times as long as the menu's Credits has been pressed. `frontend.md`, 10. *Oversight.*
 - **A credits file not ending in a line feed loses its last character**, the file's last byte ending a line as a line feed does. `frontend.md`, 10. *Oversight.*
 - **A missing credits file leaves a view nothing leaves** in the original: no window and no Back are made. Here the Back is made. `frontend.md`, 10. *Oversight.*

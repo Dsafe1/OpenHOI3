@@ -965,6 +965,7 @@ public partial class CSession : Node
 				}
 				_simulation.OnMain(() => Show(message), mayStopTheClock: message.Type.PausePopup);
 			}
+			_mapView.MapTextSpeed = () => _simulation.Pace.Speed;
 			void Show(CMessage message)
 			{
 				if (message.Type.Log)
@@ -974,6 +975,15 @@ public partial class CSession : Node
 				if (message.Type.PopsUp)
 				{
 					popups.Open(message);
+				}
+				// Written on the map where its type says so: over its province, or with none over the first country's
+				// acting capital, else the second's (messages.md, section 6).
+				if (message.Type.OnMap)
+				{
+					int province = message.Province > 0 ? message.Province
+						: _simulation.State.Country(message.FirstCountry)?.ActingCapital is > 0 and var first ? first
+						: _simulation.State.Country(message.SecondCountry)?.ActingCapital ?? 0;
+					_mapView.ShowMessageText(province, CMessageText.Text(gui.Localisation.Localise, message, "_MAP"));
 				}
 				// The original stops the clock of a game of one player, and of no other.
 				if (message.Type.PausePopup)

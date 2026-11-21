@@ -19,7 +19,7 @@ of an event answered and a decision taken). Nothing here was set beside a runnin
 | `log` | **yes** | a line in the log (section 5) |
 | `popup` | no | a popup (section 4) |
 | `pausepopup` | no | a popup **too** - without `popup` - and in a game of one player the clock stops |
-| `onmap` | no | `<TYPE>_MAP` as text on the map (section 6) |
+| `onmap` | no | `<TYPE>_MAP` as text on the map (section 6), built 2026-11-21 |
 | `option` | no | the popup's buttons: one, or two with a "Goto" |
 | `idle` | no | **nothing**: read, and read by nothing |
 | `categories` | `cat_other` | the log's six filters: `cat_combat`, `cat_diplomacy`, `cat_units`, `cat_province`, `cat_events`, `cat_other` - matched exactly, anything else being `cat_other` |
@@ -141,13 +141,49 @@ box, `messagelog`, a close button and the button that opens it again, and six ca
   than that shown, the newest are left out until the next is added.
 - A left click on a row of an event's or a decision's message does nothing.
 
+## 6. On the map
+
+[exe; `reversing/findings/FINDINGS-messageshow.md`, sections 5 and 5.1.] Built 2026-11-21 (`CAnimatedMapTextTypes`
+in `Content/Map`, `CMapTextRise` and `CMapTextLayout` in `Interface/Map`, `CMapTexts` in `src/Map`), looked at once
+with a text made by hand; not set beside the original. **No type of Their Finest Hour says `onmap = yes`**: a text
+is written only where the player ticks "Show on map" in a type's settings.
+
+- **The text** is `<TYPE>_MAP` with the message's variables, over the middle of the message's province's bounding
+  box - with no province, the first country's acting capital, else the second's. An empty text is still made.
+- **Its type** is the `animatedmaptext` named `MessageMapText` of the interface's `.gfx` files, of which only
+  `speed` (0.005 in `core.gfx`; 0.01 unsaid) and its `textblock`'s `color` (yellow) do anything [mod]; the block's
+  `font`, `size`, `position` and `format` are read by the original and used by nothing. **The font is the
+  bitmapfont named `AnimatedMapText`**, whatever the block says [exe the name; mod its `fontname`], drawn in the
+  block's colour and not the font's own.
+- **Its life is counted in frames** [exe]: each frame its time grows by the game's speed, nought to four, and one -
+  the clock running or paused - its height is `speed x 2 x time`, and it is gone the frame its height passes 2:
+  drawn 200 frames at the slowest speed, 100, 66, 50, and 40 at the fastest.
+- **Drawn** [exe]: 3 world units up for each unit of height, so six in all; whole for three quarters of the rise,
+  then fading evenly to nothing while it grows from its size to twice it; a font pixel is 0.05 world units, half a
+  map pixel to the world unit, so it is sized in the world and grows with the zoom; it faces the screen and nothing
+  hides it. Seen only with the camera under 500, and it ages unseen above that.
+- **Laid out** [exe] by the font's draw in the world: cut to 99 characters; measured as lines broken at 320 font
+  pixels - at each space, where the line with that word and its space is strictly wider - and then **drawn in one
+  row**, starting half the widest line left of its point, a line's top 15 font pixels above it.
+- **Several texts over one province overlap**; the original's queue that would space them is fed by nothing.
+- Nothing else writes such a text: the other types `core.gfx` declares - `ProvinceTaxText`, `CombatLoss` - are named
+  by nothing in the original.
+
+**What looks wrong and is built so** (`docs/enhanced.md`): the life in frames, shorter on a faster machine and at a
+higher game speed, running while paused; a long text measured as several lines and drawn as one, off to the right;
+the text growing as it fades.
+
+*Ours*: it rises straight up the screen, the camera's tilt not asked; a colour escape in the text is taken out, where
+the original colours by it; and with no `MessageMapText` declared nothing is written, where the original does not
+test for it.
+
 ## Ours
 
 - **A type's own settings window is not built**, the one a right click on a popup or a log row opens.
   The in-game menu's panel and the player's file `messagetypes_custom.txt` are, since 2026-11-04,
   read at every start over `messagetypes.txt` and written by the panel's Close (`ingamemenu.md`,
   sections 4 and 5).
-- **No text on the map** (`onmap`), and no other message than an event's and a decision's yet.
+- ~~**No text on the map** (`onmap`)~~ - built 2026-11-21, section 6.
 - A right click on a popup or a row - the original's way to its type's settings - does nothing.
 
 ## Not established
