@@ -48,21 +48,25 @@ public static class CPuppets
 	/// </summary>
 	public static void Make(CGameState state, CCountry overlord, CCountry vassal)
 	{
-		foreach (CProvince province in state.Provinces)
+		// One run of provinces handed over: the supply network made once at its end (CProvinceHands.Batch).
+		using (CProvinceHands.Batch(state))
 		{
-			if (province.Owner == vassal.Tag && province.Cores.Contains(overlord.Tag)
-				&& (province.Controller == vassal.Tag || province.Controller == overlord.Tag))
+			foreach (CProvince province in state.Provinces)
 			{
-				CProvinceHands.ChangeOwner(state, province, overlord.Tag, consequences: false, peaceful: true);
+				if (province.Owner == vassal.Tag && province.Cores.Contains(overlord.Tag)
+					&& (province.Controller == vassal.Tag || province.Controller == overlord.Tag))
+				{
+					CProvinceHands.ChangeOwner(state, province, overlord.Tag, consequences: false, peaceful: true);
+				}
 			}
-		}
-		foreach (CProvince province in state.Provinces)
-		{
-			if (province.Owner == vassal.Tag && province.Cores.Contains(vassal.Tag) && province.Controller is { } holder
-				&& (holder == overlord.Tag
-					|| (COfferRules.RealFaction(overlord) && state.Country(holder)?.Faction == overlord.Faction)))
+			foreach (CProvince province in state.Provinces)
 			{
-				CProvinceHands.SetController(state, province, vassal.Tag, consequences: true, peaceful: true);
+				if (province.Owner == vassal.Tag && province.Cores.Contains(vassal.Tag) && province.Controller is { } holder
+					&& (holder == overlord.Tag
+						|| (COfferRules.RealFaction(overlord) && state.Country(holder)?.Faction == overlord.Faction)))
+				{
+					CProvinceHands.SetController(state, province, vassal.Tag, consequences: true, peaceful: true);
+				}
 			}
 		}
 		if (COfferRules.RealFaction(vassal))

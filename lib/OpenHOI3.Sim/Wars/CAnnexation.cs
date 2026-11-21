@@ -42,22 +42,25 @@ public static class CAnnexation
 		}
 		// The areas as they stood before the first province changed hands: the original rebuilds none inside the walk.
 		Supply.CSupplyNetwork? areas = candidates.Count > 0 ? Supply.CSupplyNetworks.Refresh(state) : null;
-		foreach (CProvince province in state.Provinces)
+		using (CProvinceHands.Batch(state))
 		{
-			if (province.Owner != annexed.Tag)
+			foreach (CProvince province in state.Provinces)
 			{
-				continue;
-			}
-			if (province.Controller is { } holder && holder != annexed.Tag && holder.Value != Rebels)
-			{
-				CProvinceHands.ChangeOwner(state, province, holder, consequences: true);
-				continue;
-			}
-			CCountry? beside = areas is null ? null : CandidateBeside(state, areas, province, candidates);
-			CProvinceHands.ChangeOwner(state, province, annexer.Tag, consequences: true);
-			if (beside is not null)
-			{
-				CProvinceHands.SetController(state, province, beside.Tag, consequences: true);
+				if (province.Owner != annexed.Tag)
+				{
+					continue;
+				}
+				if (province.Controller is { } holder && holder != annexed.Tag && holder.Value != Rebels)
+				{
+					CProvinceHands.ChangeOwner(state, province, holder, consequences: true);
+					continue;
+				}
+				CCountry? beside = areas is null ? null : CandidateBeside(state, areas, province, candidates);
+				CProvinceHands.ChangeOwner(state, province, annexer.Tag, consequences: true);
+				if (beside is not null)
+				{
+					CProvinceHands.SetController(state, province, beside.Tag, consequences: true);
+				}
 			}
 		}
 		annexed.Constructions.Clear();
@@ -79,13 +82,16 @@ public static class CAnnexation
 				CPendingUnitRemovals.Remove(state, unit);
 			}
 		}
-		foreach (CProvince province in state.Provinces)
+		using (CProvinceHands.Batch(state))
 		{
-			if (province.Controller == annexed.Tag && state.Country(province.Owner) is { } owner && owner != annexed)
+			foreach (CProvince province in state.Provinces)
 			{
-				// An exile's land goes to the head of its faction.
-				CCountryTag to = owner.InExile && COfferRules.Leader(state, owner.Faction) is { } leader ? leader : owner.Tag;
-				CProvinceHands.SetController(state, province, to, consequences: true);
+				if (province.Controller == annexed.Tag && state.Country(province.Owner) is { } owner && owner != annexed)
+				{
+					// An exile's land goes to the head of its faction.
+					CCountryTag to = owner.InExile && COfferRules.Leader(state, owner.Faction) is { } leader ? leader : owner.Tag;
+					CProvinceHands.SetController(state, province, to, consequences: true);
+				}
 			}
 		}
 		foreach (CCountry other in state.Countries)

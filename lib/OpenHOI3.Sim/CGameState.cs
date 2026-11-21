@@ -1080,6 +1080,15 @@ public sealed class CGameState
 	/// </summary>
 	public bool LooksOnly => ScreensLook && (_executing == 0 || _telling > 0);
 
+	/// <summary>
+	/// How deep the game is in a run of provinces handed over together (<see cref="Provinces.CProvinceHands.Batch"/>), and
+	/// whether a change in it has left the supply network to be made at its end. Never saved: nought between runs.
+	/// </summary>
+	public int HandsBatchDepth { get; set; }
+
+	/// <inheritdoc cref="HandsBatchDepth"/>
+	public bool HandsNetworkPending { get; set; }
+
 	/// <summary>A run of commands begins or ends (<see cref="CSimulation"/> alone): what screens were shown is thrown away.</summary>
 	internal void Executing(bool begins)
 	{

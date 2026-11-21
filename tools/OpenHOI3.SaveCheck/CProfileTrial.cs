@@ -60,14 +60,24 @@ internal static class CProfileTrial
 		var slowest = new List<(double Ms, CDate Date)>();
 		long ticksPerMs = Stopwatch.Frequency / 1000;
 		var all = Stopwatch.StartNew();
+		// An hour over a second keeps what each step added in it, the most first, to say where a spike went.
+		var spikes = new List<(double Ms, CDate Date, int Hour, string Steps)>();
 		for (int hour = 0; hour < days * CGameState.HoursPerDay; hour++)
 		{
 			CDate before = state.Date;
+			int clock = state.Hour;
+			var was = state.Profile.Steps.ToDictionary(s => s.Key, s => s.Value.Ticks);
 			long start = Stopwatch.GetTimestamp();
 			simulation.RunHours(1);
 			double ms = (double)(Stopwatch.GetTimestamp() - start) / ticksPerMs;
 			(state.Date != before ? turning : plain).Add(ms);
 			slowest.Add((ms, state.Date));
+			if (ms > 1000)
+			{
+				var added = state.Profile.Steps.Select(s => (s.Key, Ms: (s.Value.Ticks - was.GetValueOrDefault(s.Key)) / (double)ticksPerMs))
+					.Where(s => s.Ms > 50).OrderByDescending(s => s.Ms).Take(6);
+				spikes.Add((ms, before, clock, string.Join("; ", added.Select(s => $"{s.Key.Trim()} {s.Ms:0}"))));
+			}
 		}
 		all.Stop();
 
@@ -76,6 +86,10 @@ internal static class CProfileTrial
 		Console.WriteLine($"   an hour that turns a day: {Describe(turning)}");
 		Console.WriteLine("   the slowest hours: " +
 			string.Join(", ", slowest.OrderByDescending(s => s.Ms).Take(8).Select(s => $"{s.Date} {s.Ms:0.0} ms")));
+		foreach (var spike in spikes.OrderByDescending(s => s.Ms).Take(10))
+		{
+			Console.WriteLine($"   spike {spike.Date}.{spike.Hour} {spike.Ms:0} ms: {spike.Steps}");
+		}
 		long total = state.Profile.Steps.Values.Sum(s => s.Ticks);
 		Console.WriteLine($"the tick's steps, {total / ticksPerMs} ms in all:");
 		foreach (var (name, (ticks, calls)) in state.Profile.Steps.OrderByDescending(s => s.Value.Ticks))

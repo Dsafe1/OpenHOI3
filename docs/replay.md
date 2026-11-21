@@ -97,6 +97,15 @@ in cut-off land with them. *Found 2026-11-20*: a headless run's recording and it
 and the diplomacy the same, in two runs that agreed with each other to the byte. So a step never makes the network
 itself now, and **anything else the game keeps that a step can make on first asking goes into `Prepare` the same way.**
 
+**A run of provinces handed over together makes the network once** (`CProvinceHands.Batch`, 2026-11-21): a puppet's land,
+an annexation's two walks. Each change makes it ready before the AI's answer to the lost province, and within such a run
+each one was thrown away at the next change, only the last lasting; so a change in a run that no agent would answer -
+asked of the game's state alone (`CProvinceLost.MayAnswer`) - leaves it to the run's end, where it is made once. The
+moment the lasting network is made is unchanged, which is what matters: skipping the making after a single change, the
+first try, moved it later and parted the state's hash on 8 January 1936. With the run, the hash is the same every
+midnight to 1 February 1936 and from the 1944 bookmark to 20 November 1944, and the surrender of 17 November 1944,
+which made the network again for each of a puppet's provinces, takes 0.6 s where it took 5 to 6.
+
 ## 4. On disk
 
 `CReplayFile`, compressed with gzip: a line naming the format (`OpenHOI3 replay 2`); a line of what the game has to be

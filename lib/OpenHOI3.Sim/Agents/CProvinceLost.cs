@@ -46,6 +46,35 @@ public static class CProvinceLost
 		}
 	}
 
+	/// <summary>
+	/// Whether any agent of the old holder would go past the answer's first two tests - the province beside its theatre, and
+	/// the area around it small - which read the game's state alone: where none would, the answer does nothing, and the
+	/// change of hands neither makes the supply network for it nor runs it. One answer asked of each of hundreds of provinces
+	/// handed over at a surrender made the network again for each.
+	/// </summary>
+	public static bool MayAnswer(CGameState state, CProvince province, CCountryTag? old)
+	{
+		if (state.IsBeingMade || state.Country(old) is not { } country)
+		{
+			return false;
+		}
+		bool beside = false;
+		foreach (CAgent agent in country.UnitAi.Agents)
+		{
+			if (agent.Unit is { } unit && (country.UnitAi.RunsUnits || unit.Agent is not null) && BesideTheatre(state, agent, province))
+			{
+				beside = true;
+				break;
+			}
+		}
+		if (!beside)
+		{
+			return false;
+		}
+		int count = CSupplyNetworks.AreaAround(state, province.Id).Count;
+		return count > 0 && count <= SmallArea;
+	}
+
 	/// <summary>One agent's answer to a province its country lost.</summary>
 	public static void Answer(CGameState state, CCountry country, CAgent agent, CProvince province)
 	{

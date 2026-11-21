@@ -80,6 +80,14 @@ public static class CProvinceHands
 		}
 		// The old holder's agents are told at once, and one beside a small area answers (moving.md, section 7.7). The AI's
 		// decision, made inside the game's own pass: recorded and played back as a step (docs/replay.md, section 3).
+		// In a run of provinces handed over together, a change no agent answers leaves the network to the run's end: made
+		// after each, it was thrown away at the next, and only the last one lasted (Batch).
+		if (state.HandsBatchDepth > 0 && !Agents.CProvinceLost.MayAnswer(state, province, old))
+		{
+			state.HandsNetworkPending = true;
+			return;
+		}
+		state.HandsNetworkPending = false;
 		Replay.CAiEntry.Prepare(state);
 		if (state.Replay is { } replay)
 		{
@@ -89,6 +97,29 @@ public static class CProvinceHands
 		else
 		{
 			Agents.CProvinceLost.ControllerChanged(state, province, old);
+		}
+	}
+
+	/// <summary>
+	/// A run of provinces handed over together, one after another with nothing between that the supply network reads -
+	/// a puppet's land, an annexation, a war goal's provinces. Each change in it that no agent answers leaves the network
+	/// to the run's end, where it is made once, as the last change's would have made it: one handed-over province after
+	/// another each made it whole again, and a surrender's hundreds took seconds. The network is the same afterwards, the
+	/// state's hash the same each midnight.
+	/// </summary>
+	public static CHandsBatch Batch(CGameState state)
+	{
+		state.HandsBatchDepth++;
+		return new CHandsBatch(state);
+	}
+
+	/// <summary>The end of a run of <see cref="Batch"/>: the network made where a change in it left it.</summary>
+	internal static void EndBatch(CGameState state)
+	{
+		if (--state.HandsBatchDepth == 0 && state.HandsNetworkPending)
+		{
+			state.HandsNetworkPending = false;
+			Replay.CAiEntry.Prepare(state);
 		}
 	}
 
