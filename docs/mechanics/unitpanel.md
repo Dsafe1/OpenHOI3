@@ -251,7 +251,17 @@ insertion by priority, which leaves the unit's order as it is, since it is alrea
 - `positioning`: empty but for a fleet.
 - **The window is as high as its rows**: its label's height and its rows', up to the
   height the file gives the window - five rows in the base game - and the list scrolls
-  past that.
+  past that. `confirmed`
+- **And it makes its list as high as those rows**, each time its height is asked, so how many rows show before the
+  list scrolls is the *window's* height less the label's over a row's, and the height the file gives the list plays no
+  part once there is a row. `confirmed`, read 2026-11-21 (`reversing/findings/FINDINGS-unitpanel.md`, section 8) after
+  a BlackICE fleet of nine ships showed seven rows and a strip of map under them: BlackICE's window is 273 high, eight
+  rows, and its list 226, seven. The base game's two figures, 176 and 176, give five either way. Only this window does
+  it; the units under it and what it carries keep the lists their files give. *Mod-able*: the window's `size` in
+  `single_unitpanel.gui`; the rule is the executable's.
+- **A fleet with fewer than three units aboard has twice the room** - its passengers and the air units on its
+  carriers counted together, the rows of what it carries (`transport.md`, section 12): ten rows in the base game,
+  sixteen in BlackICE. `confirmed`, the same reading. Hardcoded, the three and the doubling both.
 
 A row is the window `subunit_entry`:
 

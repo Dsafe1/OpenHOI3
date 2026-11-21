@@ -682,6 +682,24 @@ public static class CUnitPanelText
 		return label + Math.Max(0, Math.Min(rows * rowHeight, windowHeight - label));
 	}
 
+	/// <summary>
+	/// The room the brigades' window has for its rows: its own height less its label's, and twice that for a fleet with
+	/// fewer than three units aboard - its passengers and the air units on its carriers - whose list of what it carries
+	/// is short. The window makes its list as high as its rows within this room, so the list shows as many rows as go
+	/// whole into it (unitpanel.md, section 6).
+	/// </summary>
+	public static int BrigadesRoom(int label, int windowHeight, bool isFleet, int aboard)
+	{
+		int room = Math.Max(0, windowHeight - label);
+		return isFleet && aboard < 3 ? room * 2 : room;
+	}
+
+	/// <summary>How high the brigades' list is made: its rows, as far as the room goes.</summary>
+	public static int BrigadesListHeight(int rows, int rowHeight, int room)
+	{
+		return Math.Min(rows * rowHeight, room);
+	}
+
 	// ---- the units under it
 
 	/// <summary>

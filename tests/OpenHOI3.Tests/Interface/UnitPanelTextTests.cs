@@ -358,6 +358,23 @@ public class UnitPanelTextTests
 		Assert.Equal(176, CUnitPanelText.RowsHeight(label: 16, rows: 9, rowHeight: 32, windowHeight: 176));
 	}
 
+	[Fact]
+	public void TheBrigadesListIsAsHighAsItsRowsWithinTheWindowsRoomAndAFleetWithLittleAboardHasTwice()
+	{
+		// The base game's window, 176 with a label of 16: five rows.
+		int room = CUnitPanelText.BrigadesRoom(label: 16, windowHeight: 176, isFleet: false, aboard: 0);
+		Assert.Equal(160, room);
+		Assert.Equal(96, CUnitPanelText.BrigadesListHeight(rows: 3, rowHeight: 32, room));
+		Assert.Equal(160, CUnitPanelText.BrigadesListHeight(rows: 9, rowHeight: 32, room));
+		// A window 273 high has room for eight rows whatever height its file gives the list.
+		Assert.Equal(257, CUnitPanelText.BrigadesRoom(label: 16, windowHeight: 273, isFleet: false, aboard: 0));
+		Assert.Equal(8, OpenHOI3.Interface.CGuiLayout.ListRows(CUnitPanelText.BrigadesListHeight(rows: 9, rowHeight: 32, room: 257), 32));
+		// A fleet carrying fewer than three units has twice the room; nothing else has.
+		Assert.Equal(320, CUnitPanelText.BrigadesRoom(label: 16, windowHeight: 176, isFleet: true, aboard: 2));
+		Assert.Equal(160, CUnitPanelText.BrigadesRoom(label: 16, windowHeight: 176, isFleet: true, aboard: 3));
+		Assert.Equal(0, CUnitPanelText.BrigadesRoom(label: 16, windowHeight: 0, isFleet: true, aboard: 0));
+	}
+
 	// --- the units under it ---
 
 	[Fact]

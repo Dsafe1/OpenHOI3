@@ -12,7 +12,7 @@ namespace OpenHOI3.Screens;
 /// <summary>
 /// The brigades of a selected unit: the <c>sup_subunits</c> window, a heading and a
 /// list of one row each. The window is as high as its rows, up to the height the file
-/// gives it; past that its list scrolls. See <c>docs/mechanics/unitpanel.md</c>,
+/// gives it - twice that for a fleet with little aboard - and makes its list as high; past that the list scrolls. See <c>docs/mechanics/unitpanel.md</c>,
 /// section 6.
 /// </summary>
 public sealed class CUnitBrigadesEntry : CUnitPanelEntry
@@ -27,6 +27,7 @@ public sealed class CUnitBrigadesEntry : CUnitPanelEntry
 	private readonly CGuiListBox? _list;
 	private readonly int _label;
 	private readonly int _fileHeight;
+	private int _rowHeight;
 	private readonly List<CUnitBrigadeRow> _rows = new();
 
 	/// <summary>A brigade's row was clicked.</summary>
@@ -79,6 +80,25 @@ public sealed class CUnitBrigadesEntry : CUnitPanelEntry
 		{
 			row.Update();
 		}
+		// The room changes as a fleet takes units aboard or puts them off.
+		Resized = Resize();
+	}
+
+	/// <summary>
+	/// The window as high as its label and its rows within the room it has, and its list made as high as those rows -
+	/// which is what says how many the list shows before it scrolls, not the height the file gives the list.
+	/// </summary>
+	private bool Resize()
+	{
+		bool isFleet = _unit.Kind == EUnitKind.Navy;
+		int room = CUnitPanelText.BrigadesRoom(_label, _fileHeight, isFleet, isFleet ? CTransportText.Rows(_unit).Count : 0);
+		int height = CUnitPanelText.BrigadesListHeight(_rows.Count, _rowHeight, room);
+		// The original leaves the list as it is where there is no row.
+		if (_rows.Count > 0)
+		{
+			_list?.SetHeight(height);
+		}
+		return SetHeight(_label + height);
 	}
 
 	private void Fill()
@@ -109,6 +129,7 @@ public sealed class CUnitBrigadesEntry : CUnitPanelEntry
 			_list?.Add(row.Window);
 			rowHeight = (int)row.Window.Size.Y;
 		}
-		Resized = SetHeight(CUnitPanelText.RowsHeight(_label, _rows.Count, rowHeight, _fileHeight));
+		_rowHeight = rowHeight;
+		Resized = Resize();
 	}
 }
