@@ -56,8 +56,8 @@ This file is the order of work across the two repositories and what was decided 
    commands that publish them on the repository's releases - the tag's page being the link to the source the GPL asks
    a mod's release to carry (`launcher.md`, section 10); and a launcher taking the engine beside its folder as its
    own. **The first tag and its publishing are the user's to do.**
-3. **The engine into BlackICE's repository. Written 2026-11-21, in that repository's working copy and not committed
-   there; tried against a made-up release, no real one being published yet.** The version the mod is made for is one
+3. **The engine into BlackICE's repository. Written 2026-11-21, in that repository's working copy; tried by the user
+   the same day against the releases he built, v0.1.1 and v0.1.2, the mod naming `openhoi3-0.1.2`.** The version the mod is made for is one
    line, `ENGINE_VERSION` in its `releaseCommon.py`, and never the binary (`launcher.md`, section 9);
    `installer/fetchEngine.py` fetches that release's two archives, checks them against its `SHA256SUMS.txt`, refuses
    an engine whose `engine.txt` names another version, and unpacks them - or takes them from this repository's
@@ -65,17 +65,21 @@ This file is the order of work across the two repositories and what was decided 
    working copy's descriptor names no engine**, so that a developer plays it on whatever engine he has built, the
    launcher's own; nothing links an export into the working copy, and the mover of files, which clears only the
    mod's own folders, needed nothing.
-4. **The installer. Written the same day, the same way; a test installer compiled with a stand-in engine, and not
-   run.** The engine and the launcher into the mod's own `engine` and `launcher` folders, with each version of the
+4. **The installer. Written the same day, and installed and played by the user: "Install test2 works great."** The
+   engine and the launcher into the mod's own `engine` and `launcher` folders, with each version of the
    mod, as part of the mod and not a component of their own; two shortcuts, "(OpenHOI3)" to the launcher with
    `--install=` and `--mod=` naming the install and this version (`launcher.md`, section 6), and "(original game)"
    to `hoi3_tfh.exe`; on a 32-bit Windows the engine, the launcher and their shortcuts are left out and the system
    check page says so; an uninstall and the removal of an older version take the mod's folder whole, the engine
    with it; `--no-engine` builds for the original alone; the fetch is a step of the release workflow. About 100 MB
    more in an installer of about 900 MB, under its limit.
-5. **What a file for both engines may hold**, as a document in the mod's `docs/` - scalar keys only, new files under
-   `common/`, a gate on every new condition, nothing new in history (`enhanced.md`, *The shape*), and the naming above
-   - and the third switch in the mod's Lua beside the two it has. Not built.
+5. **What a file for both engines may hold. Written 2026-11-21**, as `docs/openhoi/README.md` in the mod's
+   repository - scalar keys only, new files under `common/`, nothing new in history (`enhanced.md`, *The shape*), the
+   naming above, and how to try a change on both - with the third switch in the mod's Lua: `script/autoexec.lua` sets
+   `G_OPENHOI` and `G_OPENHOI_ENHANCED` from the global this engine gives. **A gate for a new condition is not
+   built**: script that leans on a condition the original does not know needs one the original answers false and
+   the enhanced mode true, and this engine gives none yet, so the mod's document forbids such conditions until it
+   does. It is wanted before step 7's first rule that script can ask.
 6. **The first features.** Not built.
    - *More game options*: a tab of the engine's own in the game options window - two more rotating autosaves,
      scrolling at the screen's edge, where an event's window comes up - and the enhanced mode's own options after
