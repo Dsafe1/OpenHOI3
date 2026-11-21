@@ -398,6 +398,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 
 ## AI
 
+- **A dropped headquarters costs officers or not by which routine drops it.** The AI's disband of a headquarters it has no use for keeps the country's officers, as every disband does; the headquarters of a theatre its rebuild of theatres leaves over goes through the end-of-hour removal, which takes them. `units.md`, 9. *Oversight.* Risk: small.
 - **The AI loses multi-level research** from its queue the moment a level finishes. `ministers.md`, 9. *Bug.* Risk: AI research.
 - **The lend-lease figure given to the script is always 0.** `ministers.md`, 9. *Bug.* Risk: AI lend-lease.
 - **A finished carrier air group placed after anything else that day looks at the first fleet alone.** The placing's flag

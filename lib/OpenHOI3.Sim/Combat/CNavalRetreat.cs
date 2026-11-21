@@ -32,7 +32,7 @@ public static class CNavalRetreat
 		side.Remove(state, fleet);
 		if (state.Country(fleet.Owner) is not { } country || to == 0)
 		{
-			CCombatRetreat.RemoveFromGame(state, fleet);
+			Units.CPendingUnitRemovals.Remove(state, fleet);
 			return;
 		}
 		if (to == fleet.Location)
@@ -43,7 +43,7 @@ public static class CNavalRetreat
 		List<int>? route = CRouteFinder.Find(state, country, fleet, fleet.Location, to);
 		if (route is null)
 		{
-			CCombatRetreat.RemoveFromGame(state, fleet);
+			Units.CPendingUnitRemovals.Remove(state, fleet);
 			return;
 		}
 		CMovement.SetPath(fleet, route, clear: true);

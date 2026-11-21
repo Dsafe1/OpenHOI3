@@ -32,7 +32,7 @@ public static class CAirRetreat
 		side.Remove(state, unit);
 		if (state.Country(unit.Owner) is not { } country || to == 0)
 		{
-			CCombatRetreat.RemoveFromGame(state, unit);
+			Units.CPendingUnitRemovals.Remove(state, unit);
 			return;
 		}
 		if (to == unit.Location)
@@ -43,7 +43,7 @@ public static class CAirRetreat
 		List<int>? route = CRouteFinder.Find(state, country, unit, unit.Location, to);
 		if (route is null)
 		{
-			CCombatRetreat.RemoveFromGame(state, unit);
+			Units.CPendingUnitRemovals.Remove(state, unit);
 			return;
 		}
 		CMovement.SetPath(unit, route, clear: true);

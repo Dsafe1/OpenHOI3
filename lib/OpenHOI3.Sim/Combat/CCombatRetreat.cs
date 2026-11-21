@@ -40,7 +40,7 @@ public static class CCombatRetreat
 		if (state.Country(unit.Owner) is not { } country || to == 0)
 		{
 			StrategicWarfare.CWarfareTally.UnitLost(state, killer, unit);
-			RemoveFromGame(state, unit);
+			Units.CPendingUnitRemovals.Remove(state, unit);
 			return;
 		}
 
@@ -50,7 +50,7 @@ public static class CCombatRetreat
 		if (route is null)
 		{
 			StrategicWarfare.CWarfareTally.UnitLost(state, killer, unit);
-			RemoveFromGame(state, unit);
+			Units.CPendingUnitRemovals.Remove(state, unit);
 			return;
 		}
 
@@ -208,7 +208,9 @@ public static class CCombatRetreat
 		CCombats.LeaveAll(state, unit);
 		if (owner.ActingCapital == 0)
 		{
-			RemoveFromGame(state, unit);
+			// The one removal that hands what the unit commanded to whatever commanded it; its officers go with it.
+			Units.CPendingUnitRemovals.LoseOfficers(state, unit);
+			RemoveFromGame(state, unit, childrenToTop: false);
 			return;
 		}
 		CMovement.Cancel(unit);
@@ -233,12 +235,13 @@ public static class CCombatRetreat
 
 	/// <summary>
 	/// Takes a unit out of the game: out of its battles, off the map and out of its
-	/// country's order of battle. What it commanded goes to whatever commanded it - or, with
-	/// <paramref name="childrenToTop"/>, as the original's <c>CGameState::RemoveUnit</c> leaves them, to the top of the
-	/// order of battle with nobody above them, those of a theatre-level unit marked orphans
-	/// (<c>reversing/findings/FINDINGS-transport.md</c>, section D.1).
+	/// country's order of battle. What it commanded is left, as the original's <c>CGameState::RemoveUnit</c> leaves it, at
+	/// the top of the order of battle with nobody above it, what a theatre-level unit commanded marked orphans - or, with
+	/// <paramref name="childrenToTop"/> off, handed to whatever commanded the unit, which the original does for a
+	/// shattered unit with no home alone. No officers are charged here: a caller the original charges them for goes
+	/// through <see cref="Units.CPendingUnitRemovals.Remove"/> (<c>docs/mechanics/units.md</c>, section 9).
 	/// </summary>
-	public static void RemoveFromGame(CGameState state, CUnit unit, bool childrenToTop = false)
+	public static void RemoveFromGame(CGameState state, CUnit unit, bool childrenToTop = true)
 	{
 		if (unit.IsRemoved)
 		{

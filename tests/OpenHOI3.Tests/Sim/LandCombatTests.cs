@@ -741,6 +741,33 @@ public class LandCombatTests
 	}
 
 	[Fact]
+	public void AUnitTakenOutOfTheGameLeavesWhatItCommandedAtTheTopAndABeatenOneCostsItsOfficers()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		var army = new CUnit(EUnitKind.Army, Pol) { Id = ++state.LastUnitId, Location = Warsaw, Name = "Army" };
+		var corps = new CUnit(EUnitKind.Corps, Pol) { Id = ++state.LastUnitId, Location = Warsaw, Name = "Corps", Parent = army };
+		army.Children.Add(corps);
+		poland.Units.Add(army);
+		CUnit division = Division(state, poland, Posen);
+		poland.Units.Remove(division);
+		division.Parent = corps;
+		corps.Children.Add(division);
+
+		// The corps goes: its division is left with nobody above it, not handed to the army.
+		CCombatRetreat.RemoveFromGame(state, corps);
+		Assert.Null(division.Parent);
+		Assert.Contains(division, poland.Units);
+		Assert.DoesNotContain(division, army.Children);
+
+		// A unit lost with its officers: three brigades of 100 at full strength, at a ratio of one.
+		poland.Officers = CFixedPoint.FromInt(1000);
+		poland.OfficerRatio = CFixedPoint.One;
+		CPendingUnitRemovals.Remove(state, division);
+		Assert.True(division.IsRemoved);
+		Assert.Equal(CFixedPoint.FromInt(700), poland.Officers);
+	}
+
+	[Fact]
 	public void AUnitOrderedAwayFromABattleItIsHoldingFallsBack()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);

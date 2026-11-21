@@ -491,6 +491,42 @@ Three things the comparison had to allow for, each of which says something:
   a change of law held the 2745 to the running game's ceiling, and the 3 had an hour to
   gain in.
 
+## 9. A unit taken out of the game
+
+[exe; `reversing/findings/FINDINGS-effectrun.md`, sections 3.11 and 3.12.] One routine takes a unit out, and its
+callers differ in two things: whether the country keeps the unit's officers, and whether what it carries goes with it.
+
+- **What it commanded is left at the top of the order of battle**, with nobody above it - what a theatre's
+  headquarters commanded marked orphans, which the next new headquarters adopts (`theatres.md`). Nothing hands it to
+  the unit above, with one exception: **a shattered unit with nowhere to go** leaves its commander and has each
+  unit under it put under that commander first.
+- **The officers lost**: the brigades' `officers` together, times their strength over their most, times the country's
+  officer ratio, off the country's officers and never below nought - the lender's for a unit on loan. A unit with no
+  brigade costs nothing.
+
+| what takes the unit out | officers |
+| --- | --- |
+| a disband, by anyone: the player's, the hourly rule for an empty unit, the AI's for a headquarters it has no use for | kept; the manpower comes back |
+| a convoy's throwaway fleet after a raid | kept |
+| a beaten unit with nowhere to fall back to, or no way there | lost |
+| a unit falling back onto an enemy with no supplies, or caught between enemies | lost |
+| annexation, a country that owns nothing, going into exile on foreign ground | lost |
+| a headquarters of a theatre the AI's rebuild leaves over | lost |
+| a rebel army disbanded, a shattered unit with nowhere to go, `remove_brigade`'s last brigade | lost |
+| a fleet or an air unit with no base left, or whose base fell with none other to go to | lost |
+| a merge's emptied unit, a passenger that lost its last brigade | nothing to lose |
+
+So the same headquarters keeps its country's officers where the AI disbands it and loses them where the AI's rebuild
+of theatres drops it - the original's, kept (`docs/enhanced.md`).
+
+**A fleet whose last ship is sunk is not taken out where it is emptied** in the original: it stands empty, still on
+its side of the battle, until its side loses with nowhere to run, or its next hour disbands it. *Ours*: it goes at
+once (`navalcombat.md`), at most an hour early and at no cost either way - whether an empty fleet on a side changes
+who has lost was not read. **An air unit's wings are never taken out by a battle**; away from its base with no
+strength left it goes in its next hour, and at its base it stands and reinforces.
+
+*Ours*: going into exile, the original lets what such a unit carries go where it stands; here it goes with the unit.
+
 ## What is not built
 
 - **Most of what a unit does**: it does not move and is not on the map. What it draws

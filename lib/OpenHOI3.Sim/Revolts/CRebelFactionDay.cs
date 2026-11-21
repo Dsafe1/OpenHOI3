@@ -123,7 +123,7 @@ public static class CRebelFactionDay
 				else if (CRebelFactions.IsFriendly(state, faction, home.Controller))
 				{
 					faction.Armies.Remove(id);
-					CCombatRetreat.RemoveFromGame(state, unit);
+					Units.CPendingUnitRemovals.Remove(state, unit);
 					continue;
 				}
 			}

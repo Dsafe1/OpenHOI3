@@ -142,12 +142,13 @@ public static class CTheatres
 
 	/// <summary>
 	/// A dropped theatre's headquarters taken out of the game (ours: at once, where the original queues it for the end of
-	/// the hour).
+	/// the hour), its officers lost with it as that queue's removals lose them (units.md, section 9).
 	/// </summary>
 	public static void RemoveHeadquarters(CGameState state, CTheatre theatre)
 	{
 		if (Headquarters(state, theatre) is { } unit)
 		{
+			Units.CPendingUnitRemovals.LoseOfficers(state, unit);
 			Remove(state, unit);
 		}
 	}

@@ -47,7 +47,7 @@ public static class CExile
 			{
 				if (unit.Lender is null)
 				{
-					CCombatRetreat.RemoveFromGame(state, unit);
+					Units.CPendingUnitRemovals.Remove(state, unit);
 				}
 				else
 				{
