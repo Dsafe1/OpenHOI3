@@ -2167,10 +2167,14 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   now walks what it can reach once (12.9 of the 1944 bookmark's first ten days' 31 s, 0.06 now; 540 late-war days in
   13 minutes where main's build had not finished in 48), a surrender or an annexation made the supply network again
   for every province handed over (5 to 6 s at a puppet's making, 0.6 now), and the AI's undergrounds walked the provinces
-  for each country (now once an hour). A late-war day from the 1944 bookmark is about twice a day of 1936 now, in line
-  with twice the units and the wars; the largest left are the AI's sea targets (every enemy convoy against every agent,
-  path step and port, the original's own walk) and the land block. `OpenHOI3.SaveCheck profile` names the steps of every
-  hour over a second. Paused on 2026-11-20 for the multiplayer work, which is finished.
+  for each country (now once an hour), and the AI's sea targets made each agent's list of air bases again for every
+  enemy convoy (now once a pass). **Set beside the original on 2026-11-21**, each a day at top speed ten days past the
+  start (`profile ... warm=10` here; the original's `RunHourlyTick` and `CGameState::RunAIPass` timed by breakpoint, its
+  drawing left out): 1936 307 ms here to its 305, 1941 798 to 682, 1944 1,047 to 809. The original's AI pass runs the
+  countries on worker threads and ours runs them in turn; our unit AI alone is 23 ms an hour in 1944 to the original's
+  whole AI pass's 12 (`docs/mechanics/tick.md`). With its drawing, which shares the original's thread and not ours, the
+  original plays 23, 51 and 51 ms an hour. `OpenHOI3.SaveCheck profile` names the steps of every hour over a second.
+  Paused on 2026-11-20 for the multiplayer work, which is finished.
   ~~Germany's supplies~~ - closed on 2026-11-21 as the original's own run-to-run spread (below).
   **Germany's supplies were narrowed on 2026-11-21** to who proposes its supply sales. Against the Ireland game's save of
   5 July 1937: Berlin holds 23,278 supplies in ours, 8,486 in the original's; the units, laws, mobilisation, air units,
