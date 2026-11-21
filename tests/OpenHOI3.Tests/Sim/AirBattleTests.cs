@@ -571,12 +571,33 @@ public class AirBattleTests
 	// --- the battle ---
 
 	[Fact]
+	public void AnAirUnitWithNoBaseIsGivenTheNearestOfItsOwnCountrysAtTheEndOfItsHour()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit fighters = Air(state, germany, Berlin, Fighter);
+		fighters.Base = 0;
+
+		CTick.RunHour(state);
+
+		Assert.NotEqual(0, fighters.Base);
+		Assert.Equal(germany.Tag, state.Province(fighters.Base).Controller);
+	}
+
+	[Fact]
 	public void ABattleLastsFourHoursAndItsUnitsHaveAnHoursGrace()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);
 		CUnit fighters = Air(state, germany, Berlin, Fighter);
 		CUnit raid = Air(state, poland, Berlin, Bomber);
 		raid.Base = 0;                                               // or, with no order, it would fly home between battles
+		// And Poland holds no air base, or the end of its hour would give it the nearest (fleetsandair.md, section 2.1).
+		foreach (CProvince province in state.Provinces)
+		{
+			if (province.Controller == poland.Tag)
+			{
+				province.SetBuildingLevel(AirBase, CFixedPoint.Zero);
+			}
+		}
 		Give(state, germany, fighters, EUnitOrder.AirSuperiority, Berlin);
 
 		CTick.RunHour(state);                                        // it looks at its province, and fights the hour's round

@@ -198,7 +198,9 @@ public static class CMovement
 				|| (unit.Kind == EUnitKind.Air && unit.Base != 0 && !Missions.CAirMissions.IsAtOwnBase(unit))
 				// And one aboard a carrier with no order, whose hour gives it the carrier's duty.
 				|| (unit.Kind == EUnitKind.Air && unit.CarriedBy is not null);
-			if (busy || unit.Kind == EUnitKind.Navy || landless)
+			// And an air unit with no base is taken for its base check, as every fleet is.
+			if (busy || unit.Kind == EUnitKind.Navy || landless
+				|| (unit.Kind == EUnitKind.Air && unit.Base == 0 && unit.CarriedBy is null))
 			{
 				(taken ??= new List<(CUnit, bool)>()).Add((unit, busy));
 			}
@@ -219,6 +221,12 @@ public static class CMovement
 			if (unit.Kind == EUnitKind.Navy && !unit.IsRemoved && state.Country(unit.Owner) is { } owner)
 			{
 				CFleetBase.Check(state, owner, unit);
+			}
+			// The last step of an air unit's: with no base, the nearest in a straight line of its own country's air bases,
+			// and with none it stays as it is - never removed here (fleetsandair.md, section 2.1).
+			if (unit.Kind == EUnitKind.Air && !unit.IsRemoved && unit.Base == 0 && unit.CarriedBy is null)
+			{
+				unit.Base = Transport.CCarriers.NearestAirBase(state, unit);
 			}
 			// A country that owns nothing and is not in exile loses each unit straight after its hour, at once and not at
 			// the hour's end (war.md, section 11; reversing/findings/FINDINGS-surrender.md, C.5).

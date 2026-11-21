@@ -2160,9 +2160,9 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   the three has been taken up again.
 
 - ~~**A fleet's base check in its hour**~~ - built 2026-11-20: every fleet's hour ends in it, and a fleet with no base and
-  no port left to its country is removed at the hour's end (`fleetsandair.md`, section 2.1). Left: the air unit's own
-  check (`CAir::CheckBase`, the same slot of an air unit's hour - with no base, the nearest of its country's air bases in
-  a straight line), not built; the record has its outline and not its list's order.
+  no port left to its country is removed at the hour's end (`fleetsandair.md`, section 2.1). The air unit's own check is
+  read whole and built since 2026-11-21: with no base, the nearest of its own country's air bases in a straight line,
+  and never a removal.
 
 - **Read and not built** (2026-11-19, a pass over the readers for what they pass over unseen): ~~the technology effects
   `escort_efficiency` and `radar_efficiency` are kept and shown in a technology's tooltip, and nothing in the simulation

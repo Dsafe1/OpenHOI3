@@ -489,9 +489,12 @@ play no part (`tooltips.md`, section 9).
   the province is kept, and it sets off four hours on (section 6 there); and a right click
   with such a fleet selected sends it without asking, as shift does, which is the
   original's.
-- **An enemy otherwise**: a crossing closed by an enemy fleet, and an air unit with no base, which the
-  original gives the nearest of its country's in its hour. A fleet's own check is built since 2026-11-20 (section 2.1),
-  and a base that changes hands rebases what is based there since 2026-11-21 (`war.md`, section 11).
+- **An enemy otherwise**: a crossing closed by an enemy fleet, ~~and an air unit with no base~~ - built
+  2026-11-21: at the end of its hour an air unit with no base is given the nearest, in a straight line from where it
+  is, of the provinces its own country holds with an air base built - strictly nearer, the first of equals; no
+  faction member's is tried, no base it has is ever questioned, and with none it stays as it is, never removed
+  [exe; `reversing/findings/FINDINGS-fleetbasehour.md`, section 5]. A fleet's own check is built since 2026-11-20
+  (section 2.1), and a base that changes hands rebases what is based there since 2026-11-21 (`war.md`, section 11).
 - **An air unit sent home**: away from its base and worn down, the original orders it back.
 - ~~**Several units selected** given one order together.~~ Built: each is given the click in turn, as the original gives
   it, and the window's order goes to every one (`selection.md`, sections 3 and 6).
