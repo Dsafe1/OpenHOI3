@@ -137,6 +137,18 @@ public static class CLicenceText
 	}
 
 	/// <summary>
+	/// The delayed half of a row's tooltip: the figures of the seller's version of the type - the type at the seller's
+	/// own level of each of its technologies - a line a figure, with no plus signs.
+	/// </summary>
+	public static string RowFigures(Func<string, string> localise, CGameState state, CCountry seller, CSubUnitType type)
+	{
+		var order = new CBrigadeOrder(type);
+		CBuildQueue.SetModelToCountrys(seller, order);
+		CSubUnit version = CBuildQueue.AsBuilt(order, isReserve: false, out long _);
+		return CTechnologyEffectsText.UnitFigures(localise, state, version.Stats, 1, plus: false).TrimEnd('\n', ' ');
+	}
+
+	/// <summary>
 	/// A row's tooltip: where the buyer lacks the men, <c>BUYLICENCE_MPCOST</c> with one unit's men to one
 	/// place, else the type's name.
 	/// </summary>

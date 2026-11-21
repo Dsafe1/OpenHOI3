@@ -100,6 +100,7 @@ public sealed partial class CLicenceDialog : Control
 				row.SetTooltips(element => element == "counter_type" ? CTooltip.Empty : new CTooltip
 				{
 					Text = CLicenceText.RowTooltip(localise, buyer, shown, box is not { Disabled: true }),
+					Delayed = CLicenceText.RowFigures(localise, state, seller, shown),
 				});
 				_rows.Add((type, box));
 				list.Add(row);

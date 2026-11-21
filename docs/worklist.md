@@ -2374,9 +2374,9 @@ None of these blocks the list above.
   nought** (`OpenHOI3.SaveCheck aiscore`), so the AI declines every NAP - **as the original's does**, looked at on
   2026-11-21: the script subtracts the capitals' whole distance, and the Ireland game's AI makes its first NAP on 29
   December 1937 (`foreignminister.md`, section 9).
-- **Aid leaves out** (`aid.md`, *Ours*): the delayed half of a licence row's tooltip - the seller's version's
-  figures; a row itself carries none - and the
-  production screen losing its tooltips while the lend-lease window is open. The licence list compares the two
+- **Aid leaves out** (`aid.md`, *Ours*): the
+  production screen losing its tooltips while the lend-lease window is open. A licence row's tooltip has its delayed
+  half, the seller's version's figures, since 2026-11-21. The licence list compares the two
   versions' combat value since 2026-11-21, and the "+*" is read: it stands wherever the seller's levels are no
   model's exactly, which in a new game is nearly every type. The foreign
   minister proposes licences, and in a new game's first 180 days no debt or lend-lease (`foreignminister.md`,

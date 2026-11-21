@@ -236,7 +236,10 @@ buttons. **The money a unit is the slider's share of the buyer's money.** The de
 `BUYLICENCENONE`, or `BUYLICENCENEWDESC` - runs, units, the type, and the fee to one place; the chance word
 is the seller's AI's; `debt_desc` shows where the buyer would pay on debt. Accept is greyed with no type
 chosen or the men wanting. A row's tooltip, on every element of it but the counter: `BUYLICENCE_MPCOST`
-with one unit's men to one place where the men are wanting, else the type's name.
+with one unit's men to one place where the men are wanting, else the type's name. **Its delayed half is the
+figures of the seller's version of the type** - the type at the seller's level of each of its technologies - a line
+a figure as a technology's text writes them (`technologyscreen.md`, section 9), with no plus signs
+(`reversing/findings/FINDINGS-tradeaid.md`, section C.2a; built 2026-11-21).
 
 **The types listed** [exe; `reversing/findings/FINDINGS-tradeaid.md`, section C.2a], in the types' order, made once
 as the window opens: a type that is buildable (`is_buildable`), that the buyer is among the users of (`usable_by`, or
@@ -269,8 +272,6 @@ window is made again, which it is at every "Distribute" and whenever the receive
 
 ## Ours
 
-- **A licence row's tooltip has no delayed half**: the original's is the seller's version's figures
-  (`BuildStatsTooltip`), which is not built.
 - **A licence's men a unit is what the order would take**, a land type as reserves; the original's own
   formula for the dialog multiplies the type's men by its own modifier, which is close and not the same.
 - **The licence dialog's figures are made again when anything they rest on moves**; the original makes

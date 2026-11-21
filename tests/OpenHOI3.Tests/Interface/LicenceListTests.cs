@@ -64,6 +64,21 @@ public class LicenceListTests
 	}
 
 	[Fact]
+	public void ARowsDelayedTooltipIsTheSellersVersionsFiguresWithNoPlusSigns()
+	{
+		CSubUnitType type = Infantry();
+		var state = new CGameState(new CDate(1936, 1, 1), new[] { new OpenHOI3.Sim.Provinces.CProvince(0, "", isSea: false) },
+			new[] { Country("GER", 2) });
+		string figures = CLicenceText.RowFigures(key => key, state, state.Countries[0], type);
+
+		// Two levels of small arms on three: the seller's soft attack is four, written green and with no plus.
+		Assert.Contains("SOFT_ATTACK §G4.00§W", figures);
+		Assert.Contains("HARD_ATTACK §G1.00§W", figures);
+		Assert.Contains("SOFTNESS §R0.90§W", figures);
+		Assert.DoesNotContain("+", figures);
+	}
+
+	[Fact]
 	public void ABoxIsGreyedWithTooFewMenFreedWithMoreAndLeftAsItIsWithExactlyEnough()
 	{
 		CSubUnitType type = Infantry();

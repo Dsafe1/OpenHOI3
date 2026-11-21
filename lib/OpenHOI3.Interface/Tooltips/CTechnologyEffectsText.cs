@@ -205,7 +205,8 @@ public static class CTechnologyEffectsText
 	/// What levels add to a unit type: a line for each figure that is not nothing, and then a
 	/// line for each circumstance and each terrain whose adjuster is not.
 	/// </summary>
-	public static string UnitFigures(Func<string, string> localise, CGameState state, CSubUnitStats stats, int levels)
+	/// <param name="plus">Whether a figure above nothing is written with a plus, as a technology's text asks and a unit type's own figures do not.</param>
+	public static string UnitFigures(Func<string, string> localise, CGameState state, CSubUnitStats stats, int levels, bool plus = true)
 	{
 		var text = new StringBuilder();
 		foreach ((string label, string key, int places, bool better, string unit) in Statistics)
@@ -215,7 +216,7 @@ public static class CTechnologyEffectsText
 			{
 				value *= 100;
 			}
-			text.Append(StatLine(localise, label, value, better, places, unit == "%" || unit.Length == 0 ? unit : localise(unit)));
+			text.Append(StatLine(localise, label, value, better, places, unit == "%" || unit.Length == 0 ? unit : localise(unit), plus));
 		}
 		foreach ((string adjuster, string label) in Circumstances)
 		{
@@ -232,14 +233,15 @@ public static class CTechnologyEffectsText
 	/// The original's line for one figure of a unit type, as a technology's text asks for it:
 	/// green or red by whether it helps, a plus above nothing, nothing at all for nothing.
 	/// </summary>
-	public static string StatLine(Func<string, string> localise, string label, long value, bool better, int places, string unit)
+	public static string StatLine(Func<string, string> localise, string label, long value, bool better, int places, string unit,
+		bool plus = true)
 	{
 		if (value == 0)
 		{
 			return "";
 		}
 		long colour = better ? value : -value;
-		return localise(label) + (colour > 0 ? " §G" : " §R") + (value > 0 ? "+" : "")
+		return localise(label) + (colour > 0 ? " §G" : " §R") + (value > 0 && plus ? "+" : "")
 			+ CNumberText.Format(new CFixedPoint(value), places) + "§W " + unit + " \n";
 	}
 
