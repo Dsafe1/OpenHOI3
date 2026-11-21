@@ -191,13 +191,15 @@ has only so much room. `confirmed` for the arithmetic.
 - **`NAVAL_BASE_EFFICIENCY`** is a military define, 6 in Their Finest Hour: six ships a
   level. An airfield has room for one wing a level.
 - **The modifier and the technology are those of whoever controls the province**, not of
-  the fleet's owner. That the technology's part is the key `naval_base_efficiency` is
-  `inferred`: the original reads a figure off the controller's technology and the key is
-  the one that fits. Nothing here measures it.
+  the fleet's owner. The technology's part is the key `naval_base_efficiency`, read
+  since 2026-11-21 (`reversing/findings/FINDINGS-organisation.md`, section 4.1): it and the modifier add, and nothing
+  caps their sum. An airfield's room is widened by nothing at all.
 - **An air group that has flown off its carrier is measured against the air base of the province the carrier is in**, and at sea there is none, so it does a quarter of its usual work (set beside the running game 2026-11-10: two carrier groups bombing in China; `reversing/findings/FINDINGS-liveread.md`, section 9).
 - **An air group aboard its carrier is never crowded**, where the carrier is. `confirmed`
 - **Ships do not crowd an airfield** nor wings a port: a province keeps the two apart.
-  `confirmed` That another country's units based there count is `inferred`.
+  `confirmed` **Every country's units based there count**, read since 2026-11-21: a base keeps its own list of the units
+  whose home it is, with no test of whose they are - so a unit counts where it is based, wherever it is, and one
+  standing in the province but based elsewhere does not. Not watched.
 - **However crowded, a base does a quarter of its work.** A fleet based in a province with
   no naval base at all is at that quarter.
 

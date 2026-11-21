@@ -2650,8 +2650,6 @@ None of these blocks the list above.
   after the surface was kept, not measured before it and not looked into.
 - **A politics minister's hour rests on a numbering of countries that is ours**, the original's not read
   (`politics.md`, section 12).
-- **Whose units share a base, and whether a technology's `naval_base_efficiency` is what
-  widens a port**, are `inferred`. `organisation.md`, section 4.
 - **Nothing of a leader's experience or progress towards a trait is set against a save** (`leaders.md`, sections 9 to
   11): saves hold battles since 2026-11-05, but not the generator's state, so none can be played forward
   (`landcombat.md`, section 8).
