@@ -885,6 +885,32 @@ public class BuildQueueTests
 	}
 
 	[Fact]
+	public void APlayersUnitPutOnTheMapIsToldWithItsProvinceAndNobodyElsesIs()
+	{
+		CCountry country = Germany();
+		CGameState state = State(country, HeavyCruiser(), Infantry());
+		var told = new List<OpenHOI3.Sim.Agreements.CPactMessage>();
+		state.PactMessaged += told.Add;
+
+		CDeployment.Place(state, country, Finished(state, country, Infantry()), Berlin);
+		Assert.Empty(told);                                                        // a country nobody plays
+
+		state.Played.Add(country.Tag);
+		CUnit division = Finished(state, country, Infantry());
+		CDeployment.Place(state, country, division, Berlin);
+		OpenHOI3.Sim.Agreements.CPactMessage message = Assert.Single(told);
+		Assert.Equal("UNITDEPLOYED", message.We);
+		Assert.Equal(country.Tag, message.Told);
+		Assert.Equal(Berlin, message.Province);
+		Assert.Equal(new[] { ("UNIT", division.Name), ("LOCATION", state.Province(Berlin).Name) }, message.Values);
+
+		// One joining a unit in the field is put on the map too, and told first, before the join's own message.
+		told.Clear();
+		CDeployment.Join(state, country, Finished(state, country, Infantry()), division);
+		Assert.Equal(new[] { "UNITDEPLOYED", "TRANSFEREDSUBUNIT" }, told.Select(each => each.We));
+	}
+
+	[Fact]
 	public void AChangeOfLawPricesEveryLineAgainAndLeavesTheWorkDone()
 	{
 		CCountry country = Germany();

@@ -86,6 +86,17 @@ public static class CDeployment
 			unit.Base = provinceId;
 		}
 		country.Units.Add(unit);
+		// The player is told of every unit of his put on the map, placed or joining another - a finished upgrade's brigade
+		// among them - at the province it is put in, before a join's own message (messages.md, section 10).
+		if (state.Played.Contains(country.Tag))
+		{
+			state.RaisePactMessage(new Agreements.CPactMessage("UNITDEPLOYED", "", "", country.Tag, country.Tag)
+			{
+				Told = country.Tag,
+				Province = provinceId,
+				Values = new[] { ("UNIT", unit.Name), ("LOCATION", state.Province(provinceId).Name) },
+			});
+		}
 		if (country.AutoAssignLeaders)
 		{
 			CLeaders.AssignBest(state, country, unit);

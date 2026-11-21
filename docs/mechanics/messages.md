@@ -206,3 +206,20 @@ The six battle types use `CombatStartPopup`. Under the six lines the divider and
 *Ours:* a bombing's `DEFUNIT` is the defenders' summary, without the list of what the mission bombs, which nothing writes yet. A click on a battle's line in the log does not go to it.
 
 `ElectionResultPopup` carries `_HEADER` and `_1` with no colour changed; a pie of every party but the null one at no less than one percent, so that a party with nothing shows one and the slices can come to more than a hundred, its tooltip the party and its percent; and the new cabinet in two lists split as the politics screen's. OK stands 53 above the picture's foot.
+
+## 10. A unit put on the map
+
+*From `reversing/findings/FINDINGS-messages.md`, "A unit put on the map", read 2026-11-21.* `CDeployment`.
+
+**The player is told `UNITDEPLOYED` of every unit of his put on the map** [exe]: one he places, and one that joins a
+unit in the field - a finished upgrade's brigade joining the unit its line was ordered for among them
+(`upgrades.md`, section 4), told before the join's own `TRANSFEREDSUBUNIT`. Nothing else is asked: not the unit's
+kind, not who placed it. Nobody is told of another country's.
+
+- `UNIT` the unit's name and `LOCATION` the province's, after the country's own variables [exe];
+- the message's province is the one the unit is put in, so its Goto goes there and its text is written over it;
+  the first country is the owner and there is no second [exe];
+- the type logs it and writes it on the map and does not pop up, in Their Finest Hour's file and BlackICE's [mod:
+  `interface/messagetypes.txt`]; its `_MAP` text is "$UNIT$ deployed." [mod: the localisation].
+
+Not raised until 2026-11-21, when a deployment was seen to write nothing on the map.
