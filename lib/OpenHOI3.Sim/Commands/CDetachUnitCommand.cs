@@ -31,6 +31,7 @@ public sealed class CDetachUnitCommand : CCommand
 			state.RaisePactMessage(new CPactMessage("DETACHEDUNIT", "", "", unit.Owner, unit.Owner)
 			{
 				Told = unit.Owner,
+				Province = unit.Location,
 				Values = new[] { ("UNIT", unit.Name) },
 			});
 		}

@@ -38,6 +38,7 @@ public sealed class CAttachUnitCommand : CCommand
 			state.RaisePactMessage(new Agreements.CPactMessage("ATTACHEDUNIT", "", "", unit.Owner, unit.Owner)
 			{
 				Told = unit.Owner,
+				Province = unit.Location,
 				Values = new[] { ("UNIT", unit.Name), ("PARENT", parent.Name) },
 			});
 		}

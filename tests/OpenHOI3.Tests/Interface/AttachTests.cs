@@ -124,6 +124,23 @@ public class AttachTests
 	}
 
 	[Fact]
+	public void AUnitDetachedOrAttachedIsToldOfAtTheProvinceItStandsIn()
+	{
+		(CGameState state, CCountry england) = World();
+		state.Played.Add(Eng);
+		CUnit army = Unit(england, EUnitKind.Army, 1, province: 1);
+		Unit(england, EUnitKind.Corps, 2, province: 2, parent: army);
+		var told = new System.Collections.Generic.List<OpenHOI3.Sim.Agreements.CPactMessage>();
+		state.PactMessaged += told.Add;
+
+		new CDetachUnitCommand(Eng, 2).Execute(state);
+		new CAttachUnitCommand(Eng, 2, 1).Execute(state);
+
+		// The unit's own province, not its commander's and not the capital the message would fall back to.
+		Assert.Equal(new[] { ("DETACHEDUNIT", 2), ("ATTACHEDUNIT", 2) }, told.ConvertAll(message => (message.We, message.Province)));
+	}
+
+	[Fact]
 	public void SeveralDetachedLeaveOutATheatre()
 	{
 		(_, CCountry england) = World();

@@ -26,7 +26,7 @@ A row: `name`; `location`, the province, ` (`, the distance whole, `km)`, not lo
 
 ## 3. Detaching
 
-`detach_button` posts `CDetachUnitCommand` and nothing else. The unit goes to the top of its country's order of battle with what is under it, and the player is told `DETACHEDUNIT`. `detach_multiunit` posts one for every selected unit but a theatre, in selection order, **with no test that it has a commander**; the selection stays.
+`detach_button` posts `CDetachUnitCommand` and nothing else. The unit goes to the top of its country's order of battle with what is under it, and the player is told `DETACHEDUNIT`. **Both this message and `ATTACHEDUNIT` are about the province the unit stands in** [exe] (`reversing/findings/FINDINGS-attachbuttons.md`, section 5): their Goto goes there and their text on the map is written over it - over the capital until 2026-11-21, the province not having been given. `detach_multiunit` posts one for every selected unit but a theatre, in selection order, **with no test that it has a commander**; the selection stays.
 
 ## 4. A new headquarters
 
