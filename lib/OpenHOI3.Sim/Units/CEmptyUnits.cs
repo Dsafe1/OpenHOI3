@@ -16,7 +16,10 @@ public static class CEmptyUnits
 		return unit.SubUnits.Count == 0 && !unit.IsAllowedEmpty && !unit.IsRemoved;
 	}
 
-	/// <summary>The hour's look at every country nobody plays.</summary>
+	/// <summary>
+	/// The hour's look at every country nobody plays: its land units alone, the original's hourly pass asking a unit's
+	/// slot 15 (reversing/findings/FINDINGS-aigaps.md, A) - an empty fleet or air unit of such a country is not taken here.
+	/// </summary>
 	public static void RunHourly(CGameState state)
 	{
 		foreach (CCountry country in state.Countries)
@@ -27,7 +30,7 @@ public static class CEmptyUnits
 			}
 			foreach (CUnit unit in country.AllUnits())
 			{
-				if (IsToGo(unit))
+				if (Movement.CMovementRules.IsLandUnit(unit) && IsToGo(unit))
 				{
 					state.Outbox.Add(new CDisbandCommand(unit.Id));
 				}
