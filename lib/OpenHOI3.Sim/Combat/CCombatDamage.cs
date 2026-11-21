@@ -168,7 +168,9 @@ public static class CCombatDamage
 		{
 			manpower = manpower * CFixedPoint.Scale / full;
 		}
-		long trickleback = Math.Max(0, owner.Modifier[Trickleback].Raw);
+		// The modifier and the technologies' figure of the same name together, held at nought (reversing/findings/
+		// FINDINGS-manpower.md, casualty trickleback; read on the listing 2026-11-21).
+		long trickleback = Math.Max(0, owner.Modifier[Trickleback].Raw + owner.Technology[Trickleback].Raw);
 		manpower = trickleback * manpower / CFixedPoint.Scale;
 		manpower = manpower * CFixedPoint.Scale / (100L * CFixedPoint.Scale);
 		owner.Manpower = new CFixedPoint(Math.Max(0, owner.Manpower.Raw + manpower));

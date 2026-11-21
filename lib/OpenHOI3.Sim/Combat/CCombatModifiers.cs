@@ -128,6 +128,14 @@ public static class CCombatModifiers
 				Add(unit, ECombatModifier.Experience, Scaled(experience, Trait(state, unit, ETraitEffect.ExperienceBonus)));
 			}
 
+			// How good the country is at the unit's order - a plain move counting on land, where at sea and in the air it does
+			// not (reversing/findings/FINDINGS-combatmods.md, BM_MISSION_EFFICIENCY; landcombat.md, section 4).
+			long mission = Missions.CMissionEfficiency.Of(state, owner, unit.Order);
+			if (mission != 0)
+			{
+				Add(unit, ECombatModifier.MissionEfficiency, mission);
+			}
+
 			long combinedArms = CombinedArms(state, owner, unit);
 			if (combinedArms != 0)
 			{

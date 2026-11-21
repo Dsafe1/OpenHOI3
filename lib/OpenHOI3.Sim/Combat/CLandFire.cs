@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Sim.Combat;
@@ -24,6 +25,9 @@ public static class CLandFire
 	public const string StrengthDamage = "LAND_COMBAT_STR_DAMAGE_MODIFIER";
 	public const string ChanceToAvoid = "BASE_CHANCE_TO_AVOID_HIT";
 	public const string ChanceToAvoidUndefended = "CHANCE_TO_AVOID_HIT_AT_NO_DEF";
+
+	/// <summary>The technology figure that adds to the better chance to avoid a hit, spelt as the original spells it.</summary>
+	public const string GroundDefenceEfficiency = "ground_defence_effiency";
 
 	/// <summary>No chance to avoid a hit is better than this, in thousandths of a per cent.</summary>
 	private const long MostChanceToAvoid = 99000;
@@ -146,6 +150,12 @@ public static class CLandFire
 		else
 		{
 			avoid = state.Defines[CManpower.MilitarySection, ChanceToAvoid].Raw;
+			// A land target's owner's technologies add their ground_defence_effiency, the original's spelling, to the better
+			// chance alone (reversing/findings/FINDINGS-combat.md, RollToHit; read on the listing 2026-11-21).
+			if (CMovementRules.IsLandUnit(target) && state.Country(target.Owner) is { } owner)
+			{
+				avoid += owner.Technology[GroundDefenceEfficiency].Raw;
+			}
 			target.DefencesUsed++;
 		}
 		if (avoid > MostChanceToAvoid)

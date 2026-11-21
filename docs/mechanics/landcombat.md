@@ -352,8 +352,19 @@ at a quarter. A side with no units has none.
 Built 2026-11-18 (`CCombatModifiers.ShoreBombardment`). The icon and its text are the install's (`CMOD_BM_SHORE_BOMBARD`,
 `BM_SHORE_BOMBARD`).
 
-*Not built:* mission efficiency; the landing craft that ease a landing at a port; and three technology figures - one
-off the crowding, one on the chance to avoid a hit, one on the dig-in cap.
+**Mission efficiency** (built 2026-11-21; `CMissionEfficiency`, `navalmissions.md`, section 10) is put on a unit's attack
+and defence alike, between experience and combined arms: its country's efficiency at the mission of the unit's order -
+each technology's `efficiency` for it times the level, and the country modifier of the mission - for any order,
+**a plain move counted** as it is not at sea or in the air; no order gives nothing. `confirmed`
+(`reversing/findings/FINDINGS-combatmods.md`, BM_MISSION_EFFICIENCY). No technology or modifier of Their Finest Hour or
+BlackICE gives a land mission a figure, so it shows only in a mod's game. *Not established*: whether the original's land
+march holds a `move_order`; here a march carries no order - its way is its march - so a mod's `move_order` efficiency
+reaches a land unit only under an order.
+
+~~*Not built:* the landing craft that ease a landing; and three technology figures - one off the crowding, one on the
+chance to avoid a hit, one on the dig-in cap.~~ The landing craft are the fleet's invasion defence (`transport.md`,
+section 9), `unit_cooperation` comes off the crowding (above), `dig_in_cap` holds the digging in (above), and the chance
+to avoid a hit is section 5's.
 
 ## 5. The shooting
 
@@ -402,8 +413,9 @@ roll, one at half strength one and a half times.
 A unit meets two draws of the game's generator for every shot fired at it - the fraction of
 its defence, then the chance - and the dice are the side's own.
 
-*Not built:* a technology figure of the target's country is added to the better chance to
-avoid a hit.
+**A land target's owner's technologies add their `ground_defence_effiency`** - the original's spelling - to the better
+chance alone, before the cap of 99 (built 2026-11-21; `confirmed` on the listing, `reversing/findings/FINDINGS-combat.md`,
+`RollToHit`). No technology of Their Finest Hour or BlackICE has the key.
 
 ## 6. The damage
 
@@ -444,7 +456,9 @@ unit stands - there are no depots yet - and a country with no capital loses the 
 **The unit's own leader takes a hundredth off the threshold for each point of his skill**,
 whatever his rank. `confirmed`
 
-*Not built:* a technology figure adds to the trickleback.
+**The trickleback is the country modifier and the technologies' `casualty_trickleback` together**, held at nought (built
+2026-11-21; `confirmed` on the listing, `reversing/findings/FINDINGS-manpower.md`): the base game's industry technology
+gives 0.01 a level, which until then came back to nobody.
 
 ## 7. The end
 
