@@ -54,16 +54,23 @@ This file is the order of work across the two repositories and what was decided 
    commands that publish them on the repository's releases - the tag's page being the link to the source the GPL asks
    a mod's release to carry (`launcher.md`, section 10); and a launcher taking the engine beside its folder as its
    own. **The first tag and its publishing are the user's to do.**
-3. **The engine into BlackICE's repository.** Not built. The version the mod is made for, in a file there and never
-   the binary (`launcher.md`, section 9); a script beside the installer's that fetches that release's two archives
-   and checks them against its `SHA256SUMS.txt`; `engine = "..."`
-   stamped into the descriptor as a release is made; for development, a link from the working copy to a local export,
-   and the mover of files told to leave it.
-4. **The installer.** Not built. The engine and the launcher into the mod's own `engine` and `launcher` folders, with
-   each version of the mod; the two shortcuts; a 64-bit Windows asked for, the engine being 64-bit where the
-   original is not - on a 32-bit one the installer says so and installs for the original alone; removal with an
-   uninstall and with an older version; the step in the release workflow. About 250 MB more in a payload of about
-   800 MB, under the installer's limit.
+3. **The engine into BlackICE's repository. Written 2026-11-21, in that repository's working copy and not committed
+   there; tried against a made-up release, no real one being published yet.** The version the mod is made for is one
+   line, `ENGINE_VERSION` in its `releaseCommon.py`, and never the binary (`launcher.md`, section 9);
+   `installer/fetchEngine.py` fetches that release's two archives, checks them against its `SHA256SUMS.txt`, refuses
+   an engine whose `engine.txt` names another version, and unpacks them - or takes them from this repository's
+   `export/release` with `--from`; `engine = "..."` is stamped into the descriptor as a release is made. **The
+   working copy's descriptor names no engine**, so that a developer plays it on whatever engine he has built, the
+   launcher's own; nothing links an export into the working copy, and the mover of files, which clears only the
+   mod's own folders, needed nothing.
+4. **The installer. Written the same day, the same way; a test installer compiled with a stand-in engine, and not
+   run.** The engine and the launcher into the mod's own `engine` and `launcher` folders, with each version of the
+   mod, as part of the mod and not a component of their own; two shortcuts, "(OpenHOI3)" to the launcher with
+   `--install=` and `--mod=` naming the install and this version (`launcher.md`, section 6), and "(original game)"
+   to `hoi3_tfh.exe`; on a 32-bit Windows the engine, the launcher and their shortcuts are left out and the system
+   check page says so; an uninstall and the removal of an older version take the mod's folder whole, the engine
+   with it; `--no-engine` builds for the original alone; the fetch is a step of the release workflow. About 100 MB
+   more in an installer of about 900 MB, under its limit.
 5. **What a file for both engines may hold**, as a document in the mod's `docs/` - scalar keys only, new files under
    `common/`, a gate on every new condition, nothing new in history (`enhanced.md`, *The shape*), and the naming above
    - and the third switch in the mod's Lua beside the two it has. Not built.
