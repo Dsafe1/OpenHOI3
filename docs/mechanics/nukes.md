@@ -22,6 +22,8 @@ Any air unit with a wing whose strategic attack is above nought [exe], which the
 
 **A bomb not dropped goes back to the stock** whatever ends the order: another order, the target changing hands, or the bomber being lost [exe].
 
+**The AI gives it** (since 2026-11-21; `moving.md`, section 17.4) at the offensive air stance to the groups it would send on a strategic bombing, at the enemy's war industry handed to its agents - only where the province's holder has a core there - whenever the stock holds a whole bomb [exe]. The stock is asked group by group but moves only as an order starts, so **one bomb in stock turns every such group onto a nuke mission**: the first to start carries the bomb, and the others carry nothing and end at their next hour.
+
 ## 4. The drop
 
 In this order [exe]:
@@ -43,7 +45,6 @@ A bomb has been seen landing in the original, and on 2026-11-09 the scale of ite
 
 ## Ours
 
-- The AI gives this order only where it knows strategic targets, the enemy's war industry handed to its agents (`moving.md`), which is not built, so **the AI makes bombs and does not drop them**.
 - A fleet's transports taking damage lay none on what they carry, there being no side for it.
 
 ## What looks wrong and is kept
@@ -56,3 +57,4 @@ A bomb has been seen landing in the original, and on 2026-11-09 the scale of ite
 4. The window offers dates that do nothing.
 5. The province's modifier stays as it was until something else makes it again, so its industry goes on counting.
 6. The event's option gives the bomber's country national unity for the first and later bombs: `nuke_events.txt` [file].
+7. One bomb in stock sends every strategic group of the AI's on a nuke mission, and all but one fly nothing.

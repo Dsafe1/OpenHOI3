@@ -73,7 +73,6 @@ public static class CAirBaseLists
 				}
 			}
 		}
-		var none = new List<int>();
 		foreach (int id in candidates)
 		{
 			CProvince province = state.Province(id);
@@ -83,7 +82,8 @@ public static class CAirBaseLists
 				score = (Mean(state, unit.Plan, agent.InvasionTargets, province) * 3f + score) * 0.25f;
 			}
 			Insert(agent.AirBasesDefault, id, score);
-			Insert(agent.AirBasesStrategic, id, Mean(state, unit.Plan, none, province));
+			// The enemy's war industry handed to the agent (CSeaTargets; FINDINGS-airstance.md, the strategic list).
+			Insert(agent.AirBasesStrategic, id, Mean(state, unit.Plan, agent.StrategicTargets, province));
 			Insert(agent.AirBasesNaval, id, Mean(state, unit.Plan, agent.EnemySightings, province));
 		}
 		agent.AirBasesMade = true;

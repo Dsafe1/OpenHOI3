@@ -167,6 +167,12 @@ public sealed class CAgent
 	/// <summary>The enemy's fleets handed to it, nearest by its ports.</summary>
 	public List<CUnit> EnemyFleets { get; } = new();
 
+	/// <summary>
+	/// The provinces of the enemy's war industry handed to it, nearest by its air bases, in the order they were handed: what
+	/// its strategic bombers fly at (<c>docs/mechanics/moving.md</c>, section 12).
+	/// </summary>
+	public List<int> StrategicTargets { get; } = new();
+
 	/// <summary>Its own country's and its fellow fighters' fleets handed to it.</summary>
 	public List<CUnit> FriendlyFleets { get; } = new();
 

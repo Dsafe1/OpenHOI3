@@ -17,7 +17,8 @@ namespace OpenHOI3.Sim.Agents;
 /// An agent's air units: the groups too worn to fly called off or left to rest; the rest sent to the best of the air
 /// bases listed for their role; regrouped (<see cref="CAirRegroup"/>); and given close air support over a battle on the
 /// front or an invasion's beach, an intercept over every province they may enter, a logistical strike behind a front they
-/// are losing, and a strike at an enemy fleet at sea or in port. The original's <c>CAIUnit_ManageAirUnits</c>, its four
+/// are losing, a strategic bombing - or a nuke - at the enemy's war industry, and a strike at an enemy fleet at sea or in
+/// port. The original's <c>CAIUnit_ManageAirUnits</c>, its four
 /// phases in order. See <c>docs/mechanics/moving.md</c>, section 17.
 /// </summary>
 public static class CAirBody
@@ -134,6 +135,7 @@ public static class CAirBody
 			return;
 		}
 		LogisticalStrike(state, country, agent, headquarters.Plan, strategic);
+		StrategicBombing(state, country, agent, strategic);
 		NavalStrike(state, country, agent, naval);
 	}
 
@@ -427,8 +429,9 @@ public static class CAirBody
 
 	/// <summary>
 	/// At the offensive air stance, while the plan's power is below three quarters of the enemy's: a logistical strike for
-	/// 24 hours at the first province in reach, in weather to 330, one step behind the enemy's front - enemy-held land beside
-	/// an enemy-held front province, with infrastructure of 0.2 or more, touching none of its holder's enemies.
+	/// 24 hours over every province in reach and in weather to 330 one step behind the enemy's front - enemy-held land beside
+	/// an enemy-held front province, with infrastructure of 0.2 or more, touching none of its holder's enemies - the first
+	/// its province.
 	/// </summary>
 	private static void LogisticalStrike(CGameState state, CCountry country, CAgent agent, CUnitPlan plan, List<CUnit> groups)
 	{
@@ -461,20 +464,67 @@ public static class CAirBody
 				behind.Add(next.Id);
 			}
 		}
+		// Every province behind the front in weather and in reach is the mission's, in the list's order, the first its
+		// province - as the strategic arm's and the naval strike's (read on the listing 2026-11-21).
 		foreach (CUnit group in groups)
 		{
-			foreach (int id in behind)
+			if (Fit(state, group, behind, EUnitOrder.LogisticalStrike) is { Count: > 0 } targets)
 			{
-				CProvince province = state.Province(id);
-				if (CAirModifiers.Weather(state, province) <= WeatherCap
-					&& CUnitOrders.IsInRange(state, group, EUnitOrder.LogisticalStrike, province))
-				{
-					state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, group.Id, EUnitOrder.LogisticalStrike, id,
-						stance: CMission.Defensive, endHour: state.TotalHours + StrikeHours));
-					break;
-				}
+				state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, group.Id, EUnitOrder.LogisticalStrike, targets[0],
+					stance: CMission.Defensive, provinces: targets, endHour: state.TotalHours + StrikeHours));
 			}
 		}
+	}
+
+	/// <summary>
+	/// At the offensive air stance, for 24 hours: the enemy's war industry handed to the agent (<see cref="CSeaTargets"/>)
+	/// that an enemy holds - and with a bomb in stock, only where its holder has a core - every one in weather to 330 and in
+	/// reach the mission's, in order, the first its province; a nuke mission where the country has a whole bomb, else a
+	/// strategic bombing. A group given a logistical strike in the same pass is given this as well, and this is what stands
+	/// (the original's arms: the logistical marks no group as taken).
+	/// </summary>
+	private static void StrategicBombing(CGameState state, CCountry country, CAgent agent, List<CUnit> groups)
+	{
+		if (groups.Count == 0)
+		{
+			return;
+		}
+		bool nuke = country.Nukes.Raw >= CFixedPoint.Scale;
+		var targets = new List<int>();
+		foreach (int id in agent.StrategicTargets)
+		{
+			CProvince province = state.Province(id);
+			if (!CMovementRules.IsEnemyIn(state, country.Tag, province.Controller, id)
+				|| (nuke && (province.Controller is not { } holder || !province.Cores.Contains(holder))))
+			{
+				continue;
+			}
+			targets.Add(id);
+		}
+		EUnitOrder order = nuke ? EUnitOrder.Nuke : EUnitOrder.StrategicBombing;
+		foreach (CUnit group in groups)
+		{
+			if (Fit(state, group, targets, order) is { Count: > 0 } fit)
+			{
+				state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, group.Id, order, fit[0], stance: CMission.Defensive,
+					provinces: fit, endHour: state.TotalHours + StrikeHours));
+			}
+		}
+	}
+
+	/// <summary>The provinces of the list in weather to 330 and in the group's reach, in the list's order.</summary>
+	private static List<int> Fit(CGameState state, CUnit group, List<int> provinces, EUnitOrder order)
+	{
+		var fit = new List<int>();
+		foreach (int id in provinces)
+		{
+			CProvince province = state.Province(id);
+			if (CAirModifiers.Weather(state, province) <= WeatherCap && CUnitOrders.IsInRange(state, group, order, province))
+			{
+				fit.Add(id);
+			}
+		}
+		return fit;
 	}
 
 	/// <summary>

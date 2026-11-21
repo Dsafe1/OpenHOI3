@@ -332,7 +332,7 @@ public static class CParadropPlanner
 	/// An area's provinces with an air base built to a whole level, the largest first and of two alike the one first in the
 	/// area: the original's <c>COwnerArea +0x58</c>.
 	/// </summary>
-	private static List<int> AirBases(CGameState state, CSupplyArea area)
+	internal static List<int> AirBases(CGameState state, CSupplyArea area)
 	{
 		var found = new List<int>();
 		var levels = new List<long>();

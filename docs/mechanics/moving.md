@@ -640,6 +640,17 @@ Once a day, at the country's hour (its number % 24), for the played country too,
    distances / number` - a fifth **where the acting capital's area is among the theatre's areas**, which need not be the
    theatre the capital province is filed under, and may be more than one (section 138: Berlin HQ's fifth, Berlin being Ob.kdo.
    des Heeres' province) - is handed the fleet.
+4a. **Their war industry** (built 2026-11-21; `CSeaTargets`; `reversing/findings/FINDINGS-moving.md`, D.1, read again on
+   the listing the same day), after each listed country's fleets: each province of the area of that country's acting
+   capital, in the area's order, that is held by its owner - whoever the owner is - **while we are that listed country's
+   enemy** (at war, either of us the rebels, or a war nobody declared over the province; so a war target we are not at war
+   with gives none), and that has **a whole working level of industry or produces a whole unit of crude oil a day**. Each
+   agent sums, over the air bases of every area of its theatre (an area's provinces with a whole level of air base, the
+   largest first, `CParadropPlanner`'s list) **within 800** of the province in a straight line, their **working** levels
+   in whole levels and their distances, a whole level or more needed; the score is the distances over the levels, **halved
+   where the province has a strategic resource** - all in single precision - and the agent with the least, strictly below
+   10,000,000 and the first of equals, is handed the province. Its strategic bombers fly at what it is handed (17.4), and
+   its strategic air base list measures to them (17.1).
 5. **The raided waters**: the province of each finished battle that was a raid on a convoy, its defender a real country
    other than the rebels and on our side (ourselves, our overlord or its subjects, or fighting beside us and no enemy),
    ended within the month, goes to every agent with a port within 2000 by sea and an open way to it, once
@@ -966,7 +977,7 @@ base scored by a **mean distance**, lowest first, a base of equal score after th
 | list | for | the mean distance to |
 | --- | --- | --- |
 | default | anything else | the area of operations with the frontier at war, else the enemy's bases - the bases of each country at war with it in the area of that country's acting capital; with any invasion targets, 0.75 of the mean to them and 0.25 of that |
-| strategic | a strategic bomber, or a first wing with strategic attack over 50 | the enemy's war industry handed to the agent - none here (section 20) |
+| strategic | a strategic bomber, or a first wing with strategic attack over 50 | the enemy's war industry handed to the agent (section 12, step 4a; since 2026-11-21) |
 | naval | a naval bomber | where the enemy's fleets handed to the agent stood at the last count of the aircraft wanted |
 | transport | a transport plane | the invasion targets, and only while the agent has airborne divisions - never here |
 
@@ -1034,10 +1045,20 @@ months on) - at least three hours left, and the order ends then.
   sees and that is not an enemy's air base; the first is the order's province. No weather test.
 - At air stance 2 only:
   - **Logistical strike**, for 24 hours, while the plan's power ratio - its own power x 1000 / the enemy's, 1000 with the
-    enemy's below nought and -1 at nought - is **below 750**: the first in reach and in weather to 0.330 of the provinces
-    one step behind the front - land beside an enemy-held front province, held by an enemy, with infrastructure of 0.2
-    or more, touching none of its holder's enemies by land.
-  - **Strategic bombing** at the enemy's war industry: none handed here (section 20).
+    enemy's below nought and -1 at nought - is **below 750**: every one in reach and in weather to 0.330, in order, of the
+    provinces one step behind the front - land beside an enemy-held front province, held by an enemy, with infrastructure
+    of 0.2 or more, touching none of its holder's enemies by land - the first the order's province (read on the listing
+    2026-11-21; until then the first alone was the mission's).
+  - **Strategic bombing**, for 24 hours, by the same pool after the logistical strike (built 2026-11-21;
+    `reversing/findings/FINDINGS-airnaval4.md`, the strategic arm, read again on the listing): the enemy's war industry
+    handed to the agent (section 12, step 4a), each province **held by an enemy** of ours (or the rebels, or a war nobody
+    declared over it), in the order handed - and **while the country has a whole bomb in stock, only where the province's
+    holder has a core**; every one of them in weather to 0.330 and in reach is the mission's, in order, the first its
+    province. With a whole bomb in stock the order is **`nuke_mission`** for every group, else `strategic_bombing` - asked
+    group by group, but the stock moves only as an order starts, so **one bomb turns the whole pool onto nuke missions**,
+    and only the first to start carries it (`nukes.md`, section 3). **The logistical strike marks nobody as taken**, so a
+    group given one in the pass is given this too where it has a target, and this one, posted later, is the one that
+    stands. No test of what the country sees, and none of daylight.
   - **Naval strike**, till sunset: over the seas of the enemy fleets handed to the agent at sea - and the sea each sails
     into next - in weather to 0.330, **every one in reach, in that order and repeats and all, is the mission's**, the first
     its province; with none, a **port strike** over the harbours of those in port the same way (`reversing/findings/
@@ -1148,8 +1169,9 @@ months on) - at least three hours left, and the order ends then.
 - Of invasions: the reinforcement of a friend's area by sea (the ranking's second list and the planner's friendly branch);
   the tallies of transports and brigades short it leaves for the production minister; the carrier aircraft sent over the
   beach; a landed division put under a theatre's headquarters; and the played country's invasions over its own units.
-- The enemy's war industry handed to the agents whose air bases are nearest (section 12): so no strategic bombing or nuke
-  mission (17.4; `nukes.md`, *Ours*), and the strategic list (17.1) measures against the objectives.
+- ~~The enemy's war industry handed to the agents whose air bases are nearest (section 12): so no strategic bombing or nuke
+  mission (17.4; `nukes.md`, *Ours*), and the strategic list (17.1) measures against the objectives.~~ Built 2026-11-21
+  (section 12, step 4a; 17.1; 17.4).
 - The scenario game's rules (nine tenths of the garrisons to the line): there is one start.
 - ~~A strategic redeployment's cost in supplies (`STRAT_REDEP_SUPPLY_MOD`)~~: built since 2026-11-18, twice the
   supplies and no fuel (`upkeep.md`, section 1). Its cost in organisation, `STRAT_REDEP_ORG_LOSS`, is built since

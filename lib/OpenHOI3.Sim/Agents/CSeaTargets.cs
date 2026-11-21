@@ -10,7 +10,8 @@ namespace OpenHOI3.Sim.Agents;
 /// <summary>
 /// A country's sea targets handed to its agents once a day, with no sighting asked: each convoy of an enemy or a war
 /// target to the agent whose ports best cover its route, and its transports to that agent's submarine want; each of
-/// their fleets to the agent with the most ports nearest it for the ships it has already; the waters where the
+/// their fleets to the agent with the most ports nearest it for the ships it has already; each province of their war
+/// industry in their capital's area to the agent whose air bases are nearest and largest; the waters where the
 /// country's convoys were raided in the last month to every agent whose ports reach them; and the country's and its
 /// fellow fighters' fleets to the nearest agent. The original's <c>CEU3AI_AssignSeaTargetsToAgents</c>. See
 /// <c>docs/mechanics/moving.md</c>, section 12.
@@ -32,6 +33,15 @@ public static class CSeaTargets
 
 	private const int TransportsPerWant = 20;
 
+	/// <summary>How far, in the map's measure, an air base may lie from the war industry it is to bomb [exe].</summary>
+	private const long AirBaseReach = 800;
+
+	/// <summary>What a province with a strategic resource divides its score by [exe].</summary>
+	private const float StrategicWeight = 2f;
+
+	/// <summary>The score an agent has to beat for a province of war industry [exe].</summary>
+	private const float WarIndustryStart = 10_000_000f;
+
 	public static void Assign(CGameState state, CCountry country)
 	{
 		var agents = new List<(CAgent Agent, CTheatre Theatre)>();
@@ -40,6 +50,7 @@ public static class CSeaTargets
 			agent.SubmarineWant = 0;
 			agent.EnemyConvoys.Clear();
 			agent.EnemyFleets.Clear();
+			agent.StrategicTargets.Clear();
 			agent.FriendlyFleets.Clear();
 			agent.RaidedWaters.Clear();
 			if (CAgents.TheatreOf(state, country, agent) is { } theatre)
@@ -65,6 +76,7 @@ public static class CSeaTargets
 					Fleet(state, country, agents, fleet, enemyLoad: true);
 				}
 			}
+			WarIndustry(state, country, agents, enemy);
 		}
 		Raided(state, country, agents);
 		foreach (CCountry friend in Fighters(state, country))
@@ -147,7 +159,7 @@ public static class CSeaTargets
 			{
 				long distance = Sea(state, fleet.Location, port);
 				// A port 2000 away still counts, for its own side's fleets as for the enemy's; and either needs a whole level of
-				// naval base among those ports (0x48C91D and 0x48D340 on the listing; FINDINGS-liveread.md, section 78).
+				// naval base among those ports (on the listing; FINDINGS-liveread.md, section 78).
 				if (distance < 0 || distance > FleetReach)
 				{
 					continue;
@@ -177,6 +189,73 @@ public static class CSeaTargets
 			}
 		}
 		(enemyLoad ? best?.EnemyFleets : best?.FriendlyFleets)?.Add(fleet);
+	}
+
+	/// <summary>
+	/// The enemy's war industry, the third of what step 3 hands out for each listed country (FINDINGS-moving.md, D.1; read
+	/// again on the listing 2026-11-21): each province of the area of its acting capital, in the area's order, held by its
+	/// owner - whoever that is - while we are its enemy, the rebels either of us, or in a war nobody declared over the
+	/// province; and with a working level of industry or a day's crude oil. Each goes to the agent whose theatre's areas have
+	/// air bases within 800 of it, their working levels a whole one or more together: the least of the distances summed over
+	/// the levels summed, halved for a province with a strategic resource, in single precision, strictly below 10,000,000 and
+	/// the first of equals.
+	/// </summary>
+	private static void WarIndustry(CGameState state, CCountry country, List<(CAgent Agent, CTheatre Theatre)> agents,
+		CCountry enemy)
+	{
+		Supply.CSupplyNetwork network = Supply.CSupplyNetworks.Refresh(state);
+		if (enemy.ActingCapital <= 0 || network.AreaOf(enemy.ActingCapital) is not { } home)
+		{
+			return;
+		}
+		CBuilding? industry = CBuildingRoles.Find(state, Supply.CSupplyNetworks.Industry);
+		CBuilding? airBase = CBuildingRoles.Find(state, Movement.CMovementRules.AirBase);
+		foreach (int id in home.Provinces)
+		{
+			CProvince province = state.Province(id);
+			if (province.Owner is null || province.Owner != province.Controller || enemy == country
+				|| !Movement.CMovementRules.IsEnemyIn(state, country.Tag, enemy.Tag, id))
+			{
+				continue;
+			}
+			float weight = province.StrategicResource.Length > 0 ? StrategicWeight : 1f;
+			if (province.CurrentProducing[Economy.EGoods.CrudeOil].Raw < Whole
+				&& (industry is null || province.BuildingLevel(industry).Raw < Whole))
+			{
+				continue;
+			}
+			CAgent? best = null;
+			float least = WarIndustryStart;
+			foreach ((CAgent agent, CTheatre theatre) in agents)
+			{
+				float levels = 0f;
+				float distances = 0f;
+				foreach (Supply.CSupplyArea area in theatre.Areas)
+				{
+					foreach (int at in CParadropPlanner.AirBases(state, area))
+					{
+						long distance = CMapDistance.Between(state.Province(at), province, state.MapWidth);
+						if (distance > AirBaseReach)
+						{
+							continue;
+						}
+						levels += (airBase is null ? 0 : state.Province(at).BuildingLevel(airBase).Raw) / (float)Whole;
+						distances += distance;
+					}
+				}
+				if (levels < 1f)
+				{
+					continue;
+				}
+				float score = distances / levels / weight;
+				if (score < least)
+				{
+					least = score;
+					best = agent;
+				}
+			}
+			best?.StrategicTargets.Add(id);
+		}
 	}
 
 	/// <summary>

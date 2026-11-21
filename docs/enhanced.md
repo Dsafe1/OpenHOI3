@@ -202,6 +202,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - **A bomb barely touches land units or air units on the ground.** The drop goes through a settlement that divides brigades' and wings' strength damage by a hundred, so a brigade loses under 1% where a ship is usually sunk. `nukes.md`. *Oversight.* Risk: war balance.
 - **A province keeps its industry until something makes its modifier again.** Every building is flattened and the modifier is not rebuilt. `nukes.md`. *Oversight.* Risk: small.
 - **A greyed row can be the ticked one,** and the window's two dates do nothing on this order. `nukes.md`. *Display.* Risk: none.
+- **One bomb sends the AI's whole strategic force on nuke missions.** The AI asks the stock group by group, but it moves only as an order starts, so every strategic group of a theatre is given a nuke mission and all but the first fly nothing and end at their next hour - a pass of bombing lost. `nukes.md`, section 3; `moving.md`, section 17.4. *Oversight.* Risk: the AI's air war.
 
 ## Alerts
 
