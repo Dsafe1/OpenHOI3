@@ -530,7 +530,13 @@ the unit leaving and not by a side having lost, and at no cost in officers eithe
 where this belongs: it is ours to mend, listed in the worklist). **An air unit's wings are never taken out by a battle**; away from its base with no
 strength left it goes in its next hour, and at its base it stands and reinforces.
 
-*Ours*: going into exile, the original lets what such a unit carries go where it stands; here it goes with the unit.
+**What a removed unit carries goes with it**, each passenger charged its officers as the unit is - but for a country
+going into exile, whose removal alone lets them go where the unit stands: off its list and no longer aboard, a
+fleet's passenger with its dig-in gone, nothing brought and no battle looked for. **None is ever let go at sea**: going
+into exile asks only units in a province somebody holds, so the carrier is in a port or at an airfield, on ground no
+friend holds. A passenger of the exile's own is in the same walk and goes in its own turn, charged its officers once;
+one lent to the exile is sent home with the rest that were lent (`expeditions.md`, section 5); another country's is
+left standing there. Built 2026-11-21.
 
 ## What is not built
 

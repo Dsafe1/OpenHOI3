@@ -43,11 +43,17 @@ public static class CExile
 		var lent = new List<CUnit>();
 		foreach (CUnit unit in country.UnitsInOrder())
 		{
+			if (unit.IsRemoved)
+			{
+				continue;
+			}
 			if (state.Province(unit.Location).Controller is { } holder && !IsFriend(state, holder, country))
 			{
 				if (unit.Lender is null)
 				{
-					Units.CPendingUnitRemovals.Remove(state, unit);
+					// What it carries is let go where it stands - ground somebody holds, never the sea, a unit at sea
+					// not being asked at all - and is asked in its own turn where it is the exile's (units.md, section 9).
+					Units.CPendingUnitRemovals.Remove(state, unit, withPassengers: false);
 				}
 				else
 				{

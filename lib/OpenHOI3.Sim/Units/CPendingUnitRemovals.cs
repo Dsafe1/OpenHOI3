@@ -36,12 +36,31 @@ public static class CPendingUnitRemovals
 	}
 
 	/// <summary>
-	/// <c>RemoveUnit</c> with its first flag clear and its second set: the unit and everything it carries lose their
-	/// officers, then go, what they commanded left with nobody above it.
+	/// <c>RemoveUnit</c> with its first flag clear: the unit and everything it carries lose their officers, then go, what
+	/// they commanded left with nobody above it. With <paramref name="withPassengers"/> off - the original's second flag
+	/// clear, which a country going into exile alone passes - what it carries is let go where it stands first and stays
+	/// in the game: off the list, no longer aboard, a fleet's passenger with its dig-in gone, and nothing more - no
+	/// supplies brought and no battle looked for (<c>docs/mechanics/units.md</c>, section 9).
 	/// </summary>
-	public static void Remove(CGameState state, CUnit unit)
+	public static void Remove(CGameState state, CUnit unit, bool withPassengers = true)
 	{
 		LoseOfficers(state, unit);
+		if (!withPassengers)
+		{
+			foreach (CUnit passenger in new System.Collections.Generic.List<CUnit>(unit.Passengers))
+			{
+				if (passenger.Transport == unit)
+				{
+					passenger.Transport = null;
+					passenger.DigIn = CFixedPoint.Zero;
+				}
+				if (passenger.Plane == unit)
+				{
+					passenger.Plane = null;
+				}
+			}
+			unit.Passengers.Clear();
+		}
 		foreach (CUnit passenger in unit.Passengers)
 		{
 			LoseOfficers(state, passenger);

@@ -246,6 +246,47 @@ public class ExpeditionTests
 	}
 
 	[Fact]
+	public void AGovernmentGoingIntoExileLetsGoWhatItsRemovedFleetCarries()
+	{
+		CGameState state = WarTests.World();
+		var ger = new CCountryTag("GER");
+		CCountry france = state.Country(Fra)!;
+		CCountry britain = state.Country(Eng)!;
+		var war = new OpenHOI3.Sim.Wars.CWar("test");
+		state.Wars.Add(war);
+		OpenHOI3.Sim.Wars.CWarSides.Join(state, war, ger, attacking: true);
+		OpenHOI3.Sim.Wars.CWarSides.Join(state, war, Fra, attacking: false);
+		state.Province(4).Controller = ger;
+		// A French fleet in a port Germany holds, carrying a French division, a division Britain lent France and one
+		// that is Britain's own.
+		var fleet = new CUnit(EUnitKind.Navy, Fra) { Id = 20, Name = "Flotte", Location = 4 };
+		var own = new CUnit(EUnitKind.Division, Fra) { Id = 21, Name = "1re", Location = 4 };
+		var lent = new CUnit(EUnitKind.Division, Eng) { Id = 22, Name = "1st", Location = 4 };
+		var foreign = new CUnit(EUnitKind.Division, Eng) { Id = 23, Name = "2nd", Location = 4 };
+		france.Units.Add(fleet);
+		france.Units.Add(own);
+		britain.Units.Add(lent);
+		britain.Units.Add(foreign);
+		CExpeditions.HandOver(state, lent, britain, france);
+		foreach (CUnit passenger in new[] { own, lent, foreign })
+		{
+			OpenHOI3.Sim.Transport.CTransport.Board(fleet, passenger);
+		}
+
+		OpenHOI3.Sim.Wars.CExile.Enter(state, france);
+		Assert.True(fleet.IsRemoved);
+		// The exile's own passenger goes in its own turn; the lent one goes home; Britain's own is left where it stood.
+		Assert.True(own.IsRemoved);
+		Assert.False(lent.IsRemoved);
+		Assert.Null(lent.Transport);
+		Assert.Null(lent.Lender);
+		Assert.Equal(5, lent.Location);
+		Assert.False(foreign.IsRemoved);
+		Assert.Null(foreign.Transport);
+		Assert.Equal(4, foreign.Location);
+	}
+
+	[Fact]
 	public void AGovernmentGoingIntoExileSendsHomeWhatWasLentToItOnGroundNoFriendHolds()
 	{
 		CGameState state = WarTests.World();
