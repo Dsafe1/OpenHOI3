@@ -60,7 +60,7 @@ public static class CPactPasses
 					if (state.AiTrace is { } trace && (trace.Country == country.Tag || trace.Country == offer.Actor))
 					{
 						trace.Write($"{state.Date}.{state.Hour} offer {offer.Kind} {offer.Actor.Value} to {offer.Recipient.Value}: " +
-							$"score {score}, {answer}");
+							$"score {score}, {answer}{(offer.Deal is { } deal ? $" {deal}" : "")}");
 					}
 					if (offer.Kind == EOfferKind.Trade && answer == EOfferStage.Accepted)
 					{
