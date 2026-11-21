@@ -232,10 +232,17 @@ war on another while its effective neutrality is at most
 
 ## Ours
 
-- **The most-threatening country is worked out for every country each day**, where the original's
-  daily update does it only for countries a flag marks (not read) and then after each diplomatic
-  change. **REB fears nobody**: the start save has `---` for it where every other country has one,
-  measured and not read.
+- **The most-threatening country is worked out for every country each day and at no other time.** The daily part is
+  the original's, read on 2026-11-21 (`reversing/findings/FINDINGS-diplostate.md`, B.5a): the flag its daily update
+  tests is only "takes part in the game", which every country of a campaign holds, and the election comes before any
+  country's day, as here. **REB fears nobody** because the election refuses the rebels itself - read the same day.
+  What is ours: the original also elects again at once, for the countries concerned, when an offer is answered, a
+  province changes holder, war is declared or a pact made by its action, a puppet is made or a country freed, a
+  decision is taken, mobilisation is turned, and by the effects on cores, guarantees, access, pacts and the end of a
+  war - and leaves it stale till the next day after a change of threat or relation, a war begun by history or by the
+  `war` effect, and an event's effects. Here those wait for the next day too. It shows only where something reads the
+  most-threatening country again the same day: effective neutrality is written from the stored country in the day's
+  pass and when neutrality is changed.
 - **A war is still given by hand** (`--war=`), so a war starts with none of war's relation or threat;
   the agreements' trade and aid, war and peace, factions, espionage and mobilising are later pieces and their
   sources above are reported as unbuilt where a script asks.

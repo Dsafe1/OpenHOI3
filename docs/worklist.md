@@ -2351,8 +2351,9 @@ None of these blocks the list above.
   faction's members (the history's, here the countries').
 - **The alignment triangle's revanchism weighs a core by the holder's faction's share of the victory points** since
   2026-11-21 (`alignment.md`, section 5; it was taken as nought), the first step's unchanged. **Its first step agrees with the start save for 100 countries of 101** since 2026-11-14 (`politics.md`, section 12).
-  The most-threatening country is worked out for every country each day, where the original does it
-  for countries a flag it sets marks.
+  The most-threatening country is elected for every country each day, as the original's (read 2026-11-21); the
+  original's election at once after an answered offer, a change of holder, a declared war and some twenty more is
+  left for the next day here (`diplomacy.md`, *Ours*).
 
 - **Events fire and decisions are taken** (2026-10-12, `script.md`, `triggers.md`,
   `effects.md`, `events.md`), and much around them waits:
@@ -2572,10 +2573,11 @@ None of these blocks the list above.
   countries and fuel in 2** since 2026-11-15, the 2.010 each headquarters the AI makes in the first hour takes being
   explained (`stockpile.md`, section 2). **The AI's own
   shares by the save** are its production minister's, and when the original's first sets them, before the first hour,
-  was not read. The Lua's look at a new game's laws is made once since 2026-11-15 (`politics.md`, section 12). And **whether the filling of empty posts waits
-  on the queue as the laws do** is open: the shares and Brazil's manpower are as the set-up leaves them before the
-  filling, but the money of the countries that do not exist counts their filled ministers in the two days; here the
-  posts are filled at once, after the shares are set (`politics.md`, section 7). Answered on 2026-11-14 and off this
+  was not read. The Lua's look at a new game's laws is made once since 2026-11-15 (`politics.md`, section 12). The filling of empty posts
+  does not wait on the queue (read 2026-11-21, `reversing/findings/FINDINGS-startshares.md`, section 9): the engine
+  writes the cabinet itself, before the shares are set, and its ministers reach the country's modifier only at the
+  rebuild after every country is set up - so the shares do not count them and the two days do, which is what filling
+  them at once after the shares gives here (`politics.md`, section 7). Answered on 2026-11-14 and off this
   list: home production for three countries and governments for countries that do not exist (`resources.md`,
   section 5), what sets a country's shares at the start, and why sixteen untouched countries make 10% more supplies than
   the save's laws give (`production.md`, sections 1 and 7). Answered before: three countries' extra money is the gold
