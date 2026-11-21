@@ -502,6 +502,8 @@ public class LandCombatTests
 		Assert.Equal(Warsaw, defender.Location);
 		Assert.False(defender.IsFighting);
 		Assert.Empty(combat.Defender.Units);
+		// A side with nobody on it - as the bombed side of a bombing of the ground alone - is summed up as nothing.
+		Assert.Equal("", OpenHOI3.Interface.Tooltips.CBattleRowTooltip.Summary(key => key, combat.Defender));
 		Assert.Contains(defender, state.UnitsIn(Warsaw));
 		// Re-formed with a tenth of what each brigade had left: 10 of 30, so 1.
 		Assert.All(defender.SubUnits, brigade => Assert.Equal(CFixedPoint.One, brigade.Strength));

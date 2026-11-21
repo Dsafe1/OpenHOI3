@@ -213,10 +213,15 @@ public static class CBattleRowTooltip
 	/// <summary>
 	/// What a side comes to, by its first unit's kind: a fleet's ships by kind, an army's
 	/// brigades, units and men, an air force's fighters, bombers and rockets. Every unit on the
-	/// side is counted, of whatever kind.
+	/// side is counted, of whatever kind. Nothing for a side with nobody on it - the bombed side of a bombing of the
+	/// ground alone (ours: what the original writes there was not read).
 	/// </summary>
 	public static string Summary(Func<string, string> localise, CCombatSide side)
 	{
+		if (side.Units.Count == 0)
+		{
+			return "";
+		}
 		int capital = 0, screens = 0, transports = 0, submarines = 0, fighters = 0, bombers = 0, rockets = 0;
 		int units = 0, brigades = 0;
 		long strength = 0;
