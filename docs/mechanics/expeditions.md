@@ -56,7 +56,7 @@ Tried with `OpenHOI3.SaveCheck declare <install> GER FRA occupy lend=ENG` on 202
 
 - **a fleet or an air unit to the faction's leader**, its first member, alone;
 - **a land unit to the member holding the province it stands in**, and to the leader where a country of no faction or another one holds it - or nobody;
-- so a unit on its own ground or an enemy's stays, and is taken out of the game in its hour (`war.md`, section 11), and a landless leader gives its fleets and air units to nobody.
+- so a land unit stays only where its faction holds the ground and no member walked does - the country itself, or a member in exile - and is taken out of the game in its hour (`war.md`, section 11); and a landless leader, never its own target, gives its fleets and air units to nobody.
 
 The posted commands run before the next hour, and the hour takes the country's units in its own pass, before the AI's: so **only a country made landless in the hour after its units' turn has any to hand out**, a capture by a later country's battle - the original's order too, its AI pass running the frame after the hour. A unit with a superior in the list's order goes with the superior's tree, its own command then refused; one before it goes alone (*ours*: which of the list's units are the children of others in the original was not read). No test of a person: a played landless country's go the same way (*inferred*).
 
