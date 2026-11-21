@@ -69,7 +69,7 @@ public abstract partial class CBuilderWindow : Control
 		{
 			if (Context.Textures.Exists(path) && Context.Textures.LoadFromGamePath(path) is { } picture)
 			{
-				icon.SetTexture(picture);
+				icon.ShowPicture(picture);
 				return;
 			}
 		}

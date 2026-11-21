@@ -219,7 +219,7 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 		string? path = CUnitPanelText.LeaderPortrait(_unit);
 		if (path is not null && _context.Textures.Exists(path) && _context.Textures.LoadFromGamePath(path) is { } picture)
 		{
-			_photo.SetTexture(picture);
+			_photo.ShowPicture(picture);
 		}
 		else
 		{

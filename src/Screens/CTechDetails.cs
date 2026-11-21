@@ -165,7 +165,7 @@ public sealed class CTechDetails
 			// A technology with no picture of its own shows the sprite's: "no image".
 			if (_context.Textures.Exists(photo) && _context.Textures.LoadFromGamePath(photo) is { } picture)
 			{
-				_photo.SetTexture(picture);
+				_photo.ShowPicture(picture);
 			}
 			else
 			{

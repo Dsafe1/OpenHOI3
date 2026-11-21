@@ -40,7 +40,7 @@ public sealed class CCombatLeaderView
 		if (CCombatViewText.LeaderPortrait(side) is { } path && _photo is not null && _context.Textures.Exists(path)
 			&& _context.Textures.LoadFromGamePath(path) is { } picture)
 		{
-			_photo.SetTexture(picture);
+			_photo.ShowPicture(picture);
 		}
 	}
 }

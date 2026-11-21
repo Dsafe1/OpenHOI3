@@ -106,7 +106,7 @@ public partial class CCombatWindow : Control
 			if (_context.Textures.Exists(own) && _context.Textures.LoadFromGamePath(own) is { } picture)
 			{
 				terrain.SetSprite(CCombatViewText.ProvincePictureShape);
-				terrain.SetTexture(picture);
+				terrain.ShowPicture(picture);
 			}
 			else if (CCombatViewText.TerrainPicture(state, combat) is { Length: > 0 } sprite)
 			{

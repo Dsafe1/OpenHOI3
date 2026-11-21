@@ -451,9 +451,14 @@ files, with nothing in it placed by hand.
   game's German skin 1024 by 680, so the German skin is drawn 1280 across from its first 640 columns, 680 rows down, and
   the 56 rows below are the padding - the whole width of BlackICE's diplomacy and politics screens behind their right
   column, where the picture at its own size stopped at 939. *Ours:* `CPictureSprite` and `CGuiIcon.ShowPicture`, used
-  for the country screens', the ledger's and the top bar's skins; the portraits, the terrain, tactic, ship and
-  technology pictures go through the same object in the original and still through `CGuiIcon.SetTexture` here, which
-  takes the picture's own size - right wherever a picture is its sprite's size, not checked where it is not.
+  for the country screens', the ledger's and the top bar's skins and, since 2026-11-21, for every other picture code
+  gives an icon - the portraits, the terrain, tactic, ship and technology pictures, an event's picture and the lobby's
+  portrait, the original's twenty makers of a picture sprite. Until then those took the picture's own size, the same
+  wherever a picture is its sprite's size. **Measured that day**: the base game's portraits, technology, tactic and
+  ship pictures are their sprites' size all but a few a pixel or two out; **two of its country events name a picture of
+  446 by 203 for a box of 156 by 116** (the pride of the fleet's) and one province event the other way round, which were
+  drawn at their own size, out over the window, and are cut to the box now as the original cuts them; BlackICE's event
+  pictures are within a few pixels of its 442 by 236 but for about 150 of 442 by 234.
 - **Hover, press and disabling do not change the frame; a shader does it.** `confirmed`,
   from `gfx/FX/buttonstate.fx`, which is plain text in the install and names four
   techniques. `up` draws the picture as it is. `over` adds a tenth to red, green and

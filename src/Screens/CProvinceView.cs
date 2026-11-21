@@ -239,7 +239,7 @@ public sealed partial class CProvinceView : Control
 			if (_context.Textures.Exists(picture) && terrain.SetSprite("GFX_terrainimg_plains")
 				&& _context.Textures.LoadFromGamePath(picture) is { } texture)
 			{
-				terrain.SetTexture(texture);
+				terrain.ShowPicture(texture);
 			}
 			else
 			{

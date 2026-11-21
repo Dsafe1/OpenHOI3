@@ -160,7 +160,7 @@ public sealed class CMinisterEntry
 		string path = PortraitFolder + picture + ".tga";
 		if (context.Textures.Exists(path) && context.Textures.LoadFromGamePath(path) is { } texture)
 		{
-			photo.SetTexture(texture);
+			photo.ShowPicture(texture);
 		}
 	}
 

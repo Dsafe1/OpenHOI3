@@ -100,7 +100,7 @@ public sealed class CCombatSideView : ICombatSideView
 			if (picture.Length != 0 && _context.Textures.Exists(picture)
 				&& _context.Textures.LoadFromGamePath(picture) is { } texture)
 			{
-				_tacticPicture?.SetTexture(texture);
+				_tacticPicture?.ShowPicture(texture);
 			}
 		}
 	}

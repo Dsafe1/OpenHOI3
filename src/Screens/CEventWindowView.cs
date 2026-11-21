@@ -89,7 +89,7 @@ public sealed partial class CEventWindowView : Control
 			string? path = CEventWindowLayout.PicturePath(shown);
 			if (path is not null && _context.Textures.LoadFromGamePath(path) is { } texture)
 			{
-				picture.SetTexture(texture);
+				picture.ShowPicture(texture);
 			}
 			else
 			{

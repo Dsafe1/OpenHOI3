@@ -50,7 +50,7 @@ public sealed class CBrigadeCard
 		{
 			if (context.Textures.Exists(path) && context.Textures.LoadFromGamePath(path) is { } picture)
 			{
-				window.FindIcon("photo")?.SetTexture(picture);
+				window.FindIcon("photo")?.ShowPicture(picture);
 				break;
 			}
 		}

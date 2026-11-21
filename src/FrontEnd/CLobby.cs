@@ -845,7 +845,7 @@ public partial class CLobby : Control
 			string picture = PortraitFolder + head.Picture + ".tga";
 			if (_context.Textures.Exists(picture) && _context.Textures.LoadFromGamePath(picture) is { } texture)
 			{
-				portrait.SetTexture(texture);
+				portrait.ShowPicture(texture);
 			}
 		}
 	}

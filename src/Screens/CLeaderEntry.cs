@@ -115,7 +115,7 @@ public sealed class CLeaderEntry
 		string path = CUnitPanelText.Portrait(leader);
 		if (icon is not null && context.Textures.Exists(path) && context.Textures.LoadFromGamePath(path) is { } picture)
 		{
-			icon.SetTexture(picture);
+			icon.ShowPicture(picture);
 		}
 	}
 
