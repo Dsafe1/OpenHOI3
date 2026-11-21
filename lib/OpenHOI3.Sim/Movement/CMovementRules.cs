@@ -184,6 +184,11 @@ public static class CMovementRules
 			return false;
 		}
 		CProvince here = state.Province(unit.Location);
+		// A land unit standing where its country may not go may walk on through its host's land (war.md, section 16).
+		if (IsLandUnit(unit) && province.Owner == here.Owner && CTrespassing.Is(state, country, unit))
+		{
+			return true;
+		}
 		return province.Controller == here.Controller || MayEnter(state, country, province);
 	}
 

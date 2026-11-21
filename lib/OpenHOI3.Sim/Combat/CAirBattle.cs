@@ -31,7 +31,8 @@ public static class CAirBattle
 		if (unit == other || unit.Owner == other.Owner
 			|| unit.Kind != EUnitKind.Air || other.Kind != EUnitKind.Air
 			|| unit.IsRemoved || other.IsRemoved || unit.IsRetreating || other.IsRetreating
-			|| !CMovementRules.IsEnemyIn(state, unit.Owner, other.Owner, unit.Location))
+			|| !CMovementRules.IsEnemyIn(state, unit.Owner, other.Owner, unit.Location)
+			|| !CTrespassing.AllowsFight(state, unit, other))
 		{
 			return false;
 		}

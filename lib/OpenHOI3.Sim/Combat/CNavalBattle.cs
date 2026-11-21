@@ -63,7 +63,8 @@ public static class CNavalBattle
 			&& !unit.IsRemoved && !other.IsRemoved
 			&& !unit.IsRetreating && !other.IsRetreating
 			&& unit.SubUnits.Count > 0 && other.SubUnits.Count > 0
-			&& CMovementRules.IsEnemyIn(state, unit.Owner, other.Owner, unit.Location);
+			&& CMovementRules.IsEnemyIn(state, unit.Owner, other.Owner, unit.Location)
+			&& CTrespassing.AllowsFight(state, unit, other);
 	}
 
 	/// <summary>

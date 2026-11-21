@@ -856,6 +856,30 @@ The two are enemies **only in its regions**: fleets and air units there fight, a
 
 **Ours**: the original asks this everywhere a province is at hand. Here it is asked where a battle starts, where a convoy is raided and where an air unit or fleet looks for a target. The AI's own war-time gates do not count it, and the land's movement and blockades do not ask it, which matter only to a mod that lists land.
 
+## 16. A unit where its country may not go
+
+A unit **trespasses** while it stands in a province its country may not enter (`movement.md`, section 3): land of a
+country that is neither a friend nor at war with it - reached as a friend's by a pact, a faction or military access
+since ended, or ground that changed hands under it [exe; `reversing/findings/FINDINGS-war.md`, A.9]. A rebel unit
+never does. The original keeps a mark on the unit, made again in each unit's hour, at a change between two countries
+and where a province changes hands. **Nothing moves a trespasser**; what the mark changes is this:
+
+- **It starts no battle and joins none as the one asking.** Of two units, the one that asks whether it may fight the
+  other never may while it trespasses - land, sea and air alike.
+- **It is fought only in a war**: by a country at war with its own, declared or undeclared and covering the province
+  it stands in. The rebels, at war with everybody by no war, do not fight it.
+- **It takes no province.**
+- **It is not slowed for want of fuel**, as a unit falling back is not; every other term of its speed applies.
+- **A land unit may walk on into land of the owner of the province it stands in**, where its country could not
+  otherwise go - which is how it leaves.
+- The AI brings its own home (`moving.md`) and reads the mark in its pull of headquarters, its reach test
+  and its strategic redeployment.
+
+A declaration of war makes no trespassers among those at war, war being leave to enter.
+
+**Ours**: no mark is kept; it is asked as the unit stands (`CTrespassing`), which differs from the original's only
+within the hour a unit's own hour would have remade it in.
+
 ## Ours
 
 - **The war's name is kept as its key, the adjective of its first attacker and its order**, and written
@@ -888,9 +912,7 @@ The two are enemies **only in its regions**: fleets and air units there fight, a
 ## Not built
 
 - ~~**The NAP's border balance**~~: built (`agreements.md`, section 6).
-- **Units on ground they may no longer stand on** (`FINDINGS-war.md` A.9): the original marks them and
-  works it out again hourly - no attack, no capture, full speed, may pass through. Nothing marks them
-  here.
+- ~~**Units on ground they may no longer stand on**~~ - built 2026-11-21 (section 16).
 - ~~**Undeclared wars** and the revolt war.~~ Built: a war nobody declared (section 15), and the revolt war - the war a
   rebel faction's new country declares on each former owner as it is freed (`rebels.md`, section 10).
 - ~~**The AI declaring war or calling its allies** of its own accord~~: built with the foreign minister
@@ -903,7 +925,7 @@ The two are enemies **only in its regions**: fleets and air units there fight, a
 - **Countries that warned another** (`CW_WARNWARN2`): nothing warns.
 - **A peace offer put to the player** (`CAskPeace`, `FINDINGS-war.md` C.7): only another player's offer
   brings it, and there is one player.
-- **What else a change of hands does** (`FINDINGS-surrender.md` D.2, D.3): the trespassers' marks. ~~Air and naval
+- **What else a change of hands does** (`FINDINGS-surrender.md` D.2, D.3): ~~the trespassers' marks~~ (section 16, asked as a unit stands). ~~Air and naval
   units based in the province sent to the old side's nearest base or deleted, radar and the province's history~~ - built
   (section 11; `intelligence.md`, section 4; `CProvinceHistory`). A battle's capture goes through the same setter with consequences
   (`landcombat.md`, section 7). The occupation policy a capture sets and the nationalism a change of owner

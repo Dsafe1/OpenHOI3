@@ -192,7 +192,7 @@ public static class CMovementSpeed
 			modifier = modifier * inBattle / Scale;
 		}
 
-		if (unit.Kind != EUnitKind.Air && !unit.IsRetreating && BurnsFuel(unit))
+		if (unit.Kind != EUnitKind.Air && !unit.IsRetreating && BurnsFuel(unit) && !CTrespassing.Is(state, country, unit))
 		{
 			modifier = modifier * (unit.FuelReceived.Raw * SpeedFromFuel / Scale + SpeedWithoutFuel) / Scale;
 		}
@@ -254,7 +254,7 @@ public static class CMovementSpeed
 			}
 			combat = System.Math.Max(SlowestInBattle, System.Math.Min(Scale, CAttackDelay.Quicker(state, country, unit) * pace / Scale));
 		}
-		long fuel = unit.Kind != EUnitKind.Air && !unit.IsRetreating && BurnsFuel(unit)
+		long fuel = unit.Kind != EUnitKind.Air && !unit.IsRetreating && BurnsFuel(unit) && !CTrespassing.Is(state, country, unit)
 			? unit.FuelReceived.Raw * SpeedFromFuel / Scale + SpeedWithoutFuel
 			: Scale;
 		long terrain = Scale, trait = Scale, adjacency = Scale;

@@ -99,7 +99,8 @@ public static class CCombats
 			&& unit.Plane is null && other.Plane is null
 			&& CMovementRules.IsLandUnit(unit) && CMovementRules.IsLandUnit(other)
 			&& unit.SubUnits.Count > 0 && other.SubUnits.Count > 0
-			&& CMovementRules.IsEnemyIn(state, unit.Owner, other.Owner, unit.Location);
+			&& CMovementRules.IsEnemyIn(state, unit.Owner, other.Owner, unit.Location)
+			&& CTrespassing.AllowsFight(state, unit, other);
 	}
 
 	/// <summary>
@@ -170,6 +171,11 @@ public static class CCombats
 		}
 
 		if (unit.IsFighting || unit.IsRetreating || province.IsSea || province.Owner is null || unit.Location != provinceId)
+		{
+			return;
+		}
+		// A unit standing where its country may not go takes nothing (war.md, section 16).
+		if (CTrespassing.Is(state, unit))
 		{
 			return;
 		}

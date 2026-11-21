@@ -2319,9 +2319,9 @@ None of these blocks the list above.
   (`docs/compatibility.md`, entry 30); the 5.1.4 build rounds to 24 bits (`lua.md`, *Ours*). **The interpreter is built for 64-bit Windows only**, with the
   Visual Studio C++ tools, as `openhoi3_lua.dll` (LuaJIT) and `openhoi3_lua514.dll` - names chosen because Lua for Windows puts a
   32-bit `lua51.dll` on the PATH, which Godot loaded in its place.
-- **War and its end leave out** (`war.md`, *Not built*): **units on ground they may no longer stand on are not
-  marked**. **A pact is one object for both countries**, so annexation ends both sides of one (`war.md`, *Ours*).
-  Everything else the list once named is built: a landless country's units and the based units and radar at a change
+- **War and its end**: a unit on ground its country may no longer enter is a trespasser since 2026-11-21 - no attack,
+  no capture, no fuel slowdown, leave to walk on through its host's land (`war.md`, section 16). **A pact is one object for both countries**, so annexation ends both sides of one (`war.md`, *Ours*).
+  Everything the *Not built* list once named is built: a landless country's units and the based units and radar at a change
   of hands (2026-11-21, section 11), the revolt war (`rebels.md`, section 10), a puppet's cabinet, an exile's free
   supply, its brigades at its leader's levels and its partisans turned to militia.
 - **Factions leave out** (`factions.md`, *Not built*): the victory conditions' random fill for a faction with fewer

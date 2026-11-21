@@ -116,11 +116,7 @@ public static class CCommandProvince
 	/// and on any change of pact, so asked here as it stands; never the rebels' (FINDINGS-war.md; FINDINGS-liveread.md,
 	/// section 47).
 	/// </summary>
-	private static bool IsTrespassing(CGameState state, CCountry country, CUnit unit)
-	{
-		return country.Tag.Value != Revolts.CRebelFactions.Rebels && unit.Location > 0
-			&& !CMovementRules.MayEnter(state, country, state.Province(unit.Location));
-	}
+	private static bool IsTrespassing(CGameState state, CCountry country, CUnit unit) => CTrespassing.Is(state, country, unit);
 
 	/// <summary>
 	/// The original's <c>CAIUnit_PickProvinceAmongSubordinates</c>, as read on the listing: a headquarters trespassing on the

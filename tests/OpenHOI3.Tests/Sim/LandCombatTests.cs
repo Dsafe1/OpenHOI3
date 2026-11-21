@@ -1093,4 +1093,72 @@ public class LandCombatTests
 		Assert.False(new CStartWarCommand(Pol, Ger).MayExecute(state));
 		Assert.False(new CStartWarCommand(Ger, Ger).MayExecute(state));
 	}
+
+	[Fact]
+	public void AUnitTrespassesWhereItsCountryMayNotGoAndNeverARebelUnit()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland, atWar: false);
+		CUnit abroad = Division(state, germany, Posen);
+		CUnit home = Division(state, germany, Berlin);
+		var rebels = new CUnit(EUnitKind.Division, new CCountryTag("REB")) { Id = ++state.LastUnitId, Location = Posen };
+
+		Assert.True(CTrespassing.Is(state, abroad));
+		Assert.False(CTrespassing.Is(state, home));
+		Assert.False(CTrespassing.Is(state, rebels));
+
+		// A war is itself leave to enter.
+		state.Wars.Add(War(Ger, Pol));
+		Assert.False(CTrespassing.Is(state, abroad));
+	}
+
+	[Fact]
+	public void ATrespasserStartsNoFightAndIsFoughtOnlyInAWar()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland, atWar: false);
+		var soviets = state.Country(Sov)!;
+		state.Wars.Add(War(Ger, Sov));
+		CUnit trespasser = Division(state, germany, Posen);
+		CUnit enemy = Division(state, soviets, Posen);
+
+		// Both stand on Poland's ground uninvited: neither may be the one that asks.
+		Assert.False(CCombats.MayEngage(state, trespasser, enemy));
+		Assert.False(CCombats.MayEngage(state, enemy, trespasser));
+
+		// On Germany's own ground the two fight: the Soviet division is there by its war.
+		trespasser.Location = Berlin;
+		enemy.Location = Berlin;
+		state.ForgetPositions();
+		Assert.True(CCombats.MayEngage(state, trespasser, enemy));
+		Assert.True(CCombats.MayEngage(state, enemy, trespasser));
+	}
+
+	[Fact]
+	public void ATrespasserMayWalkOnThroughItsHostsLand()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland, atWar: false);
+		CUnit abroad = Division(state, germany, Posen);
+		CUnit home = Division(state, germany, Berlin);
+
+		Assert.True(CMovementRules.MayStandIn(state, germany, abroad, state.Province(Lodz)));
+		Assert.False(CMovementRules.MayStandIn(state, germany, home, state.Province(Posen)));
+	}
+
+	[Fact]
+	public void ATrespasserIsNotSlowedForWantOfFuel()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland, atWar: false);
+		CUnit abroad = Division(state, germany, Posen);
+		CUnit home = Division(state, germany, Berlin);
+		foreach (CUnit unit in new[] { abroad, home })
+		{
+			unit.FuelReceived = CFixedPoint.Zero;
+			foreach (CSubUnit brigade in unit.SubUnits)
+			{
+				brigade.Stats.Values.Set(CUnitSupply.FuelStatistic, CFixedPoint.One);
+			}
+		}
+
+		long slowed = CMovementSpeed.Modifier(state, germany, home);
+		Assert.Equal(slowed * 10, CMovementSpeed.Modifier(state, germany, abroad));
+	}
 }
