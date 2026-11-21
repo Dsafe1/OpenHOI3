@@ -215,12 +215,10 @@ public static class CTick
 		Step(state, CProvinceDay.RunDaily);
 		Step(state, Revolts.CRebelFactionDay.RunDaily);           // each rebel faction's day, right after the provinces' (rebels.md, 9)
 		Step(state, CStockpile.HoldWithinBounds);
-		// Events, after the provinces' day; none while a game is still being made (ours: whether the
-		// original asks them in a new game's first days was not read).
-		if (!state.IsBeingMade)
-		{
-			Step(state, s => CEventPass.RunDaily(s), "CEventPass.RunDaily");
-		}
+		// Events, after the provinces' day - in a new game's two first days too, as the original asks them: no country
+		// has a candidate until the month's pass after them, so none fires, and each day's pass takes its one draw
+		// (events.md, section 2).
+		Step(state, s => CEventPass.RunDaily(s), "CEventPass.RunDaily");
 		Step(state, Intelligence.CProvinceIntel.Rebuild);         // late in the original's day: what countries know
 		Step(state, Wars.CVictoryConditions.RunDaily);            // and last, the victory conditions (factions.md, section 8)
 	}

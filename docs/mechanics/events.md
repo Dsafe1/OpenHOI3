@@ -58,9 +58,12 @@ again on any later day** while its trigger holds.
 Every scope a pass makes - this one and the candidates' - takes **one draw of the game's generator at
 the start of the pass** as its seed and its state of chance, shared by all of them.
 
-*Ours*: no event is asked in the two days a new game runs before its first hour (`tick.md`,
-section 6); whether the original's are was not read. The candidates are made by their month's pass,
-on the second of them.
+**The two days a new game runs before its first hour ask events as any day does** (`tick.md`, section 6) [exe;
+`reversing/findings/FINDINGS-startshares.md`, section 7]: nothing but a tutorial keeps the day's pass from them. No
+country has a candidate yet - the lists are made by the month's pass, which comes after the second day - so **none
+fires, and each of the two days takes its one draw**. The month's candidates are those whose trigger holds after the
+two days and before anything the days posted has run. Built so since 2026-11-21; until then no event was asked in
+those days, and a new game stood two draws behind.
 
 ## 3. The chance of a day
 

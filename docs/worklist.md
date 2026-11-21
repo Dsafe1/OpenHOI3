@@ -2378,8 +2378,6 @@ None of these blocks the list above.
     full screen are not taken at a start, and the scroll and mouse speeds are not
     the camera's. The game options window lists the settings' mode and the screen's, not the card's.
     What the outliner changes is not carried back into the file;
-  - **no event is asked in a new game's two first days** - ours; whether the original's are was
-    not read (`events.md`, section 2);
   - **the decision list's button's `SELECT` is wider than its 32-pixel picture**, as the files
     have it - not set beside the original;
   - **a condition the simulation cannot answer is false** (`triggers.md`, section 8;
@@ -2629,9 +2627,10 @@ None of these blocks the list above.
   (`CConvoyLosses`), which `navalmissions.md`'s *Not built* has not caught up with.
 - **A fleet whose last ship is sunk is removed from the game at once**; what the original
   does with an empty fleet was not followed.
-- **That the install's Lua's changes of law run after a new game's two days is `inferred`** from the command route and
-  the save, not read off the queue's drain; a breakpoint on the law command while a new game is entered would settle
-  it (`reversing/findings/FINDINGS-startshares.md`, section 2; `politics.md`, section 12).
+- **That the install's Lua's changes of law run after a new game's two days** is read off the queue's drain since
+  2026-11-21 (`reversing/findings/FINDINGS-startshares.md`, section 8): nothing in the entry drains it, and what the
+  days post runs in the first frame, in the order posted. Not watched in the running game; a breakpoint on the law
+  command while a new game is entered would show it (`politics.md`, section 12).
 - **Starting a game took about eleven seconds**, measured 2026-11-12 with the optimised build and `--country=GER`:
   1.8 before the first loading line; **4.8 making the world** on the loading screen's thread - 2.2 of it the two first
   days (the supply filling 1.0, the first day 0.8 with the first convoys' routes about 0.5 of it), the opening laws,
