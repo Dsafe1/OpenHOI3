@@ -2328,10 +2328,8 @@ None of these blocks the list above.
   Everything the *Not built* list once named is built: a landless country's units and the based units and radar at a change
   of hands (2026-11-21, section 11), the revolt war (`rebels.md`, section 10), a puppet's cabinet, an exile's free
   supply, its brigades at its leader's levels and its partisans turned to militia.
-- **The agreements leave out** (`agreements.md`, section 9): the player handing his diplomacy to the AI as the
-  original does it, under which his own offers are answered like an AI's and the 96-hour drop applies to him - the
-  lobby's automation gives his country a foreign minister (`frontend.md`, section 4), and offers to him are not checked
-  against it. The dialog's influence and alignment drift
+- **The agreements leave out** (`agreements.md`, section 9): ~~the player handing his diplomacy to the AI~~, built
+  2026-11-21 (section 11). The dialog's influence and alignment drift
   says each day's `align_towards` and the days; a message's `VAL` and `TIME`, which no text of the
   base game uses, are not given. **Every `DiploScore_NonAgression` answer on a new game is below
   nought** (`OpenHOI3.SaveCheck aiscore`), so the AI declines every NAP - **as the original's does**, looked at on

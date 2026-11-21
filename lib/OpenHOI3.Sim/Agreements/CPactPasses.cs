@@ -27,7 +27,8 @@ public static class CPactPasses
 	/// below it, else declined; each answer is posted as a command; and the list is emptied. **One trade
 	/// is accepted an hour**: a further trade the draw would accept stays on the list, still a proposal,
 	/// for the next hour (<c>trade.md</c>, section 2). A played country's offers are its player's
-	/// (<see cref="AskPlayers"/>). **The AI's own step, which only the machine that runs the AI runs**: what it
+	/// (<see cref="AskPlayers"/>), but where he has handed his diplomacy to the AI, whose foreign minister then answers them
+	/// as any other's (<c>agreements.md</c>, section 11). **The AI's own step, which only the machine that runs the AI runs**: what it
 	/// leaves of a list it leaves through <see cref="CGameState.DoInStep"/>, so that every machine's lists are
 	/// the same (<c>docs/multiplayer.md</c>, section 3).
 	/// </summary>
@@ -35,7 +36,8 @@ public static class CPactPasses
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			if (country.AiPaused || country.PendingOffers.Count == 0 || state.Played.Contains(country.Tag))
+			if (country.AiPaused || country.PendingOffers.Count == 0
+				|| !Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Diplomacy))
 			{
 				continue;
 			}
@@ -74,7 +76,8 @@ public static class CPactPasses
 	/// <summary>
 	/// **A played country's offers are put to its player**, each once: under automate-trade a trade is kept for
 	/// the hour's roll (<see cref="Trade.CAutomatedTrades"/>), and every other proposal of a kind with a dialog is
-	/// asked (<see cref="CGameState.OfferAsked"/>); the rest are dropped (<c>agreements.md</c>, section 10).
+	/// asked (<see cref="CGameState.OfferAsked"/>); the rest are dropped (<c>agreements.md</c>, section 10). Not where the
+	/// player has handed his diplomacy to the AI: its offers are then the AI's to answer, and nothing is shown.
 	/// **A step of the game's own, run on every machine** - it was half of the AI's answering until 2026-11-20,
 	/// and a machine that does not run the AI then never showed its player an offer.
 	/// </summary>
@@ -82,7 +85,8 @@ public static class CPactPasses
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			if (country.AiPaused || country.PendingOffers.Count == 0 || !state.Played.Contains(country.Tag))
+			if (country.AiPaused || country.PendingOffers.Count == 0 || !state.Played.Contains(country.Tag)
+				|| Settings.CAutomation.HandedOver(state, Settings.EAutomation.Diplomacy))
 			{
 				continue;
 			}
@@ -184,14 +188,18 @@ public static class CPactPasses
 	}
 
 	/// <summary>
-	/// At the head of each country's day: offers waiting more than 96 hours dropped; the pacts that end
-	/// by themselves ended; and each running influence's upkeep paid.
+	/// At the head of each country's day: offers waiting more than 96 hours dropped - a played country's only where its
+	/// diplomacy is handed to the AI, as the original's; the pacts that end by themselves ended; and each running
+	/// influence's upkeep paid.
 	/// </summary>
 	public static void RunDaily(CGameState state)
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			country.PendingOffers.RemoveAll(o => o.Queued + PendingHours < state.TotalHours);
+			if (Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Diplomacy))
+			{
+				country.PendingOffers.RemoveAll(o => o.Queued + PendingHours < state.TotalHours);
+			}
 		}
 		bool[] owns = CRelations.Owning(state);
 		foreach (CCountry country in state.Countries)

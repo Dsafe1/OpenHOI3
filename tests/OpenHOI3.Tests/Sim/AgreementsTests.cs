@@ -354,5 +354,41 @@ public class AgreementsTests
 		CPactPasses.AskPlayers(state);
 		Assert.Empty(C(state, Pol).PendingOffers);
 		Assert.Empty(state.Outbox);
+
+		// A played country's list is never dropped by its age.
+		C(state, Pol).PendingOffers.Add(Offer(state, EOfferKind.Trade, ScriptWorld.Slo, Pol) with { Queued = state.TotalHours - 97 });
+		CPactPasses.RunDaily(state);
+		Assert.Single(C(state, Pol).PendingOffers);
+	}
+
+	[Fact]
+	public void A_played_countrys_offers_are_the_AIs_to_answer_and_drop_once_its_diplomacy_is_handed_over()
+	{
+		CGameState state = World();
+		state.Played.Add(Ger);
+		state.AiScripts = new FixedScripts(100);
+		var asked = new List<COffer>();
+		state.OfferAsked += asked.Add;
+		Run(state, Offer(state, EOfferKind.Alliance, Pol, Ger));
+
+		// Not handed over: the player is asked and the AI answers nothing.
+		CPactPasses.AnswerOffers(state);
+		Assert.Empty(state.Outbox);
+		CPactPasses.AskPlayers(state);
+		Assert.Single(asked);
+
+		state.Automation.Flags[(int)OpenHOI3.Sim.Settings.EAutomation.Diplomacy] = 1;
+		Run(state, Offer(state, EOfferKind.Alliance, Pol, Ger));
+		CPactPasses.AskPlayers(state);
+		Assert.Single(asked);
+		Assert.Single(C(state, Ger).PendingOffers);
+		CPactPasses.AnswerOffers(state);
+		Assert.Empty(C(state, Ger).PendingOffers);
+		RunPosted(state);
+		Assert.True(CCountryLists.HasAlliance(state, Pol, Ger));
+
+		C(state, Ger).PendingOffers.Add(Offer(state, EOfferKind.Trade, Pol, Ger) with { Queued = state.TotalHours - 97 });
+		CPactPasses.RunDaily(state);
+		Assert.Empty(C(state, Ger).PendingOffers);
 	}
 }

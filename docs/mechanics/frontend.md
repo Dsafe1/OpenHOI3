@@ -147,7 +147,7 @@ Not built; *Ours*.
 
 | area | what runs for the played country |
 | --- | --- |
-| diplomacy | the foreign minister (`foreignminister.md`), and the install's Lua trading for it each hour (`trade.md`) |
+| diplomacy | the foreign minister (`foreignminister.md`), and the install's Lua trading for it each hour (`trade.md`); the offers made to it answered as an AI's, shown to nobody and dropped after 96 hours (`agreements.md`, section 11) [exe] |
 | production | the production minister (`ministers.md`); **and the AI strategy's walk of its missions and victory conditions runs for a played country only while this is the AI's** (`aistrategy.md`) [exe] |
 | technology | the tech minister by the Technology setting: 1 the leadership sliders and research, 2 research, 3 the sliders [exe] |
 | politics | the politics minister (`politics.md`, section 12) |

@@ -282,6 +282,9 @@ The diplomacy screen's checkbox `trade_automate_checkbox`, "Automate Trade" (`co
 - **he is not told a trade accepted or declined** - `ACTRAWITHUS`, `WETRADEAG`, `DETRAWITHUS`,
   `WEDETRA`. A cancellation is told as ever.
 
+**Where his diplomacy is handed to the AI as well, the first of these is not done**: the trades offered to him are the
+AI's to answer, as any other country's (`agreements.md`, section 11), and the Lua trades for him as before.
+
 ## 13. The list of trades
 
 The production screen's `trade_list`, under `PW_TRADE_ROUTES` "Trade Routes", `PW_EXPORT` "Export" and

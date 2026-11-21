@@ -282,11 +282,17 @@ public static class CPacts
 					return;
 				}
 				Relation(state, actor, recipient, "TRADE_RELATION_CHANGES");
-				state.RaisePactMessage(new CPactMessage("ACTRAWITHUS", "WETRADEAG", "OTHERTRADEAG", actor.Tag, recipient.Tag)
+				// A trade the player's country makes while its diplomacy is handed to the AI tells nobody (agreements.md,
+				// section 11).
+				if (!Settings.CAutomation.HandedOver(state, Settings.EAutomation.Diplomacy)
+					|| (!state.Played.Contains(actor.Tag) && !state.Played.Contains(recipient.Tag)))
 				{
-					Deal = deal,
-					Sound = CPactMessage.Success,
-				});
+					state.RaisePactMessage(new CPactMessage("ACTRAWITHUS", "WETRADEAG", "OTHERTRADEAG", actor.Tag, recipient.Tag)
+					{
+						Deal = deal,
+						Sound = CPactMessage.Success,
+					});
+				}
 				break;
 			default:
 				Message(state, "DETRAWITHUS", "WEDETRA", "DETRAWITHOTHER", actor, recipient, sound: CPactMessage.Failure);

@@ -46,13 +46,15 @@ public static class CTradeAi
 			if (state.Played.Contains(country.Tag))
 			{
 				// The Lua trades for a played country under Automate Trade, or whose diplomacy is handed to the AI
-				// (frontend.md, section 4); only Automate Trade answers the offers made to it.
+				// (frontend.md, section 4); Automate Trade answers the offers made to it, but where the diplomacy is handed
+				// over and the AI's answer takes them (agreements.md, section 11).
 				bool automated = state.AutomateTrade.Contains(country.Tag);
-				if (!automated && !state.Automation.Has(Settings.EAutomation.Diplomacy))
+				bool handedOver = state.Automation.Has(Settings.EAutomation.Diplomacy);
+				if (!automated && !handedOver)
 				{
 					continue;
 				}
-				if (automated)
+				if (automated && !handedOver)
 				{
 					RunScripts(state, runs);
 					CAutomatedTrades.Answer(state, country);

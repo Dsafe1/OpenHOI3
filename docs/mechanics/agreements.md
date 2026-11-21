@@ -72,7 +72,9 @@ they came, after the hour's other business:
 - every offer then leaves the list, answered or not.
 
 **An offer on a list for more than 96 hours is dropped** as each country's day begins (`confirmed`) -
-which, the AI answering every hour, only a played country's ever is.
+a country nobody plays, and a played one only where its diplomacy is handed to the AI (section 11); the AI
+answering every hour, it is a trade held back for the next hour that it ever drops. A played country's
+list is emptied each hour as it is put to him, but for automate-trade's trades, which are never dropped.
 
 **The player's country does not answer** its offers itself: the original shows each proposal to the
 player as an icon and a dialog (section 9). Replies on the player's list are dropped.
@@ -310,8 +312,8 @@ how this runtime does it (`messages.md`, section 3); the original's order of fil
 
 - ~~**An AI's offers other than trade**~~ - the foreign minister's Lua proposes them since 2026-10-16
   (`foreignminister.md`).
-- **The player handing his diplomacy to the AI** ("Ai control"), under which his own offers are answered
-  like an AI's and the 96-hour drop applies to him.
+- ~~**The player handing his diplomacy to the AI** ("Ai control"), under which his own offers are answered
+  like an AI's and the 96-hour drop applies to him.~~ Built 2026-11-21, section 11.
 - ~~**The kinds of aid, war and peace, factions**~~ - built: `aid.md`, `war.md`, `factions.md`; trade is `trade.md`.
 - ~~The sound `diplomaticoffer` a new offer plays~~ - it plays (`sound.md`, section 7).
 
@@ -352,6 +354,25 @@ every `§W` in it the dialog's black. **Accept** ("Accept", its Enter taken away
 frame a dialog declines and closes once its time is up: two months from the offer and while it is
 valid; an alliance a week, and neither allied nor at war; a NAP neither allied nor at war; asked transit
 rights the months alone; a trade not at war.
+
+## 11. Diplomacy handed to the AI
+
+(`confirmed`, `reversing/findings/FINDINGS-agreements.md`, A4a.) While the player has handed his diplomacy to the AI -
+the diplomacy screen's arrow, or the lobby's options (`frontend.md`, section 4) - his country has a foreign minister
+(`foreignminister.md`) and:
+
+1. **the offers made to it are the AI's to answer**, every hour, as any other country's (section 2): the Lua's score, 30
+   or less declining, else the draw, one trade accepted an hour;
+2. **nothing is shown to him**: no icon, no dialog (section 10);
+3. **the 96-hour drop applies** to its list (section 2);
+4. **automate-trade's answer is not given**: its trades go to the AI's answer too (`trade.md`, section 12), while the
+   Lua still trades for it at its hour;
+5. **an accepted trade that his country is party to raises no message** - the original passes over the player's message
+   whether his country was actor or recipient; a declined one, a cancelled one and every other kind are told as
+   before.
+
+What his country offers is the foreign minister's and is answered by its recipient as usual. Event popups are not
+changed.
 
 ## Kept as read, though they look odd
 
