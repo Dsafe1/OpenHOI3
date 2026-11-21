@@ -163,6 +163,18 @@ public static class CRaidTrial
 		simulation.Post(new CSetUnitOrderCommand(raiderTag, raider.Id, order, target));
 		simulation.Pump();
 
+		// How the raider goes, where it does: as it stood and what took it out.
+		state.UnitRemovedTrace = unit =>
+		{
+			if (unit == raider)
+			{
+				Console.WriteLine($"{state.Date} {state.Hour}:00  {Describe(raider)}, in {state.Province(raider.Location).Name}, order {raider.Order}, is taken out of the game by");
+				foreach (string frame in Environment.StackTrace.Split('\n').Where(line => line.Contains("OpenHOI3.Sim")).Skip(1).Take(5))
+				{
+					Console.WriteLine("        " + frame.Trim());
+				}
+			}
+		};
 		var before = victims.Convoys.ToDictionary(convoy => convoy.Id, convoy => (convoy.Transports, convoy.Escorts));
 		int raids = 0;
 		int transports = 0;
