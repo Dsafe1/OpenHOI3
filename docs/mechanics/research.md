@@ -227,7 +227,8 @@ On the first of each month every ability of every country shrinks: `confirmed`
   technologies' figure over it, so the ministers' is thrown away (`confirmed`,
   `reversing/findings/FINDINGS-bicelibsites.md`, section 4; `FINDINGS-techdecay.md`, section
   4). *Exe-hardcoded*; a fault of the original, kept (`docs/enhanced.md`, *Economy and
-  production*). A modifier of -1 or less stops the decay; it cannot turn it into a gain.
+  production*) - and mended in an enhanced game by the fix `minister_tech_decay`, which adds the
+  ministers' figure to the technologies' (2026-11-21; `docs/enhanced.md`, *What is built*). A modifier of -1 or less stops the decay; it cannot turn it into a gain.
 - **`slack` is the reinforcement share plus the upgrade share** of the country's IC
   (`production.md`, section 1): the positions of the two sliders, whether or not anything
   is spent through them. A country with a tenth of its IC on each loses a fifth less.

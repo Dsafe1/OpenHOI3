@@ -18,6 +18,18 @@ public static class CSaveFiles
 	/// <summary>The folder saves are written to, under the player's folder - and listed from under the install's too.</summary>
 	public const string FolderName = "save games";
 
+	/// <summary>
+	/// The folder an enhanced game's saves are written to and listed from, below the original's: they hold keys the
+	/// original does not know, and kept apart nobody loads one there (decided 2026-11-21).
+	/// </summary>
+	public const string EnhancedFolderName = FolderName + "/openhoi";
+
+	/// <summary>The folder of saves for games made from these folders: the enhanced mode's own where a layer turns it on.</summary>
+	public static string FolderFor(CDirectorySettings directories)
+	{
+		return Rules.CRulesReader.IsEnhanced(directories) ? EnhancedFolderName : FolderName;
+	}
+
 	/// <summary>The extension a save is written with, and the one a name is tested for, case and all.</summary>
 	public const string Extension = ".hoi3";
 

@@ -68,4 +68,24 @@ public sealed class LaunchContractTests : IDisposable
 		Assert.Equal(CLaunchContract.Version, engine.Contract);
 		Assert.EndsWith("OpenHOI3.exe", engine.Executable);
 	}
+
+	[Fact]
+	public void ALaunchersOwnEngineIsInItsFolderOrBesideItAsAModShipsThem()
+	{
+		// A mod's folder with its launcher and its engine side by side: the launcher's own engine is the mod's.
+		string mod = System.IO.Path.Combine(_fixture.Root, "shipped");
+		string launcher = System.IO.Path.Combine(mod, CEngineFile.LauncherFolderName);
+		System.IO.Directory.CreateDirectory(launcher);
+		string inside = System.IO.Path.Combine(launcher, CEngineFile.FolderName);
+		// With neither, the folder inside is named, for what is said of it.
+		Assert.Equal(inside, CEngineFile.OwnFolder(launcher));
+
+		string beside = _fixture.Engine(System.IO.Path.Combine(mod, CEngineFile.FolderName), "openhoi3-1.0");
+		Assert.Equal(beside, CEngineFile.OwnFolder(launcher));
+		Assert.Equal(beside, CEngineFile.OwnFolder(launcher + System.IO.Path.DirectorySeparatorChar));
+
+		// One of its own inside comes first.
+		_fixture.Engine(inside, "openhoi3-2.0");
+		Assert.Equal(inside, CEngineFile.OwnFolder(launcher));
+	}
 }

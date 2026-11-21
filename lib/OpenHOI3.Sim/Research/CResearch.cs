@@ -357,11 +357,12 @@ public static class CResearch
 	/// <summary>
 	/// A category's decay modifier, in thousandths: what the country's technologies add up to for it. The original's rebuild
 	/// of a country's modifier adds its ministers' (<c>CCountryModifiers.MinisterDecay</c>) and then stores the technologies'
-	/// over them, so a minister's <c>decay</c> does nothing - the original's fault, kept (research.md, section 6).
+	/// over them, so a minister's <c>decay</c> does nothing - the original's fault, kept (research.md, section 6). An
+	/// enhanced game with the fix <see cref="Rules.EFix.MinisterTechDecay"/> adds the ministers' to the technologies'.
 	/// </summary>
 	public static long DecayModifier(CGameState state, CCountry country, string category)
 	{
-		long total = 0;
+		long total = state.Rules.Has(Rules.EFix.MinisterTechDecay) ? Modifiers.CCountryModifiers.MinisterDecay(country, category) : 0;
 		foreach ((string name, int level) in country.TechnologyLevels)
 		{
 			if (level <= 0 || !state.Technologies.TryGetValue(name, out CTechnology? technology))

@@ -64,6 +64,8 @@ lib/OpenHOI3.Sim/       our own data model and the simulation: the game state, t
                         garrisons, the line and the reserve, the attack and its odds, the
                         sea targets and the fleets' hour, the sealift and invasions, and the
                         air - air bases chosen and missions given
+    Rules/              ours: the rules a game carries beyond the original's - whether it is an
+                        enhanced game and which fixes it goes without (docs/enhanced.md)
     Replay/             ours: the AI's steps recorded and played back in their place, the
                         commands' written form and the state's hash (docs/replay.md)
     Multiplayer/        ours: a host's and a client's side of a game between several machines,
@@ -134,6 +136,7 @@ lib/OpenHOI3.Content/   reading an install: finding and layering it, localisatio
     Launch/             the launcher's side of an install: its mods listed and ticked, the engine a choice is
                         played on, engine.txt, the command line to an engine, where an install is looked for
                         and what the launcher remembers (docs/launcher.md)
+    Rules/              ours: common/openhoi_enhanced.txt, by which a mod turns the enhanced mode on
     Logs/               where the game's own log goes, in the player's folder's logs, and the runs kept
     Messages/           the message types of interface/messagetypes.txt
     Mods/               a .mod file, the mods a command line selects and their order, the layering's rules

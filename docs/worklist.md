@@ -36,6 +36,14 @@ Four choices sit under all of it:
 
 ## Next up
 
+**The enhanced mode and BlackICE's release on it - begun 2026-11-21** (`docs/blackice.md`, which holds the plan, its
+decisions and what of each step is built; `docs/enhanced.md`, *The shape*, for the mode itself). Step 1, the mode's
+skeleton, is built: `common/openhoi_enhanced.txt`, the rules a game carries, an enhanced save's keys and folder, the
+Lua's `OpenHOI3.Enhanced`, and one fix. Step 2 is built too: the engine's version of its own, `openhoi3-<x>` by a
+tag, and `tools/build_release.ps1`, which packs a release and publishes nothing - **no release has been made; the
+first tag and its publishing are the user's**. **Next: step 3**, in BlackICE's repository - the version it is made for,
+the script that fetches that release, `engine = ` in its descriptor - which waits for a first release to fetch.
+
 **Multiplayer - the last large piece of the normal engine** (`docs/multiplayer.md`, which holds every decision, what is
 built and what is not; begun 2026-11-20). **Finished, by the word of 2026-11-21: "I think multiplayer is finished
 now."** What the list below still names as left - of the original's lobby, of the chat, a screen for the port - is

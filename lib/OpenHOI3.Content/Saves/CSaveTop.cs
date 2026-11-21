@@ -21,11 +21,45 @@ public static class CSaveTop
 	/// <summary>The type an event's id has (<c>FINDINGS-savegame.md</c>, B.3).</summary>
 	public const int EventIdType = 40;
 
+	/// <summary>An enhanced save's own key for the rules its game is played by, as <see cref="Sim.Rules.CRules.Text"/> writes them.</summary>
+	public const string RulesKey = "openhoi_rules";
+
+	/// <summary>An enhanced save's own key for the version of the engine that wrote it (<c>docs/launcher.md</c>, section 8).</summary>
+	public const string EngineKey = "openhoi_engine";
+
+	/// <summary>
+	/// The two keys of ours an enhanced game's save holds beside the original's: its rules and the engine that wrote it.
+	/// A faithful game writes neither, its save being the original's key for key.
+	/// </summary>
+	public static void WriteRules(CSaveTextWriter writer, CGameState state)
+	{
+		if (!state.Rules.Enhanced)
+		{
+			return;
+		}
+		writer.Quoted(RulesKey, state.Rules.Text);
+		writer.Quoted(EngineKey, state.EngineVersion);
+	}
+
 	/// <summary>Reads a top-level key this holds; false for any other.</summary>
 	public static bool Read(CGameState state, ClausewitzNode node, CSaveReport report)
 	{
 		switch (node.Key)
 		{
+			// A game carries its rules: a save's own stand, whatever the folders it is loaded under say (enhanced.md, The shape).
+			case RulesKey when !node.IsBlock:
+				if (Sim.Rules.CRules.Parse(node.Value ?? "", name => report.Unread("top", $"{RulesKey}, the fix '{name}'")) is { } rules)
+				{
+					state.Rules.CopyFrom(rules);
+				}
+				else
+				{
+					report.Unread("top", $"{RulesKey}, '{node.Value}'");
+				}
+				return true;
+			case EngineKey when !node.IsBlock:
+				state.SavedByEngine = node.Value ?? "";
+				return true;
 			// The next numbers, which the original's counters hold.
 			case "rebel" when !node.IsBlock:
 				state.LastRebelId = (int)CSaveValues.Whole(node.Value) - 1;

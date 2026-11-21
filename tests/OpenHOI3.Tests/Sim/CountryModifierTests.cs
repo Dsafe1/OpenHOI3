@@ -433,6 +433,34 @@ public class CountryModifierTests
 	}
 
 	[Fact]
+	public void InAnEnhancedGameAMinistersDecayCountsUnlessTheGameGoesWithoutTheFix()
+	{
+		var type = new CMinisterType(Modifier("naval_reformer"));
+		type.Decay["naval_engineering"] = CFixedPoint.Parse("-0.25");
+		var minister = new CMinister(1, "A Minister");
+		minister.SetType("chief_of_navy", type);
+
+		CCountry germany = Country("GER", 1);
+		germany.Abilities["naval_engineering"] = CFixedPoint.FromInt(10);
+		germany.Government["chief_of_navy"] = minister;
+		CGameState state = State(new[] { germany }, new[] { Land(1, "GER") });
+
+		// Enhanced, with every fix: the minister's quarter comes off the month's 2.5%, the step cut to thousandths as a
+		// technology's is - 0.025 by 0.75 is 0.018.
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		Assert.Equal(-250, CResearch.DecayModifier(state, germany, "naval_engineering"));
+		CResearch.DecayMonthly(state);
+		Assert.Equal(CFixedPoint.Parse("9.82"), germany.Abilities["naval_engineering"]);
+
+		// Enhanced, the mod naming the fix as one it does not want: the original's.
+		germany.Abilities["naval_engineering"] = CFixedPoint.FromInt(10);
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(new[] { OpenHOI3.Sim.Rules.EFix.MinisterTechDecay }));
+		Assert.Equal(0, CResearch.DecayModifier(state, germany, "naval_engineering"));
+		CResearch.DecayMonthly(state);
+		Assert.Equal(CFixedPoint.Parse("9.75"), germany.Abilities["naval_engineering"]);
+	}
+
+	[Fact]
 	public void TheMinistersComeAmongTheSourcesInTheirPostsOrderWhateverOrderTheyWereSeatedIn()
 	{
 		var posts = new[]

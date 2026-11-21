@@ -867,6 +867,6 @@ public partial class CLobby : Control
 	/// <summary>The player's folder of saves, then the install's, as the save dialog lists them.</summary>
 	private List<string> SaveFolders()
 	{
-		return _frontEnd.Directories.UserAndLayerFolders(CSaveFiles.FolderName).ToList();
+		return _frontEnd.Directories.UserAndLayerFolders(CSaveFiles.FolderFor(_frontEnd.Directories)).ToList();
 	}
 }

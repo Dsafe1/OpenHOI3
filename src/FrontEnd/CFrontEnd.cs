@@ -118,13 +118,15 @@ public partial class CFrontEnd : Node
 	/// <summary>The play checksum taken as its work ends, and written on the main menu and in the lobby.</summary>
 	private void ShowPlayChecksum()
 	{
+		// The engine's own version is asked on this thread, the engine's calls being the main thread's.
+		string engineVersion = _playChecksumWork is null ? Content.Launch.CEngineFile.VersionBeside(OS.GetExecutablePath()) : "";
 		_playChecksumWork ??= System.Threading.Tasks.Task.Run(() =>
 		{
 			// Every file that went in, with its length and its own hash, written beside the logs: two players whose
 			// figures differ set the two files beside each other (checksum.md, section 8; tools/checksumdiff.py).
 			var listed = new System.Collections.Generic.List<string>();
 			byte[] hash = Content.Checksum.CPlayChecksum.Compute(Content.Checksum.CChecksumSearchPath.ForPlay(_directories),
-				engineVersion: "", listed: listed).Hash;
+				engineVersion, Content.Rules.CRulesReader.Read(_directories, _ => { }).Text, listed).Hash;
 			try
 			{
 				string folder = Content.Logs.CLogFiles.Folder(_directories);

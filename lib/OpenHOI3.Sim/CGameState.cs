@@ -665,6 +665,22 @@ public sealed class CGameState
 	/// </summary>
 	public HashSet<CCountryTag> AutomateTrade { get; } = new();
 
+	/// <summary>
+	/// The rules this game is played by beyond the original's: the faithful game's unless a mod's file made it an
+	/// enhanced one (<c>docs/enhanced.md</c>, <i>The shape</i>). Set through <see cref="OpenHOI3.Sim.Rules.CRules.CopyFrom"/> as a game
+	/// is made or loaded, and never while it runs.
+	/// </summary>
+	public OpenHOI3.Sim.Rules.CRules Rules { get; } = new();
+
+	/// <summary>
+	/// The version of the engine running this game, as its <c>engine.txt</c> names it, which an enhanced save records;
+	/// empty where it runs from its sources. No part of the game: set by what runs it.
+	/// </summary>
+	public string EngineVersion { get; set; } = "";
+
+	/// <summary>The engine version an enhanced save loaded into this game was written by; empty for any other game.</summary>
+	public string SavedByEngine { get; set; } = "";
+
 	/// <summary>The difficulty and the game mode (<c>docs/mechanics/frontend.md</c>, section 4).</summary>
 	public Settings.CGamePlaySettings GamePlay { get; } = new();
 

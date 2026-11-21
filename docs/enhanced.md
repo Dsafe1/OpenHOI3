@@ -28,7 +28,9 @@ Add to it whenever a spec records something of the original's that looks like a 
 
 ## The shape, decided 2026-11-20
 
-Worked out while the normal engine still lacks multiplayer, which comes first. **Nothing of this is built.**
+Worked out while the normal engine still lacked multiplayer, which came first. **The skeleton is built since
+2026-11-21, and one fix behind it** (*What is built*, below); the rest is not. How it reaches BlackICE and its players
+is `blackice.md`.
 
 - **A mode, not a branch.** The enhanced engine is switches in this one codebase, so the faithful rules stay under the
   savegame checks. Should the faithful engine one day be retired, it is that one that becomes the branch.
@@ -61,6 +63,33 @@ Worked out while the normal engine still lacks multiplayer, which comes first. *
   condition the original drops is a condition absent - an `and` of it alone holds - so script that leans on a new
   condition needs a gate the original answers false.
 
+### What is built, 2026-11-21
+
+- **The file is `common/openhoi_enhanced.txt`** (`CRulesReader`), in any layer; its being there makes every game made
+  from those folders an enhanced one. The name carries the prefix everything of this engine's in a mod carries, or
+  stands in a subfolder of its own (`blackice.md`). It may be empty. What it may say:
+
+      without = { minister_tech_decay }
+
+  the fixes the mod does not want, by name. Any other key, and a name that is no fix, is reported.
+- **The rules are `CRules`, on `CGameState.Rules`**: whether the game is enhanced and which fixes it goes without. A
+  rule that differs asks `state.Rules.Has(EFix.X)` where it differs. A fix is one value of `EFix` and one name in
+  `CFixes` - lower case with underscores, and kept once given out, a mod's file and every enhanced save holding it.
+- **One line says them** (`CRules.Text`): empty for the faithful game, `enhanced`, or `enhanced without a b`. That
+  line is hashed into the play checksum (`mechanics/checksum.md`, section 8) and is the last part of the state's hash,
+  `rules` (`replay.md`).
+- **An enhanced save holds two keys of ours** at its top, after `gameplaysettings`: `openhoi_rules`, that line, and
+  `openhoi_engine`, the version of the engine that wrote it (`launcher.md`, section 8). A faithful game writes
+  neither, so its save stays the original's key for key. **A loaded save's rules stand**, whatever the folders it is
+  loaded under say; a fix it names that this engine does not know is reported and left out. A save with no such key
+  takes the folders'.
+- **An enhanced game's saves are in `save games/openhoi`** under the player's folder, written there and listed from
+  there (`CSaveFiles.FolderFor`): kept apart from the original's, nobody loads one in the original. Decided 2026-11-21.
+- **A mod's Lua is told**: `OpenHOI3.Enhanced` is true or false, and `OpenHOI3.Fixes` holds `true` under the name of
+  each fix that is on (`CLuaRules`) - so a script made for both engines asks `OpenHOI3 ~= nil and OpenHOI3.Enhanced`.
+  They are the folders' rules, set as the scripts load.
+- **The first fix, as proof: `minister_tech_decay`** (*Economy and production*, below).
+
 ## BiceLib's features, each one's place
 
 By `docs/bicelib/features.md` of the mod's repository, which has each feature's rule in full. **Proposed on
@@ -69,7 +98,7 @@ names of keys and defines are proposals.
 
 **Fixes - how the enhanced mode behaves, on unless the mod names one**
 
-- A minister's technology decay counts (*Economy and production*, above).
+- A minister's technology decay counts (*Economy and production*, above). **Built 2026-11-21**, `minister_tech_decay`.
 - A historical model that needs a technology the country has not researched loses to every model that does not.
 - A queued brigade's `historical_model` gets a level for every technology of its type, so none lands on another.
 - A country-level `ic` modifier counts, as off-map IC: a country's IC is its provinces' sum and that figure.
@@ -401,7 +430,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - **A province's yield of fuel reads its holder's `global_money`, and of money its `global_fuel`.** The table of a good's country modifier a province's yield is scaled by has the two the wrong way round, where the province's own table has them right. No province yields either today, so nothing shows it. `resources.md`, 3; `reversing/findings/FINDINGS-supplyconvoys.md`, section 8. *Bug.* Risk: none until a mod gives a province fuel or money to yield.
 - **A change of law leaves the production slider's need at the queue's old prices.** The change prices every line again and counts nothing, so the need stays as last counted until the next midnight or the next order - a new game's first screen shows Germany 13.984 at 1936 where its queue then costs 16.159, the install's Lua having changed its laws after the two days. `buildqueue.md`, 4; `reversing/findings/FINDINGS-production.md`. *Oversight.* Risk: small; the AI's production script reads the need.
 - **A strategic resource once had is kept after its province is lost** - at the best level it ever reached, for as long as the game runs - and **a load forgets it**, so whether a country still has the resource depends on whether a save was loaded since. `modifiers.md`, 6; `reversing/findings/FINDINGS-countrymodifier.md`, section 7. *Oversight.* Risk: moderate; a level would have to be made again each day from nothing.
-- **A minister's technology decay does nothing.** The rebuild of a country's modifier adds every sitting minister's `decay` to each category and then stores the technologies' figure over it, so 24 minister types' decay is thrown away. BlackICE's DLL mends it with `fixMinisterTechDecay`. `research.md`, 6; `reversing/findings/FINDINGS-bicelibsites.md`, section 4. *Bug.* Risk: every country's abilities, and the saves of an executable carrying the patch on disk, which agree with it (`research.md`, 8).
+- **A minister's technology decay does nothing.** *Done in the enhanced mode, 2026-11-21: the fix `minister_tech_decay` adds the sitting ministers' `decay` to the technologies' (`CResearch.DecayModifier`).* The rebuild of a country's modifier adds every sitting minister's `decay` to each category and then stores the technologies' figure over it, so 24 minister types' decay is thrown away. BlackICE's DLL mends it with `fixMinisterTechDecay`. `research.md`, 6; `reversing/findings/FINDINGS-bicelibsites.md`, section 4. *Bug.* Risk: every country's abilities, and the saves of an executable carrying the patch on disk, which agree with it (`research.md`, 8).
 - **A lend-lease share with nobody to give to wastes its IC.** Only the open production screen puts the slider back to nought; a player who never opens it - for a week, in a reference 1936 game, at 15.5% - loses that IC, and nothing passes it to the other shares. `sliders.md`, 2; `reversing/findings/FINDINGS-lendleaseslider.md`. *Oversight.* Risk: small; the AI's script already zeroes its own.
 
 ## AI

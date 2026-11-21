@@ -65,7 +65,7 @@ public partial class Main : Control
 		{
 			return;
 		}
-		net.SaveFolder ??= System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderName);
+		net.SaveFolder ??= System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderFor(_directories));
 		net.Pump();
 		// A game that parts is written beside the logs, each machine's own figures, and said in the log.
 		net.DumpFolder ??= Content.Logs.CLogFiles.Folder(_directories);
@@ -638,7 +638,8 @@ public partial class Main : Control
 	private string PlayChecksum()
 	{
 		(byte[] hash, _) = Content.Checksum.CPlayChecksum.Compute(Content.Checksum.CChecksumSearchPath.ForPlay(_directories),
-			engineVersion: "");
+			Content.Launch.CEngineFile.VersionBeside(OS.GetExecutablePath()),
+			Content.Rules.CRulesReader.Read(_directories, _ => { }).Text);
 		return System.Convert.ToHexString(hash);
 	}
 

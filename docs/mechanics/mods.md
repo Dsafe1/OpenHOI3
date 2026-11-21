@@ -258,6 +258,9 @@ kept. It stands in for the one thing BlackICE asks of `lfs`, a native module thi
 for the original's interpreter); designed so on 2026-11-16. BlackICE's `script/file-io.lua` requires `lfs` only
 where `OpenHOI3` is nil and lists a folder through `OpenHOI3.Files` where it is not, so the original is untouched.
 
+Since 2026-11-21 the global also says the rules: `OpenHOI3.Enhanced`, true where the folders make an enhanced game, and
+`OpenHOI3.Fixes`, `true` under the name of each fix that is on (`docs/enhanced.md`, *What is built*).
+
 *Measured*, 2026-11-16, with the BlackICE repository's `file-io.lua` laid over an install linked together in a scratch
 folder: the survey's ours from about 27,040 to 13,594 - `autoexec.lua` loads whole, and the calls of the game into the
 scripts now run, the first of them to fail on `GetUnits`, a method of the AI's Lua classes not built (374 times,

@@ -55,7 +55,7 @@ public sealed class CLauncherWindow : Window
 
 		string ownFolder = arguments.FirstOrDefault(a => a.StartsWith(EngineSwitch, StringComparison.Ordinal)) is { } given
 			? given[EngineSwitch.Length..].Trim('"')
-			: Path.Combine(AppContext.BaseDirectory, CEngineFile.FolderName);
+			: CEngineFile.OwnFolder(AppContext.BaseDirectory);
 		var problems = new List<string>();
 		_own = CEngineFile.Read(ownFolder, problems.Add);
 		_ownProblem = problems.FirstOrDefault();

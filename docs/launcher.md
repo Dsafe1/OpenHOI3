@@ -46,14 +46,26 @@ opens or lists is under it, and the file checksum sums only its own folders (`me
 **An engine says what it is in an `engine.txt`** beside its program (`CEngineFile`), so the launcher knows it without
 starting it - ours, so UTF-8:
 
-    version = "normal-2026.11.18-9d2ff5f"
+    version = "openhoi3-0.1.0"
     executable = "OpenHOI3.exe"
     contract = 1
 
 `version` is what a mod's descriptor names, compared case and all; `executable` is relative to the folder; `contract` is
-the version of the command line the engine understands (section 5). `tools/build_engine.ps1` writes it for the normal engine:
-`normal-`, the date and the commit, a `+` where the tree had changes not committed. An engine folder with no
-`engine.txt`, or one whose program is not there, is no engine.
+the version of the command line the engine understands (section 5). An engine folder with no `engine.txt`, or one
+whose program is not there, is no engine.
+
+**The version, since 2026-11-21** (`tools/engine_version.ps1`, which `tools/build_engine.ps1` asks): one program plays
+the faithful game and the enhanced one (`enhanced.md`), so the version says nothing of the mode - it was `normal-`, the
+date and the commit until then. **A release's is `openhoi3-<x>`**, where the tree is clean and its commit carries the
+tag `v<x>`: tag `v0.1.0` gives `openhoi3-0.1.0`, which is what a mod is made for and names. Any other build's is
+`openhoi3-<yyyy.MM.dd>-<commit>`, with a `+` where the tree had changes not committed - a build between two releases,
+for its builder.
+
+**A mod may ship a launcher too**, in `tfh/mod/<name>/launcher/` (decided 2026-11-21, for BlackICE: the launcher and
+the engine go with each version of the mod, so that a new version of the mod brings a new launcher and none has to
+stay compatible with an old one). A launcher's own engine is the `engine` folder in its own folder or, where that
+holds none, the `engine` folder beside its own (`CEngineFile.OwnFolder`) - so a launcher a mod ships plays the base
+game and every mod naming no engine on the engine that mod ships, the one copy.
 
 ## 3. The descriptor names its engine
 
@@ -135,6 +147,20 @@ Three scripts in `tools/`, since 2026-11-19 (the user's: "Just make it 3"):
 - **`build_both.ps1`** runs the two and copies the engine into `export/Launcher/engine/`, about 245 MB in all: what a
   player is given.
 
+And since 2026-11-21 a fourth and a helper:
+
+- **`engine_version.ps1`** says the version a build of the tree is (section 2); `build_engine.ps1` and
+  `build_both.ps1` take `-Release`, which refuses a tree that is no release before anything is built;
+- **`build_release.ps1`** builds both from a release's tree and packs `export/release/`: `OpenHOI3-engine-<x>.zip`, the
+  engine alone with `engine.txt` at its root, which a mod's release puts in its `engine` folder;
+  `OpenHOI3-launcher-<x>.zip`, the launcher alone; `OpenHOI3-<x>.zip`, the launcher with the engine as its own, for a
+  player of the base game; `SHA256SUMS.txt`, which a mod's packaging checks what it fetched against; and `release.md`,
+  the notes, with the version a mod names and the tag that is the source. **It publishes nothing**: it ends by printing
+  the `git push` of the tag and the `gh release create` that would, which are its user's to run. `-AllowUntagged`
+  packs a tree that is no release under its date-and-commit version, as a trial of the packaging.
+
+A release is made so: commit, `git tag v<x>`, `tools/build_release.ps1`, then the two commands it prints.
+
 The launcher run by hand takes **`--engine=<folder>`** in place of its own `engine` folder.
 
 **Checked on 2026-11-18**: the logic's 30 tests (`EngineChoiceTests`, `ModPicksTests`, `LaunchContractTests`,
@@ -151,14 +177,20 @@ came up - the engine standing outside the install.
   Whatever this game checks between players has to check the engine as well - **built with multiplayer**: the play
   checksum a machine is let in by hashes the engine's version (`CPlayChecksum`; `mechanics/checksum.md`, section 8).
 
-The save's record is not built and waits for the enhanced engine, which has no save of its own yet (`enhanced.md`).
+**The save's record is built since 2026-11-21**: an enhanced game's save holds `openhoi_engine`, the version of the
+engine that wrote it, beside its rules (`enhanced.md`, *What is built*), and the play checksum hashes the version the
+`engine.txt` beside the running program names (`CEngineFile.VersionBeside`), where it hashed an empty one. The
+launcher going on with a save is not built.
 
 ## 9. A mod's repository and its release
 
 A mod's repository holds the version it names, not the engine: an export is over a hundred megabytes, and a binary kept
 in git stays in its history. The mod's release puts that engine into its folder - which is how OpenRA's mods are made,
 each one naming an engine release that its tools fetch and package with it. **Nothing of a mod's release is built**:
-BlackICE names no engine, being written for the original.
+BlackICE names no engine, being written for the original. Planned on 2026-11-21, for BlackICE's version 16
+(`blackice.md`): its release fetches a release of this engine (section 7) by the version it names, and its installer
+puts the engine in the mod's `engine` folder and the launcher in its `launcher` folder (section 2), the one copy
+playing the base game as well.
 
 ## 10. Licence and trust
 

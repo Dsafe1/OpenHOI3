@@ -335,10 +335,10 @@ public sealed partial class CInGameMenu : Control
 	/// <summary>The player's folder of saves, where a save is written, then the install's, where one is also looked for.</summary>
 	private IEnumerable<string> SaveFolders()
 	{
-		return _directories.UserAndLayerFolders(CSaveFiles.FolderName);
+		return _directories.UserAndLayerFolders(CSaveFiles.FolderFor(_directories));
 	}
 
-	private string SaveFolder => System.IO.Path.Combine(_directories.UserFolder, CSaveFiles.FolderName);
+	private string SaveFolder => System.IO.Path.Combine(_directories.UserFolder, CSaveFiles.FolderFor(_directories));
 
 	/// <summary>
 	/// <c>save</c>: nothing for an empty box; a file of the name in any of the folders is asked about first, and written

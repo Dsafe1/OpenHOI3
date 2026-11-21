@@ -201,6 +201,8 @@ public partial class CSession : Node
 		Map = prepared.Map;
 		_aiScripts = prepared.AiScripts;
 		State = prepared.State;
+		// Which engine runs the game, which an enhanced save records (docs/launcher.md, section 8).
+		State.EngineVersion = Content.Launch.CEngineFile.VersionBeside(OS.GetExecutablePath());
 		_simulation = new CSimulation(State);
 		// From here on screens look at the game between its commands, and a look keeps nothing in it: who stands where and
 		// the supply network are made by a running command alone (docs/multiplayer.md, section 3).
@@ -515,7 +517,7 @@ public partial class CSession : Node
 		{
 			State.Played.Add(other);
 		}
-		string path = System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderName,
+		string path = System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderFor(_directories),
 			"Multiplayer_" + Content.Saves.CSaveFiles.OfferedName(Player.Name, State.TotalHours) + ".hoi3");
 		try
 		{
@@ -1722,7 +1724,7 @@ public partial class CSession : Node
 		{
 			return;
 		}
-		string folder = System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderName);
+		string folder = System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderFor(_directories));
 		try
 		{
 			Content.Saves.CAutosave.Write(State, _localisation.Localise, folder);

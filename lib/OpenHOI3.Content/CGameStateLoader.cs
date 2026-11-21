@@ -202,6 +202,8 @@ public static class CGameStateLoader
 			StartDate = start,
 			EndDate = ReadEndDate(directories, warn),
 		};
+		// The rules the game is played by: the enhanced mode's where a layer turns it on (enhanced.md, The shape).
+		state.Rules.CopyFrom(Rules.CRulesReader.Read(directories, warn));
 		AssignRegions(state);
 		// A faction's members as the original's history passes reached them: those of the defines' start date in the
 		// countries' order, then those the bookmark's pass made members, in the countries' order too (war.md, section 13).

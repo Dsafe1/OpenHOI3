@@ -18,6 +18,34 @@ public static class CEngineFile
 	/// <summary>The folder a mod keeps its engine in, below its own; the launcher keeps its own the same way.</summary>
 	public const string FolderName = "engine";
 
+	/// <summary>The folder a mod keeps a launcher in, below its own, where it ships one (<c>docs/launcher.md</c>, section 2).</summary>
+	public const string LauncherFolderName = "launcher";
+
+	/// <summary>
+	/// The folder of a launcher's own engine: <c>engine</c> in the launcher's folder, or, where that holds no
+	/// <c>engine.txt</c>, <c>engine</c> beside the launcher's folder - which is where a launcher a mod ships in its
+	/// <c>launcher</c> folder finds the engine the mod ships in its <c>engine</c> folder, so that the one copy plays the
+	/// base game too. With neither, the first, for what is said of it.
+	/// </summary>
+	public static string OwnFolder(string launcherFolder)
+	{
+		string inside = Path.Combine(launcherFolder, FolderName);
+		if (File.Exists(Path.Combine(inside, FileName)))
+		{
+			return inside;
+		}
+		string trimmed = launcherFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+		if (Path.GetDirectoryName(trimmed) is { Length: > 0 } parent)
+		{
+			string beside = Path.Combine(parent, FolderName);
+			if (File.Exists(Path.Combine(beside, FileName)))
+			{
+				return beside;
+			}
+		}
+		return inside;
+	}
+
 	/// <summary>
 	/// The engine in a folder, or null with the reason where there is none: no <c>engine.txt</c>, no version, no
 	/// executable or one that is not there, or a contract that is not a whole number.
@@ -71,5 +99,21 @@ public static class CEngineFile
 	{
 		return "# The engine in this folder, as the launcher reads it (docs/launcher.md).\n"
 			+ $"version = \"{version}\"\nexecutable = \"{executable}\"\ncontract = {contract}\n";
+	}
+
+	/// <summary>
+	/// The version of the engine a program is, by the <c>engine.txt</c> beside it: what the play checksum hashes and an
+	/// enhanced save records. Empty where there is none, as for an engine run from its sources.
+	/// </summary>
+	public static string VersionBeside(string executablePath)
+	{
+		try
+		{
+			return Path.GetDirectoryName(executablePath) is { Length: > 0 } folder && Read(folder) is { } engine ? engine.Version : "";
+		}
+		catch (Exception failed) when (failed is IOException or UnauthorizedAccessException or ArgumentException)
+		{
+			return "";
+		}
 	}
 }

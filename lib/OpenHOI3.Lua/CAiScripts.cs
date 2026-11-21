@@ -61,6 +61,8 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		_lua.OpenLibraries("base", "package", "table", "io", "os", "string", "math", "debug");
 		// The engine's mark and the folder structure, for a mod's script that would list a folder (mods.md, section 6).
 		CLuaFiles.Install(_lua, Directory.GetCurrentDirectory);
+		// Whether the folders make an enhanced game, and with which fixes, for a mod's script made for both engines.
+		CLuaRules.Install(_lua, OpenHOI3.Content.Rules.CRulesReader.Read(directories, _ => { }));
 		// Every state draws math.random on a generator of its own, seeded 1 as a new thread's is - the tech and
 		// production scripts' picks among them (ministers.md, Ours).
 		_random.Install(_lua);

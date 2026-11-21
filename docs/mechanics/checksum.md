@@ -100,7 +100,8 @@ It is a SHA-256 hash of, in this order:
 1. the text `OpenHOI3 play checksum 2`, which is raised when what goes in, or how, changes;
 2. the engine's version, as its `engine.txt` names it (`docs/launcher.md`, section 2) - empty for a game run from its
    sources;
-3. the rules a game is played by beyond the original's - the enhanced engine's, of which there are none yet;
+3. the rules a game is played by beyond the original's, as their one line (`docs/enhanced.md`, *What is built*):
+   empty for the faithful game, `enhanced` with the fixes a mod goes without for an enhanced one (since 2026-11-21);
 4. every file of the folders `common`, `decisions`, `events`, `history`, `map`, `missions`, `script`, `technologies`
    and `units`, with every subfolder, **of the kinds a game reads there** - `.txt`, `.lua`, `.csv`, `.bmp`, `.dds`,
    `.tga`, `.map`: its path in lower case, its length and its bytes, the files in the order of their lower-case paths.

@@ -16,7 +16,7 @@ namespace OpenHOI3.Sim.Replay;
 public static class CStateHash
 {
 	/// <summary>The parts, in the order they are told.</summary>
-	public static readonly string[] Parts = { "generator", "countries", "diplomacy", "provinces", "units", "wars", "theatres" };
+	public static readonly string[] Parts = { "generator", "countries", "diplomacy", "provinces", "units", "wars", "theatres", "rules" };
 
 	/// <summary>Each part's hash, in the order of <see cref="Parts"/>.</summary>
 	public static ulong[] Of(CGameState state)
@@ -30,7 +30,16 @@ public static class CStateHash
 			Units(state),
 			Wars(state),
 			Theatres(state),
+			Rules(state),
 		};
+	}
+
+	/// <summary>The rules the game is played by (<c>docs/enhanced.md</c>, <i>The shape</i>): last, the parts being told by their place.</summary>
+	private static ulong Rules(CGameState state)
+	{
+		var hash = new CHasher();
+		hash.Add(state.Rules.Text);
+		return hash.Value;
 	}
 
 	/// <summary>
