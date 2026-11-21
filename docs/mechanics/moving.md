@@ -693,6 +693,16 @@ else the capital. With nowhere, it is disbanded.
 
 ## 14. The fleets (`CAIUnit_ManageNavalUnits`, `FINDINGS-moving.md` D.2, `FINDINGS-airnaval4.md`)
 
+**The Allies' Baltic ban** (built 2026-11-21; `CBalticBan`; `reversing/findings/FINDINGS-moving.md`, D.2, phases 7 to 9,
+the patrol's order read on the listing the same day). A country nobody plays, in the United Kingdom's real faction, keeps
+out of a sea province of the region named exactly `baltic_sea_region` [file: `map/region.txt`] - the province's own list of
+regions asked - **unless the province of the defines' `BALTIC_BLOCKER` [defines] is held by a great power of that faction
+owning land**; a blocker held by nobody bars nothing. It is asked of a raid's route, whose barred steps are neither seen
+nor candidates - nor are **10535 to 10538**, passed over by their numbers [exe] - of the patrol's waters, the raided ones
+taken out first and the ports' seas, taken only where none is left, the same way; and of each enemy fleet the intercept
+looks at. The ports' tonnage a raid weighs still counts every step. *Checked*: the six July 1941 recordings play back as
+before - none of those 48 hours puts a British patrol or intercept in the Baltic.
+
 For a country the AI runs, around its regrouping (`agents.md`, section 5.2): **every hour while it is at war or in a war
 nobody declared, and at peace only on the agent's full pass or when its fleets are to be planned again** - and **phases 6
 to 9 only on that forced pass**, at war as at peace (`FINDINGS-liveread.md`, section 25) - a foreign unit carrying troops seen
@@ -1174,8 +1184,8 @@ months on) - at least three hours left, and the order ends then.
 ## 20. Not built
 
 - ~~Paradrops (`CAIUnit_PlanParadrops`)~~: built since 2026-11-18 (section 9.1).
-- The Allies' Baltic ban on patrols and intercepts (`CAIUnit_IsBalticBarredToAllies`), and the four provinces the raid
-  passes over.
+- ~~The Allies' Baltic ban on patrols and intercepts (`CAIUnit_IsBalticBarredToAllies`), and the four provinces the raid
+  passes over.~~ Built 2026-11-21 (section 14, *The Allies' Baltic ban*).
 - Of invasions: ~~the reinforcement of a friend's area by sea (the ranking's second list and the planner's friendly branch)~~ - built (section 9, `CInvasionPlanner`);
   the tallies of transports and brigades short it leaves for the production minister; the carrier aircraft sent over the
   beach; a landed division put under a theatre's headquarters; and the played country's invasions over its own units.

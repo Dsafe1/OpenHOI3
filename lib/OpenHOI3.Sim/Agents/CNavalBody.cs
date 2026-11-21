@@ -297,8 +297,10 @@ public static class CNavalBody
 					continue;
 				}
 				// Every province of the way but its ends counts towards the ports' tonnage - one already a candidate and one
-				// out of the fleet's reach as much as a new candidate (FINDINGS-liveread.md, section 132).
-				if (!candidates.Exists(c => c.Province == id))
+				// out of the fleet's reach as much as a new candidate (FINDINGS-liveread.md, section 132). The four
+				// provinces the original passes over by number, and the Baltic's waters barred to the Allies, are neither
+				// seen nor candidates (FINDINGS-moving.md, D.2, phase 7).
+				if (!candidates.Exists(c => c.Province == id) && !IsPassedOver(id) && !CBalticBan.IsBarred(state, country, id))
 				{
 					seen++;
 					CProvince province = state.Province(id);
@@ -479,13 +481,15 @@ public static class CNavalBody
 		{
 			return;
 		}
-		var waters = new List<int>(agent.RaidedWaters);
+		// The raided waters, or with none left the seas of the theatre's ports, the Baltic's barred to the Allies left out
+		// of both (FINDINGS-moving.md, D.2, phase 8).
+		var waters = agent.RaidedWaters.FindAll(id => !CBalticBan.IsBarred(state, country, id));
 		if (waters.Count == 0 && CAgents.TheatreOf(state, country, agent) is { } theatre)
 		{
 			foreach (int port in theatre.Ports)
 			{
 				int sea = state.Province(port).PortSea;
-				if (sea > 0 && !waters.Contains(sea))
+				if (sea > 0 && !waters.Contains(sea) && !CBalticBan.IsBarred(state, country, sea))
 				{
 					waters.Add(sea);
 				}
@@ -531,7 +535,7 @@ public static class CNavalBody
 		long bar = headquarters.Plan.NavalStance == CUnitPlan.DefensiveAirOrNaval ? SuperiorDefensive : Superior;
 		foreach (CUnit enemy in enemies)
 		{
-			if (!state.Province(enemy.Location).IsSea)
+			if (!state.Province(enemy.Location).IsSea || CBalticBan.IsBarred(state, country, enemy.Location))
 			{
 				continue;
 			}
@@ -580,6 +584,13 @@ public static class CNavalBody
 			}
 		}
 	}
+
+	/// <summary>The four provinces a raid's route passes over by their numbers, 10535 to 10538 [exe].</summary>
+	private static bool IsPassedOver(int province) => province is >= FirstPassedOver and <= LastPassedOver;
+
+	private const int FirstPassedOver = 10535;
+
+	private const int LastPassedOver = 10538;
 
 	private static CUnit? Nearest(CGameState state, List<CUnit> fleets, int province, System.Predicate<CUnit> fits)
 	{
