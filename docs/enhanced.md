@@ -366,6 +366,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 
 ## Economy and production
 
+- **A finished production line uses up a name.** As each unit is delivered the line is named for its next one, and the last delivery does it too without asking whether anything is left: a ship or wing line that ends takes the next name of its type's list and moves the list on past it, a division's a numbered brigade name. Nothing gives the name back. `buildqueue.md`, 6. *Bug.* Risk: small - unit names only.
 - **The strategic warfare records count attrition by two different tests.** The player's own brigade's loss counts only where the province it stands in is held by another than its owner; a foreign brigade's loss in the player's province counts whoever holds it, so an enemy's army wearing down in ground it has taken from him still counts on its record. `strategicwarfare.md`, 3; `upkeep.md`, 3a. *Oversight.* Risk: none to the simulation; the records' figures.
 
 - **The null technology charges budget for nothing.** `notech` costs 125 and takes 1250 of a new game's head start. `research.md`, 9. *Bug.* Risk: start-save checks.

@@ -286,7 +286,14 @@ where the start save's are, less at most two days' work (section 9).
   'Sendai' series gave 2 'Sendai', 6 'Kumamoto' and 11 'Zentsuji'. The names follow the country's list as new orders take
   them, which is what naming afresh from where the country left off gives. The brigades of all of them are "1st Inf
   Brigade", "2nd Inf Brigade" and the rest, unchanged. Until then every division of a series here took the line's one
-  name. Whether a ship or a wing of a series is named afresh is not known: no save shows a series of them finished.
+  name. **Read on 2026-11-21** [exe; `reversing/findings/FINDINGS-buildqueue.md`, section 11], and built whole that
+  day: nothing is copied from the unit before - **a line is named for its next unit as each one is delivered**. A
+  division of several brigades with more to come takes a fresh division name by the routine a new order uses, by its
+  first brigade's type, and its brigades are not named again. Every other line - **a ship's, a wing's, one brigade's**
+  - has its first brigade, ship or wing named afresh (the type's list, then the numbered fallback; a land brigade the
+  numbered one alone) and takes that name itself, so the next ship of a series is the next free name of its type.
+  And **the last unit of any line takes that second arm too**, nothing asking whether anything is left to build: a
+  line that ends draws and marks used one name nothing will bear (`docs/enhanced.md`).
 - **The practical is gained in full, once, when the unit is done.**
 - **A series keeps what was left over** of the day that finished a unit.
 - **A unit finished is not on the map.** It waits to be placed (section 7). While it waits

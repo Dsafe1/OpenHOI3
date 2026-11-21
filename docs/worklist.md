@@ -2257,9 +2257,6 @@ None of these blocks the list above.
   Warszawa in two days and eight more over Tomaszów, where the trial gave four battles in all that day. To be run
   again and the paragraph corrected.
 - Nothing marks the hovered province, as in the original; revolt risk's map style is ours.
-- **A series names each division afresh since 2026-11-02**, as the Ireland game's saves show the original does
-  (`docs/mechanics/buildqueue.md`, section 6) - measured and not read, so whether the original takes the new name by the
-  same routine as a new order, and whether a series of ships or wings is named afresh too, are open.
 - **The foreign minister leaves out** (2026-10-16, `docs/mechanics/foreignminister.md`, sections 10 and 12) where in
   the AI's pass a minister's hour falls. Its readiness for war is whole since 2026-10-17, and the unit agents
   move the units it counts - Japan ready against China as the original's (2026-11-02).

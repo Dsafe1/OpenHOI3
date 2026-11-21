@@ -555,6 +555,25 @@ public static class CBuildQueue
 			CDeployment.JoinOrdered(state, country, unit, target);
 		}
 
+		// The line is named for its next unit as this one is delivered, before the series is counted down
+		// (buildqueue.md, section 6). A division of several brigades with more to come is named afresh, as a new order
+		// would be, and its brigades keep theirs. Every other line - a ship's, a wing's, one brigade's, and the last unit
+		// of any line - has its first brigade named afresh and takes that name itself: so a line that ends draws one
+		// name nothing will bear, as the original's does.
+		if (kind == EUnitKind.Division && construction.Size > 1 && construction.Brigades.Count > 1)
+		{
+			construction.Name = CUnitNames.ForDivision(state, country, construction.Brigades[0].Type);
+			CUnitNames.Register(country, construction.Name);
+		}
+		else
+		{
+			string next = CUnitNames.ForSubUnit(state, country, construction.Brigades[0].Type);
+			construction.Brigades[0].Name = next;
+			CUnitNames.Register(country, next);
+			construction.Name = next;
+			CUnitNames.Register(country, next);
+		}
+
 		construction.AccumulatedExperience = CFixedPoint.Zero;
 		construction.AccumulatedProgress = CFixedPoint.Zero;
 		construction.Progress -= CFixedPoint.Min(construction.Duration, construction.Progress);
@@ -564,19 +583,12 @@ public static class CBuildQueue
 			return true;
 		}
 
-		// The next of the series is a new unit with new numbers, priced by the country
-		// as it is now. A unit of several is named afresh, as a new order would be, and the
-		// line carries that name from now on; its brigades keep theirs.
+		// The next of the series is a new unit with new numbers, priced by the country as it is now.
 		construction.UnitId = ++state.LastUnitId;
 		state.LastUnitId += 2;
 		foreach (CBrigadeOrder order in construction.Brigades)
 		{
 			order.Id = ++state.LastUnitId;
-		}
-		if (construction.Brigades.Count > 1)
-		{
-			construction.Name = CUnitNames.ForDivision(state, country, construction.Brigades[0].Type);
-			CUnitNames.Register(country, construction.Name);
 		}
 		Recalculate(country, construction);
 		if (construction.IsReserve)

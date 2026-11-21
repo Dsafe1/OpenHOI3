@@ -474,6 +474,34 @@ public class BuildQueueTests
 	}
 
 	[Fact]
+	public void ALineOfOneBrigadeAndTheLastUnitOfAnyLineNameTheirFirstBrigadeAfresh()
+	{
+		CCountry country = Germany();
+		CGameState state = State(country, Infantry());
+		// A line of one brigade, two to build: the next takes a fresh name, the line's with it.
+		var single = new CConstruction(country.Tag) { Id = 10, UnitId = 11, Size = 2, Name = "" };
+		single.Brigades.Add(new CBrigadeOrder(Infantry()) { Id = 12, Name = "1. Regiment" });
+		CBuildQueue.Recalculate(country, single);
+		Assert.False(CBuildQueue.Deliver(state, country, single));
+		Assert.Equal("1. Regiment", country.Deployments[0].Name);
+		Assert.NotEqual("1. Regiment", single.Brigades[0].Name);
+		Assert.Equal(single.Brigades[0].Name, single.Name);
+		Assert.Contains(single.Name, country.UnitNamesInUse);
+
+		// The last division of a line draws a name for its first brigade that nothing will bear; the second keeps its own.
+		var last = new CConstruction(country.Tag) { Id = 20, UnitId = 21, Size = 1, Name = "9. Division" };
+		last.Brigades.Add(new CBrigadeOrder(Infantry()) { Id = 22, Name = "A" });
+		last.Brigades.Add(new CBrigadeOrder(Infantry()) { Id = 23, Name = "B" });
+		CBuildQueue.Recalculate(country, last);
+		Assert.True(CBuildQueue.Deliver(state, country, last));
+		Assert.Equal("9. Division", country.Deployments[1].Name);
+		Assert.Equal(new[] { "A", "B" }, country.Deployments[1].SubUnits.Select(brigade => brigade.Name));
+		Assert.NotEqual("A", last.Brigades[0].Name);
+		Assert.Equal("B", last.Brigades[1].Name);
+		Assert.Contains(last.Brigades[0].Name, country.UnitNamesInUse);
+	}
+
+	[Fact]
 	public void AReserveIsDeliveredAtTheStrengthItsLineWasQueuedWith()
 	{
 		CCountry country = Germany();
