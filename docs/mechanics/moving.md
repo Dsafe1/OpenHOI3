@@ -1059,6 +1059,16 @@ months on) - at least three hours left, and the order ends then.
     and only the first to start carries it (`nukes.md`, section 3). **The logistical strike marks nobody as taken**, so a
     group given one in the pass is given this too where it has a target, and this one, posted later, is the one that
     stands. No test of what the country sees, and none of daylight.
+    **Set beside the running game** (2026-11-21, *measured*): the original from the 1944.6.20 bookmark's start save
+    (`Ireland1944_06_20_00`), saved every hour for a day, gives its first strategic orders at 06:00 - the 8th and 15th
+    Air Force, at 2687 and 2884, and the 12th - then the 48th Air wing by 08:00 and Britain's 3rd and 6th Group, 5th
+    Group and two Air Commands by 18:00, nine standing then, each over a list of Germany's provinces held by their owner;
+    after five days (`aigaps1944_06_25_00`, the player's save folder) three stand, given on the 24th. Ours from the same
+    save gives the 8th and 15th Air Force theirs at 05:00 - an hour early, as Italy's intercepts are (section 21) - the
+    48th Air wing at 10:00 and 3rd and 6th Group at 15:00 and 20:00, and 8th Group, which the original's does not. **Ours
+    then gives none of them another in the five days**, the groups never coming back to the pool, where the original's
+    three stand on the 25th: how soon a group is a candidate again after a raid - its organisation, its rest at its base,
+    its rebase (8th Group stands at 1964 here and 1857 there) - is what to look at next, on an hourly series of more days.
   - **Naval strike**, till sunset: over the seas of the enemy fleets handed to the agent at sea - and the sea each sails
     into next - in weather to 0.330, **every one in reach, in that order and repeats and all, is the mission's**, the first
     its province; with none, a **port strike** over the harbours of those in port the same way (`reversing/findings/
