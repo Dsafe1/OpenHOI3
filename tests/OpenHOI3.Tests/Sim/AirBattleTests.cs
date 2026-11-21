@@ -608,6 +608,28 @@ public class AirBattleTests
 	}
 
 	[Fact]
+	public void AnAirReservePassesOverAUnitAnotherIsOnItsWayToJoin()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit reserve = Air(state, germany, Berlin, Fighter);
+		CUnit worn = Air(state, germany, Berlin, Fighter);
+		CUnit joiner = Air(state, germany, Berlin, Fighter);
+		Give(state, germany, worn, EUnitOrder.AirSuperiority, Berlin);
+		CSubUnit tired = worn.SubUnits[0];
+		tired.Strength = new CFixedPoint(tired.Stats[CSubUnitType.MaxStrength].Raw / 10);
+		Give(state, germany, reserve, EUnitOrder.AirReserve, Berlin);
+
+		OpenHOI3.Sim.Agents.CJoinOrders.Give(state, germany, joiner, worn);
+		Assert.Equal(0, CAirReserve.RunDaily(state, germany, reserve));
+		Assert.Same(worn, tired.Unit);
+
+		// The join called off, the unit is served again.
+		CUnitOrders.Clear(joiner);
+		Assert.Equal(1, CAirReserve.RunDaily(state, germany, reserve));
+		Assert.Same(reserve, tired.Unit);
+	}
+
+	[Fact]
 	public void ABattleLastsFourHoursAndItsUnitsHaveAnHoursGrace()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);

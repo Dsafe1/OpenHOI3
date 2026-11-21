@@ -261,6 +261,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 
 ## Air
 
+- **A unit once joined is never reinforced by a reserve again.** A unit another is ordered to join is marked so that a reserve's exchange passes over it, and the order's end sets the mark again where it was meant to clear it; a join-fleet order's end marks its fleet too. Nothing saves the mark, so a load clears it. Here the air reserve passes over a unit only while a join towards it stands. `fleetsandair.md`, 5.1. *Bug.* Risk: small.
 - **An air reserve's top-up never runs, and its message has no type.** Besides swapping wings one for one, the reserve was meant to send wings off as a new unit to join a unit short of them; the two counts by type it needs are each made into a copy that is thrown away, so both are always nought and the step is never reached - the same slip leaves every air order's count by type nought in every save. And the day's exchange posts `REINFORCE_AIR`, which `interface/messagetypes.txt` does not declare, so the player is told through no message type. `fleetsandair.md`, 5.1. *Bug.* Risk: small.
 - **A wing's defence does nothing.** Neither its defence nor `air_defence` counts. Confirmed: "Yes thats a bug in the original." `aircombat.md`, 8 and 9. *Bug.* Risk: large.
 - **Nothing defends a bombing target.** No air defence, fort or screen protects it. `bombing.md`, 12. *Bug.* Risk: large.

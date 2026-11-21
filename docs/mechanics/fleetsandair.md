@@ -404,7 +404,8 @@ which it does not move, which the window sets to the hour it was opened.
   cancel, the loss of its base, or being driven off does.
 - **It starts no battle in the air**, and is fought at its base only while it is fit to fly. Nothing gives it its
   organisation back faster.
-- **Once a day, lying in its province**, for every other unit based there that has an order, in the base's order
+- **Once a day, lying in its province**, for every other unit based there that has an order and that no air unit
+  has been ordered to join, in the base's order
   (*ours*: the units' numbers) and until the reserve has no wing left: for an air unit of its own country in the
   same province, the unit's most worn wing - by strength over its most, under `DEFENSIVE_STRENGTH_LIMIT`, or
   `PASSIVE_STRENGTH_LIMIT` for a passive stance [mod: defines.lua], and under the whole - changes places with the
@@ -415,8 +416,15 @@ which it does not move, which the window sets to the hour it was opened.
 
 **The player is told of each unit served** by `REINFORCE_AIR`, with the reserve, the unit and the pairs that changed
 places - a type the install does not declare and has no text for, so it arrives as no type at all, a line of the log
-(`messages.md`, section 1); a mod may declare it. *Not built*: a unit another air unit is on its way to join is
-passed over by the exchange in the original. And the original has a second step it never reaches, sending wings off as a
+(`messages.md`, section 1); a mod may declare it. **The unit passed over**
+[exe; `reversing/findings/FINDINGS-seaair.md`, section 3a]: the original keeps a mark on a unit, set on the unit an
+air unit is ordered to join as the order is given, and both reserves' exchanges - the air's and a fleet's - pass over
+a marked unit. **The mark is never taken off**: the order's end writes it set again, a join-fleet order's end sets it
+on its fleet too, and nothing saves it, so a unit once joined is served by no reserve until the game is loaded
+(`docs/enhanced.md`). *Ours*, built 2026-11-21: the air reserve passes over a unit while an air unit holds an order
+to join it - read off the orders standing, as the AI sees a join's partner, so a loaded join does not count, as in
+the original - and serves it again when that order is over; a fleet's reserve passes over nobody. The mark itself is
+not kept: no save holds it, and a game loaded or joined would part from one that was not. The original has a second step it never reaches, sending wings off as a
 new unit to join a short one: both counts it rests on are made into a copy that is thrown away
 (`docs/enhanced.md`).
 

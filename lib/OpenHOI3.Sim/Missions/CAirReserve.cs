@@ -73,9 +73,21 @@ public static class CAirReserve
 			return 0;
 		}
 		var others = new List<CUnit>();
+		// A unit another air unit has been ordered to join is passed over. The original marks the unit as the order is
+		// given and never takes the mark off; here it is read off the orders standing, so it ends with the order
+		// (fleetsandair.md, section 5.1).
+		var awaited = new HashSet<CUnit>();
 		foreach (CUnit other in country.AllUnits())
 		{
-			if (other != unit && other.Base == unit.Base && !other.IsRemoved && other.Order != EUnitOrder.None)
+			if (other.Order == EUnitOrder.JoinAir && !other.IsRemoved && Agents.CJoinOrders.SeenPartner(other) is { } partner)
+			{
+				awaited.Add(partner);
+			}
+		}
+		foreach (CUnit other in country.AllUnits())
+		{
+			if (other != unit && other.Base == unit.Base && !other.IsRemoved && other.Order != EUnitOrder.None
+				&& !awaited.Contains(other))
 			{
 				others.Add(other);
 			}
