@@ -2146,6 +2146,11 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 
 ## Loose ends
 
+- **The order of `slider_locks` and `mobilize` in a played country's block** (2026-11-21, `savegame.md`, section 15): the
+  original writes them both ways - `slider_locks` first in `Germany1936_03_31_19` and `_09_02_21`, `mobilize` first in
+  `Multiplayer_Germany1941_07_05_10` and `Multiplayer_Italy1936_01_04_21` - and ours writes `mobilize` first. What chooses
+  was not read; `CCountry::SaveContents` writes `slider_locks`, `historical_friends`, `mobilize` in that order, so the
+  multiplayer saves' locks come from another writer.
 - **The AI's strategic bombers fly once and not again** (2026-11-21, `moving.md`, section 17.4): from the 1944.6.20
   bookmark ours orders the original's first-day groups within an hour or two of the original's, but they come back from
   their first raid shattered and rest out the five days. The bombing and the air battle are the original's; the lead is
