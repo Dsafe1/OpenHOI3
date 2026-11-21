@@ -250,13 +250,17 @@ not be sent on to another sea.
 **The safe and very safe ways.** The original has two more finders that hold a land unit back further, short of its
 goal - the last step into the goal is always allowed (`reversing/findings/FINDINGS-moving.md`, section A.4c):
 
-- **safe** (`CSafePathFind`): not through a province where the strength of the units of countries at war with it - a
-  rebel's not counted on its own country's land - is more than its own;
+- **safe** (`CSafePathFind`): not through a province where **any** land or air unit of a country at war with it stands,
+  the rebels counted - a rebel off its own country's land refusing the step outright;
 - **very safe** (`CVerySafePathFind`): not into a province held by a country at war with it or by the rebels, nor one
   with a land battle in it.
 
-The AI asks for them (`moving.md`, section 10); a player's click takes the plain way. They weigh a fleet or an air unit
-otherwise, which is not built - neither holds one back here. **A strategic redeployment takes the very safe way**, the
+**A fleet or an air unit**, under either: not through a province where enemy ships - a war nobody declared over it
+counted, and the rebels - come to a whole point of strength, cut; enemy land and air units do not hold it back. The
+original sets each figure against a list on the moving unit that is always empty, so any at all refuses (built
+2026-11-21, `reversing/findings/FINDINGS-moving.md`, A.4f; until then a land unit was held back only by more strength than
+its own, and a fleet or an air unit not at all). The AI asks for them (`moving.md`, section 10); a player's click takes the
+plain way. **A strategic redeployment takes the very safe way**, the
 player's as well as the AI's: the order works its route out as it is given (`Start`, which `CSetOrderCommand` calls on the
 order it has just put in) and always with `CVerySafePathFind`, never the plain or the safe finder
 (`CStrategicRedeploymentOrder::RouteUnit` in the fact base's record; `reversing/findings/FINDINGS-redeploy.md`).

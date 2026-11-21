@@ -28,7 +28,7 @@ public static class CRouteFinder
 	/// A fleet on a mission keeps off an enemy's shores: a step into water beside an
 	/// enemy's naval base or airfield costs three times as much, and nine beside both.
 	/// </param>
-	/// <param name="landSafety">How a land unit's way keeps clear of the enemy short of the goal.</param>
+	/// <param name="landSafety">How the way keeps clear of the enemy short of the goal: a land unit by its units, a fleet or an air unit by enemy ships (<see cref="IsSafeStep"/>).</param>
 	public static List<int>? Find(CGameState state, CCountry country, CUnit unit, int from, int to, bool safe = false,
 		ERouteSafety landSafety = ERouteSafety.Plain)
 	{
@@ -126,16 +126,23 @@ public static class CRouteFinder
 	}
 
 	/// <summary>
-	/// Whether a land unit's way may pass through a province short of its goal. Safe: not where the strength of the units
-	/// of countries at war with it - a rebel's not counted on the unit's own country's land - is more than its own. Very
-	/// safe: not into a province held by a country at war with it, nor one with a land battle in it. Fleets and air units
-	/// are not held back by either (<c>CSafePathFind</c> and <c>CVerySafePathFind</c> weigh them otherwise; not built).
+	/// Whether a unit's way may pass through a province short of its goal, the original's <c>CSafePathFind::MayStep</c> and
+	/// <c>CVerySafePathFind::MayStep</c> (reversing/findings/FINDINGS-moving.md, A.4f). A fleet or an air unit, under
+	/// either: not where enemy ships - an undeclared war over the province counted, and the rebels - come to a whole point
+	/// of strength. A land unit, safe: not where any hostile land or air unit stands, the rebels counted and one off the
+	/// country's own land refusing it outright; very safe: not into a province held by a country at war with it, nor one
+	/// with a land battle in it. The original sets each figure against a list on the moving unit that is always empty, so
+	/// any at all refuses.
 	/// </summary>
 	public static bool IsSafeStep(CGameState state, CCountry country, CUnit unit, CProvince there, ERouteSafety safety)
 	{
-		if (safety == ERouteSafety.Plain || unit.Kind is EUnitKind.Navy or EUnitKind.Air)
+		if (safety == ERouteSafety.Plain)
 		{
 			return true;
+		}
+		if (unit.Kind is EUnitKind.Navy or EUnitKind.Air)
+		{
+			return EnemyNavalStrength(state, country, there) <= 0;
 		}
 		if (safety == ERouteSafety.VerySafe)
 		{
@@ -155,22 +162,41 @@ public static class CRouteFinder
 		long hostile = 0;
 		foreach (CUnit other in state.Positions.Of(there.Id))
 		{
-			if (!CMovementRules.IsEnemy(state, country.Tag, other.Owner)
-				|| (other.Owner.Value == Revolts.CRebelFactions.Rebels && there.Owner == country.Tag))
+			if (other.Kind == EUnitKind.Navy || !CMovementRules.IsEnemy(state, country.Tag, other.Owner))
 			{
 				continue;
+			}
+			if (other.Owner.Value == Revolts.CRebelFactions.Rebels && there.Owner != country.Tag)
+			{
+				return false;
 			}
 			foreach (CSubUnit brigade in other.SubUnits)
 			{
 				hostile += brigade.Strength.Raw;
 			}
 		}
-		long own = 0;
-		foreach (CSubUnit brigade in unit.SubUnits)
+		return hostile <= 0;
+	}
+
+	/// <summary>
+	/// The enemy ships in a province in whole points of strength, cut: the original's <c>EnemyNavalStrengthIn</c>, which
+	/// asks of each fleet's owner whether it is an enemy where it stands.
+	/// </summary>
+	private static long EnemyNavalStrength(CGameState state, CCountry country, CProvince there)
+	{
+		long strength = 0;
+		foreach (CUnit other in state.Positions.Of(there.Id))
 		{
-			own += brigade.Strength.Raw;
+			if (other.Kind != EUnitKind.Navy || !CMovementRules.IsEnemyIn(state, other.Owner, country.Tag, there.Id))
+			{
+				continue;
+			}
+			foreach (CSubUnit ship in other.SubUnits)
+			{
+				strength += ship.Strength.Raw;
+			}
 		}
-		return hostile <= own;
+		return strength / CFixedPoint.Scale;
 	}
 
 	/// <summary>

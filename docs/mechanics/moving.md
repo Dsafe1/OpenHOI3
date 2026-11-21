@@ -1119,8 +1119,8 @@ months on) - at least three hours left, and the order ends then.
   rising order - and two of its runs of one save differ on Trondheim HQ's blocks of 17 July 1941, one sending the
   3. Infanterie-Division to Oslo and one not (`reversing/findings/FINDINGS-liveread.md`, section 130). The order of making
   agrees with the running game's addresses on that pair; nothing here can repeat them in general (`enhanced.md`).
-- **The ways** (section 10): the safe and very safe finders weigh a fleet or an air unit otherwise, which is not built:
-  neither holds them back.
+- ~~**The ways** (section 10): the safe and very safe finders weigh a fleet or an air unit otherwise, which is not built:
+  neither holds them back.~~ Built 2026-11-21 (`movement.md`, section 3).
 - **The target areas' two steps** (section 4) are taken through the areas' neighbours, enemy-held after the first; the
   original's area path finder and its two cost functions are not read.
 - **The transport reservation** (section 2) is asked of a unit with a sealift target only; no
