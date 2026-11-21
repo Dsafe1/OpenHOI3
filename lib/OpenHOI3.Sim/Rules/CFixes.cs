@@ -13,6 +13,7 @@ public static class CFixes
 	private static readonly (EFix Fix, string Name)[] Table =
 	{
 		(EFix.MinisterTechDecay, "minister_tech_decay"),
+		(EFix.SimplifiedTerrainSea, "simplified_terrain_sea"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

@@ -576,14 +576,16 @@ public partial class CMapView : Node2D
 	/// modes, which draw the ground as it is, 18 the air mode, 9 supply and 2 the political - and ours for revolt risk,
 	/// which the original's style for it was not read.
 	/// </summary>
-	private static int Style(MapMode mode) => mode switch
+	private int Style(MapMode mode) => mode switch
 	{
 		MapMode.Terrain or MapMode.Weather => 0,
 		MapMode.Supply or MapMode.Infrastructure => 9,
 		MapMode.Air => 18,
 		MapMode.Naval => 19,
 		MapMode.Diplomatic => 6,
-		MapMode.SimplifiedTerrain or MapMode.Region => 8,
+		// The air mode's style in an enhanced game, whose water takes the provinces' colours (mapmodes.md, section 6).
+		MapMode.SimplifiedTerrain => _state is null ? CSimplifiedTerrainColours.PlainStyle : CSimplifiedTerrainColours.Style(_state),
+		MapMode.Region => 8,
 		MapMode.Intel => 12,
 		MapMode.VictoryPoints => 13,
 		MapMode.Theatre => 14,
@@ -779,6 +781,11 @@ public partial class CMapView : Node2D
 					: (CNavalMapColours.Grey, CNavalMapColours.Grey);
 				colour = AirOver(province, ground);
 				stripe = AirOver(province, stripes);
+			}
+			else if (province.IsSea && _mode == MapMode.SimplifiedTerrain && CSimplifiedTerrainColours.ColoursSea(_state))
+			{
+				// An enhanced game's: the sea in its terrain's colour, handed on as the air mode's colours are.
+				colour = AirOver(province, CSimplifiedTerrainColours.Of(_state, province, Player));
 			}
 			else if (province.IsSea)
 			{

@@ -78,6 +78,29 @@ public class MapModeColoursTests
 	}
 
 	[Fact]
+	public void TheSimplifiedTerrainModeColoursTheSeaOnlyInAnEnhancedGameWithTheFix()
+	{
+		CGameState State() => new(new CDate(1936, 1, 1), new[] { new CProvince(0, "", isSea: false) }, System.Array.Empty<CCountry>());
+
+		// The faithful game: the mode's own style, whose water is plain.
+		CGameState faithful = State();
+		Assert.False(CSimplifiedTerrainColours.ColoursSea(faithful));
+		Assert.Equal(8, CSimplifiedTerrainColours.Style(faithful));
+
+		// An enhanced game: the air mode's style, whose water takes the provinces' colours.
+		CGameState enhanced = State();
+		enhanced.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		Assert.True(CSimplifiedTerrainColours.ColoursSea(enhanced));
+		Assert.Equal(18, CSimplifiedTerrainColours.Style(enhanced));
+
+		// An enhanced game whose mod does not want the fix: the original's.
+		CGameState without = State();
+		without.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(new[] { OpenHOI3.Sim.Rules.EFix.SimplifiedTerrainSea }));
+		Assert.False(CSimplifiedTerrainColours.ColoursSea(without));
+		Assert.Equal(8, CSimplifiedTerrainColours.Style(without));
+	}
+
+	[Fact]
 	public void ATheatrePaintsItsFrontProvincesAsWellAsTheRest()
 	{
 		var ger = new CCountryTag("GER");

@@ -275,6 +275,11 @@ day; on 2026-11-19 the month gives **no Lua error**.
 
 ## 7. Stage 2: a BlackICE new game beside a BlackICE save
 
+**Finished, by the user's word of 2026-11-21**: "Declare the stage as finished. If we need more references we will make
+them again." Since that day BlackICE's working copy holds `common/openhoi_enhanced.txt`, so a game made from it is an
+enhanced one (`docs/enhanced.md`, *What is built*) and the saves below, which are a faithful game's, are no reference
+for it any more: a figure that differs may be a fix. What follows is the stage as it stood.
+
 Begun 2026-11-19. **The reference saves** are `Documents\Paradox Interactive\Hearts of Iron III\BlackICE GitHub\save
 games\Ireland1936_01_01_00.hoi3` and ten more of the same game to `Ireland1936_03_16_04.hoi3`, made that day by the
 original with BlackICE GitHub as installed then and **BiceLib loaded with only `fixMaxInfrastructure` on** - the fix this

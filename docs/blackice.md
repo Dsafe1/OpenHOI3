@@ -10,7 +10,9 @@ This file is the order of work across the two repositories and what was decided 
 ## Decided, 2026-11-21
 
 - **BlackICE on the normal engine is far enough to build on.** Playing it (`mechanics/mods.md`, section 7) no longer
-  waits.
+  waits. **Stage 2 there is finished** by the user's word the same day, and BlackICE's working copy holds
+  `common/openhoi_enhanced.txt` from then on: every game made from it is an enhanced one, and the faithful saves are
+  no reference for it - "If we need more references we will make them again."
 - **The engine is a core part of the mod's release**, not a part of the installer a player may leave out.
 - **The launcher is shipped with it, and plays the base game too. Both are installed with each version of the mod**,
   in its own folder - the engine in `tfh/mod/<mod>/engine/`, the launcher in `tfh/mod/<mod>/launcher/` - so that a new

@@ -89,6 +89,11 @@ is `blackice.md`.
   each fix that is on (`CLuaRules`) - so a script made for both engines asks `OpenHOI3 ~= nil and OpenHOI3.Enhanced`.
   They are the folders' rules, set as the scripts load.
 - **The first fix, as proof: `minister_tech_decay`** (*Economy and production*, below).
+- **The second, to be seen: `simplified_terrain_sea`** (2026-11-21, the user's choice for trying the mode: "much more
+  visible than the minister one"). The Simplified Terrain map mode sets the air mode's map style in place of its own, so
+  the water is drawn from the provinces' colours, and gives each sea province its terrain's colour as it gives the land
+  (`mechanics/mapmodes.md`, section 6). Display only.
+- **BlackICE's working copy holds the file since 2026-11-21**, naming nothing it goes without.
 
 ## BiceLib's features, each one's place
 
@@ -106,7 +111,7 @@ names of keys and defines are proposals.
   whose history dates his first rank after the start comes into service at the rank the line names (*Leaders*, above).
 - A finished building may be placed without its technology, every other test of the placing standing.
 - A loaded game has its event candidates (*Script, events and weather*, above) - the enhanced save keeps them.
-- The Simplified Terrain map mode colours the sea.
+- The Simplified Terrain map mode colours the sea. **Built 2026-11-21**, `simplified_terrain_sea`.
 - Already the normal engine's: a province's most infrastructure (`compatibility.md`, entry 29) and the requirement
   tooltip's indentation (entry 10).
 

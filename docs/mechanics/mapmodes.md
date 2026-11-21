@@ -122,6 +122,14 @@ Each is drawn at its type's scale, through `billboard.fx` as the air mode's pict
 Each province in its terrain's `color` from `map/terrain.txt` [mod] × b, each part held at 1. The water drawn as the
 terrain mode draws it. **Tooltip**: the terrain mode's part.
 
+**The sea, in an enhanced game** (the fix `simplified_terrain_sea`, 2026-11-21; `docs/enhanced.md`, *What is built*).
+The original works out a colour for every sea province in this mode and then draws the water plain: the mode's map
+style, 8, chooses the water that does not read the provinces' colours, which only the styles of the air and naval modes
+do [exe] - a fault, kept in the faithful game. With the fix the mode sets the air mode's style, 18, and each sea
+province is handed on in its terrain's colour × b as the land is, so the water is drawn from it by the sea's Color
+techniques (`mapdraw.md`, section 5). Nothing else of the mode changes: its layers, its tooltip and the land are as
+they were, and the infrastructure mode, plain too, stays plain (`CSimplifiedTerrainColours.ColoursSea`).
+
 ## 7. Region
 
 Each province in the colour of **the first region that lists it** × b, grey 0.5 × b where none does; no stripes

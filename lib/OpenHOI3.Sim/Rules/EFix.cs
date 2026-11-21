@@ -9,4 +9,10 @@ public enum EFix
 {
 	/// <summary>A minister's <c>decay</c> counts beside the technologies' (<c>docs/mechanics/research.md</c>, section 6).</summary>
 	MinisterTechDecay,
+
+	/// <summary>
+	/// The simplified terrain map mode colours the sea by its terrain, as it colours the land
+	/// (<c>docs/mechanics/mapmodes.md</c>, section 6). Display only: it moves no figure of a game.
+	/// </summary>
+	SimplifiedTerrainSea,
 }
