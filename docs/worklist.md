@@ -2339,8 +2339,8 @@ None of these blocks the list above.
   "+*"** in a new game: the exact-match rule behind the mark is inferred from the record's word. The foreign
   minister proposes licences, and in a new game's first 180 days no debt or lend-lease (`foreignminister.md`,
   section 9); the lend-lease day was never set against a save.
-- **Trade leaves out** (`trade.md`, section 16): what becomes of a route
-  when either country ends, not read. **Automate Trade is a command here**, where the original's checkbox writes its local player's
+- **Trade** (`trade.md`, section 16): what becomes of a route when either country ends is read since 2026-11-21 and
+  was built so. **Automate Trade is a command here**, where the original's checkbox writes its local player's
   own flag (`trade.md`, *Ours*). **The offer dialogs' background**, `SandboxFloaterBackground`, is
   drawn as its texture is, see-through grey; nobody has set it beside the original's.
 - **Of the diplomacy screen, three things were not read** (`diplomacyscreen.md`, *Not established*): which rows'

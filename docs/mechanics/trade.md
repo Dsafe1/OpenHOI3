@@ -352,7 +352,17 @@ months from the offer while the two are not at war**, and declines when it close
 ## 16. Not built
 
 - **Debt** - `aid.md` - so nobody allows debt and the debt arm never runs.
-- **What becomes of a route when either country ends** was not read.
+- ~~**What becomes of a route when either country ends** was not read.~~ Read 2026-11-21, and it is what was built
+  [exe; `reversing/findings/FINDINGS-tradeaid.md`, A.9a]: **an annexation ends every route of the annexed country**,
+  where it sells and where it buys, the annexer's own with it among them, and **a government going into exile** in
+  another country's land ends its own (`war.md`, sections 13 and 14) - both silently: no message, no relation lost,
+  nothing given back. The route's convoy stops being a trade convoy and is taken in its owner's next daily look, its
+  ships back in that owner's pool - a dead buyer's own, where they stay. **A country that merely owns nothing keeps
+  its routes**: nothing ends them, and the day's trade asks nothing of a partner's land. Where it is the route's
+  first country nothing moves again, its own day not being run; where it is the second, the exchange goes on against
+  the pool of the province its acting capital names until that cannot pay, and the route is then inactive for want
+  of goods. The install's `ai_trade.lua` cancels a route of its own that has been inactive a fortnight; a player's
+  stays.
 - A trade's line in the top bar's tooltips beyond the figures.
 - **Handing foreign policy to the AI**, which ticks the Automate Trade box whatever it holds and answers
   everything for the player.
@@ -392,7 +402,8 @@ months from the offer while the two are not at war**, and declines when it close
 
 ## Not established
 
-- What becomes of a route when either country ends.
+- What the one delivery of an ended route's convoy carries on its way out, where both harbours are its owner's
+  (`FINDINGS-tradeaid.md`, A.9a); here it delivers nothing (*ours*).
 - Whether the original's AI trading also runs for countries owning no province; here every country
   nobody plays is asked.
 - **What it costs**: with nobody playing, a new game's hour of trading by the install's scripts takes
