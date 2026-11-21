@@ -51,6 +51,17 @@ public class EmptyUnitTests
 	}
 
 	[Fact]
+	public void TheHourDisbandsANobodysEmptyFleetAndAirUnitToo()
+	{
+		(CGameState state, CCountry england) = World();
+		england.Units.Add(new CUnit(EUnitKind.Navy, Eng) { Id = 1, Location = 1 });
+		england.Units.Add(new CUnit(EUnitKind.Air, Eng) { Id = 2, Location = 1 });
+		CEmptyUnits.RunHourly(state);
+		Assert.Equal(2, state.Outbox.Count);
+		Assert.All(state.Outbox, command => Assert.IsType<CDisbandCommand>(command));
+	}
+
+	[Fact]
 	public void TheHourLeavesAPlayedCountryToItsPlayer()
 	{
 		(CGameState state, CCountry england) = World();

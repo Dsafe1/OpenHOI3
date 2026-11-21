@@ -17,8 +17,10 @@ public static class CEmptyUnits
 	}
 
 	/// <summary>
-	/// The hour's look at every country nobody plays: its land units alone, the original's hourly pass asking a unit's
-	/// slot 15 (reversing/findings/FINDINGS-surrender.md, C.5a) - an empty fleet or air unit of such a country is not taken here.
+	/// The hour's look at every country nobody plays: its empty units of every kind. The original has two arms - its
+	/// country's hourly pass takes an empty land unit out at once, and a unit's own hour posts a disband for an empty unit
+	/// whatever it is (reversing/findings/FINDINGS-effectrun.md, section 3.13) - and an empty unit has no officers to
+	/// lose by either, so the one disband stands for both.
 	/// </summary>
 	public static void RunHourly(CGameState state)
 	{
@@ -30,7 +32,7 @@ public static class CEmptyUnits
 			}
 			foreach (CUnit unit in country.AllUnits())
 			{
-				if (Movement.CMovementRules.IsLandUnit(unit) && IsToGo(unit))
+				if (IsToGo(unit))
 				{
 					state.Outbox.Add(new CDisbandCommand(unit.Id));
 				}

@@ -2267,8 +2267,7 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   charge them. Left: **an emptied fleet goes at once** where the original's stands, empty and on its side of
   the battle, through the whole of the next hour (read whole 2026-11-21, `units.md`, section 9) - so a battle a fleet
   was alone in ends an hour or so early here, and as a unit leaving, not a side lost; and an exile's carried units go
-  with their carrier. The original's hourly disband of an empty unit asks no kind, where `CEmptyUnits` posts it for
-  land units alone - of no effect while no fleet or air unit stands empty here. As it stood: the original's `RemoveUnit` leaves the removed unit's
+  with their carrier. The hourly disband of an empty unit asks no kind since 2026-11-21, as the original's. As it stood: the original's `RemoveUnit` leaves the removed unit's
   children at the top of the order of battle (a theatre's marked orphans) and, with its first flag clear, charges the
   country - the lender for a lent unit - the officers of the strength removed
   (`reversing/findings/FINDINGS-effectrun.md`, section 3.11). `CCombatRetreat.RemoveFromGame` does that only where it is
