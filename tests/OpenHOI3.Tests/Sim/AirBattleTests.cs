@@ -584,6 +584,30 @@ public class AirBattleTests
 	}
 
 	[Fact]
+	public void AnAirReserveMakesItsProvinceItsBaseAndGivesItsSoundWingsForWornOnesBasedBesideIt()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit reserve = Air(state, germany, Berlin, Fighter);
+		CUnit worn = Air(state, germany, Berlin, Fighter);
+		Give(state, germany, worn, EUnitOrder.AirSuperiority, Berlin);
+		CSubUnit tired = worn.SubUnits[0];
+		CSubUnit fresh = reserve.SubUnits[0];
+		tired.Strength = new CFixedPoint(tired.Stats[CSubUnitType.MaxStrength].Raw / 10);
+
+		Assert.True(CUnitOrders.MayGive(state, germany, reserve, EUnitOrder.AirReserve, state.Province(Berlin)));
+		Give(state, germany, reserve, EUnitOrder.AirReserve, Berlin);
+		Assert.Equal(Berlin, reserve.Base);
+		Assert.True(CAirReserve.RunHour(state, germany, reserve));
+		Assert.False(CAirMissions.FightsInTheAir(state, reserve));
+
+		Assert.Equal(1, CAirReserve.RunDaily(state, germany, reserve));
+		Assert.Same(worn, fresh.Unit);
+		Assert.Same(reserve, tired.Unit);
+		Assert.Contains(fresh, worn.SubUnits);
+		Assert.Contains(tired, reserve.SubUnits);
+	}
+
+	[Fact]
 	public void ABattleLastsFourHoursAndItsUnitsHaveAnHoursGrace()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);

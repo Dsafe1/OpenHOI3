@@ -78,12 +78,14 @@ public static class CReserve
 	/// the same type that is sounder than it. Only for a fleet of the reserve's country
 	/// lying in the same province.
 	/// </summary>
-	public static void Exchange(CGameState state, CUnit reserve, CUnit other)
+	public static int Exchange(CGameState state, CUnit reserve, CUnit other)
 	{
-		if (other.Kind != EUnitKind.Navy || other.Owner != reserve.Owner || other.Location != reserve.Location)
+		// A fleet's reserve serves fleets and an air unit's air units (fleetsandair.md, section 5.1).
+		if (other.Kind != reserve.Kind || other.Owner != reserve.Owner || other.Location != reserve.Location)
 		{
-			return;
+			return 0;
 		}
+		int moved = 0;
 		// An aggressive stance reads the defensive limit too: the original never reads the third.
 		long limit = state.Defines[CManpower.MilitarySection,
 			other.Mission.Stance == CMission.Passive ? PassiveLimit : DefensiveLimit].Raw;
@@ -102,7 +104,7 @@ public static class CReserve
 			}
 			if (worn is null)
 			{
-				return;
+				return moved;
 			}
 			CSubUnit? sound = null;
 			long most = 0;
@@ -117,7 +119,7 @@ public static class CReserve
 			}
 			if (sound is null)
 			{
-				return;
+				return moved;
 			}
 			reserve.SubUnits.Remove(sound);
 			other.SubUnits.Remove(worn);
@@ -125,6 +127,7 @@ public static class CReserve
 			reserve.AddSubUnit(worn);
 			sound.Unit = other;
 			worn.Unit = reserve;
+			moved++;
 		}
 	}
 

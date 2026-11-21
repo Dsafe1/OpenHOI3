@@ -45,6 +45,7 @@ public static class CMissionEfficiency
 			EUnitOrder.Rebase => "rebase",
 			EUnitOrder.RebaseAir => "rebase_air",
 			EUnitOrder.Reserve => "reserves",
+			EUnitOrder.AirReserve => "air_reserve",
 			EUnitOrder.Patrol => "patrol",
 			EUnitOrder.Intercept => "intercept",
 			EUnitOrder.Sortie => "sortie",

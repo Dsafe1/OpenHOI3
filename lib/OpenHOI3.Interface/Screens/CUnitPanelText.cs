@@ -492,6 +492,9 @@ public static class CUnitPanelText
 					return CTextTemplate.Fill(localise("PARADROP_MISSION_SHORT_DESC"),
 						("TYPE", localise(!Sim.Missions.CAirMissions.IsFitToFly(state, unit) ? "STRAT_BOMB_WAITING"
 							: AirDoing(unit))));
+				// The air unit's reserve: its own text, with nothing filled in (fleetsandair.md, section 5.1).
+				case EUnitOrder.AirReserve:
+					return localise("ORDER_AIR_RESERVE_SHORT_DESC");
 				case EUnitOrder.Nuke:
 					return CTextTemplate.Fill(localise("NUKE_MISSION_SHORT_DESC"), ("TYPE", localise(AirDoing(unit))));
 				case EUnitOrder.RebaseCarrier:

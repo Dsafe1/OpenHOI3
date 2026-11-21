@@ -40,6 +40,7 @@ public static class CUnitOrderTooltips
 		[EUnitOrder.Nuke] = "NUKE_MISSION_DESC",
 		[EUnitOrder.RebaseCarrier] = "REBASE_TO_CAG_MISSION_DESC",
 		[EUnitOrder.AirSupply] = "TRANS_SUP_MISSION_DESC",
+		[EUnitOrder.AirReserve] = "ORDER_AIR_RESERVE_DESC",
 		[EUnitOrder.GroundAttack] = "GROUNDATTACK_BOMB_DESC",
 		[EUnitOrder.Interdiction] = "INTERDICT_BOMB_DESC",
 		[EUnitOrder.NavalStrike] = "NAVALSTRIKE_BOMB_DESC",

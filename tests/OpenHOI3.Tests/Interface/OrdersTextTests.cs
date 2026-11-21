@@ -149,15 +149,17 @@ public class OrdersTextTests
 		CGameState state = State(out CCountry country);
 		CUnit fighters = Unit(state, country, EUnitKind.Air, Kiel, ("air_attack", "5"));
 
-		// Air superiority and the intercept, the reserve that is not built, the change of base.
+		// Air superiority and the intercept, the reserve, the change of base.
 		List<COrderRow> rows = COrdersText.Rows(state, country, fighters, state.Province(Hamburg));
-		Assert.Equal(new[] { true, true, false, true }, rows.Select(row => row.MayGive));
+		Assert.Equal(new[] { true, true, true, true }, rows.Select(row => row.MayGive));
+		Assert.Equal(EUnitOrder.AirReserve, rows[2].Order);
 		Assert.Equal(new[] { EUnitOrder.AirSuperiority, EUnitOrder.AirIntercept }, rows.Take(2).Select(row => row.Order));
 		Assert.Equal(3, COrdersText.Suggested(rows, state, country, fighters, state.Province(Hamburg)));
 		Assert.Equal(EUnitOrder.RebaseAir, rows[3].Order);
 
 		// Rostock has no air base: the row is there and cannot be ticked, and nothing is.
 		rows = COrdersText.Rows(state, country, fighters, state.Province(Rostock));
+		Assert.False(rows[2].MayGive);
 		Assert.False(rows[3].MayGive);
 		Assert.Equal(-1, COrdersText.Suggested(rows, state, country, fighters, state.Province(Rostock)));
 		Assert.Equal(COrdersText.AirWindow, COrdersText.WindowFor(fighters));

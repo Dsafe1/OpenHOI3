@@ -87,7 +87,7 @@ public static class CUnitOrders
 				EUnitOrder.RebaseCarrier, EUnitOrder.Nuke, EUnitOrder.AirSupply, EUnitOrder.StrategicBombing,
 				EUnitOrder.LogisticalStrike, EUnitOrder.RunwayCratering, EUnitOrder.InstallationStrike,
 				EUnitOrder.GroundAttack, EUnitOrder.Interdiction, EUnitOrder.PortStrike, EUnitOrder.NavalStrike,
-				EUnitOrder.AirConvoyRaid, EUnitOrder.RebaseAir,
+				EUnitOrder.AirConvoyRaid, EUnitOrder.AirReserve, EUnitOrder.RebaseAir,
 			},
 			_ => System.Array.Empty<EUnitOrder>(),
 		};
@@ -165,6 +165,8 @@ public static class CUnitOrders
 				return !province.IsSea && CNukeMission.MayGive(state, unit, province) && IsInRange(state, unit, order, province);
 			case EUnitOrder.AirSupply:
 				return CAirSupply.MayGive(unit, province);
+			case EUnitOrder.AirReserve:
+				return CAirReserve.MayGive(state, country, unit, province) && IsInRange(state, unit, order, province);
 			default:
 				return false;
 		}
@@ -290,6 +292,9 @@ public static class CUnitOrders
 				return;
 			case EUnitOrder.Nuke:
 				CNukeMission.Start(state, country, unit);
+				return;
+			case EUnitOrder.AirReserve:
+				CAirReserve.Start(state, country, unit);
 				return;
 			case EUnitOrder.AirSupply:
 				// Its start is the bombing frame's hour.
@@ -486,7 +491,7 @@ public static class CUnitOrders
 			return;
 		}
 		if (unit.Order is EUnitOrder.RebaseCarrier or EUnitOrder.CarrierProtection or EUnitOrder.Paradrop
-			or EUnitOrder.AirSupply or EUnitOrder.Nuke)
+			or EUnitOrder.AirSupply or EUnitOrder.Nuke or EUnitOrder.AirReserve)
 		{
 			bool going = unit.Order switch
 			{
@@ -494,6 +499,7 @@ public static class CUnitOrders
 				EUnitOrder.CarrierProtection => Transport.CCarriers.RunProtection(state, country, unit),
 				EUnitOrder.Paradrop => CParadrop.RunHour(state, country, unit),
 				EUnitOrder.Nuke => CNukeMission.RunHour(state, country, unit),
+				EUnitOrder.AirReserve => CAirReserve.RunHour(state, country, unit),
 				_ => CAirSupply.RunHour(state, country, unit),
 			};
 			if (!going)

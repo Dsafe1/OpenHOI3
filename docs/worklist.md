@@ -2486,11 +2486,11 @@ None of these blocks the list above.
 - **The order the original draws a group's pictures in was not read**, so whether a building on the capital marker's
   point lies over it or under is the reading's guess; the marker, checked with `--click` on Lisbon, was not set beside
   a picture of the original's (`mapunits.md`, section 9).
-- **Of an air unit's orders seventeen are built**: air superiority, the intercept, the eight
+- **Of an air unit's orders eighteen are built, the reserve the last** (2026-11-21, `fleetsandair.md`, section 5.1 -
+  tried by tests, not on screen; its `REINFORCE_AIR` message is not raised): air superiority, the intercept, the eight
   bombing missions, the change of base, and since 2026-10-16 carrier protection, the paradrop,
   the rebase to carrier and the air supply (`transport.md`, section 13), the nuclear bomb
-  (`nukes.md`), and since 2026-11-14 the raid on convoys (`navalmissions.md`, section 8.1). The
-  window lists the reserve as the original does, and it cannot be ticked.
+  (`nukes.md`), and since 2026-11-14 the raid on convoys (`navalmissions.md`, section 8.1).
   `docs/mechanics/fleetsandair.md`, sections 4 and 5.
 - **A battle at sea, a battle in the air and a bombing have no marker on the map**, because
   the original gives them none: its marker is a land battle's alone, and from the battle's

@@ -70,6 +70,7 @@ public static class COrdersText
 			EUnitOrder.Nuke => "NUKE_MISSION",
 			EUnitOrder.RebaseCarrier => "REBASE_TO_CAG_MISSION",
 			EUnitOrder.AirSupply => "TRANS_SUP_MISSION",
+			EUnitOrder.AirReserve => "ORDER_AIR_RESERVE",
 			EUnitOrder.SupportAttack => "SUPPORT_ATTACK",
 			EUnitOrder.StrategicRedeployment => "ORDER_STRATEGIC_REDEPLOYMENT",
 			_ => "",
@@ -128,8 +129,7 @@ public static class COrdersText
 	/// there is, the ones that cannot be given with their boxes greyed. An air unit is
 	/// shown only the orders it could ever fly: by what its wings can attack, what it
 	/// carries, whether it is aboard a carrier here or a carrier lies here, and whether the
-	/// province is land or sea. Of the air's, the reserve is listed and cannot be ticked:
-	/// it is not built.
+	/// province is land or sea. The air's reserve is listed for any air unit over land.
 	/// </summary>
 	public static List<COrderRow> Rows(CGameState state, CCountry country, CUnit unit, CProvince province, int selected = 1)
 	{
@@ -230,7 +230,7 @@ public static class COrdersText
 		}
 		if (land)
 		{
-			Add("ORDER_AIR_RESERVE");
+			Add(NameKey(EUnitOrder.AirReserve), EUnitOrder.AirReserve);
 			Add("ORDER_AIR_REBASE", EUnitOrder.RebaseAir);
 		}
 		return rows;

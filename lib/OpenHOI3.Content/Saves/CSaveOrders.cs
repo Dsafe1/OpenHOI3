@@ -48,7 +48,7 @@ public static class CSaveOrders
 		["nuke_mission"] = EUnitOrder.Nuke,
 		["transport_supplies_mission"] = EUnitOrder.AirSupply,
 		["rebase_air"] = EUnitOrder.RebaseAir,
-		["air_reserve"] = null,
+		["air_reserve"] = EUnitOrder.AirReserve,
 		["air_superiority"] = EUnitOrder.AirSuperiority,
 		["join_fleet"] = EUnitOrder.JoinFleet,
 		["join_air"] = EUnitOrder.JoinAir,

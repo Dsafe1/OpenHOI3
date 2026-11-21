@@ -114,4 +114,10 @@ public enum EUnitOrder
 	/// section 8.1).
 	/// </summary>
 	AirConvoyRaid,
+
+	/// <summary>
+	/// An air unit: make an airfield its base at once, lie there, and give its sound wings for the worn ones of the air
+	/// units based beside it (<c>docs/mechanics/fleetsandair.md</c>, section 5.1).
+	/// </summary>
+	AirReserve,
 }

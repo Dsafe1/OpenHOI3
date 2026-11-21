@@ -343,8 +343,7 @@ are `navalmissions.md`, and the transport and the invasion `transport.md` - **an
 change of base, its two fighting missions (`aircombat.md`) and its eight bombing missions
 (`bombing.md`), and since 2026-10-16 carrier protection, the paradrop, the rebase to carrier and the
 air supply (`transport.md`, section 13.6), and since 2026-11-14 the raid on convoys
-(`navalmissions.md`, section 8.1), each listed where the original lists it.** Every other row
-is listed as the original lists it and cannot be ticked: an air unit's reserve. A
+(`navalmissions.md`, section 8.1), each listed where the original lists it, and since 2026-11-21 the air unit's reserve (section 5.1).** A
 fleet carrying anything opens the window on Transport where it would on Rebase, and a plain right
 click on a coast the sea does not reach opens it where its first passenger may land there
 (`transport.md`, section 12). The nuclear bomb's row is `nukes.md`'s. The stance and the priority go with a fleet's order and mean something
@@ -388,6 +387,37 @@ fly there.
 
 *Ours:* an order starts the hour it is given. The original keeps a date on a unit before
 which it does not move, which the window sets to the hour it was opened.
+
+### 5.1 An air unit's reserve
+
+[exe; `reversing/findings/FINDINGS-seaair.md`, section 3a.] An order of its own, not "no order". Built 2026-11-21
+(`CAirReserve`), tried by tests and not on screen.
+
+- **The row** is there for any air unit where the window's province is land, just before the change of base. It may
+  be ticked where the province is in the unit's range, the unit is in no battle, the province has an air base built -
+  whatever bombing has left of it - and the unit may stand there. Nothing more is asked of who holds it.
+- **Given, it makes that airfield the unit's base at once**, and a unit elsewhere flies there. It is a change of
+  base that takes nothing off the unit's organisation on arrival.
+- **Each hour it does nothing but ask whether it goes on**: with no base it is over; while the unit is returning to
+  base it goes on; otherwise it goes on only while the unit lies in its province with no way. What every air order
+  asks each hour is run and its answer thrown away, so **no date and no range ends a reserve** - a new order, a
+  cancel, the loss of its base, or being driven off does.
+- **It starts no battle in the air**, and is fought at its base only while it is fit to fly. Nothing gives it its
+  organisation back faster.
+- **Once a day, lying in its province**, for every other unit based there that has an order, in the base's order
+  (*ours*: the units' numbers) and until the reserve has no wing left: for an air unit of its own country in the
+  same province, the unit's most worn wing - by strength over its most, under `DEFENSIVE_STRENGTH_LIMIT`, or
+  `PASSIVE_STRENGTH_LIMIT` for a passive stance [mod: defines.lua], and under the whole - changes places with the
+  reserve's soundest wing of the same type that is sounder than it, pair after pair. An aggressive stance reads the
+  defensive limit too, as a fleet's reserve does (`navalmissions.md`, section 2).
+- Its row is `ORDER_AIR_RESERVE`, its tooltip `ORDER_AIR_RESERVE_DESC`, its line in the unit panel
+  `ORDER_AIR_RESERVE_SHORT_DESC`, with nothing filled in.
+
+*Not built*: the message the original posts to the player for the day's exchange, `REINFORCE_AIR` - a type the
+install does not declare, so it arrives as no type at all; a unit another air unit is on its way to join is passed
+over by the exchange in the original. And the original has a second step it never reaches, sending wings off as a
+new unit to join a short one: both counts it rests on are made into a copy that is thrown away
+(`docs/enhanced.md`).
 
 ## 6. Speed and the march
 
@@ -475,7 +505,7 @@ play no part (`tooltips.md`, section 9).
 
 ## What is not built
 
-- **An air unit's reserve.** The air window's other controls
+- ~~**An air unit's reserve.**~~ Built 2026-11-21 (section 5.1). The air window's other controls
   are built since 2026-10-11. A fleet's reserve, patrol, intercept, sortie, convoy raiding and
   escort are built since 2026-10-10 and are `navalmissions.md`, its transport and invasion since
   2026-10-15 and are `transport.md`; an air unit's air superiority and intercept since
