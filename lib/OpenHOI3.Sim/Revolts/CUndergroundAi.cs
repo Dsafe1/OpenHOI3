@@ -48,20 +48,28 @@ public static class CUndergroundAi
 		{
 			return;
 		}
+		// One walk of the provinces for every country's undergrounds, where a walk for each country took longer than the step.
+		Dictionary<CCountryTag, List<CProvince>> byOwner = CUndergrounds.ByOwner(state);
+		if (byOwner.Count == 0)
+		{
+			return;
+		}
 		foreach (CCountry country in state.Countries)
 		{
-			if (country.Tag.Value == CRebelFactions.Rebels || state.Played.Contains(country.Tag))
+			if (country.Tag.Value == CRebelFactions.Rebels || state.Played.Contains(country.Tag)
+				|| !byOwner.TryGetValue(country.Tag, out List<CProvince>? undergrounds))
 			{
 				continue;
 			}
-			Run(state, country);
+			Run(state, country, undergrounds);
 		}
 	}
 
 	/// <summary>One country's undergrounds, area by area, each posting an action only where it changes.</summary>
-	public static void Run(CGameState state, CCountry country)
+	public static void Run(CGameState state, CCountry country) => Run(state, country, CUndergrounds.Of(state, country.Tag));
+
+	private static void Run(CGameState state, CCountry country, List<CProvince> undergrounds)
 	{
-		List<CProvince> undergrounds = CUndergrounds.Of(state, country.Tag);
 		if (undergrounds.Count == 0)
 		{
 			return;

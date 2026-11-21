@@ -60,6 +60,28 @@ public static class CUndergrounds
 
 	private static CFixedPoint Define(CGameState state, string name) => state.Defines[Section, name];
 
+	/// <summary>Every country's undergrounds by their owner, each in the order of their provinces' numbers: one walk.</summary>
+	public static Dictionary<CCountryTag, List<CProvince>> ByOwner(CGameState state)
+	{
+		var found = new Dictionary<CCountryTag, List<CProvince>>();
+		if (Building(state) is not { } underground)
+		{
+			return found;
+		}
+		foreach (CProvince province in state.Provinces)
+		{
+			if (province.UndergroundOwner is { } owner && province.BuildingMaxLevel(underground) > CFixedPoint.Zero)
+			{
+				if (!found.TryGetValue(owner, out List<CProvince>? list))
+				{
+					found[owner] = list = new List<CProvince>();
+				}
+				list.Add(province);
+			}
+		}
+		return found;
+	}
+
 	/// <summary>A country's undergrounds, in the order of their provinces' numbers.</summary>
 	public static List<CProvince> Of(CGameState state, CCountryTag country)
 	{
