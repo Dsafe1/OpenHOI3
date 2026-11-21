@@ -458,7 +458,7 @@ selected province says there is a battle.
 - The orders window is whole since 2026-10-11, and the air map mode is built: `airmap.md`.
 - **Radar** in what a country knows; the difficulty is built since 2026-11-06 (`frontend.md`, section 4.3). The
   leaders are built since 2026-10-11 (`leaders.md`, section 10). The weather's part is built, and since 2026-10-15 so is the weather (`weather.md`).
-- **The practical** an air battle earns. Its experience, the leader's and the wings', is built
+- ~~**The practical** an air battle earns~~ - built 2026-11-18 (`research.md`, section 10; `CCombatPractical`). Its experience, the leader's and the wings', is built
   since 2026-10-11 (`leaders.md`, section 11).
 - The AI's own giving of missions, and its 120-hour end.
 

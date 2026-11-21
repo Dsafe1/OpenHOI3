@@ -628,8 +628,8 @@ with what is left over carried into the next leg as the march itself carries it.
   and the click's own tests of a land unit sent onto an enemy's ground (section 1). ~~The rest of
   the click's test of a province - a unit in a battle sent only where it may fall back, and none
   while it has a battle in the next province of its path - is not.~~ Built 2026-11-14 with the land
-  unit at sea and the fleet's sea connection (section 1). **The AI's `MoveUnit` asking it** is not built:
-  the AI's moving's to add.
+  unit at sea and the fleet's sea connection (section 1). **The AI's `MoveUnit` asks it** too (section 1,
+  `CAiMoves.Move`).
 - ~~**Coordinated arrival**: the original keeps two hours on a unit, one before which it does
   not move and one before which it does not arrive, waiting at full progress.~~ Built
   2026-11-04 with the land orders window (`landorders.md`, section 5).
@@ -651,7 +651,7 @@ with what is left over carried into the next leg as the march itself carries it.
 ## What is not established, in one place
 
 - how the original's arrow comes to a whole tip, its last cut being short of the end;
-- where the **moving stack** stands (`mapunits.md`);
+- ~~where the **moving stack** stands~~ - read 2026-11-14 (`mapunits.md`, section 1);
 - where a **port** is when `positions.txt` does not place it;
 - one flag every province carries, set on all of them, that closes a province to everything
   when clear: what it is.

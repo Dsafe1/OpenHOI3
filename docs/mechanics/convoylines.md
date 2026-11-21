@@ -118,7 +118,8 @@ convoy's.
 
 A history's `convoy_construction` block makes a line: `size`, `cost`, `duration`, `progress`, and `status = yes` for
 escorts; its `country` is overwritten by the country the file is read for. A new game keeps the file's cost and duration
-and sets its progress to nought. Their Finest Hour's history has none; BlackICE's has - *Not built*.
+and sets its progress to nought. Their Finest Hour's history has none; BlackICE's has, and
+the order of battle's reader puts them on the queue (`COrderOfBattleReader`).
 
 ## 6. Against the saves
 
@@ -160,8 +161,8 @@ after it went to the next.
 ## Not built
 
 - **The AI**, whose production minister orders transports and escorts in the install's Lua, `ConstructConvoys`.
-- **BlackICE's history lines of convoys** (`history/units`, `convoy_construction`), which the order of battle's reader
-  reports and passes over, as it does BlackICE's building lines.
+- ~~**BlackICE's history lines of convoys** (`history/units`, `convoy_construction`)~~ - built (section 5), as its
+  building lines are.
 
 ## Not established
 

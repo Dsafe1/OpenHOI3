@@ -388,7 +388,7 @@ months from the offer while the two are not at war**, and declines when it close
 - **An offer is put to the player in the hour's pass**, where the original's screen looks at his list
   every frame; and the answers under automate-trade come in the same hour, where the original's come
   the hour after.
-- **No sound** plays for a new offer: the original plays `diplomaticoffer`.
+- ~~**No sound** plays for a new offer~~ - `diplomaticoffer` plays since 2026-11-12 (`sound.md`, section 7).
 
 ## Not established
 

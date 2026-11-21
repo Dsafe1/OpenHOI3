@@ -232,7 +232,8 @@ says `BRIGADE_UPGRADE_MIL_CON_INFO` instead; nothing upgrades through the queue 
   section 5 says it is - `allow_escorts = yes`, which the technology files are now read for.
 - **A text box lets the mouse through** to what is under it, as before: over `series_info` it is the
   line's background that answers, which is the speed and not the brigades.
-- **The trade list's and the convoy list's lines, and the AI's needs**, are not read and are empty.
+- ~~**The trade list's and the convoy list's lines, and the AI's needs**, are not read and are empty~~ - built since:
+  `trade.md`, `convoywindows.md`, `theatresscreen.md`.
 
 ## What is not established, in one place
 
@@ -244,7 +245,8 @@ says `BRIGADE_UPGRADE_MIL_CON_INFO` instead; nothing upgrades through the queue 
    read (`builders.md`).
 3. **The lines of three of the four lists.** The build queue's are read (section 6), all
    but how its date is written; **none of it has been looked at beside the running game**.
-4. **`slider_automation_setting`** and its arrows.
-5. **The trade list and the convoy list**, whose builders were found and not read.
+4. ~~**`slider_automation_setting`** and its arrows.~~ Read and built (`frontend.md`, section 4.4).
+5. ~~**The trade list and the convoy list**, whose builders were found and not read.~~ Read and built (`trade.md`,
+   `convoywindows.md`).
 6. **The tooltips of the trade and convoy lists' lines**, and of the builder windows, which the
    screen asks first (section 8).

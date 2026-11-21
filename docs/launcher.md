@@ -143,14 +143,15 @@ engine, run: on its own it found a Steam install by `libraryfolders.vdf`; given 
 GitHub ticked, Play started the engine in `engine/` with the line above, the launcher closed, and BlackICE's main menu
 came up - the engine standing outside the install.
 
-## 8. Saves and multiplayer - not built
+## 8. Saves and multiplayer
 
 - **A save made under an enhanced engine is that engine's.** It should record the engine it was made with, and the
   launcher, asked to go on with a save, start that engine.
 - **The file checksum does not cover an engine**, so two players on different engines of one mod show the same letters.
-  Whatever this game checks between players has to check the engine as well.
+  Whatever this game checks between players has to check the engine as well - **built with multiplayer**: the play
+  checksum a machine is let in by hashes the engine's version (`CPlayChecksum`; `mechanics/checksum.md`, section 8).
 
-Both wait for the enhanced engine, which has neither a save of its own nor multiplayer yet (`enhanced.md`).
+The save's record is not built and waits for the enhanced engine, which has no save of its own yet (`enhanced.md`).
 
 ## 9. A mod's repository and its release
 

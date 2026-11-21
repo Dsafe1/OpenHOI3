@@ -272,7 +272,7 @@ same on every machine. `confirmed`
   and with it the panel unit's land units, but not the unit (`FINDINGS-selection.md` A.12). Here a selection holds no
   battle, so the row opens the battle's window and Ctrl does nothing more.
 - The theatre map mode's box; the province right-click menu; the cursor's picture while dragging.
-- The selection groups are not saved: there is no saving yet.
+- The selection groups are not saved, nor loaded.
 
 ## 11. Not established
 

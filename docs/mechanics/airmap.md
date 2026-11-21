@@ -216,7 +216,7 @@ drawn at every height of the camera, where the buildings are not drawn from far 
 - **Intelligence** past what `CIntelligence` has (`aircombat.md`, section 6), and so what the
   player knows of anybody else's ground beside his units.
 - ~~**The map mode buttons.**~~ Built 2026-11-07 (`minimap.md`).
-- **The naval mode**, whose icons are of its own and were not read.
+- ~~**The naval mode**, whose icons are of its own~~ - read and built (`mapmodes.md`, section 11).
 
 ## Not established
 

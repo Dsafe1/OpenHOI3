@@ -110,7 +110,7 @@ Each "unless already playing" but where it says otherwise [exe]. **Built** marks
 | `declarewar_onus` | war declared on the player; nobody else hears either | yes |
 | `diplomaticoffer` | an offer's icon coming into the player's bar | yes |
 | `diplomaticsuccess`, `diplomaticfailure` | the answer to one of twelve offers, with its message (below) | yes |
-| `ding` | a line added to the multiplayer connection log | no - there is no multiplayer |
+| `ding` | a line added to the multiplayer connection log | no - it waited for multiplayer, which is built since; the connect log does not sound it yet |
 
 **The answer to an offer** sounds `diplomaticsuccess` where it is accepted and `diplomaticfailure` where it is refused, heard
 by the side told the message's first key - the actor, the asker - and by nobody else [exe]. The twelve: asking for

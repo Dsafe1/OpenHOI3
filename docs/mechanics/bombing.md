@@ -466,7 +466,7 @@ of a selected province says there is a bombing.
   2026-11-14 (`navalmissions.md`, section 8.1).
 - **What a strategic bombing does beyond the province**: the threat it adds to its country,
   and what it takes off the bombed country's unity.
-- **The practical** a bombing earns; the difficulty is built since 2026-11-06 (`frontend.md`, section 4.3). The
+- ~~**The practical** a bombing earns~~ - built 2026-11-18 (`research.md`, section 10; `CCombatPractical`); the difficulty is built since 2026-11-06 (`frontend.md`, section 4.3). The
   leaders are built since 2026-10-11 (`leaders.md`, section 10).
 - **The part of intelligence that lets a country see into ground beside its units**
   (`aircombat.md`, section 6): without it interdiction has nowhere to fly, and ground attack

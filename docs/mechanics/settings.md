@@ -26,7 +26,7 @@ defaults are the original's constructors' [exe]. A number is a figure, not thous
 | `graphics = { multi_sampling }` | 0 | **applied as a session starts**: 2, 4 or 8 samples, the engine's - a count between taken down |
 | `graphics = { gamma }` | 50 | **applied**: the screen scaled by a fiftieth of it, held to 0.1 and 1.9 (`gameoptions.md`, section 3) |
 | `sound_fx_volume`, `music_volume`, `master_volume` | 100 | read and written; there is no sound |
-| `scroll_speed`, `zoom_speed`, `mouse_speed` | 50 | read and written; `zoom_speed` sizes a wheel notch and its pull towards the pointer as the original's (`mapunits.md`, section 7), the others not used |
+| `scroll_speed`, `zoom_speed`, `mouse_speed` | 50 | read and written; `zoom_speed` sizes a wheel notch and its pull towards the pointer as the original's (`mapunits.md`, section 7), the other two not used |
 | `camera_rotation_speed`, `ambient_volume` | 50 | read and written; read by nothing else in the original either |
 | `pause_on_event` | yes | read and written |
 | `mapRenderingOptions = { alwaysCounters }` | yes (the original's constructor: no) | **only `yes` is supported** (`docs/compatibility.md`, entry 12): the map always shows counters and the weather map mode its `_simple` icons (`weather.md`, section 6); a `no` is reported, kept and written |
@@ -42,7 +42,7 @@ defaults are the original's constructors' [exe]. A number is a figure, not thous
 | `debug_saves` | 0 | read and written |
 | `autosave` | `YEARLY` | read and written, and the autosave's frequency (`savegame.md`, section 11). A name that is none of the six is reported and read as `YEARLY` |
 | `simple`, `categories` | yes, six noughts | read and written; what they mean is not read |
-| `use_legacy_camera` | no | read and written |
+| `use_legacy_camera` | no | **applied**: the zoom goes by it (`CMapView.CameraSettings`) |
 | `outliner` | 10 4 5 6 | **applied**: the outliner's sections (`outliner.md`, section 3). What the outliner changes is not carried back into it yet |
 
 ## 2. How it is written

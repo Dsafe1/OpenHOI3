@@ -452,7 +452,8 @@ whatever the odds", from a signed draw, was corrected by this reading.
 - **The lists of neighbours and enemies are worked out when asked**, as `CCountryLists` does
   everywhere, where the original keeps them and rebuilds them once a day. It costs about a third of
   a millisecond a call.
-- **Built for 64-bit Windows only**, with the Visual Studio C++ tools.
+- **Built for 64-bit Windows only**, with the Visual Studio C++ tools: `openhoi3_lua.dll`, LuaJIT, and
+  `openhoi3_lua514.dll`, the original's 5.1.4.
 - **The trading's states always number eight and take a country by its number**, where the original's are
   one a thread and take countries as they come; so a game runs the same on every machine
   (`trade.md`, *Ours*). A script that keeps something in a global between calls keeps it in its

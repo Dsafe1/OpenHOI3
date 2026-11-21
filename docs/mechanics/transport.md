@@ -726,7 +726,8 @@ each row's strength 1.
 
 - **The panel for several units selected** - its load, load on aeroplanes and unmount - waits for selecting several.
 - A paratrooper's and a transport plane's technology efficiencies: no reader of `paradrop_mission` or
-  `transport_supplies_mission` was found.
+  `transport_supplies_mission` of their own was found. Since 2026-11-21 both count as their orders' mission efficiency
+  in a battle, as every mission's does (`landcombat.md`, section 4; `CMissionEfficiency`).
 - The AI: nobody but the player boards, lands or orders a transport or an invasion, the original's AI posters of the two
   commands and its use of the progress among them (`reversing/findings/FINDINGS-invasion.md`).
 - A fleet merged, split or with ships moved out: there are no such orders yet.

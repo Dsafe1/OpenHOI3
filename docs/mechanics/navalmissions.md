@@ -371,7 +371,7 @@ follow an attack, each `confirmed` (`FINDINGS-supplyconvoys.md`) and built with 
 - for a hundred days it is **given** escorts up to its share of what its country has, where a
   convoy never attacked is given none - and gives none back.
 
-*Not built:* a lend-lease convoy loses efficiency. The raider's country's threat for each ship
+A lend-lease convoy loses efficiency since 2026-11-18 (`aid.md`, section 3; `CConvoyLosses`). The raider's country's threat for each ship
 sunk (`diplomacy.md`, 5.3) and the strategic warfare figures (`politics.md`, section 6;
 `strategicwarfare.md`) are built, and so is the experience a raid gives, since 2026-10-11
 (`leaders.md`, section 11): before each of its first three rounds, at `EXP_GAIN_CONVOY_MODIFIER`.

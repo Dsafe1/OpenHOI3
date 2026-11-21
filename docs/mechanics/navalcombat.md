@@ -8,8 +8,9 @@ landing, the battle in the air and bombing are pieces of their own (the worklist
 Everything is from `reversing/findings/FINDINGS-seabattle.md`, which joins
 `reversing/findings/FINDINGS-navaldetection.md` (the sighting, positioning, breaking off) and
 `reversing/findings/FINDINGS-combatmods.md` (what the hour makes of a ship) to a reading of the
-rest. **It was read out of the original and nothing of it was watched**: no savegame at hand has
-a battle at sea in it, and the original's rolls cannot be made again (`landcombat.md`,
+rest. **It was read out of the original and never watched** - one hour of one battle was set beside the running
+game on 2026-11-10 (the end): no savegame at hand had
+a battle at sea in it then, and the original's rolls cannot be made again (`landcombat.md`,
 section 8). Each rule says how sure it is; what this project does of its own is marked *Ours*.
 
 In the code: `lib/OpenHOI3.Sim/Combat`, the classes whose names begin `CNaval`, with the hour's
@@ -430,8 +431,8 @@ many each has had sunk.
 
 ### Not established
 
-- **Nothing here was watched.** The order ships are drawn up in and who is shot at decide the
-  course of a battle, and both rest on the reading alone.
+- **Nothing here was watched in play.** The order ships are drawn up in and who is shot at decide the
+  course of a battle; one hour of them is the original's (below), the rest rests on the reading.
 - ~~What the byte the original keeps on a battle and reads in five places is set by.~~ By the
   raid on a convoy, and by nothing else: `navalmissions.md`, section 8.
 - What keeps a unit out of a battle for the count the original runs down an hour at a time

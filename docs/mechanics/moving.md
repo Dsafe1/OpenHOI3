@@ -1176,7 +1176,7 @@ months on) - at least three hours left, and the order ends then.
 - ~~Paradrops (`CAIUnit_PlanParadrops`)~~: built since 2026-11-18 (section 9.1).
 - The Allies' Baltic ban on patrols and intercepts (`CAIUnit_IsBalticBarredToAllies`), and the four provinces the raid
   passes over.
-- Of invasions: the reinforcement of a friend's area by sea (the ranking's second list and the planner's friendly branch);
+- Of invasions: ~~the reinforcement of a friend's area by sea (the ranking's second list and the planner's friendly branch)~~ - built (section 9, `CInvasionPlanner`);
   the tallies of transports and brigades short it leaves for the production minister; the carrier aircraft sent over the
   beach; a landed division put under a theatre's headquarters; and the played country's invasions over its own units.
 - ~~The enemy's war industry handed to the agents whose air bases are nearest (section 12): so no strategic bombing or nuke

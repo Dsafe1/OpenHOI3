@@ -315,7 +315,8 @@ original shows occupied ground: "It uses striping", with a screenshot.
   In the screenshot the heavy border and the war's dashed line run along the side of the
   striped province that faces the country of the narrow bands, and a thin line along the
   side facing the country of the wide ones; with that word on which is which, that puts the
-  heavy line at the edge of what is held. `inferred`
+  heavy line at the edge of what is held. `inferred` here, and read since: the border meshes' country byte is made from
+  the controllers (`mapdraw.md`; `CBorderCorners`).
 
 Since 2026-11-07, as read (`reversing/findings/FINDINGS-mapmodescountries.md`, section 1): both colours are at half
 brightness where the player knows the province below 2, land nobody owns is grey 0.6, and **the lobby's map, where a

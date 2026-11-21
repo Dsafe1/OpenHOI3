@@ -1103,7 +1103,7 @@ is; where the caret goes across a space a line was cut at.
 3. **Where the position is measured to** - that it is the upper left corner is a fit on
    the files - and how `rotation` and `scale` turn and size an icon. A quarter turn is applied
    as section 7 says - one way for a bar and another for a flag - all measured on screenshots of
-   the original, none read. Nor is why a bar's picture is drawn upside down (section 5).
+   the original, none read. Why a bar's picture is drawn upside down is read in part (section 5, `likely`).
 4. **The keys each kind takes, other than a window's.**
 5. **Which of two buttons or icons of one name is found.**
 6. **What frame 0 draws**, and whether an icon's frames are counted from nought.
@@ -1120,7 +1120,7 @@ is; where the caret goes across a space a line was cut at.
     no file of the original's or of BlackICE's gives any of them a value.
 11. **How a scrollbar and a box of overlapping elements lay themselves out.** Both are
     drawn by the plain reading of their declarations (section 2). The list box was too,
-    until it was read. Of the list box there is left: where its scrollbar stands, how far
+    until it was read. Of the list box there is left (where its scrollbar stands is read since 2026-11-19, section 2): how far
     a notch of the wheel moves it, and how a list that goes by its lines' heights scrolls.
 12. ~~**Which frame a ticked checkbox shows.** The second here (section 7), unread.~~ Read
     2026-11-04 (section 7): the second, and the fourth while switched off.

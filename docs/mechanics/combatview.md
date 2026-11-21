@@ -505,8 +505,8 @@ Neither of the two was looked at on screen: no bombing was brought up for it.
 
 ## What is not built
 
-- **The naval mode's icons** of convoys sunk and raiders fought. The air map mode's of finished
-  air battles and bombings are built: `airmap.md`.
+- ~~**The naval mode's icons** of convoys sunk and raiders fought~~ - built (`mapmodes.md`, section 11), as the air
+  map mode's of finished air battles and bombings are (`airmap.md`).
 - **The marker's first three hours.** The original makes a land battle's marker when it is
   first refreshed and then leaves it standing between refreshes; here it is worked out again
   whenever the map is, which shows the same from the fourth hour on.

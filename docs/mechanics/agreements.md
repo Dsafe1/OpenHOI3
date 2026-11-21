@@ -308,12 +308,12 @@ how this runtime does it (`messages.md`, section 3); the original's order of fil
 
 ## 9. Not built
 
-- **An AI's offers other than trade**: no AI proposes an alliance, a NAP or transit rights yet - that is
-  the foreign minister's Lua, the AI's - so only trades reach the player (section 10).
+- ~~**An AI's offers other than trade**~~ - the foreign minister's Lua proposes them since 2026-10-16
+  (`foreignminister.md`).
 - **The player handing his diplomacy to the AI** ("Ai control"), under which his own offers are answered
   like an AI's and the 96-hour drop applies to him.
-- **The kinds of aid, war and peace, factions**: their rows, offers and pacts; trade is `trade.md`.
-- The sound `diplomaticoffer` a new offer plays.
+- ~~**The kinds of aid, war and peace, factions**~~ - built: `aid.md`, `war.md`, `factions.md`; trade is `trade.md`.
+- ~~The sound `diplomaticoffer` a new offer plays~~ - it plays (`sound.md`, section 7).
 
 ## 10. An offer to the player
 

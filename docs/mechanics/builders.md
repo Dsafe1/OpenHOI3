@@ -405,8 +405,8 @@ found. The air builder's list and the brigade picker's are 620 high as well.
 lines 572, and a list's scrollbar stands at the box's right edge here, so with more land
 brigades than the 26 rows the box has - which `--all-units` gives - the bar is drawn over
 the columns. Judged on 2026-10-09: expected, and the original avoids it by never
-having that many brigades to list. Where the original stands a list's scrollbar was not
-read (`interface.md`, the last section, item 11), so the bar's place is ours either way.
+having that many brigades to list. Where the original stands a list's scrollbar is read
+since 2026-11-19 (`interface.md`, section 2): at the box's top right, moved by `offset`.
 
 ## 11. Tooltips
 

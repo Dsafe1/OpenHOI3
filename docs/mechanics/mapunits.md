@@ -669,7 +669,7 @@ point (`mapmodes.md`, section 5); until then it stood at the province's unit poi
 - every building's picture is drawn all through the close view and none in the far view
   (section 7). Of the three larger pictures, `large_air_base` and `large_anti_air` are the
   air map mode's, sized there by the level built (`airmap.md`, section 5, read since);
-  `large_naval_base` is the naval mode's, which is not built;
+  `large_naval_base` is the naval mode's (`mapmodes.md`, section 11);
 - a click has to fall on the round badge, two thirds of the square across - measured on the
   two bases' art;
 - a selected fleet in port, or air unit at its base, has no counter and so no ring.

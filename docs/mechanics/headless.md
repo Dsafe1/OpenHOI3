@@ -348,7 +348,8 @@ What the runs did, as a look and not a check - nothing is tuned to it, and the s
   has moved the Republic's units away from the Nationalists' victory points by the time the event fires. Since the
   military AI's third piece it goes on here too (section 4, *With moving and attacking*).
 
-- Whether the totals are "plausible against a real savegame" past April 1936: no reference save lies later.
+- ~~Whether the totals are "plausible against a real savegame" past April 1936: no reference save lies later.~~ The
+  runs of section 4 are set beside the Ireland game's saves of July 1937 to September 1939 since. As it stood:
   A save of a later year, with nobody playing or with as little played as can be, would be the measure. The Ireland
   game's saves of February and March 1936 (2026-10-16) are the closest to that so far.
 

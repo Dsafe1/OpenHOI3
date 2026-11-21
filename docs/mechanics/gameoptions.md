@@ -105,10 +105,10 @@ camera off, and the file then says so [exe].
   sample counts that may be had are 2, 4 and 8, the engine's.
 - **What waits on a start is not applied at one**: OpenHOI3 opens in the window it is given and does not take its size,
   rate or full screen from the settings. Multisampling it does take, at the session's start.
-- **The settings nothing here drives yet** are kept, shown and written all the same: the volumes (there is no sound),
-  scroll speed, zoom speed and the legacy camera (the camera is OpenHOI3's own), trees, advanced water and the unit names
-  on the counters (none is drawn), and the counter distance and scale. The gamma and the hierarchy's lines on the map are
-  driven. The worklist's *Loose ends* lists the rest.
+- **The settings nothing here drives yet** are kept, shown and written all the same: the scroll and mouse
+  speeds. `settings.md`, section 1, says of each setting whether it is applied and from when; this list named the
+  volumes, the zoom speed, the legacy camera, the trees, the water, the unit names and the counter distance and scale
+  until each was.
 - The gamma is a layer over everything drawn, where the original's is the screen's own ramp - which Direct3D applies
   only in full screen, by its documentation; here it applies in a window too.
 

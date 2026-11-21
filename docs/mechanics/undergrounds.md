@@ -188,5 +188,6 @@ have spread: its two Polish neighbours have undergrounds.
 
 - The original's own icon of an underground on the map (*inferred*: the action's frame for the player's, three more
   for anyone else's).
-- `CCountry::GetRandomUnderGroundTarget`, which the AI's production minister builds them with.
+- ~~`CCountry::GetRandomUnderGroundTarget`, which the AI's production minister builds them with~~ - built
+  (`CCountryEconomyMethods`; `lua.md`).
 - The AI's management of its undergrounds, which asks a unit's power and an unread test of an area.
