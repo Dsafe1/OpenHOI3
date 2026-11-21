@@ -2569,9 +2569,12 @@ None of these blocks the list above.
 - **Loading runs under the loading screen** since 2026-11-11, on a thread of its own where it touches no engine object; making the front end's map still holds the screen still in two pieces, about 1.1 s and 0.8 s with a frame drawn between, where it was one of 3.2 s until 2026-11-14 (`docs/mechanics/loadingscreen.md`, *Loose ends*) - on the first front end of a run alone since the same day, a return to the menu keeping the files no game changes and so the surface: read in about 1 s where it was 4, its map made in 20 ms (section 3).
 - **Things the start save shows that are not explained**, since 2026-11-14 (`OpenHOI3.SaveCheck firstdays`):
   every stockpile's metal, rare materials and money, every brigade, technology, ability and line of the queue and every
-  country's manpower are the save's, Germany's every figure but 0.030 of supplies; what is left is **supplies in 20
-  countries and fuel in 2** since 2026-11-15, the 2.010 each headquarters the AI makes in the first hour takes being
-  explained (`stockpile.md`, section 2). **The AI's own
+  country's manpower are the save's, Germany's every figure but 0.030 of supplies; what is left is **supplies in 15
+  countries and fuel in 1** (2026-11-21), the 2.010 each headquarters the AI makes in the first hour takes being
+  explained (`stockpile.md`, section 2). Read on the running game that day: **Japan's 115 and the United States' 35
+  too many supplies, and Colombia's 4.55 of fuel, are made in the entry's two days and not by the AI's first pass**;
+  the rest is within what two runs of the original differ by. Next: the day's ledger for Japan on the two days, live,
+  beside `supplypass`'s. **The AI's own
   shares by the save** are its production minister's, and when the original's first sets them, before the first hour,
   was not read. The Lua's look at a new game's laws is made once since 2026-11-15 (`politics.md`, section 12). The filling of empty posts
   does not wait on the queue (read 2026-11-21, `reversing/findings/FINDINGS-startshares.md`, section 9): the engine

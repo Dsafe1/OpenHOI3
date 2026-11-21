@@ -166,7 +166,16 @@ a lent unit's lender pays its host for what it draws (`supply.md`, section 13). 
 conversion balances on the day's own flows, the usage cleared at the head of the day, so a
 country converts on both days where the original does (`ic.md`, section 4). With the three, the
 1936 start save's stockpiles are the save's in every good for every country but supplies in 20
-and fuel in 2 (`firstdays`, **measured**).
+and fuel in 2 (`firstdays`, **measured**) - 15 and 1 on 2026-11-21.
+
+**What is left is not the AI's first pass** (read on the running game, 2026-11-21;
+`reversing/findings/FINDINGS-liveread.md`, section 153). A new game of the original's, read as its entry ends, has
+Japan's supplies within 4.4 of the save and 114.8 under ours, the United States' 34.9 under ours and Colombia's fuel
+4.55 under ours - and nothing moves them in its first fourteen frames, the game standing paused. So those three are
+made in the entry's two days: ours leaves more in the stockpile than the original, and `supplypass` has Japan's two
+networks and Washington's among those that differ (`supply.md`, section 17). Two runs of the original part by a few
+supplies themselves - 8.9 for the United States, the save having the more - as a new game's weather does, so the
+ten countries a few thousandths to a tenth apart are inside the original's own spread.
 
 ## 4. What a day does to it
 
