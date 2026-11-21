@@ -1,3 +1,4 @@
+using System.Linq;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Diplomacy;
@@ -176,5 +177,29 @@ public class AlignmentTests
 		poland.EventModifiers.Add(CTimedModifier.Given(state, state.FindStaticModifier("align_towards_axis")!, 30));
 		// With both effective neutralities nought: (1000 + 250) x (1000 x 20000 / 1000) / 1000.
 		Assert.Equal(25000L, CAlignment.Explain(state, poland)[0].Terms[6]);
+	}
+
+	[Fact]
+	public void Revanchism_weighs_a_held_core_by_how_far_the_holders_faction_is_from_half_the_victory_points()
+	{
+		CGameState state = State();
+		state.Defines.Set(CAlignment.Section, CAlignment.RevanchismWeight, CFixedPoint.Parse("0.1"));
+		CCountry poland = C(state, ScriptWorld.Pol);
+		poland.AlignmentX = 100000;
+		poland.AlignmentY = 100000;   // within 200 of the fascist corner, where revanchism counts
+		var german = state.Provinces.First(province => province.Owner == ScriptWorld.Ger);
+		german.Cores.Add(ScriptWorld.Pol);
+		german.Points = 10;
+
+		// No progress made yet, as at a new game's first step: one core x 5 x 0.1.
+		Assert.Equal(500L, CAlignment.Explain(state, poland)[0].Terms[3]);
+
+		// A quarter of the world's points: 5 x (1 - 0.25) x 0.1.
+		state.FactionProgress["axis"] = 2500;
+		Assert.Equal(375L, CAlignment.Explain(state, poland)[0].Terms[3]);
+
+		// From half on, nothing.
+		state.FactionProgress["axis"] = 5000;
+		Assert.Equal(0L, CAlignment.Explain(state, poland)[0].Terms[3]);
 	}
 }

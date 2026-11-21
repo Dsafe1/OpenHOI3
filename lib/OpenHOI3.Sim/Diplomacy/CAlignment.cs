@@ -307,11 +307,13 @@ public static class CAlignment
 
 	/// <summary>
 	/// Cores of the country another of the group's faction holds, weighed by how far the faction is
-	/// from half the world's victory points - which is nought here, faction progress not being kept.
+	/// from half the world's victory points: its share in thousandths, the percentage the faction's progress gives cut
+	/// to a tenth of one. A new game's first step comes before the first hour makes any faction's progress, so it
+	/// weighs every core in full, as the original's does.
 	/// </summary>
 	private static long RevanchismTerm(CGameState state, CCountry country, CIdeologyGroup group)
 	{
-		const long share = 0;
+		long share = Wars.CFactionProgress.Share(state, group.Faction) / 100;
 		if (share >= 500 || group.Faction.Length == 0)
 		{
 			return 0;

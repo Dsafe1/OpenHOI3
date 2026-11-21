@@ -89,7 +89,7 @@ IC of its provinces before any of its own bonuses**, `base_values`' 5 included (
 | Relation | the mean of the country's relation with each member, x `RELATION_WEIGHT`, susceptible; nought with no members |
 | Ideology | where its ruling ideology is g's: `IDEOLOGY_WEIGHT` x (1000 + `drift_speed`) / 1000 |
 | Proximity | the best over the members of `r x 1000 x t / 1000`, `t = max((5000000 - 1000 x d) x 1000 / 500000, 100)` - 10 less a five-hundredth of the distance between the two acting capitals' centres, at least 0.1 - and `r` **the member's base IC divided by the country's, a whole number** (each as section 3 says the step reads it); x `PROXIMITY_WEIGHT`, susceptible. **A country with no capital - the rebels - measures from province 0, whose centre is (1, 1)**: the original counts no pixel of id 0 towards a box, so province 0's is nought, and a centre with a part at nought is put at (1, 1). So the rebels are far from every capital but those near the map's south-west corner, which the wrap brings to the east: Australia's and New Zealand's, once they are in the Allies |
-| Revanchism | the country's cores held by a member of g's faction, x (1000 - s) x 5 each, s the faction's share of the world's victory points in thousandths - nought from half; x `REVANCHISM_WEIGHT`, susceptible |
+| Revanchism | the country's cores held by a member of g's faction, x (1000 - s) x 5 each, s the faction's share of the world's victory points in thousandths (`factions.md`, section 7; nought at a new game's first step, which comes before the first hour makes any progress) - nought from half; x `REVANCHISM_WEIGHT`, susceptible |
 | Threat | the most threat it feels from a member, where any is above nought, x `THREAT_WEIGHT`, susceptible, x min(total IC x 1000 x 1000 / `LARGE_COUNTRY_IC`, 1000) / 1000 |
 | Repulsion | `max(200000 - 1000 x r, 0) x REPULSION_WEIGHT / 1000`, r the whole distance by Newton's root; where its ruling ideology is of another group, x f / 1000 if f is over 1000, `f = (base IC x 1000 x REPULSION_IC_FACTOR / 1000) x 1000 / (w x 1000)`, w the faction leader's base IC and a quarter of the rest's, f 100000 where w is nought |
 | Influence | where g's faction has members and the country has the static modifier its `influence` names **among its event modifiers** - where an influence or an alignment puts it: `b x (a x v / 1000) / 1000`, v that modifier's `align_towards`, `a = (100000 - max(leader's effective neutrality, 0)) x 1000 / 100000`, `b = max((100000 - its effective neutrality) x 1000 / 100000 + 250, 250)`. The same static a puppet in no faction takes from its master's faction (`modifiers.md`, section 4) is added to its modifier and never to that list, so **it does not count**: Iran, Britain's puppet, and Siam, Japan's, at 1941.6.22 |
@@ -116,9 +116,6 @@ over `FACTION_THREAT_DIST` squared, x 1000, uncapped.
 
 ## Ours
 
-- **Revanchism takes a faction's share of the victory points as nought**, though faction progress is kept
-  (`factions.md`), so it weighs every held core in full - which is what the original's first step has at
-  every date, and not what its later steps do.
 - **A capital is its acting capital**: the two differ in the original only for a government in exile.
 - **The step is taken beside the surrender**, a country at a time, and not where the original's country day
   has it, before its IC (section 3): nothing read between the two places reads a country's place on the
