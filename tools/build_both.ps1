@@ -3,11 +3,13 @@
   (tools/build_launcher.ps1), and puts the engine in the launcher's engine folder, as its own. The result is
   export/Launcher/, about 245 MB, to be put anywhere; export/OpenHOI3/, the engine on its own, is left beside it.
 
-  Usage: tools/build_both.ps1 [-Godot <path to the Godot .NET editor>] [-Debug] [-Runtime win-x64]
+  Usage: tools/build_both.ps1 [-Godot <path to the Godot .NET editor>] [-Debug] [-Release] [-Runtime win-x64]
+    -Release  refuses a tree that is no release (tools/build_engine.ps1).
 #>
 param(
     [string] $Godot,
     [switch] $Debug,
+    [switch] $Release,
     [string] $Runtime = 'win-x64'
 )
 $ErrorActionPreference = 'Stop'
@@ -18,6 +20,7 @@ $exportRoot = Join-Path (Split-Path -Parent $tools) 'export'
 $engineArguments = @{}
 if ($Godot) { $engineArguments['Godot'] = $Godot }
 if ($Debug) { $engineArguments['Debug'] = $true }
+if ($Release) { $engineArguments['Release'] = $true }
 & (Join-Path $tools 'build_engine.ps1') @engineArguments
 & (Join-Path $tools 'build_launcher.ps1') -Runtime $Runtime
 

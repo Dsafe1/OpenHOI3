@@ -11,13 +11,19 @@
   It needs the Godot 4.7.1 .NET export templates (the editor's Editor > Manage Export Templates). The Godot
   executable is taken from -Godot, else from the "godotTools.editorPath.godot4" setting in .vscode/settings.json.
 
-  Usage: tools/build_engine.ps1 [-Godot <path to the Godot .NET editor>] [-Debug]
+  Usage: tools/build_engine.ps1 [-Godot <path to the Godot .NET editor>] [-Debug] [-Release]
+    -Release  refuses a tree that is no release - changes not committed, or no tag v<x> on its commit - so that the
+              engine.txt says openhoi3-<x> (tools/engine_version.ps1; tools/build_release.ps1 passes it).
 #>
 param(
     [string] $Godot,
-    [switch] $Debug
+    [switch] $Debug,
+    [switch] $Release
 )
 $ErrorActionPreference = 'Stop'
+
+# The version first: the build must not go on for minutes to find at its end that the tree is no release.
+$version = & (Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) 'engine_version.ps1') -RequireRelease:$Release
 
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 
@@ -78,18 +84,14 @@ if (-not (Test-Path $fraktur)) {
     Write-Warning 'fonts/BreitkopfFraktur.ttf is not downloaded, so this export draws the Axis names in Liberation Sans; fonts/readme.md says where to get it.'
 }
 
-# What the launcher reads to know this engine without starting it (docs/launcher.md, section 2): the normal engine's
-# version by the date and the commit it was built from, and the version of the launcher's command line it understands,
-# which is CLaunchContract.Version.
+# What the launcher reads to know this engine without starting it (docs/launcher.md, section 2): the engine's version -
+# a release's by its tag, any other build's by the date and the commit (tools/engine_version.ps1) - and the version of
+# the launcher's command line it understands, which is CLaunchContract.Version.
 $contract = Select-String -Path (Join-Path $root 'lib\OpenHOI3.Content\Launch\CLaunchContract.cs') -Pattern 'const int Version = (\d+);' |
     Select-Object -First 1
 if (-not $contract) {
     throw 'CLaunchContract.Version was not found, so engine.txt cannot say which command line this engine understands.'
 }
-$commit = (& git -C $root rev-parse --short HEAD 2>$null)
-if (-not $commit) { $commit = 'unknown' }
-$dirty = if (& git -C $root status --porcelain 2>$null) { '+' } else { '' }
-$version = "normal-$(Get-Date -Format 'yyyy.MM.dd')-$commit$dirty"
 $engineText = "# The engine in this folder, as the launcher reads it (docs/launcher.md).`n" +
     "version = `"$version`"`nexecutable = `"OpenHOI3.exe`"`ncontract = $($contract.Matches[0].Groups[1].Value)`n"
 [System.IO.File]::WriteAllText((Join-Path $out 'engine.txt'), $engineText, (New-Object System.Text.UTF8Encoding $false))
