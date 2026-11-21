@@ -18,7 +18,7 @@ public static class CEmptyUnits
 
 	/// <summary>
 	/// The hour's look at every country nobody plays: its land units alone, the original's hourly pass asking a unit's
-	/// slot 15 (reversing/findings/FINDINGS-aigaps.md, A) - an empty fleet or air unit of such a country is not taken here.
+	/// slot 15 (reversing/findings/FINDINGS-surrender.md, C.5a) - an empty fleet or air unit of such a country is not taken here.
 	/// </summary>
 	public static void RunHourly(CGameState state)
 	{
