@@ -2179,6 +2179,19 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   hours and draws, an offer refused, or the buyers' own need. A draw-for-draw recording of the original from that save
   (`docs/replay.md`, section 9) would settle it. `supplyledger` prints each midnight's supply share and the needs the Lua
   is handed, the sales by who proposed them and the money balance the trade script reads.
+  **Not chance, and back to spring 1936** (2026-11-21, later): six runs from the original's save of 11 March 1936, five
+  with the AI's generator reseeded (`supplyledger ... seed=N`), all end at 22,000 to 31,000 on 5 July 1937 against the
+  original's 8,486, Germany proposing most of its sales in every one. The tilt is in the world's supply market: the
+  original's Soviet Union proposes buys of 74 to 88 a day from March 1936 to December 1937 (the original run on the live
+  game to 11 May 1936 says 88), ours's drops them all by 11 May and takes the sellers' offers, so sellers propose 443 a
+  day worldwide by July 1937 against the original's 282. Both cancel about as often (seven times in the two months in the
+  original, six in ours, logged on the live game with a probe on `CTradeAction::Apply`); the original re-buys from
+  another seller within days - four new purchases of 15 to 20 a day - and ours buys one, of 8.6, cut to the money it had
+  to spare. Which of `ai_trade.lua`'s two cancel rules fires - losing money, after which the freed money buys again, or
+  money to spare with a supply surplus, after which it does not - hangs on the Soviet money balance at each review. No
+  rule of ours was found wrong: the supply share, the ledgers, `GetDailyBalance`, `AICalculateExpense` and the route
+  accessors all agree with the readings. Next: the trade script's inputs at each Soviet turn, ours beside the running
+  game's (the fact base's `probes/hoiresvalues.lua` reads `CResourceValues` there).
 
 - ~~**A fleet's base check in its hour**~~ - built 2026-11-20: every fleet's hour ends in it, and a fleet with no base and
   no port left to its country is removed at the hour's end (`fleetsandair.md`, section 2.1). The air unit's own check is
