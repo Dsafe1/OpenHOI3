@@ -2616,8 +2616,10 @@ None of these blocks the list above.
   passes (`stockpile.md`, section 2; `firstdays ... points=TAG` prints the four points, as the fact base's
   `hoientrydays.lua` does of the running game). Not a rule found wrong. What would make it like for like: the running
   game's mud at the filling read and given to ours. **The AI's own
-  shares by the save** are its production minister's, and when the original's first sets them, before the first hour,
-  was not read. The Lua's look at a new game's laws is made once since 2026-11-15 (`politics.md`, section 12). The filling of empty posts
+  shares by the save** are not its production minister's: read on 2026-11-21, the IC shares are the day's
+  `BalanceProductionSliders` on the two entry days, and the one minister's work the start saves show is Vichy's
+  leadership shares, made in the AI's one pass before the first hour - built that day, a new game's ministers drawn
+  as a load's and its first frame a whole AI pass (`ministers.md`, section 1). The Lua's look at a new game's laws is made once since 2026-11-15 (`politics.md`, section 12). The filling of empty posts
   does not wait on the queue (read 2026-11-21, `reversing/findings/FINDINGS-startshares.md`, section 9): the engine
   writes the cabinet itself, before the shares are set, and its ministers reach the country's modifier only at the
   rebuild after every country is set up - so the shares do not count them and the two days do, which is what filling
@@ -2777,8 +2779,9 @@ None of these blocks the list above.
   answered by a reading in the fact base as each system was built. Whether those still standing in the specs are all
   filed in its `CANDIDATES.md` has not been checked.
 - **What a later start does not yet give** as the reference saves of its first hour have it (`bookmarks.md`, section
-  3.1): New Zealand's posts at 1941 (the AI's hour-0 pass, not built), Japan's and China's fronts at 1939 (areas kept
-  province by province). The 2.010 supplies a country holding its own seat missed by are gone - looked at
+  3.1): New Zealand's posts at 1941 (the AI's hour-0 pass is built since 2026-11-21; the posts hang on which of three
+  ministers the original's threads let draw first, `bookmarks.md`, section 3.1), Japan's and China's fronts at 1939
+  (areas kept province by province). The 2.010 supplies a country holding its own seat missed by are gone - looked at
   again on 2026-11-21, all eight start saves: Denmark, Poland and Greece agree at 1936, France's and Belgium's exile pools agree
   at both 1941 dates, Ireland differs by 0.006 or nothing - and one figure of that kind is left, China's 1.800 too many at 1939.9.1
   and 1940.5.10 (771.250 in both saves), a headquarters' fifteen days under its laws, not explained.

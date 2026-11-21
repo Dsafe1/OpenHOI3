@@ -58,7 +58,13 @@ public static class CAutomation
 	/// for the areas handed over - and a foreign minister's first work skipped. See <c>docs/mechanics/savegame.md</c>,
 	/// section 2; <c>reversing/findings/FINDINGS-liveread.md</c>, section 106.
 	/// </summary>
-	public static void MakeMinistersOfLoad(CGameState state)
+	public static void MakeMinistersOfLoad(CGameState state) => MakeMinisters(state);
+
+	/// <summary>
+	/// Every country's five ministers made, a new game's as a loaded game's: the original makes them before a game is
+	/// entered either way, the same draws in the same order (<c>docs/mechanics/ministers.md</c>, section 1).
+	/// </summary>
+	public static void MakeMinisters(CGameState state)
 	{
 		for (int i = 0; i < PlaceholderMinisters; i++)
 		{

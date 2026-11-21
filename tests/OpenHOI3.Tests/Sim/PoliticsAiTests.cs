@@ -156,6 +156,34 @@ public class PoliticsAiTests
 	}
 
 	[Fact]
+	public void ANewGamesFirstFrameIsOneAiPassAtItsFirstHourBeforeAnyHourIsPlayed()
+	{
+		CGameState state = World();
+		var scripts = new StepUp();
+		state.AiScripts = scripts;
+		// The game stands at the hour of the day that is Italy's politics minister's.
+		CCountry germany = state.Country(Ger)!;
+		CCountry italy = state.Country(Ita)!;
+		while (state.TotalHours % CGameState.HoursPerDay != OpenHOI3.Sim.Research.CResearchAi.Hour(italy, 17))
+		{
+			state.AdvanceOneHour();
+		}
+		CDate stands = state.Date;
+		long hours = state.TotalHours;
+		italy.PoliticsCountdown = 1;
+		germany.PoliticsCountdown = 3;
+
+		_ = new CSimulation(state);
+
+		// The minister drawn one hour away, whose hour of the day this is, has worked; the other has counted down once.
+		Assert.Equal(new[] { Ita }, scripts.Ticks);
+		Assert.Equal(1, italy.PoliticsCountdown);
+		Assert.Equal(2, germany.PoliticsCountdown);
+		Assert.Equal(stands, state.Date);
+		Assert.Equal(hours, state.TotalHours);
+	}
+
+	[Fact]
 	public void ANewGamesChangesOfLawAreMadeFreeAndSilentThoughRunOnceTheGameIsRunning()
 	{
 		CGameState state = World();

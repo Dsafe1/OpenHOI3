@@ -41,12 +41,13 @@ public sealed class CSimulation
 		state.Executing(begins: true);
 		try
 		{
-			CTick.RunEntryPass(state);
+			CTick.RunFirstFrame(state);
 			if (discardEntryOrders)
 			{
 				state.Outbox.Clear();
 			}
-			// What entering posted - the AI's sort of its units into its theatres - runs at once.
+			// What entering posted - the AI's sort of its units into its theatres, and what a minister whose hour this
+			// is gave - runs at once.
 			DrainOutbox();
 			// A loaded game runs a second AI pass before its first hour, and that one's orders run as well.
 			if (state.LoadedFromSave)

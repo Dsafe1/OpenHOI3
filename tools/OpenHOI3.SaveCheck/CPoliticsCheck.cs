@@ -60,9 +60,23 @@ internal static class CPoliticsCheck
 		CMap map = CMap.Load(directories, warnings.Add);
 		using var scripts = new CAiScripts(directories, warnings.Add);
 		bool saveLaws = args.Skip(3).Contains("laws=save");
-		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add,
-			fill: !saveLaws, firstDays: !saveLaws, aiScripts: scripts, date: CStartSave.Date(args[2]));
 		ClausewitzNode save = ClausewitzParser.ParseFile(args[2]);
+		// "seed=N": the game's seed, and with it the save's player played - what the AI's ministers draw their first
+		// hours from, the original's being its seconds since launch and its played country drawing nothing
+		// (ministers.md, section 1).
+		string? seedText = args.Skip(3).FirstOrDefault(a => a.StartsWith("seed=", StringComparison.Ordinal))?["seed=".Length..];
+		uint? seed = seedText is null ? null : uint.Parse(seedText);
+		CCountryTag[]? played = seed is not null && save.GetString("player") is { Length: 3 } player
+			? new[] { new CCountryTag(player) } : null;
+		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add,
+			fill: !saveLaws, firstDays: !saveLaws, aiScripts: scripts, played: played, date: CStartSave.Date(args[2]), seed: seed);
+		if (seed is not null)
+		{
+			// The first frame's AI pass, and what it posted run, as the first screen of a game has it.
+			_ = new CSimulation(state);
+			Console.WriteLine($"seed {seed}, played {(played is null ? "nobody" : played[0].Value)}; the tech shares moved off a quarter each: "
+				+ string.Join(" ", state.Countries.Where(c => c.LeadershipShares.Any(s => s.Raw != c.LeadershipShares[0].Raw)).Select(c => c.Tag.Value + " " + string.Join(" ", c.LeadershipShares.Select(s => s.Raw)))));
+		}
 		if (saveLaws)
 		{
 			Dictionary<string, Dictionary<string, CLaw>> lawBook = CModifierReader.ReadLaws(directories, warnings.Add);

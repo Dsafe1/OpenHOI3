@@ -27,12 +27,17 @@ public static class CPoliticsAi
 	/// until the game's two first days are run (<see cref="RunNewGameLaws"/>); then each country nobody plays is given a
 	/// politics minister, which first works after one to three hours, a draw on the game's generator each.
 	/// </summary>
-	public static void SetUpAtStart(CGameState state)
+	/// <param name="draw">Off where the countdowns are drawn for all five ministers together (<see cref="Settings.CAutomation.MakeMinisters"/>).</param>
+	public static void SetUpAtStart(CGameState state, bool draw = true)
 	{
 		state.NewGameLaws.Clear();
 		if (state.AiScripts is not null)
 		{
 			state.NewGameLaws.AddRange(LookAtLaws(state));
+		}
+		if (!draw)
+		{
+			return;
 		}
 		foreach (CCountry country in state.Countries)
 		{

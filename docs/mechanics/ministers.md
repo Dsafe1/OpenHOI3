@@ -17,11 +17,27 @@ Figures are thousandths unless said otherwise. A **share** is the 15-bit kind (`
 
 ## 1. The ministers and their hours
 
-As a new game is made, after the intelligence minister and the foreign minister (`foreignminister.md`, section 1),
-every country nobody plays is given a **production minister** and a **tech minister**, each first working `draw % 3 +
-1` hours away, a draw each on the game's generator - in that order, the original making its five in the order foreign,
-production, tech, politics, intelligence (`FINDINGS-ministers.md` A.1 and B.1; `FINDINGS-ai.md`; *ours*: after the
-politics and intelligence ministers', whose draws were built first). From then on each works every hour, and does anything only in
+**Every country's five ministers are made before a game is entered**, a new game's as a loaded one's
+(`reversing/findings/FINDINGS-startshares.md`, section 10; `CAutomation.MakeMinisters`): the list's placeholder
+country first, whose five draw too, then each country in the list's order, its **foreign, production, intelligence,
+tech and politics** minister in turn - each first working `draw % 3 + 1` passes away, the intelligence minister's
+`draw % 10 + 1`, a draw each on the AI's generator and that generator's first; a played country draws only for the
+areas handed over. Until 2026-11-21 a new game drew them minister by minister, the politics ministers' first.
+
+**The first frame of a game is one AI pass, before any hour is played** (`CTick.RunFirstFrame`, from the
+simulation's making): the whole of a pass, at the hour the game stands at - a new game's start date's hour nought.
+Every minister counts down once in it, so **one whose draw was 1 and whose hour of the day is nought works before
+the first hour**, and what it posts is run before that hour too. A loaded game has two such passes (`savegame.md`,
+section 2). The foreign minister's first work is skipped, so none acts in it. *Measured* with the original's own
+seed (`OpenHOI3.SaveCheck politics ... seed=5`, its player played): the one trace the eight start saves hold of it is
+**Vichy's leadership shares**, moved off a quarter each in the four saves Vichy exists in and in no other country's -
+0.60999 / 0 / 0 / 0.39001 at both 1941 dates, 0.29999 / 0.07999 / 0.03 / 0.59 at 1943.2.1, ours to the last
+place. **The IC shares the saves show moved are no minister's**: they are the day's `BalanceProductionSliders` on
+the two entry days (section 4). The original's seed is its process's seconds since launch, 5 on the reference
+machine, and ours is the game's (`docs/compatibility.md`, entry 11), so another game's first frame has other
+ministers at work.
+
+From then on each works every hour, and does anything only in
 **its hour of the day**: the tech minister at `(number + 3) mod 24`, the production minister at `(number + 5) mod 24`,
 where the number is the country's place among the countries plus one (*ours*, as the politics minister's:
 `politics.md`, section 12). A country that owns no land and is not in exile is passed over; nothing works while a game is

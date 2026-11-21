@@ -31,12 +31,16 @@ public static class CForeignAi
 	/// The foreign minister of every country nobody plays: a draw of one to three hours on the game's generator, made
 	/// before the production and tech ministers', as the original makes it first, and its first work to be skipped.
 	/// </summary>
-	public static void SetUpAtStart(CGameState state)
+	/// <param name="draw">Off where the countdowns are drawn for all five ministers together (<see cref="Settings.CAutomation.MakeMinisters"/>).</param>
+	public static void SetUpAtStart(CGameState state, bool draw = true)
 	{
 		foreach (CCountry country in state.Countries)
 		{
 			bool played = !Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Diplomacy);
-			country.ForeignCountdown = played ? 0 : state.AiRandom.Next(country.Tag) % 3 + 1;
+			if (draw)
+			{
+				country.ForeignCountdown = played ? 0 : state.AiRandom.Next(country.Tag) % 3 + 1;
+			}
 			country.ForeignMinister.SkipOnce = !played;
 		}
 		TellOfWars(state);

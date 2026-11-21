@@ -296,7 +296,21 @@ public static class CTick
 	/// that the first screen shows figures and not zeroes. It works the figures out and
 	/// moves nothing: no stockpile changes here.
 	/// </summary>
-	public static void RunEntryPass(CGameState state)
+	public static void RunEntryPass(CGameState state) => RunEntryPass(state, wholeAiPass: false);
+
+	/// <summary>
+	/// The first frame of a game, before any hour: what entering works out, and the AI's one pass before the first hour,
+	/// at the hour the game stands at - the whole of a pass for a new game as for a loaded one, so every minister
+	/// counts down once and one whose draw was 1 and whose hour of the day this is works
+	/// (<c>docs/mechanics/ministers.md</c>, section 1). What it posts runs before the first hour.
+	/// </summary>
+	public static void RunFirstFrame(CGameState state) => RunEntryPass(state, wholeAiPass: true);
+
+	/// <param name="wholeAiPass">
+	/// Whether a new game's AI pass is the whole of one, its ministers with it, as the original's first frame makes it
+	/// once the entry is over - or its unit agents' alone, as within the entry.
+	/// </param>
+	private static void RunEntryPass(CGameState state, bool wholeAiPass)
 	{
 		CProvinceModifiers.Rebuild(state);
 		CCountryModifiers.RebuildDaily(state);
@@ -343,6 +357,11 @@ public static class CTick
 				Ai.CAiStrategies.Make(state, country);
 			}
 			Agents.CUnitAiPass.MakeAgentsOfLoad(state);
+			RunLoadAiPass(state);
+			return;
+		}
+		if (wholeAiPass)
+		{
 			RunLoadAiPass(state);
 			return;
 		}

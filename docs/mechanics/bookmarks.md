@@ -194,7 +194,13 @@ stockpile, the build queue and the brigades' rows again on 2026-11-16:
 - ~~**`protect` towards Belgium**~~, ~~**China's three laws at 1939**~~, ~~**three `last_war` pairs**~~ and ~~**the
   `military_access` line**~~ - settled in the second round (above).
 - **New Zealand's six posts at 1941**: `OfficeManagement`'s picks at war, made in the AI's pass at hour 0, the frame after
-  the entry and before the first hour - a chance draw of a pass not built (`politics.md`, section 12).
+  the entry and before the first hour. **That pass is built since 2026-11-21** (`ministers.md`, section 1) and gives
+  the save's Vichy leadership shares; the posts are not to be had. Three politics ministers work in it at the 1941
+  dates - France's, Switzerland's and New Zealand's - each drawing one to four times on the AI's generator for which
+  of mobilisation, laws, posts and puppets it looks at, and the original runs them on worker threads in no fixed
+  order: New Zealand looks at its posts only where it happens to draw second
+  (`reversing/findings/FINDINGS-startshares.md`, section 10.4). Here they draw in the countries' order, and it is
+  Switzerland that looks at its posts.
 - **Japan's and China's fronts in another order at 1939**: the original keeps areas up province by province as China's
   cores come back on its first day, where ours makes them whole (`theatres.md`, section 12).
 - **What a written game shows that the checks above do not** (`OpenHOI3.SaveCheck write <install> new <start save>`, set

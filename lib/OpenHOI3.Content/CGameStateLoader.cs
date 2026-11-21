@@ -419,13 +419,13 @@ public static class CGameStateLoader
 		{
 			state.Played.UnionWith(played);
 		}
-		CPoliticsAi.SetUpAtStart(state);
-		// And an intelligence minister (espionage.md, section 15; ours: its draw after the politics minister's).
-		Sim.Espionage.CEspionageAi.SetUpAtStart(state);
-		// And a foreign, a production and a tech minister, in that order (foreignminister.md and ministers.md, section 1;
-		// ours: their draws after the intelligence minister's, where the original makes them before the politics minister).
-		Sim.Ai.CForeignAi.SetUpAtStart(state);
-		Sim.Research.CResearchAi.SetUpAtStart(state);
+		// Every country's five ministers are made first, as the original makes them before a game is entered: the
+		// placeholder country's five draws, then each country's foreign, production, intelligence, tech and politics
+		// minister in turn, the AI generator's first draws (ministers.md, section 1).
+		Sim.Settings.CAutomation.MakeMinisters(state);
+		CPoliticsAi.SetUpAtStart(state, draw: false);
+		// And the foreign ministers are told of the wars being fought (foreignminister.md, section 1).
+		Sim.Ai.CForeignAi.SetUpAtStart(state, draw: false);
 		// Entering the game makes every country's AI strategy, before its weather and its two days (aistrategy.md, section 1).
 		Sim.Ai.CAiStrategies.MakeAtStart(state);
 		// And the two days the original has behind it on the first screen are run, with
