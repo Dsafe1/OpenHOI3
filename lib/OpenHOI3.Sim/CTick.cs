@@ -195,6 +195,9 @@ public static class CTick
 		// held within bounds (war.md, 14; ours: before its shares of leadership, which take none) - so a country's trade
 		// sees the money of the countries before it made and not those after (tick.md, section 3; FINDINGS-liveread.md,
 		// section 140).
+		// A country nobody plays has its leaders and its convoys put back on automatic in its day, before its stockpile is
+		// held (reversing/findings/FINDINGS-leaderassign.md, 8.1a).
+		Step(state, Countries.CAutomationSwitches.ForceDaily);
 		Step(state, RunEconomy, "CStockpile.AddHomeProduction to CExile.HoldPool, country by country");
 		// Then, a country at a time: its shares of leadership, spies placed with the espionage share; its mission looked
 		// at; its spies at work after the alignment's step (espionage.md, 5); its undergrounds (undergrounds.md, 3); the

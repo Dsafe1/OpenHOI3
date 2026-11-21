@@ -206,7 +206,10 @@ A unit nobody may be given keeps none.
 ### During play
 
 **A country that chooses its own leaders** - `auto_assign_leaders`, on for every country as a
-game starts - gives one the same way to: `confirmed`
+game starts, and **put back on every day for every country nobody plays**, with its three automatic convoy switches -
+maintaining, supply and resource convoys - so a save's `no` on such a country lasts until its first midnight and only a
+player's checkbox keeps it off (built 2026-11-21, `CAutomationSwitches`; `reversing/findings/FINDINGS-leaderassign.md`,
+8.1a) - gives one the same way to: `confirmed`
 
 - **a unit put on the map** from the build queue (`buildqueue.md`, section 7);
 - **a unit a lone brigade, ship or wing joins**, where it has none - while the unit that gave
