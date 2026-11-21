@@ -25,7 +25,8 @@ whole of the map, the engine's logo and `version_label` - with `mainmenu_panel` 
 | `exit_button` | ends the program at once - no question, nothing saved [exe] |
 | `nudge_button` | hidden, as the original always hides it [exe] |
 | `multi_player_button` | the multiplayer menu (section 8) |
-| `tutorial_button`, `credits_button` | greyed: not built |
+| `credits_button` | the credits (section 10) |
+| `tutorial_button` | greyed: not built |
 | `gg_micro_button` "Buy Bonus Items" | greyed, its tooltip ours: no store is opened (*Ours*) |
 | the four link buttons | hidden (*Ours*) |
 | `toggle_quick_normal` | the Quick Start panel in the main menu's place, `simple` kept in step (`bookmarks.md`, section 4) |
@@ -309,6 +310,36 @@ the same name and checksum loading its own, and the host loads it only when ever
 as it is chosen and is shown there; the host does not wait for them, a client keeps no copy of its own, and
 how far the save has come is said in the chat and not on the rows' `save_progress` (section 13 there).
 
+## 10. The credits
+
+[exe; `reversing/findings/FINDINGS-frontend.md`, "The credits screen".] Built 2026-11-21 (`CCreditsText`,
+`CCreditsScroll` in `Interface/Screens`, `CCreditsScreen` in `src/FrontEnd`), tried with `--click` and looked at
+once; not set beside the original.
+
+- **The view** is made anew at every press of `credits_button`: `credits.gui`'s `CreditsWindow`, which holds
+  nothing but `back_button`, and thirty-five text boxes of its top-level `CreditsText` and `CreditsTextBold`, no
+  part of the window. The main menu's panel is hidden and its backdrop stays; the screen has no picture of its own
+  - the file's `CreditsBar` is never made. Where everything stands, the fonts, the box's 500 by 32 and its centred
+  format are the file's [mod].
+- **The text** is `interface/credits.txt` as the layers give it, read as bytes: a line ends at a line feed and at
+  the file's last byte, whatever that byte is, which is no part of the line; **a line whose first byte is the
+  section sign is bold** and loses it; there is no other markup, and an empty line is a row.
+- **The roll** [all the executable's own]: box *i* starts 260 + 20 *i* below the screen's middle and every box
+  moves up 20 a second by the clock; a box is shown from 220 down to -86 and hidden outside, whole - nothing is cut;
+  one that passes -86 is let go, and a new box with the next line comes in 700 lower, one row under the lowest. A
+  box is put at its place cut to a whole number towards nought. **With no line left nothing loops and nothing
+  closes**: each box stops at -186, hidden, and the Back button is all there is.
+- **Only Back leaves**, to the main menu and never to Quick Start. The music plays on.
+
+**What looks wrong and is built so**: the lines are never emptied, so **a second visit plays the credits twice
+over**, a third three times; and a file not ending in a line feed loses its last character (`docs/enhanced.md`).
+
+*Ours*: with no file, or an empty one, the window and its Back are still made, where the original makes nothing and
+leaves the player in a view nothing leaves; with fewer lines than boxes the rest are empty, where the original reads
+past its lines; a line's carriage return is dropped, where the original leaves it in the text (how it draws it was
+not read); and where the boxes' text stands across is the runtime's rule for a box measured from the centre
+(`interface.md`, section 6), a line ending at the box's middle - not seen on the original's credits.
+
 ## Ours
 
 - ~~**The Quick Start panel is not offered**~~ - offered since 2026-11-15, `simple` picking the first panel
@@ -350,5 +381,5 @@ how far the save has come is said in the chat and not on the rows' `save_progres
 
 ## Not built
 
-The tutorial list, the credits, the victory conditions window, the end-of-game screen, the title
+The tutorial list, the victory conditions window, the end-of-game screen, the title
 theme, F11's screenshot.

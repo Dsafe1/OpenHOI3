@@ -56,11 +56,18 @@ public partial class CMainMenu : Control
 	}
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
-	public void Setup(CGuiContext context, string versionLabel)
+	/// <param name="readCredits">Reads <c>interface/credits.txt</c> as the layers give it, or answers null.</param>
+	public void Setup(CGuiContext context, string versionLabel, Func<byte[]?>? readCredits = null)
 	{
 		_context = context;
 		_versionLabel = versionLabel;
+		_readCredits = readCredits ?? (() => null);
 	}
+
+	private Func<byte[]?> _readCredits = () => null;
+
+	/// <summary>The credits, made with the menu and shown by its button (frontend.md, section 10).</summary>
+	public CCreditsScreen? Credits { get; private set; }
 
 	public override void _Ready()
 	{
@@ -102,6 +109,19 @@ public partial class CMainMenu : Control
 			ShowPanel(false);
 			MultiplayerPressed?.Invoke();
 		});
+		// The credits: the panel hidden under them, and Back to the main menu, never to Quick Start.
+		Credits = new CCreditsScreen(_context, _readCredits);
+		AddChild(Credits);
+		Credits.BackPressed += () =>
+		{
+			ShowMainMenu();
+			ShowPanel(true);
+		};
+		Bind(menuPanel, "credits_button", () =>
+		{
+			ShowPanel(false);
+			Credits.Open();
+		});
 		Bind(menuPanel, "single_player_button", () => SinglePlayerPressed?.Invoke());
 		Bind(menuPanel, "settings_button", () => SettingsPressed?.Invoke());
 		Bind(menuPanel, "exit_button", () => ExitPressed?.Invoke());
@@ -119,8 +139,16 @@ public partial class CMainMenu : Control
 				button.Visible = false;
 			}
 		}
-		foreach (string greyed in Multiplayer.Exists ? new[] { "tutorial_button", "credits_button" }
-			: new[] { "multi_player_button", "tutorial_button", "credits_button" })
+		var greyedButtons = new System.Collections.Generic.List<string> { "tutorial_button" };
+		if (!Multiplayer.Exists)
+		{
+			greyedButtons.Add("multi_player_button");
+		}
+		if (!Credits.Exists)
+		{
+			greyedButtons.Add("credits_button");
+		}
+		foreach (string greyed in greyedButtons)
 		{
 			if (menuPanel.TryFindButton(greyed) is { } button)
 			{

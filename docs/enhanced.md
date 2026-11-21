@@ -460,6 +460,10 @@ What the enhanced engine's own save would have to hold, and what its load would 
 
 All of these are risk-free but for what the entry says.
 
+- **The credits play twice on a second visit.** Each visit reads the file again onto the lines of the visits before, which nothing empties, so the roll is as many times as long as the menu's Credits has been pressed. `frontend.md`, 10. *Oversight.*
+- **A credits file not ending in a line feed loses its last character**, the file's last byte ending a line as a line feed does. `frontend.md`, 10. *Oversight.*
+- **A missing credits file leaves a view nothing leaves** in the original: no window and no Back are made. Here the Back is made. `frontend.md`, 10. *Oversight.*
+
 - **The chat in play** (`mechanics/chat.md`; `reversing/findings/FINDINGS-ingamechat.md`, section 7).
   `menubar.gui`'s `chat_window`, with its recipient buttons None, Allies, Foes and All, is built and never shown,
   and the rows of players it would tick are named by no code: choosing who a line goes to was planned and

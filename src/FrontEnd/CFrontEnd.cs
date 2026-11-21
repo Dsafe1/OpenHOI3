@@ -182,7 +182,11 @@ public partial class CFrontEnd : Node
 		var layer = new CanvasLayer { Name = "Interface" };
 		AddChild(layer);
 		_menu = new CMainMenu();
-		_menu.Setup(_gui, VersionLabel);
+		_menu.Setup(_gui, VersionLabel, () =>
+		{
+			string path = _directories.Resolve(Interface.Screens.CCreditsText.File);
+			return System.IO.File.Exists(path) ? System.IO.File.ReadAllBytes(path) : null;
+		});
 		// The Quick Start panel first where the settings say simple, as the original picks its first view (bookmarks.md,
 		// section 4); the toggle keeps simple in step.
 		_menu.Begin(Settings.Simple);

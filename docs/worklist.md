@@ -2412,8 +2412,8 @@ None of these blocks the list above.
     of keys, which `savegame.md`, section 19, names. Which hour first sees the officers
     a day adds is not settled; and the first midnight after a load drops two supply convoys the
     original keeps;
-  - the front end's tutorial list and credits are not built, and are greyed there
-    (`frontend.md`, section 2);
+  - the front end's tutorial list is not built, and is greyed there
+    (`frontend.md`, section 2); the credits are built since 2026-11-21 (section 10);
   - **`debug_saves` other than nought autosaves nothing** (`savegame.md`, section 11): the
     original's saves under it are named by a routine not read;
   - **of the player's settings, the gamma, the multisampling, the hierarchy's lines, the simple
