@@ -95,9 +95,11 @@ public static class CStrandedRecall
 				Insert(ours, id, distance);
 			}
 		}
+		// The nearest it has a way to: one walk of what it can reach, the same answer as a search for each in turn.
+		bool[] reachable = CRouteFinder.Reachable(state, country, unit, unit.Location);
 		foreach ((int id, long _) in ours)
 		{
-			if (CRouteFinder.Find(state, country, unit, unit.Location, id) is not null)
+			if (reachable[id] && CMovementRules.MayStandIn(state, country, unit, state.Province(id)))
 			{
 				return id;
 			}

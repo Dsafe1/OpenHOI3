@@ -689,7 +689,11 @@ not aboard, not fighting or retreating, in a province another country holds - no
 its fronts into, and not bound for its own land, an enemy's or such an area, is sent home: the nearest of its own
 provinces it can reach, a quarter as far in its capital's area; else the nearest of a neighbouring area of its side that
 borders no land held against it, 10000 nearer where it holds the province; else, a division, its area's nearest port;
-else the capital. With nowhere, it is disbanded.
+else the capital. With nowhere, it is disbanded. **Ours**: which of its own provinces it can reach is one walk of the
+steps a plain route may take (`CRouteFinder.Reachable`), the first in distance order that it reaches and may stand in
+taken - the same province as a route search for each in turn, which for a unit with no way home searched all it could
+reach once for every province of its own: 12.9 of the 1944 bookmark's first ten days' 31 seconds, 0.06 now, the state's
+hash the same each midnight (2026-11-21).
 
 ## 14. The fleets (`CAIUnit_ManageNavalUnits`, `FINDINGS-moving.md` D.2, `FINDINGS-airnaval4.md`)
 

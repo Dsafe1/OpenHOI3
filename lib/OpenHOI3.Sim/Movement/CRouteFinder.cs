@@ -126,6 +126,43 @@ public static class CRouteFinder
 	}
 
 	/// <summary>
+	/// Every province a unit could find a plain way to from where it stands, by the step rule <see cref="Find"/> asks (its
+	/// goal's own test, <see cref="CMovementRules.MayStandIn"/>, left to the caller): for a land unit, a goal <c>Find</c>
+	/// answers a way to is exactly one marked here that it may stand in. One walk, where a <c>Find</c> for each of many
+	/// goals with no way to them walks all that is reachable each time.
+	/// </summary>
+	public static bool[] Reachable(CGameState state, CCountry country, CUnit unit, int from)
+	{
+		int count = state.Provinces.Count;
+		var reached = new bool[count];
+		if (from <= 0 || from >= count)
+		{
+			return reached;
+		}
+		var walk = new Stack<int>();
+		reached[from] = true;
+		walk.Push(from);
+		while (walk.Count > 0)
+		{
+			CProvince here = state.Province(walk.Pop());
+			foreach (CProvinceEdge edge in here.Edges)
+			{
+				if (edge.To <= 0 || edge.To >= count || reached[edge.To])
+				{
+					continue;
+				}
+				CProvince there = state.Province(edge.To);
+				if (CMovementRules.MayStep(state, country, unit, here, there, edge))
+				{
+					reached[edge.To] = true;
+					walk.Push(edge.To);
+				}
+			}
+		}
+		return reached;
+	}
+
+	/// <summary>
 	/// Whether a unit's way may pass through a province short of its goal, the original's <c>CSafePathFind::MayStep</c> and
 	/// <c>CVerySafePathFind::MayStep</c> (reversing/findings/FINDINGS-moving.md, A.4f). A fleet or an air unit, under
 	/// either: not where enemy ships - an undeclared war over the province counted, and the rebels - come to a whole point

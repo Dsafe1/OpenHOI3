@@ -988,4 +988,31 @@ public class MovementTests
 		Assert.False(CMovementRules.MayMoveTo(state, germany, air, state.Province(Posen)));
 		Assert.True(CMovementRules.MayMoveTo(state, germany, air, state.Province(Leipzig)));
 	}
+
+	[Fact]
+	public void The_reachable_provinces_are_those_a_plain_route_is_found_to()
+	{
+		foreach (bool atWar in new[] { false, true })
+		{
+			CCountry germany = Germany();
+			CWar? war = null;
+			if (atWar)
+			{
+				war = new CWar("war");
+				war.Attackers.Add(Ger);
+				war.Defenders.Add(Pol);
+			}
+			CGameState state = State(germany, war is null ? null : new[] { war });
+			CUnit unit = Division(state, germany, Berlin, Infantry());
+			foreach (int from in new[] { Berlin, Potsdam, Dessau, Leipzig })
+			{
+				bool[] reachable = CRouteFinder.Reachable(state, germany, unit, from);
+				for (int to = 1; to < state.Provinces.Count; to++)
+				{
+					bool found = CRouteFinder.Find(state, germany, unit, from, to) is not null;
+					Assert.Equal(found, reachable[to] && CMovementRules.MayStandIn(state, germany, unit, state.Province(to)));
+				}
+			}
+		}
+	}
 }
