@@ -33,6 +33,19 @@ public sealed partial class CGameOptionsWindow : Control
 	/// </summary>
 	public string SettingsPath { get; set; } = "";
 
+	/// <summary>
+	/// Where an enhanced game's own settings are kept (<see cref="CEnhancedSettingsFile"/>), which makes the Game tab
+	/// show their rows below the autosave frequency; null in a faithful game, whose window is the original's
+	/// (gameoptions.md, section 5). Set before the node enters the tree.
+	/// </summary>
+	public string? EnhancedPath { get; set; }
+
+	/// <summary>The enhanced settings stored by Apply, for what of them takes effect at once.</summary>
+	public event Action<CEnhancedSettings>? EnhancedApplied;
+
+	private readonly CEnhancedOptions _enhanced = new();
+	private bool _enhancedRows;
+
 	private CGuiContext _context = null!;
 	private Func<CUserSettings> _settings = null!;
 	private Action<CUserSettings> _setSettings = null!;
@@ -126,6 +139,7 @@ public sealed partial class CGameOptionsWindow : Control
 		{
 			Bind(_game.FindButton("decrease_autosave_button"), () => StepAutosave(-1));
 			Bind(_game.FindButton("increase_autosave_button"), () => StepAutosave(1));
+			AddEnhancedRows(_game);
 		}
 		if (_video is not null)
 		{
@@ -267,12 +281,56 @@ public sealed partial class CGameOptionsWindow : Control
 			SetSlider(_audio, "musicvolume_slider", settings.MusicVolume, off);
 		}
 		_savedVolumes = (settings.MasterVolume, settings.SoundFxVolume, settings.MusicVolume);
+		if (_enhancedRows && EnhancedPath is { } enhancedPath)
+		{
+			// Made again from their file at each opening, as every control but the autosave frequency's is.
+			_enhanced.Refresh(CEnhancedSettingsFile.Read(enhancedPath));
+		}
 		if (_controls is not null)
 		{
 			SetSlider(_controls, "scrollspeed_slider", settings.ScrollSpeed, false);
 			SetSlider(_controls, "zoomspeed_slider", settings.ZoomSpeed, false);
 			// The legacy camera's box is never set from the settings: the original's starts as its file leaves it.
 		}
+		ShowValues();
+	}
+
+	/// <summary>
+	/// An enhanced game's rows, each the tab's own autosave row over again further down (<see cref="CEnhancedOptionRows"/>),
+	/// its arrows stepping its choice. A tab with no autosave row to copy gets none, which is said.
+	/// </summary>
+	private void AddEnhancedRows(CGuiWindow game)
+	{
+		if (EnhancedPath is null || game.GuiType is not Content.Gui.CGuiWindowType type)
+		{
+			return;
+		}
+		List<Content.Gui.CGuiType> elements = CEnhancedOptionRows.Build(type, CEnhancedOptions.Rows);
+		if (elements.Count == 0)
+		{
+			Content.CDiagnostics.Problem("interface: menu_settings_GAME has no autosave row for the enhanced options to be laid out by; they are not shown");
+			return;
+		}
+		foreach (Content.Gui.CGuiType element in elements)
+		{
+			game.AddElement(element, _context);
+		}
+		foreach (string row in CEnhancedOptions.Rows)
+		{
+			string stepped = row;
+			Bind(game.TryFindButton(CEnhancedOptionRows.DecreaseName(row)), () => StepEnhanced(stepped, -1));
+			Bind(game.TryFindButton(CEnhancedOptionRows.IncreaseName(row)), () => StepEnhanced(stepped, 1));
+			if (game.FindTextBox(CEnhancedOptionRows.LabelName(row)) is { } label)
+			{
+				label.Text = CEnhancedOptionsText.Label(row, _context.Localisation.Find);
+			}
+		}
+		_enhancedRows = true;
+	}
+
+	private void StepEnhanced(string row, int by)
+	{
+		_enhanced.Step(row, by);
 		ShowValues();
 	}
 
@@ -293,6 +351,16 @@ public sealed partial class CGameOptionsWindow : Control
 		if (_game?.FindTextBox("autosave_value") is { } autosave)
 		{
 			autosave.Text = _context.Localisation.Localise(_options.AutosaveKey);
+		}
+		if (_enhancedRows && _game is not null)
+		{
+			foreach (string row in CEnhancedOptions.Rows)
+			{
+				if (_game.FindTextBox(CEnhancedOptionRows.ValueName(row)) is { } value)
+				{
+					value.Text = CEnhancedOptionsText.Value(row, _enhanced, _context.Localisation.Find);
+				}
+			}
 		}
 		if (_video is null)
 		{
@@ -338,6 +406,17 @@ public sealed partial class CGameOptionsWindow : Control
 		{
 			Inform("SM_ALERT", "SM_WP");
 			return;
+		}
+		// An enhanced game's own, in their own file beside it: in force at once, and a failure told the same way.
+		if (_enhancedRows && EnhancedPath is { } enhancedPath)
+		{
+			CEnhancedSettings enhanced = _enhanced.Apply();
+			EnhancedApplied?.Invoke(enhanced);
+			if (!CEnhancedSettingsFile.WriteFile(enhanced, enhancedPath))
+			{
+				Inform("SM_ALERT", "SM_WP");
+				return;
+			}
 		}
 		if (restart)
 		{

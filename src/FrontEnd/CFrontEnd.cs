@@ -206,6 +206,11 @@ public partial class CFrontEnd : Node
 		_options.Setup(_gui, () => Settings, settings => Settings = settings, CGameOptionsWindow.DisplayModes(Settings),
 			new[] { 2, 4, 8 }, (Settings.Width, Settings.Height, Settings.RefreshRate), CGameOptionsWindow.FrontEndWindowName);
 		_options.SettingsPath = CUserSettingsReader.DefaultPath(_directories);
+		// An enhanced game's own options with them, kept in their own file; a game reads it as it starts (gameoptions.md, section 5).
+		if (Content.Rules.CRulesReader.IsEnhanced(_directories))
+		{
+			_options.EnhancedPath = CEnhancedSettingsFile.DefaultPath(_directories);
+		}
 		layer.AddChild(_options);
 		_options.HideWindow();
 		// Closing the settings window clears simple and comes back to the main menu, as the original's does.

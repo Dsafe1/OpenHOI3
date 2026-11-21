@@ -161,6 +161,34 @@ public partial class CGuiWindow : CGuiObject
 	}
 
 	/// <summary>
+	/// A button or a text box no file declares, added to the window as its own are and found by its name like them: the
+	/// rows an enhanced game adds to the game options' Game tab (<c>docs/mechanics/gameoptions.md</c>, section 5).
+	/// Answers false for any other kind, which is not added.
+	/// </summary>
+	public bool AddElement(CGuiType element, CGuiContext context)
+	{
+		switch (element)
+		{
+			case CGuiButtonType buttonType:
+				var button = new CGuiButton();
+				button.Initialise(buttonType, context);
+				AddChild(button);
+				_buttons.TryAdd(element.Name, button);
+				return true;
+
+			case CGuiTextBoxType textBoxType:
+				var textBox = new CGuiTextBox();
+				textBox.Initialise(textBoxType, context);
+				AddChild(textBox);
+				_textBoxes[element.Name] = textBox;
+				return true;
+
+			default:
+				return false;
+		}
+	}
+
+	/// <summary>
 	/// The child a window names as its background. It is put at the window's corner
 	/// whatever position it declares. A cornered tile fills the window, repeating - and
 	/// one that declares a border keeps its corners and repeats its edges and its middle

@@ -517,6 +517,32 @@ in the original**: three reference autosaves - `1941.5.1.1`, `1941.6.1.1` and `1
 and hold the first hour of the day, and at a slow speed it holds the turn of the day, `.0` (an account of the original, 2026-11-05). Here
 it always holds the turn of the day, by decision.
 
+### 11.1 An enhanced game's two extra autosaves
+
+**Ours, built 2026-11-21** (`gameoptions.md`, section 5, where they are chosen; `CExtraAutosaves`). Beside the
+original's autosave and never in its place, each with three rotating files of its own, shifted along as the
+original's are, in the folder the game's saves go to - so no set pushes another out:
+
+- **Before the month ends**, `autosave_premonth.hoi3`, `oldautosave_premonth.hoi3`, `olderautosave_premonth.hoi3`: on
+  the day of the month that is its length less the days chosen plus one, on the calendar of no leap years - with 2,
+  the 30th of a month of 31 days and the 27th of February; with 1, a month's last day. 1 to 27, which keeps the day
+  inside February. A rollback point just before the month's own work.
+- **On a timer**, `autosave_timed.hoi3` and its two: every so many minutes of **real time**, 1 to 240, whatever the
+  speed.
+
+**Both are decided where the original's is, once as a day begins**, so a paused game takes none and a timed save lands
+on the first day to begin after its interval is up. In order: the pre-month save, where today is its day and none was
+asked for on this calendar day; otherwise the timed one - a timer not running is started and nothing saved, so the
+first interval is counted from a day of play; then nothing until the interval is up. **A save of either kind starts
+the timer afresh**, and switching the timed save off stops it. What is remembered - the timer, the day last asked -
+is the session's and no part of the game or of a save. Between several machines they are the host's alone, as the
+autosave is.
+
+The rule is BiceLib's (`docs/bicelib/features.md` of the mod's repository, *Custom Auto-Saves*), with two things
+otherwise. **Where one of them and the original's own fall on one day, both are written**: BiceLib shares the
+original's single request, so there the day has one save, under BiceLib's name, and the original's is lost. And a
+save is written at once, so there is no request to be cancelled and taken back.
+
 ## 12. The fourth increment: politics and the research queue
 
 Read and written both ways (`CSavePolitics`), each key where the original writes it in a country block [exe]

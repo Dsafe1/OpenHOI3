@@ -149,7 +149,8 @@ names of keys and defines are proposals.
 - Ctrl on the "unassign all leaders" confirmation unassigns the selected units' leaders alone, as commands that each
   name their unit.
 - Game options of the engine's own: two more rotating autosaves, scrolling at the screen's edge, where an event's
-  window comes up.
+  window comes up. **Built 2026-11-21**, as four rows on the game options' Game tab kept in `openhoi_settings.txt`
+  (`mechanics/gameoptions.md`, section 5; `mechanics/savegame.md`, section 11.1).
 - A map mode a mod declares in data: the figure a province is coloured by, its bands and colours.
 - Windows of the engine's own for what the engine holds: a country's flags, variables and timed modifiers, the order of
   battle as a tree and counted, a selected unit's figures, where a building stands, the record of battles.

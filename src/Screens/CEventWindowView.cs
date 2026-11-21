@@ -46,6 +46,9 @@ public sealed partial class CEventWindowView : Control
 		Open = open;
 	}
 
+	/// <summary>Where the window comes up across the screen, an enhanced game's option (gameoptions.md, section 5).</summary>
+	public OpenHOI3.Content.Settings.EEventWindowPlace Place { get; set; }
+
 	/// <summary>Whether its option has been chosen here, before the answer has run.</summary>
 	public bool Answered => _answered;
 
@@ -64,6 +67,12 @@ public sealed partial class CEventWindowView : Control
 		}
 		AddChild(window);
 		Name = "Event" + shown.Id;
+		// Put at the left or in the middle where the player chose so, at the height its file gives it.
+		if (window.GuiType is OpenHOI3.Content.Gui.CGuiWindowType windowType
+			&& CEventWindowLayout.PlacedX(scope, Place, windowType.Size.X, GetViewportRect().Size.X) is { } x)
+		{
+			window.MoveTo(new Vector2(x, windowType.Position.Y));
+		}
 
 		string Text(string key) => CEventText.Localise(_context.Localisation.Localise, state, key, scope);
 		if (window.FindTextBox("Title") is { } title)

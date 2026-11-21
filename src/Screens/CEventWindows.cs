@@ -32,6 +32,9 @@ public sealed partial class CEventWindows : Control
 	/// <summary>Whether this machine's player is shown the country's events: not a player who shares it and was not the first. Null shows them.</summary>
 	public System.Func<bool>? Shows { get; set; }
 
+	/// <summary>Where a country event's window comes up, an enhanced game's option; the next window shown goes by it.</summary>
+	public OpenHOI3.Content.Settings.EEventWindowPlace Place { get; set; }
+
 	public override void _Ready()
 	{
 		Name = "EventWindows";
@@ -50,6 +53,7 @@ public sealed partial class CEventWindows : Control
 			{
 				var view = new CEventWindowView();
 				view.Setup(_context, _simulation, waiting);
+				view.Place = Place;
 				AddChild(view);
 				_shown[waiting] = view;
 				// Each window shown sounds the message on a voice of its own, so that two at once are heard over each other -

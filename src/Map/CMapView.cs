@@ -1781,6 +1781,12 @@ public partial class CMapView : Node2D
 	/// </summary>
 	public Func<(bool Across, bool Down)>? ScrollKeysHeld { get; set; }
 
+	/// <summary>
+	/// Whether the pointer at the screen's edge scrolls the map: the original's, always; an enhanced game's option turns
+	/// it off, and a run driven by a script has it off, the pointer lying wherever it was left.
+	/// </summary>
+	public bool EdgeScrolling { get; set; } = true;
+
 	/// <summary>The player's <c>counter_distance</c>, which the counters and the battle markers go by.</summary>
 	public Func<float> CounterDistance { get; set; } = () => CMapCamera.CounterDistance;
 
@@ -1828,6 +1834,16 @@ public partial class CMapView : Node2D
 		if (ScrollKeysHeld?.Invoke() is var (across, down))
 		{
 			direction = new Vector2(across ? 0f : direction.X, down ? 0f : direction.Y);
+		}
+		// The pointer at the screen's edge, after the keys as the original's camera takes it (map.md, section 8): only
+		// in the window that has the keyboard, and not where the wheel is held either - the lobby, a main window, the menu.
+		if (direction == Vector2.Zero && EdgeScrolling && !WheelStill && GetWindow().HasFocus())
+		{
+			Vector2 pointer = GetViewport().GetMousePosition();
+			Vector2 view = GetViewportRect().Size;
+			System.Numerics.Vector2 edge = CMapEdgeScroll.Direction(new System.Numerics.Vector2(pointer.X, pointer.Y),
+				new System.Numerics.Vector2(view.X, view.Y));
+			direction = new Vector2(edge.X, edge.Y).Normalized();
 		}
 		if (direction != Vector2.Zero)
 		{

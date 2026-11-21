@@ -242,6 +242,11 @@ depends on.
   map projection rather than the screen - and when the mouse is within **six pixels** of a
   screen edge. The result is clamped to the camera's limits. `confirmed`
 - There is one scroll speed for all three; the original has no setting for the edge alone.
+- **The edge is built since 2026-11-21** (`CMapEdgeScroll`, `CMapView`): after the keys, four tests of the pointer
+  against the view's edges with the six pixels, at the keys' speed; only in the window that has the keyboard and with
+  the pointer on the view, and not where the wheel is held either - the lobby, a main window, the menu - which is
+  *ours*, what the original does under a window not being read. A run driven by `--click` or `--screenshot` has it
+  off, the pointer lying wherever it was left. An enhanced game's option turns it off (`gameoptions.md`, section 5).
 - The zoom arithmetic has not been read.
 
 ## 9. Terrain

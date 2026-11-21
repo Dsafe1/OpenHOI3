@@ -42,9 +42,11 @@ skeleton, is built: `common/openhoi_enhanced.txt`, the rules a game carries, an 
 Lua's `OpenHOI3.Enhanced`, and two fixes. Step 2 is built too: the engine's version of its own, `openhoi3-<x>` by a
 tag, and `tools/build_release.ps1`, which packs a release and publishes nothing - tagged to `v0.1.2` by the user.
 Steps 3 to 5 are written on BlackICE's side - the pinned engine and its fetch, the installer, which the user has
-installed and played from, and the page on what a file for both engines may hold. **Next: step 6**, the first
-features - more game options, and the interface for windows a mod defines - and before either the fact base's reading
-of what the original makes of a subfolder and an unknown `.gui` file.
+installed and played from, and the page on what a file for both engines may hold. Of step 6, the first features,
+the game options are built: four rows on the Game tab for two more autosaves, scrolling at the screen's edge - built
+with it, the engine not having had it - and where an event's window comes up (`docs/mechanics/gameoptions.md`,
+section 5). **Next: the interface for windows a mod defines**, and before it the fact base's reading of what the
+original makes of a subfolder of `interface/` and of a `.gui` file or element it does not know.
 
 **Multiplayer - the last large piece of the normal engine** (`docs/multiplayer.md`, which holds every decision, what is
 built and what is not; begun 2026-11-20). **Finished, by the word of 2026-11-21: "I think multiplayer is finished

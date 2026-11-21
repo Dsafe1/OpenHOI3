@@ -148,6 +148,12 @@ public partial class CSession : Node
 		// is not supported is reported as it is read. Read here and not as the node enters the tree, because the music asks
 		// for them from the moment the session is made, and the defaults would have it play at full volume until then.
 		Settings = Content.Settings.CUserSettingsReader.Read(Content.Settings.CUserSettingsReader.DefaultPath(_directories));
+		// An enhanced game's own, from the file beside it; a faithful game reads none and has the defaults, which are the original's.
+		_enhancedGame = Content.Rules.CRulesReader.IsEnhanced(_directories);
+		if (_enhancedGame)
+		{
+			EnhancedSettings = Content.Settings.CEnhancedSettingsFile.Read(Content.Settings.CEnhancedSettingsFile.DefaultPath(_directories));
+		}
 	}
 
 	private Debug.CSessionCarry? _carried;
@@ -1119,6 +1125,13 @@ public partial class CSession : Node
 		options.SettingsPath = Content.Settings.CUserSettingsReader.DefaultPath(_directories);
 		options.GammaPreviewed += scale => _brightness?.SetBrightness(scale);
 		options.Applied += ApplySettings;
+		// An enhanced game's own options, on the Game tab below the autosave frequency (gameoptions.md, section 5).
+		if (_enhancedGame)
+		{
+			options.EnhancedPath = Content.Settings.CEnhancedSettingsFile.DefaultPath(_directories);
+			options.EnhancedApplied += ApplyEnhancedSettings;
+		}
+		ApplyEnhancedSettings(EnhancedSettings);
 		_menu = new CInGameMenu();
 		_menu.Setup(gui, _directories, _simulation, Player, options);
 		layer.AddChild(_menu);
@@ -1697,6 +1710,59 @@ public partial class CSession : Node
 
 	private bool _debugSavesSaid;
 
+	/// <summary>Whether the folders played make an enhanced game, which has options of its own (docs/enhanced.md).</summary>
+	private bool _enhancedGame;
+
+	/// <summary>An enhanced game's own settings, from <c>openhoi_settings.txt</c>; the defaults, which change nothing, in a faithful game.</summary>
+	public Content.Settings.CEnhancedSettings EnhancedSettings { get; private set; } = Content.Settings.CEnhancedSettings.Default;
+
+	/// <summary>What the extra autosaves remember between days: this session's, and no part of the game.</summary>
+	private readonly Content.Saves.CExtraAutosaves _extraAutosaves = new();
+
+	private readonly System.Diagnostics.Stopwatch _realTime = System.Diagnostics.Stopwatch.StartNew();
+
+	/// <summary>
+	/// The enhanced settings in force: the map's scrolling at the screen's edge - off too in a run a script drives,
+	/// whose pointer lies wherever it was left - and where an event's window comes up.
+	/// </summary>
+	private void ApplyEnhancedSettings(Content.Settings.CEnhancedSettings settings)
+	{
+		EnhancedSettings = settings;
+		bool scripted = UserArguments().Any(argument => argument.StartsWith("--click=") || argument.StartsWith("--screenshot="));
+		_mapView.EdgeScrolling = settings.EdgeScrolling && !scripted;
+		if (_events is not null)
+		{
+			_events.Place = settings.EventWindow;
+		}
+	}
+
+	/// <summary>
+	/// An enhanced game's two extra autosaves, asked as the day begins like the original's own and written beside it
+	/// in files of their own (docs/mechanics/savegame.md, section 11.1). Where both they and the original's fall on one
+	/// day, both are written.
+	/// </summary>
+	private void DecideExtraAutosaves()
+	{
+		if (!_enhancedGame)
+		{
+			return;
+		}
+		Content.Saves.EExtraAutosave kind = _extraAutosaves.Decide(EnhancedSettings, State.Date, _realTime.ElapsedMilliseconds);
+		if (kind == Content.Saves.EExtraAutosave.None)
+		{
+			return;
+		}
+		string folder = System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderFor(_directories));
+		try
+		{
+			Content.Saves.CAutosave.Write(State, _localisation.Localise, folder, Content.Saves.CExtraAutosaves.FilesOf(kind));
+		}
+		catch (System.Exception failed) when (failed is System.IO.IOException or System.UnauthorizedAccessException)
+		{
+			CDiagnostics.Warn($"Failed to write save file {folder}: {failed.Message}");
+		}
+	}
+
 	/// <summary>
 	/// The autosave, as each day begins - the hour that turned it run whole: where the settings' frequency names today,
 	/// the three files shifted along and the game written to the first at once, so that it holds the turn of the day
@@ -1711,6 +1777,7 @@ public partial class CSession : Node
 		{
 			return;
 		}
+		DecideExtraAutosaves();
 		if (Settings.DebugSaves != 0)
 		{
 			if (!_debugSavesSaid)

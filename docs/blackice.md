@@ -80,10 +80,14 @@ This file is the order of work across the two repositories and what was decided 
    built**: script that leans on a condition the original does not know needs one the original answers false and
    the enhanced mode true, and this engine gives none yet, so the mod's document forbids such conditions until it
    does. It is wanted before step 7's first rule that script can ask.
-6. **The first features.** Not built.
-   - *More game options*: a tab of the engine's own in the game options window - two more rotating autosaves,
-     scrolling at the screen's edge, where an event's window comes up - and the enhanced mode's own options after
-     them.
+6. **The first features.** The first is built, the second not.
+   - *More game options*. **Built 2026-11-21** (`mechanics/gameoptions.md`, section 5): two more rotating autosaves,
+     scrolling at the screen's edge and where an event's window comes up, as four rows on the game options' **Game
+     tab** - not a tab of their own, by the user's choice: the window's four tabs fill its width, and a fifth in
+     `settings.gui` the original would draw. The rows are the tab's own autosave row copied, so the mod adds no
+     file; their words may be given in its localisation under `OPENHOI_OPT_...` keys and are English without. Kept
+     in `openhoi_settings.txt` beside `settings.txt`. A tab of their own can come with the release made for this
+     engine alone.
    - *The utility as windows of the game*: the interface for windows a mod defines, laid out in `.gui` files under
      `interface/openhoi/` and fed by the mod's Lua under `script/openhoi/`, with the two pages above first.
    - Before either, one reading in the fact base: whether the original lists `interface/` and `script/` with their

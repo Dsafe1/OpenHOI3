@@ -38,10 +38,16 @@ public static class CAutosave
 	/// </summary>
 	public static string Write(CGameState state, Func<string, string> localise, string folder)
 	{
+		return Write(state, localise, folder, Files);
+	}
+
+	/// <summary>The same rotation over another set of files, the newest first: an enhanced game's extra autosaves' (<see cref="CExtraAutosaves"/>).</summary>
+	public static string Write(CGameState state, Func<string, string> localise, string folder, string[] files)
+	{
 		Directory.CreateDirectory(folder);
-		string Path(int index) => System.IO.Path.Combine(folder, Files[index]);
-		File.Delete(Path(Files.Length - 1));
-		for (int index = Files.Length - 2; index >= 0; index--)
+		string Path(int index) => System.IO.Path.Combine(folder, files[index]);
+		File.Delete(Path(files.Length - 1));
+		for (int index = files.Length - 2; index >= 0; index--)
 		{
 			if (File.Exists(Path(index)))
 			{

@@ -9,6 +9,26 @@ namespace OpenHOI3.Interface.Events;
 /// </summary>
 public static class CEventWindowLayout
 {
+	/// <summary>
+	/// Where a country event's window stands across the screen by an enhanced game's option, or null where it stays
+	/// where its file puts it - which is every province event's window, and every window in a faithful game: nought at
+	/// the left, and in the middle the half of what the screen is wider than the window (<c>docs/mechanics/gameoptions.md</c>,
+	/// section 5).
+	/// </summary>
+	public static float? PlacedX(CEventScope scope, OpenHOI3.Content.Settings.EEventWindowPlace place, float windowWidth, float screenWidth)
+	{
+		if (scope.Province >= 1)
+		{
+			return null;
+		}
+		return place switch
+		{
+			OpenHOI3.Content.Settings.EEventWindowPlace.Left => 0f,
+			OpenHOI3.Content.Settings.EEventWindowPlace.Centre => System.MathF.Floor((screenWidth - windowWidth) / 2f),
+			_ => null,
+		};
+	}
+
 	/// <summary>The window: the province's where the event's scope has a province, whatever the event.</summary>
 	public static string WindowName(CEventScope scope)
 	{
