@@ -63,6 +63,9 @@ public static class CSeaTargets
 			return;
 		}
 		var wants = new Dictionary<CAgent, long>();
+		// Each agent's air bases, place and level in the order the walk below adds them: the same for every enemy province
+		// within one assignment, where the walk made each area's list again for every province and agent.
+		List<(int Province, float Level)>[]? bases = null;
 		foreach (CCountry enemy in Targets(state, country))
 		{
 			foreach (CConvoy convoy in enemy.Convoys)
@@ -76,7 +79,8 @@ public static class CSeaTargets
 					Fleet(state, country, agents, fleet, enemyLoad: true);
 				}
 			}
-			WarIndustry(state, country, agents, enemy);
+			bases ??= AirBasesOf(state, agents);
+			WarIndustry(state, country, agents, enemy, bases);
 		}
 		Raided(state, country, agents);
 		foreach (CCountry friend in Fighters(state, country))
@@ -201,7 +205,7 @@ public static class CSeaTargets
 	/// the first of equals.
 	/// </summary>
 	private static void WarIndustry(CGameState state, CCountry country, List<(CAgent Agent, CTheatre Theatre)> agents,
-		CCountry enemy)
+		CCountry enemy, List<(int Province, float Level)>[] bases)
 	{
 		Supply.CSupplyNetwork network = Supply.CSupplyNetworks.Refresh(state);
 		if (enemy.ActingCapital <= 0 || network.AreaOf(enemy.ActingCapital) is not { } home)
@@ -209,7 +213,6 @@ public static class CSeaTargets
 			return;
 		}
 		CBuilding? industry = CBuildingRoles.Find(state, Supply.CSupplyNetworks.Industry);
-		CBuilding? airBase = CBuildingRoles.Find(state, Movement.CMovementRules.AirBase);
 		foreach (int id in home.Provinces)
 		{
 			CProvince province = state.Province(id);
@@ -226,22 +229,20 @@ public static class CSeaTargets
 			}
 			CAgent? best = null;
 			float least = WarIndustryStart;
-			foreach ((CAgent agent, CTheatre theatre) in agents)
+			for (int index = 0; index < agents.Count; index++)
 			{
+				CAgent agent = agents[index].Agent;
 				float levels = 0f;
 				float distances = 0f;
-				foreach (Supply.CSupplyArea area in theatre.Areas)
+				foreach ((int at, float level) in bases[index])
 				{
-					foreach (int at in CParadropPlanner.AirBases(state, area))
+					long distance = CMapDistance.Between(state.Province(at), province, state.MapWidth);
+					if (distance > AirBaseReach)
 					{
-						long distance = CMapDistance.Between(state.Province(at), province, state.MapWidth);
-						if (distance > AirBaseReach)
-						{
-							continue;
-						}
-						levels += (airBase is null ? 0 : state.Province(at).BuildingLevel(airBase).Raw) / (float)Whole;
-						distances += distance;
+						continue;
 					}
+					levels += level;
+					distances += distance;
 				}
 				if (levels < 1f)
 				{
@@ -256,6 +257,29 @@ public static class CSeaTargets
 			}
 			best?.StrategicTargets.Add(id);
 		}
+	}
+
+	/// <summary>
+	/// Each agent's air bases over its theatre's areas in order, each area's largest first (<see cref="CParadropPlanner.AirBases"/>),
+	/// with the working level the war industry's score adds - worked out once for an assignment.
+	/// </summary>
+	private static List<(int Province, float Level)>[] AirBasesOf(CGameState state, List<(CAgent Agent, CTheatre Theatre)> agents)
+	{
+		CBuilding? airBase = CBuildingRoles.Find(state, Movement.CMovementRules.AirBase);
+		var bases = new List<(int Province, float Level)>[agents.Count];
+		for (int index = 0; index < agents.Count; index++)
+		{
+			var list = new List<(int Province, float Level)>();
+			foreach (Supply.CSupplyArea area in agents[index].Theatre.Areas)
+			{
+				foreach (int at in CParadropPlanner.AirBases(state, area))
+				{
+					list.Add((at, (airBase is null ? 0 : state.Province(at).BuildingLevel(airBase).Raw) / (float)Whole));
+				}
+			}
+			bases[index] = list;
+		}
+		return bases;
 	}
 
 	/// <summary>
