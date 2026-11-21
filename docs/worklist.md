@@ -2161,9 +2161,24 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 - **The full headless run of 2026-11-20 left three leads** (reported by the session that ran it, and not written up
   elsewhere): the war after 1942 - Germany collapses in late 1944 and France goes over to the Comintern - which wants a
   new recorded run, the old recording predating `CAiEntry.Prepare`; Germany's supplies, about three times the original's
-  from 1937, trade ruled out, for which `OpenHOI3.SaveCheck supplyledger` is the tool; and a year taking seven times as
-  long by 1947 while the units only doubled. Paused on 2026-11-20 for the multiplayer work, which is finished; none of
-  the three has been taken up again.
+  from 1937, for which `OpenHOI3.SaveCheck supplyledger` is the tool; and a year taking seven times as
+  long by 1947 while the units only doubled. Paused on 2026-11-20 for the multiplayer work, which is finished.
+  **Germany's supplies were narrowed on 2026-11-21** to who proposes its supply sales. Against the Ireland game's save of
+  5 July 1937: Berlin holds 23,278 supplies in ours, 8,486 in the original's; the units, laws, mobilisation, air units,
+  the units' demand (158 a day either way) and the sales (120 against 109) agree. What differs is that the original's
+  sales are mostly on routes the **buyers** proposed (82 of 109 - the Soviet Union, Persia, Mexico, Austria, from October
+  the United States), ours on routes **Germany** proposed (96 of 120). A route is exchanged in its `from` country's day,
+  and the sliders are weighed last in the country's own day (`FINDINGS-liveread.md`, sections 140 and 141), so only
+  Germany's own routes are in its supply need when `BalanceProductionSliders` weighs it: 0.129 of its IC against 0.094,
+  0.149 of the IC to supplies against 0.118 - more made, more to sell, the loop settling at the higher stockpile. **Ours's
+  supply computation from a given state is the original's**: from the original's save it posts the original's 0.118 to
+  the fifth figure. The divergence is in the trading: from that save, buyers cancel routes, Germany's money balance falls
+  under the trade script's 0.1 buffer by 15 July, and on 28 July it offers 20 supplies itself (`ai_trade.lua`: a country
+  short of money and buying no supplies sells `min(20, IC - traded away)`), where the original's is short by September
+  and the United States comes to buy instead. Not settled: why the buyer gets there first in the original - their trade
+  hours and draws, an offer refused, or the buyers' own need. A draw-for-draw recording of the original from that save
+  (`docs/replay.md`, section 9) would settle it. `supplyledger` prints each midnight's supply share and the needs the Lua
+  is handed, the sales by who proposed them and the money balance the trade script reads.
 
 - ~~**A fleet's base check in its hour**~~ - built 2026-11-20: every fleet's hour ends in it, and a fleet with no base and
   no port left to its country is removed at the hour's end (`fleetsandair.md`, section 2.1). The air unit's own check is

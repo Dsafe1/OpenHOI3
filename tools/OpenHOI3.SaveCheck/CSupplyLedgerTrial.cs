@@ -174,6 +174,23 @@ internal static class CSupplyLedgerTrial
 		Console.WriteLine($"{state.Date} {tag} stock {W(totals.Stockpile)}/{W(totals.StockpileFuel)} provinces {W(totals.Provinces)}/{W(totals.ProvincesFuel)} " +
 			$"{change}  home {P(country.HomeProduced)} to {P(country.SentTo)} back {P(country.SentBack)} demand {P(country.UnitDemand)} " +
 			$"usage {P(country.Usage)} tradedFor {P(country.TradedFor)} tradedAway {P(country.TradedAway)} convoyedOut {P(country.ConvoyedOut)}");
+		// The supply share as the sliders left it, the need the Lua is handed for it over the whole IC, and the IC.
+		double share = country.ProductionShares[(int)OpenHOI3.Sim.Economy.EProductionCategory.Supplies].Raw / 32768.0;
+		double need = OpenHOI3.Sim.Economy.CProduction.SuppliesNeededExactly(state, country).Raw / 32768.0;
+		Console.WriteLine($"    supply share {share:F5}, need {need:F3} IC of {country.TotalIc} ({(country.TotalIc > 0 ? need / country.TotalIc : 0):F5})");
+		string needs = string.Join(" ", new[] { OpenHOI3.Sim.Economy.EProductionCategory.ConsumerGoods, OpenHOI3.Sim.Economy.EProductionCategory.Production,
+			OpenHOI3.Sim.Economy.EProductionCategory.Reinforcement, OpenHOI3.Sim.Economy.EProductionCategory.Upgrades }
+			.Select(c => $"{c} {OpenHOI3.Sim.Economy.CProduction.Needed(state, country, c).Raw / 1000.0 / Math.Max(1, country.TotalIc):F5}"));
+		string shares = string.Join(" ", country.ProductionShares.Select(x => (x.Raw / 32768.0).ToString("F5")));
+		Console.WriteLine($"    needs over IC: {needs}; shares {shares}");
+		// Its supplies sold, on routes it proposed - exchanged in its own day, before its sliders are weighed - and on the
+		// buyers', exchanged in theirs.
+		long own = state.TradeRoutes.Where(r => r.From == country.Tag).Sum(r => r.Terms.From(EGoods.Supplies));
+		long theirs = state.TradeRoutes.Where(r => r.To == country.Tag).Sum(r => r.Terms.To(EGoods.Supplies));
+		Console.WriteLine($"    supplies sold on its own routes {own / 1000.0:F1}, on the buyers' {theirs / 1000.0:F1}");
+		var ledger = OpenHOI3.Sim.Economy.CDailyLedger.Income(country, EGoods.Money);
+		var spent = OpenHOI3.Sim.Economy.CDailyLedger.Expense(country, EGoods.Money);
+		Console.WriteLine($"    money in {ledger / 1000.0:F3} (home {country.HomeProduced[EGoods.Money]} traded for {country.TradedFor[EGoods.Money]}) out {spent / 1000.0:F3} (traded away {country.TradedAway[EGoods.Money]}) balance {(ledger - spent) / 1000.0:F3}");
 		// The day's pass over its ground: what its units ask for, what was asked of its provinces in all, and the most asked.
 		var held = state.Provinces.Where(p => p.Controller == country.Tag).ToList();
 		var top = held.OrderByDescending(p => p.SupplyDrawn[EGoods.Supplies].Raw).Take(4)
