@@ -182,9 +182,13 @@ stockpile, the build queue and the brigades' rows again on 2026-11-16:
 - ~~**Alignment**~~ and ~~**an exile's own pool**~~ - settled in the second round (above): alignment 101 of 101 at every
   date, the 1936 start's one miss with it, and every exile's pool the save's in every good but France's and Belgium's
   supplies.
-- **The stockpiles' smaller drifts** of the two days, of the kind the 1936 start has; and **2.010 supplies** that a
+- **The stockpiles' smaller drifts** of the two days, of the kind the 1936 start has. ~~**2.010 supplies** that a
   country holding its own seat misses by - Ireland at every later start, France and Belgium, and Denmark, Poland and Greece
-  at 1936.
+  at 1936.~~ Gone by 2026-11-21 (`firstdays` at all eight starts): none of those countries misses by it any longer. One
+  figure of the kind is left: **China has 1.800 supplies too many at 1939.9.1 and 1940.5.10** (the saves 771.250 at
+  both) - fifteen days of a headquarters under its laws, so a unit the original puts on the map as the game is entered
+  and this does not charge for; its theatre's headquarters is the order of battle's and stands where the save's does.
+  Not explained.
 - **Brigades' organisation** held to a running ceiling by a law changed (Australia, Canada, Italy), supplies received,
   and lent units at their lender's officer ratio.
 - ~~**`protect` towards Belgium**~~, ~~**China's three laws at 1939**~~, ~~**three `last_war` pairs**~~ and ~~**the

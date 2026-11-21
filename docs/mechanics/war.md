@@ -763,8 +763,8 @@ province **or in exile** has one, a country owning nothing and in no exile has n
 (measured) Two days of it are each later start save's exile pools: at 1941.6.22 Denmark's and Poland's 7.725 metal,
 9.518 energy, 3.864 rare materials and 0.25 money, and Norway's, Greece's, Yugoslavia's, France's and Belgium's - the last
 two seated in provinces of their own - likewise: every good of all seven at both 1941 dates but France's and Belgium's
-supplies, which miss by the 2.010 that the countries holding their own seat miss by (Ireland at each later start, and
-Denmark, Poland and Greece at 1936; not the exiles'). Belgium's needed the leader's levels: its brigades were brought up
+supplies, which missed by the 2.010 that the countries holding their own seat missed by until 2026-11-21
+(`bookmarks.md`, section 3.1). Belgium's needed the leader's levels: its brigades were brought up
 at its own until then and spent 1.284 IC less on the first day.
 
 **An exile ends**: by `form_government_in_exile = no`; where it leads its faction, at the day's end, leaving the
