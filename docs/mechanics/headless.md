@@ -136,7 +136,7 @@ is the original's AI, the summed research progress of the eight majors on that d
 
 The levels themselves are still the gap a new game has against the start save (`resources.md`, section 5) - the
 original's start gives technology this one does not - so the progress is the measure, and those ahead are countries the
-original starts further on. The Soviet Union's supply share ran low, 168 supplies on 1 January 1937, not looked into.
+original starts further on. The Soviet Union's supply share ran low, 168 supplies on 1 January 1937 - ~~not looked into~~: gone by 2026-11-21, when a run's Soviet Union holds 55,861 on that day and the Ireland game's figure, about 50,000, at every save of 1937 and 1938 (section 4).
 The draws having moved, the Spanish Civil War fired on 30 January 1936 and still ended on its first day.
 
 ### With decisions (2026-10-16)

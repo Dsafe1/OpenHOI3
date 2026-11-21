@@ -2291,7 +2291,7 @@ None of these blocks the list above.
 - **The tech and production ministers leave out** (2026-10-16, `docs/mechanics/ministers.md`, *Ours* and *Not
   established*): a finished brigade's choice of division weighs no want of its type - a plan's wants are
   built since (`CPlanWants`), and the join (`CAiDeployment`) does not ask them yet;
-  **the Soviet Union's supply share runs low** in a run to 1937 (168 supplies on 1 January 1937) - not looked into; the
+  ~~**the Soviet Union's supply share runs low** in a run to 1937 (168 supplies on 1 January 1937)~~ - gone by 2026-11-21, 55,861 on that day and the original's figure at every save of 1937 and 1938 (`headless.md`, section 4); the
   order a session runs posted commands in, which the reverse order of lines moved to the front rests on; and the units
   loader's numbering of types, built as the files' order.
 
