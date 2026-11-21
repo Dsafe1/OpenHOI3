@@ -63,6 +63,11 @@ internal static class CSupplyLedgerTrial
 		{
 			state.AiRandom.Seed(seed);
 		}
+		// trace=TAG: that country's AI written as it runs, every offer it makes or is made answered with its score.
+		if (args.FirstOrDefault(a => a.StartsWith("trace=", StringComparison.Ordinal)) is { } traceArgument)
+		{
+			state.AiTrace = (new OpenHOI3.Sim.Countries.CCountryTag(traceArgument["trace=".Length..]), Console.WriteLine);
+		}
 		var simulation = new CSimulation(state);
 		string? dump = args.FirstOrDefault(a => a.StartsWith("dump=", StringComparison.Ordinal))?["dump=".Length..];
 		Console.WriteLine($"{state.Date} {state.Hour}h, nobody playing");
@@ -92,6 +97,10 @@ internal static class CSupplyLedgerTrial
 				{
 					// The midnight hour's change, which holds the day's pass, and the other hours' together, in whole supplies.
 					Print(state, tag, now, $"midnight {(now.All - last.All) / 1000,6:+0;-0} other hours {between[tag].Item1 / 1000,6:+0;-0}");
+					if (args.Contains("world") && state.Date.Day % 10 == 1)
+					{
+						World(state);
+					}
 					if (dump is not null)
 					{
 						Dump(state, tag, dump);
@@ -114,6 +123,34 @@ internal static class CSupplyLedgerTrial
 			}
 		}
 		return 0;
+	}
+
+	/// <summary>
+	/// The world's supply trade by who proposed each route, the largest proposing buyers, and for the Soviet Union - the
+	/// original's largest proposing buyer - what the trade script's buying of supplies asks: its money balance, whether it
+	/// sells supplies, and its supply stockpile.
+	/// </summary>
+	private static void World(CGameState state)
+	{
+		long bySeller = state.TradeRoutes.Sum(r => r.Terms.From(EGoods.Supplies));
+		long byBuyer = state.TradeRoutes.Sum(r => r.Terms.To(EGoods.Supplies));
+		var buyers = state.TradeRoutes.Where(r => r.Terms.To(EGoods.Supplies) > 0).GroupBy(r => r.From.Value)
+			.Select(g => (g.Key, g.Sum(r => r.Terms.To(EGoods.Supplies)))).OrderByDescending(x => x.Item2).Take(5);
+		Console.WriteLine($"  WORLD {state.Date} supplies on seller-proposed {bySeller / 1000} buyer-proposed {byBuyer / 1000}; buyers " +
+			string.Join(", ", buyers.Select(b => $"{b.Item1} {b.Item2 / 1000}")));
+		foreach (string tag in new[] { "SOV", "USA" })
+		{
+			if (state.Country(new OpenHOI3.Sim.Countries.CCountryTag(tag)) is not { } c)
+			{
+				continue;
+			}
+			long money = OpenHOI3.Sim.Economy.CDailyLedger.Income(c, EGoods.Money) - OpenHOI3.Sim.Economy.CDailyLedger.Expense(c, EGoods.Money);
+			long buying = state.TradeRoutes.Where(r => r.From == c.Tag).Sum(r => r.Terms.To(EGoods.Supplies));
+			long bought = state.TradeRoutes.Where(r => r.To == c.Tag).Sum(r => r.Terms.From(EGoods.Supplies));
+			Console.WriteLine($"    {tag} money balance {money / 1000.0:F2} sells supplies {c.TradedAway[EGoods.Supplies]} " +
+				$"stock {state.Stockpile(c)?[EGoods.Supplies]} buys on own routes {buying / 1000} on sellers' {bought / 1000} " +
+				$"share {c.ProductionShares[(int)OpenHOI3.Sim.Economy.EProductionCategory.Supplies].Raw / 32768.0:F3}");
+		}
 	}
 
 	/// <summary>
