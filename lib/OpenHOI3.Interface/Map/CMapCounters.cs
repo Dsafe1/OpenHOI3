@@ -33,9 +33,11 @@ public static class CMapCounters
 		if (selected.Contains(unit))
 		{
 			// An AI in command of it, or of a unit above it, turns its ring the counter type's first colour.
+			// Its plan switched on counts as its agent does: a player's hand-over switches the plan on at once, and the
+			// agent is made in the AI's next pass - on the machine that runs the AI alone.
 			for (CUnit? above = unit; above is not null; above = above.Parent)
 			{
-				if (above.Agent is not null)
+				if (above.Agent is not null || above.Plan.Active)
 				{
 					return ECounterRing.SelectedUnderAi;
 				}

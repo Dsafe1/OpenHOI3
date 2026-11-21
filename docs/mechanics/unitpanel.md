@@ -33,7 +33,7 @@ frame from the unit as it then is.
 
   | | entry | window | when |
   | --- | --- | --- | --- |
-  | 1 | a unit above, the highest first | `sup_parent_unit_entry` | one for each |
+  | 1 | a unit above, the highest first - **its name green where an AI commands that unit itself** (since 2026-11-21; the outliner's rows stay as they are) | `sup_parent_unit_entry` | one for each |
   | 2 | the header | `unitpanel` | always |
   | 3 | the status | `sup_unit_status` | always |
   | 4 | the order | `sup_current_orders` | always |

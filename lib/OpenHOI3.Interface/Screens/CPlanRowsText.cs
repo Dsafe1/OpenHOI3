@@ -99,6 +99,14 @@ public static class CPlanRowsText
 		return new CTooltip { Text = localise("AGENT_NEED_DESC") + ":\n" + lines };
 	}
 
+	/// <summary>
+	/// A unit's name on its row among the units above the selected one: green where the unit itself has an AI agent -
+	/// or its plan switched on, which is the same a pass later - and as it is otherwise
+	/// (<c>docs/mechanics/unitpanel.md</c>, section 2).
+	/// </summary>
+	public static string ParentName(CUnit unit) =>
+		unit.Agent is not null || unit.Plan.Active ? "§G" + unit.Name + "§W" : unit.Name;
+
 	/// <summary>The mark a parent's row gives a unit with an aggression of its own: red over 0.1, blue under -0.1, grey between.</summary>
 	public static string AggressionMark(CUnit unit)
 	{

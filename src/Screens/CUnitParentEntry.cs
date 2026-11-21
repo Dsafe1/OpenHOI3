@@ -22,7 +22,7 @@ public sealed class CUnitParentEntry : CUnitPanelEntry
 		if (window.FindButton("unit") is { } button)
 		{
 			// Set once: the original's has no update either.
-			button.SetText(unit.Name + CPlanRowsText.AggressionMark(unit));
+			button.SetText(CPlanRowsText.ParentName(unit) + CPlanRowsText.AggressionMark(unit));
 			button.Pressed += () => Selected?.Invoke();
 		}
 	}

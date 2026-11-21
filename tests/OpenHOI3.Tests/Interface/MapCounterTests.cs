@@ -179,6 +179,12 @@ public class MapCounterTests
 		Assert.Equal(ECounterRing.Under, CMapCounters.RingOf(corps, Set(army)));
 		Assert.Equal(ECounterRing.Selected, CMapCounters.RingOf(other, Set(other)));
 		army.Agent = null;
+		// A plan switched on counts at once, before the AI's pass has made its agent.
+		army.Plan.Active = true;
+		Assert.Equal(ECounterRing.SelectedUnderAi, CMapCounters.RingOf(division, Set(division)));
+		Assert.Equal("\u00A7GArmy\u00A7W", OpenHOI3.Interface.Screens.CPlanRowsText.ParentName(new CUnit(EUnitKind.Army, army.Owner) { Name = "Army", Plan = { Active = true } }));
+		Assert.Equal("Corps", OpenHOI3.Interface.Screens.CPlanRowsText.ParentName(new CUnit(EUnitKind.Corps, army.Owner) { Name = "Corps" }));
+		army.Plan.Active = false;
 
 		// Nothing above the selected unit is marked.
 		Assert.Equal(ECounterRing.None, CMapCounters.RingOf(army, Set(corps)));

@@ -569,7 +569,8 @@ A unit out of radio range is any link up its chain of command letting less than 
 command through (`leaders.md`, section 8); its line is dark red and drawn from the broken half
 of the picture, standing still. Built on 2026-10-11 and checked with `--click`: the Soviet 42nd
 Corps and its two divisions, out in Karelia, have such lines. The green ring is built since
-2026-11-21: a selected unit with an AI agent on it or on any unit above it.
+2026-11-21: a selected unit with an AI agent on it or on any unit above it - or a plan switched on, which a
+player's hand-over sets at once where the agent comes with the AI's next pass. Looked at with `--click`.
 
 ## 9. Buildings on the map, the port and the airfield
 
