@@ -25,8 +25,9 @@ public static class CLicenceText
 	/// <summary>
 	/// The types the buyer may licence from the seller, in the types' order: ones the buyer may use, the
 	/// seller has unlocked and may still build, not capital ships, and - where the buyer can build one too -
-	/// not better built by the buyer. Ours: the original compares the two versions' combat value, which is
-	/// not read; here the seller's level of none of the type's technologies may be below the buyer's.
+	/// not better built by the buyer: each country's version of the type, at its own level of each of the type's
+	/// technologies, is given its combat value, and only a buyer's strictly above the seller's leaves the type out. A
+	/// type the buyer cannot build is listed with nothing compared.
 	/// </summary>
 	public static List<CSubUnitType> Types(CGameState state, CCountry buyer, CCountry seller)
 	{
@@ -47,16 +48,18 @@ public static class CLicenceText
 		return types;
 	}
 
-	private static bool SellerNoWorse(CCountry buyer, CCountry seller, CSubUnitType type)
+	private static bool SellerNoWorse(CCountry buyer, CCountry seller, CSubUnitType type) =>
+		CombatValue(buyer, type) <= CombatValue(seller, type);
+
+	/// <summary>
+	/// The combat value of a country's version of a type, in thousandths: the type at the country's own level of each
+	/// of its technologies, valued as the AI values a brigade, ship or wing (<see cref="Sim.Agents.CUnitPower.Value"/>).
+	/// </summary>
+	public static long CombatValue(CCountry country, CSubUnitType type)
 	{
-		foreach (Sim.Research.CTechnology technology in type.Technologies)
-		{
-			if (seller.TechnologyLevels.GetValueOrDefault(technology.Name) < buyer.TechnologyLevels.GetValueOrDefault(technology.Name))
-			{
-				return false;
-			}
-		}
-		return true;
+		var order = new CBrigadeOrder(type);
+		CBuildQueue.SetModelToCountrys(country, order);
+		return Sim.Agents.CUnitPower.Value(CBuildQueue.AsBuilt(order, isReserve: false, out long _));
 	}
 
 	/// <summary>
@@ -98,7 +101,26 @@ public static class CLicenceText
 
 	/// <summary>Whether the buyer has the men for every unit of the order.</summary>
 	public static bool HasMen(CCountry buyer, CSubUnitType type, int serial, int parallel) =>
-		buyer.Manpower.Raw >= ManpowerOfOne(buyer, type).Raw * serial * parallel;
+		buyer.Manpower.Raw >= MenNeeded(buyer, type, serial, parallel);
+
+	/// <summary>The men the whole order takes, in thousandths: one unit's, cut to thousandths first, times the units.</summary>
+	public static long MenNeeded(CCountry buyer, CSubUnitType type, int serial, int parallel) =>
+		ManpowerOfOne(buyer, type).Raw * serial * parallel;
+
+	/// <summary>
+	/// Whether a row's box - and Accept - is greyed after a look at the order, given whether it was before: greyed where
+	/// the order takes more men than the buyer has, freed where it takes fewer, and **left as it was where it takes
+	/// exactly what he has** - the original's two strict tests.
+	/// </summary>
+	public static bool GreyedAfter(bool greyed, CCountry buyer, CSubUnitType type, int serial, int parallel)
+	{
+		long need = MenNeeded(buyer, type, serial, parallel);
+		if (need > buyer.Manpower.Raw)
+		{
+			return true;
+		}
+		return need < buyer.Manpower.Raw ? false : greyed;
+	}
 
 	/// <summary><c>BUYLICENCENONE</c> with no type chosen; else <c>BUYLICENCENEWDESC</c> - runs, units a run, type, and the fee to one place.</summary>
 	public static string Description(Func<string, string> localise, CLicenceTerms? terms)

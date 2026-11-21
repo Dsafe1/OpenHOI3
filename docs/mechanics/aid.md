@@ -228,16 +228,33 @@ tooltips.** Stopping is the plain dialog with `CANCEL_SHARE_TECH_INFO`, the firs
 **The licence dialog**, `LicenceDialog`: a row (`prod_share_entry`) for each type listed (section 4), in
 the types' order - its counter `GFX_counter_<key>` and **the seller's current model in brackets**,
 "(§YName+*§W)", the "+*" where the seller's levels are not that model's exactly; the type's name where
-it has none. A row's box is **greyed where the buyer has not the men for the whole order**, and only one
-row is chosen. The runs (`paralell_value`) and units a run (`serial_value`) go from 1 to 99 by their
+it has none - and the "+*" too where no model is the seller's levels exactly. A row carries no figure. A row's
+box is **greyed where the whole order takes more men than the buyer has, freed where it takes fewer, and left as it
+is where it takes exactly his** - one unit's men cut to thousandths, then times the units - and Accept likewise; only
+one row is chosen. The runs (`paralell_value`) and units a run (`serial_value`) go from 1 to 99 by their
 buttons. **The money a unit is the slider's share of the buyer's money.** The description is
 `BUYLICENCENONE`, or `BUYLICENCENEWDESC` - runs, units, the type, and the fee to one place; the chance word
 is the seller's AI's; `debt_desc` shows where the buyer would pay on debt. Accept is greyed with no type
 chosen or the men wanting. A row's tooltip, on every element of it but the counter: `BUYLICENCE_MPCOST`
 with one unit's men to one place where the men are wanting, else the type's name.
 
-**The types listed**: ones the buyer may use, that the seller has unlocked and may still build, not
-capital ships, and - where the buyer can build one too - not better built by the buyer.
+**The types listed** [exe; `reversing/findings/FINDINGS-tradeaid.md`, section C.2a], in the types' order, made once
+as the window opens: a type that is buildable (`is_buildable`), that the buyer is among the users of (`usable_by`, or
+the type names none), that the seller may still build at least one of - unlocked, its trigger holding, under its own
+cap, so a seller at its cap of an elite brigade does not offer it - and that is no capital ship (`capital = yes`).
+**Where the buyer could build one too, the two versions are compared**: each country's is the type at its own level
+of each of the type's technologies, with no modifier, law or minister in it, and its combat value is
+
+- a land type's: its soft, hard and piercing attack, a tenth of its toughness and defensiveness together (cut to
+  thousandths), and its armour, all times two less its softness;
+- an air type's: its air attack and air defence and 0.5;
+- a ship's: 0.5 and its sea attack and sea defence, times its hull.
+
+**The type is left out only where the buyer's value is strictly above the seller's** - a tie is listed, and so is a
+type none of whose technologies move those figures. A type the buyer cannot build at all is listed with nothing
+compared. Nothing asks of war, a pact, the branch or the buyer's men. The 10, the 2 and the 0.5 are the executable's
+own; every figure compared is the type's file's and its technologies'. It is the value the AI gives a brigade
+(`agents.md`, section 7.3).
 
 **The lend-lease window**, opened by the production screen's lend-lease slider's "Distribute" - which
 says `DISTRIBUTE` where the others say their need, and opens the window at every press instead of holding
@@ -252,9 +269,6 @@ window is made again, which it is at every "Distribute" and whenever the receive
 
 ## Ours
 
-- **The licence's list compares technology levels** where the original compares the two versions' combat
-  value (`GetSubUnitDefinitionCombatValue`, not read): a type the buyer can build too is listed only where
-  the seller's level of none of its technologies is below the buyer's.
 - **A licence row's tooltip has no delayed half**: the original's is the seller's version's figures
   (`BuildStatsTooltip`), which is not built.
 - **A licence's men a unit is what the order would take**, a land type as reserves; the original's own
@@ -273,4 +287,3 @@ window is made again, which it is at every "Distribute" and whenever the receive
 
 - Whether `repaid_away` and `income_from_debt` are cleared each day.
 - Where in a country's day the shares of technology are looked at.
-- That a model's "+*" is dropped only where the levels match exactly: the record says so in a word.

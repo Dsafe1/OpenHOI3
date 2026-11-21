@@ -2374,10 +2374,11 @@ None of these blocks the list above.
   nought** (`OpenHOI3.SaveCheck aiscore`), so the AI declines every NAP - **as the original's does**, looked at on
   2026-11-21: the script subtracts the capitals' whole distance, and the Ireland game's AI makes its first NAP on 29
   December 1937 (`foreignminister.md`, section 9).
-- **Aid leaves out** (`aid.md`, *Ours*): the licence list's combat-value comparison (technology levels
-  stand in), a licence row's stat block, and the
-  production screen losing its tooltips while the lend-lease window is open. **Every licence model shows
-  "+*"** in a new game: the exact-match rule behind the mark is inferred from the record's word. The foreign
+- **Aid leaves out** (`aid.md`, *Ours*): the delayed half of a licence row's tooltip - the seller's version's
+  figures; a row itself carries none - and the
+  production screen losing its tooltips while the lend-lease window is open. The licence list compares the two
+  versions' combat value since 2026-11-21, and the "+*" is read: it stands wherever the seller's levels are no
+  model's exactly, which in a new game is nearly every type. The foreign
   minister proposes licences, and in a new game's first 180 days no debt or lend-lease (`foreignminister.md`,
   section 9); the lend-lease day was never set against a save.
 - **Trade** (`trade.md`, section 16): what becomes of a route when either country ends is read since 2026-11-21 and
@@ -2775,7 +2776,10 @@ None of these blocks the list above.
   filed in its `CANDIDATES.md` has not been checked.
 - **What a later start does not yet give** as the reference saves of its first hour have it (`bookmarks.md`, section
   3.1): New Zealand's posts at 1941 (the AI's hour-0 pass, not built), Japan's and China's fronts at 1939 (areas kept
-  province by province), and 2.010 supplies a country holding its own seat misses by.
+  province by province). The 2.010 supplies a country holding its own seat missed by are gone - looked at
+  again on 2026-11-21, all eight start saves: Denmark, Poland and Greece agree at 1936, France's and Belgium's exile pools agree
+  at both 1941 dates, Ireland differs by 0.006 or nothing - and one figure of that kind is left, China's 1.800 too many at 1939.9.1
+  and 1940.5.10 (771.250 in both saves), a headquarters' fifteen days under its laws, not explained.
 
 A replacement for the engine still leaves a few things of the original's out. These are settled
 decisions rather than things merely unbuilt, so nothing should be designed around them

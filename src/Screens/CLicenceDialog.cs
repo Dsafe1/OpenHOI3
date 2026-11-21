@@ -31,6 +31,9 @@ public sealed partial class CLicenceDialog : Control
 	private COffer _offer = null!;
 	private readonly List<(CSubUnitType Type, CGuiButton? Box)> _rows = new();
 	private CSubUnitType? _chosen;
+	/// <summary>Whether Accept was last greyed for want of men, which an order of exactly the buyer's men leaves as it was.</summary>
+	private bool _shortOfMen;
+
 	private int _serial = CLicenceText.LeastRuns;
 	private int _parallel = CLicenceText.LeastRuns;
 	private CGuiScrollbar? _money;
@@ -96,7 +99,7 @@ public sealed partial class CLicenceDialog : Control
 				CSubUnitType shown = type;
 				row.SetTooltips(element => element == "counter_type" ? CTooltip.Empty : new CTooltip
 				{
-					Text = CLicenceText.RowTooltip(localise, buyer, shown, CLicenceText.HasMen(buyer, shown, _serial, _parallel)),
+					Text = CLicenceText.RowTooltip(localise, buyer, shown, box is not { Disabled: true }),
 				});
 				_rows.Add((type, box));
 				list.Add(row);
@@ -205,12 +208,14 @@ public sealed partial class CLicenceDialog : Control
 		{
 			if (box is not null)
 			{
-				box.Disabled = !CLicenceText.HasMen(buyer, type, _serial, _parallel);
+				// Greyed with too few men, freed with more than enough, and left as it is with exactly enough (aid.md, section 6).
+				box.Disabled = CLicenceText.GreyedAfter(box.Disabled, buyer, type, _serial, _parallel);
 			}
 		}
 		if (_agree is not null)
 		{
-			_agree.Disabled = _chosen is null || !CLicenceText.HasMen(buyer, _chosen, _serial, _parallel);
+			_shortOfMen = _chosen is not null && CLicenceText.GreyedAfter(_shortOfMen, buyer, _chosen, _serial, _parallel);
+			_agree.Disabled = _chosen is null || _shortOfMen;
 		}
 	}
 
