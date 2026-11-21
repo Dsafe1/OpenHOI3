@@ -53,4 +53,38 @@ public sealed class LauncherSettingsTests : IDisposable
 		Assert.Null(CInstallSearch.Find(candidates));
 		Assert.Equal(Path.GetFullPath(_fixture.Game), CInstallSearch.Find(new[] { Path.Combine(_fixture.Root, "gone"), _fixture.Game }));
 	}
+
+	[Fact]
+	public void TheCommandLineNamesAnInstallAndModsOverThoseRemembered()
+	{
+		CLauncherArguments given = CLauncherArguments.Read(new[]
+		{
+			"--install=\"C:\\Games\\Hearts of Iron 3\"", "--mod=mod/BlackICE 16.0.mod", "--mod=mod\\Sub-mod.mod",
+			"--mod=mod/BlackICE 16.0.mod", "--mod=", "--something=else", "--engine=D:\\engine",
+		});
+		Assert.Equal(@"C:\Games\Hearts of Iron 3", given.Install);
+		Assert.Equal(new[] { "mod/BlackICE 16.0.mod", "mod/Sub-mod.mod" }, given.Mods);
+		Assert.Equal(@"D:\engine", given.Engine);
+
+		var remembered = new CLauncherSettings(@"E:\Other", new[] { "mod/Last played.mod" });
+		CLauncherSettings over = given.Over(remembered);
+		Assert.Equal(@"C:\Games\Hearts of Iron 3", over.Install);
+		Assert.Equal(given.Mods, over.Mods);
+	}
+
+	[Fact]
+	public void WithNothingNamedTheLauncherComesUpOnWhatItRemembers()
+	{
+		CLauncherArguments given = CLauncherArguments.Read(Array.Empty<string>());
+		Assert.Null(given.Install);
+		Assert.Null(given.Engine);
+		Assert.Empty(given.Mods);
+
+		var remembered = new CLauncherSettings(@"E:\Other", new[] { "mod/Last played.mod" });
+		Assert.Equal(remembered, given.Over(remembered));
+		// An install named alone keeps the remembered ticks.
+		CLauncherSettings named = CLauncherArguments.Read(new[] { "--install=F:\\Game" }).Over(remembered);
+		Assert.Equal(@"F:\Game", named.Install);
+		Assert.Equal(remembered.Mods, named.Mods);
+	}
 }

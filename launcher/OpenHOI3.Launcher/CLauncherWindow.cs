@@ -23,8 +23,6 @@ namespace OpenHOI3.Launcher;
 /// </summary>
 public sealed class CLauncherWindow : Window
 {
-	private const string EngineSwitch = "--engine=";
-
 	private static readonly IBrush Quiet = new SolidColorBrush(Color.FromRgb(0xA8, 0xA8, 0xA8));
 	private static readonly IBrush Warning = new SolidColorBrush(Color.FromRgb(0xE8, 0xB0, 0x50));
 
@@ -53,15 +51,15 @@ public sealed class CLauncherWindow : Window
 		FontFamily = new FontFamily("avares://OpenHOI3.Launcher/Assets/Fonts#Liberation Sans");
 		FontSize = 14;
 
-		string ownFolder = arguments.FirstOrDefault(a => a.StartsWith(EngineSwitch, StringComparison.Ordinal)) is { } given
-			? given[EngineSwitch.Length..].Trim('"')
-			: CEngineFile.OwnFolder(AppContext.BaseDirectory);
+		CLauncherArguments given = CLauncherArguments.Read(arguments);
+		string ownFolder = given.Engine ?? CEngineFile.OwnFolder(AppContext.BaseDirectory);
 		var problems = new List<string>();
 		_own = CEngineFile.Read(ownFolder, problems.Add);
 		_ownProblem = problems.FirstOrDefault();
 
 		Content = Layout();
-		CLauncherSettings remembered = CLauncherSettingsFile.Read(_settingsFile);
+		// What the command line names comes before what is remembered: a mod's shortcut comes up on its install and mod.
+		CLauncherSettings remembered = given.Over(CLauncherSettingsFile.Read(_settingsFile));
 		string? found = CInstallSearch.Find(CInstallSearch.Candidates(remembered.Install, AppContext.BaseDirectory,
 			CInstallSearch.SteamLibraries(CSteamFolder.Find())));
 		UseInstall(found, remembered.Mods);

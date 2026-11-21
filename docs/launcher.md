@@ -136,6 +136,12 @@ the engine walks, and then in each Steam library - Steam's own folder from the r
 player's application data, as the launcher's own folder may not be writable - when an install is chosen and when Play is
 pressed. A remembered mod whose descriptor is gone is dropped, and the dependencies of the rest ticked again.
 
+**A shortcut may name what it comes up on** (`CLauncherArguments`, since 2026-11-21, for the shortcut BlackICE's
+installer makes; `blackice.md`): `--install=<folder>` the install, in place of the one remembered, and
+`--mod=mod/<file>.mod` a mod to come up ticked, once for each and in place of every remembered tick - the engine's own
+two switches (section 5), so a value may stand in quotes. Nothing is started by them: the player still presses Play.
+What they name is remembered like any other choice once Play is pressed.
+
 ## 7. Building it
 
 Three scripts in `tools/`, since 2026-11-19 (the user's: "Just make it 3"):

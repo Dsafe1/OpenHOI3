@@ -4,8 +4,9 @@ using Avalonia;
 namespace OpenHOI3.Launcher;
 
 /// <summary>
-/// The launcher's entry point (<c>docs/launcher.md</c>). One switch of its own, for development: <c>--engine=&lt;folder&gt;</c>
-/// takes the engine in that folder as the launcher's own, in place of the one in its <c>engine</c> folder.
+/// The launcher's entry point (<c>docs/launcher.md</c>). Its switches are <see cref="OpenHOI3.Content.Launch.CLauncherArguments"/>:
+/// <c>--install=</c> and <c>--mod=</c>, by which a shortcut names what it comes up on, and for development
+/// <c>--engine=&lt;folder&gt;</c>, the engine to take as the launcher's own.
 /// </summary>
 public static class CLauncherProgram
 {
