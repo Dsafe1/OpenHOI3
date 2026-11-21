@@ -40,6 +40,12 @@ public sealed class CAgent
 	/// <summary>Its next hour runs the full pass, whatever the hour.</summary>
 	public bool FullPassPending { get; set; } = true;
 
+	/// <summary>
+	/// Whether an agent below a theatre is to have its area made again by <see cref="CPlanBuilder"/> in the AI's next pass:
+	/// set where it is made, an objective is set or a path drawn for its unit, and its country's theatres are made again.
+	/// </summary>
+	public bool PlanBuildPending { get; set; }
+
 	/// <summary>Its subordinates are sorted again at its next hour.</summary>
 	public bool ReplanSubordinates { get; set; } = true;
 

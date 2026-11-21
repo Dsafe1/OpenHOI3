@@ -30,10 +30,16 @@ public sealed class CSetPlanAxisCommand : CCommand
 
 	public override void Execute(CGameState state)
 	{
-		CUnitPlan plan = CUnitFinder.Find(state, _owner, _unit)!.Plan;
+		CUnit unit = CUnitFinder.Find(state, _owner, _unit)!;
+		CUnitPlan plan = unit.Plan;
 		plan.Path.Clear();
 		plan.Path.AddRange(_path);
 		plan.Path2.Clear();
 		plan.Path2.AddRange(_path2);
+		// Below a theatre the area is the plan builder's, for the unit's topmost agent (unitpanel.md, section 9.1).
+		if (Agents.CAgents.HighestOver(unit) is { Theatre: Agents.CAgents.BelowTheatre } below)
+		{
+			below.PlanBuildPending = true;
+		}
 	}
 }

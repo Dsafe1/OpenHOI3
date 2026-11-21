@@ -79,9 +79,10 @@ public sealed class CUnitObjectivesEntry : CUnitPanelEntry
 		if (_automate is not null)
 		{
 			_automate.Checked = underAi;
-			// A commander already under an AI holds it, and only a theatre's headquarters has an agent to hand it to here.
+			// A commander already under an AI holds it; a theatre's headquarters heading no theatre has no agent to hand it to.
 			_automate.Disabled = CPlanRowsText.AgentAboveItsOwn(_unit)
-				|| (!underAi && (_state.Country(_unit.Owner) is not { } country || CAgents.TheatreHeadedBy(_state, country, _unit) is null));
+				|| (!underAi && !CAutomateUnitCommand.MayHandOver(_unit)
+					&& (_state.Country(_unit.Owner) is not { } country || CAgents.TheatreHeadedBy(_state, country, _unit) is null));
 		}
 		Show(_reorganise, underAi);
 		Show(_objectives, underAi);

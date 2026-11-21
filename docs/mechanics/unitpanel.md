@@ -391,9 +391,50 @@ original's on 2026-10-09 and the row was missing. It has two faces: `confirmed`
   star after its name: red above 0.1, blue below -0.1, grey between.
 
 Both faces are built (2026-11-09, `reversing/findings/FINDINGS-hqrows.md`). `automate_checkbox` takes away the highest agent over the unit or, with none, makes one for it, as a command (`CAutomateUnitCommand`).
-**Only a theatre's headquarters can be handed over here**, the agents being a theatre's: below that the box is greyed, *Ours*. `reorg_hq_checkbox` sets the plan's flag. The aggression box and slider are commands too, and a battle's tactic is picked by the leader's unit's aggressiveness: the first unit from it upward with an active plan by its stance (-1, -0.5, 0, 0.5, 1), or with none, the first with an aggression of its own.
+**A corps, an army and an army group are handed over too** (section 9.1, since 2026-11-21); a theatre's headquarters
+heading no theatre keeps the box greyed - the original's would read a null theatre there. `reorg_hq_checkbox` sets the plan's flag. The aggression box and slider are commands too, and a battle's tactic is picked by the leader's unit's aggressiveness: the first unit from it upward with an active plan by its stance (-1, -0.5, 0, 0.5, 1), or with none, the first with an aggression of its own.
 
 **Under an agent, on it or above it**, five rows follow, a headquarters only. A stance row each for the ground, air and naval stance, all `sup_unit_stance`: the button says the stance and its tooltip its description, and is greyed where a unit **above** this one holds the agent. It opens `sup_stance_change_window` over the row, five rows for the ground and three each for air and sea, the stance in force not marked; a second press fills it again and does not shut it, and a pick shuts it. A ground pick goes through the agent, its reserve let go; an air or naval pick is one change of the plan. `sup_power_ratios`: each side's power over the larger side's, the larger bar about full, under 0.100 both empty; the row takes no click and shows no tooltip: the original's routine has one for each bar, but the two text boxes lie over them and hovering there in the original shows none (2026-11-09). `sup_desired_assets`: `WE_NEED`, and each group's representative type the plan is short of as a number and its counter, or `TRADE_NOTHING`; its tooltip lists them by name.
+
+### 9.1 A headquarters below a theatre handed to the AI
+
+(`confirmed` but where marked, `reversing/findings/FINDINGS-hqrows.md`, 7a; `reversing/findings/FINDINGS-aiplans.md`,
+slot 76; `CPlanBuilder`, `CAgents.Adopt`.) Ticking the box on a corps, an army or an army group switches its plan on and
+nothing else: **its stances stay what its plan held**, or what the player picks on the rows of the headquarters holding
+it. In the AI's next pass the unit is given an agent of **no theatre**, appended last, and its area is made at once by
+the plan builder. A plain right click with it selected sets its objectives as a theatre's (`mapunits.md`, section 12).
+Its hour is any agent's (`agents.md`, section 3) - its subordinates, its land block, its air and its fleets - but what
+needs a theatre does nothing: the area of section 8, the command ladder, the focus areas, the force planners. **The
+player's country gets no stances or objectives from the AI**: those stay his.
+
+**The area** - the plan builder's main path, every figure the engine's and none a define:
+
+1. Every front of every theatre of every country the agent may operate in, its own among them, is a candidate.
+2. For each objective whose province a friend does not hold, each front province beside land in an area that is held by
+   the objective's holder, or by an enemy where the objective's holder is an enemy too, is scored: its distance to the
+   objective plus 10, times 0.1 where it is in the theatre the unit stands in, and times 0.1 again where it is in the
+   unit's own area or one beside it. The lowest score, the first of equals, chooses a province and its front; every
+   front a province was scored on is collected.
+3. **How much of that front**: the unit's divisions, `mine`, and the land units of other agents standing on or bound for
+   the front, `others`; `round(mine x the front's provinces / (mine + others))`, at least one and no more than `mine`,
+   provinces - the chosen one and those nearest it.
+4. Then every province of every other collected front in an area where this agent's units are at least as many as all
+   other agents' together - a tie its own, and for a played country, whose other units have no agent, every one.
+5. The area is posted as the plan's, and what follows a theatre's new area follows it: its front provinces, its
+   approaches, its positions' scores.
+
+**With no front scored** the original's fallback runs, and its two commands leave a plan that had an area with none; one
+that had none is given the front provinces in an objective's area within 600 of it beside an area of fewer than five
+provinces (*inferred*: which neighbour's area is meant was not read). **It is made again** where an objective is set or a
+path drawn for the unit or one under it, and as the country's theatres are refreshed. **Ours**: the original reaches it
+at a refresh only where it comes before the agent covering that theatre in the country's list, each played theatre having
+one from the first hour; here a played theatre has an agent only once it is handed over, so every agent below a theatre
+is reached at every refresh. **The drawn path's frontier province** (the builder's step 2) is not built: whether it feeds
+the main path was not read.
+
+Tried with `OpenHOI3.SaveCheck automate <install> GER POL 6 0 corps` on 2026-11-21: Germany's VII. Armeekorps, five
+divisions, given Warszawa, is handed twelve front provinces in Silesia and East Prussia, and its five divisions march
+for them from the first day.
 
 ## 10. Tooltips
 

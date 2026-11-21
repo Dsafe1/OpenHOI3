@@ -178,7 +178,8 @@ public static class CAgentUnits
 	{
 		foreach (CAgent agent in country.UnitAi.Agents)
 		{
-			if (agent.Theatre == theatre)
+			// Never an agent below a theatre, which has none.
+			if (agent.Theatre == theatre && theatre != CAgents.BelowTheatre)
 			{
 				return agent;
 			}

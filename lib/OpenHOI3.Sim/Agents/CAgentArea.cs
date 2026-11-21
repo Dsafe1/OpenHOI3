@@ -77,10 +77,7 @@ public static class CAgentArea
 			}
 		}
 		state.Outbox.Add(new CSetPlanAreaCommand(country.Tag, unit.Id, agent.Area));
-		RebuildFrontProvinces(state, country, agent);
-		Classify(state, country, agent);
-		CApproaches.Rebuild(state, country, agent);
-		CAreaScores.Score(state, country, agent, unit.Plan.Stance);
+		AfterArea(state, country, agent, unit);
 		CCommandProvince.Choose(state, country, agent, force: false);
 		agent.FullPassPending = true;
 		agent.HoldProvincesMade = false;
@@ -248,7 +245,19 @@ public static class CAgentArea
 	/// The original's first replan call: the provinces beside the area, of a front-worthy enemy, with infrastructure
 	/// enough - which the enemy's power is counted over.
 	/// </summary>
-	private static void RebuildFrontProvinces(CGameState state, CCountry country, CAgent agent)
+	/// <summary>
+	/// What follows a new area, the plan builder's too: its front provinces, the enemy it faces, its approaches and its
+	/// positions' scores.
+	/// </summary>
+	internal static void AfterArea(CGameState state, CCountry country, CAgent agent, Units.CUnit unit)
+	{
+		RebuildFrontProvinces(state, country, agent);
+		Classify(state, country, agent);
+		CApproaches.Rebuild(state, country, agent);
+		CAreaScores.Score(state, country, agent, unit.Plan.Stance);
+	}
+
+	internal static void RebuildFrontProvinces(CGameState state, CCountry country, CAgent agent)
 	{
 		agent.FrontProvinces.Clear();
 		foreach (int id in agent.Area)

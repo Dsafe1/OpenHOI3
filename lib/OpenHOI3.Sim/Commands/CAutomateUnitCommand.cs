@@ -7,8 +7,8 @@ namespace OpenHOI3.Sim.Commands;
 
 /// <summary>
 /// The unit panel's <c>automate_checkbox</c>: the highest AI agent over a headquarters taken away, or, with none, one made for it.
-/// The original's runs straight off the interface; here it is a command. Only a theatre's headquarters is handed over, the agents
-/// here being a theatre's. See <c>docs/mechanics/unitpanel.md</c>, section 9.
+/// The original's runs straight off the interface; here it is a command. A theatre's headquarters, a corps, an army or an army
+/// group. See <c>docs/mechanics/unitpanel.md</c>, section 9.
 /// </summary>
 public sealed class CAutomateUnitCommand : CCommand
 {
@@ -50,5 +50,16 @@ public sealed class CAutomateUnitCommand : CCommand
 			// A theatre's plan begins at Prepare, its air and naval stances as low as they go.
 			state.Outbox.Add(new CSetPlanCommand(country.Tag, unit.Id, CUnitPlan.Prepare, 0, 0));
 		}
+		else if (MayHandOver(unit))
+		{
+			// Below a theatre the plan keeps the stances it held; the agent and its area are the AI's to make (CAgents.Adopt).
+			unit.Plan.Active = true;
+		}
+	}
+
+	/// <summary>A corps, an army or an army group may be handed to the AI as well as a theatre's headquarters.</summary>
+	public static bool MayHandOver(CUnit unit)
+	{
+		return unit.Kind is EUnitKind.ArmyGroup or EUnitKind.Army or EUnitKind.Corps;
 	}
 }

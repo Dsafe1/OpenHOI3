@@ -39,5 +39,10 @@ public sealed class CTogglePlanObjectiveCommand : CCommand
 		{
 			CAgentArea.Set(state, country, agent);
 		}
+		// Below a theatre the area is the plan builder's, for the unit's topmost agent (unitpanel.md, section 9.1).
+		if (CAgents.HighestOver(unit) is { Theatre: CAgents.BelowTheatre } below)
+		{
+			below.PlanBuildPending = true;
+		}
 	}
 }

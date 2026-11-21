@@ -15,10 +15,10 @@ using OpenHOI3.Sim.Units;
 /// <summary>
 /// Hands a played country's theatre headquarters to the AI, and says what its units do:
 ///
-///   OpenHOI3.SaveCheck automate &lt;install folder&gt; [country] [objective's country] [days] [seed]
+///   OpenHOI3.SaveCheck automate &lt;install folder&gt; [country] [objective's country] [days] [seed] [corps | army | armygroup]
 ///
-/// It is a trial: no save has an automated headquarters. The country's theatre with the most land units under it is handed over
-/// and, given another country, that country's capital is made its objective by hand. Each day says how many of its divisions are
+/// It is a trial: no save has an automated headquarters. The country's theatre with the most land units under it is handed over -
+/// or, given a level, the headquarters of that level under it with the most divisions, its area the plan builder's - and, given another country, that country's capital is made its objective by hand. Each day says how many of its divisions are
 /// marching and how many have left where they stood, and what its area is. Germany and Poland for ten days with nothing said. See
 /// <c>docs/mechanics/mapunits.md</c>, section 12.
 /// </summary>
@@ -28,9 +28,17 @@ public static class CAutomateTrial
 	{
 		if (args.Length < 2)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck automate <install folder> [country] [objective's country] [days] [seed]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck automate <install folder> [country] [objective's country] [days] [seed] [corps | army | armygroup]");
 			return 2;
 		}
+		EUnitKind? level = args.Skip(2).Select(a => a.ToLowerInvariant()).FirstOrDefault(a => a is "corps" or "army" or "armygroup") switch
+		{
+			"corps" => EUnitKind.Corps,
+			"army" => EUnitKind.Army,
+			"armygroup" => EUnitKind.ArmyGroup,
+			_ => null,
+		};
+		args = args.Where(a => a.ToLowerInvariant() is not ("corps" or "army" or "armygroup")).ToArray();
 		var warnings = new List<string>();
 		CDirectorySettings directories = CToolDirectories.At(args[1]);
 		CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
@@ -55,6 +63,16 @@ public static class CAutomateTrial
 			Console.WriteLine($"{country.Name} has no theatre with a headquarters.");
 			return 1;
 		}
+		if (level is { } kind)
+		{
+			CUnit? below = AllUnder(theatre).Where(unit => unit.Kind == kind).OrderByDescending(unit => Divisions(unit).Count()).FirstOrDefault();
+			if (below is null)
+			{
+				Console.WriteLine($"{theatre.Name} has no {kind} under it.");
+				return 1;
+			}
+			theatre = below;
+		}
 		simulation.Post(new CAutomateUnitCommand(tag, theatre.Id));
 		simulation.Pump();
 		Console.WriteLine($"{theatre.Name}: {Divisions(theatre).Count()} divisions, stance {theatre.Plan.Stance}, area {theatre.Plan.Area.Count} provinces.");
@@ -78,6 +96,18 @@ public static class CAutomateTrial
 			Console.WriteLine("warning: " + problem);
 		}
 		return 0;
+	}
+
+	private static IEnumerable<CUnit> AllUnder(CUnit unit)
+	{
+		foreach (CUnit child in unit.Children)
+		{
+			yield return child;
+			foreach (CUnit under in AllUnder(child))
+			{
+				yield return under;
+			}
+		}
 	}
 
 	private static IEnumerable<CUnit> Divisions(CUnit unit)

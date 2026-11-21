@@ -174,7 +174,30 @@ public static class CAgents
 				Bind(state, country, made, headquarters);
 			}
 		}
+		// A corps, an army or an army group handed over: an agent of no theatre, appended last, its area made at once
+		// (unitpanel.md, section 9.1).
+		foreach (CUnit unit in country.UnitsInOrder())
+		{
+			if (unit.Kind is EUnitKind.ArmyGroup or EUnitKind.Army or EUnitKind.Corps && unit.Plan.Active && unit.Agent is null
+				&& HighestAutomated(unit) == unit)
+			{
+				var made = new CAgent(country.Tag, BelowTheatre);
+				country.UnitAi.Agents.Add(made);
+				Bind(state, country, made, unit);
+				CPlanBuilder.Build(state, country, made);
+			}
+		}
+		foreach (CAgent agent in country.UnitAi.Agents)
+		{
+			if (agent.PlanBuildPending)
+			{
+				CPlanBuilder.Build(state, country, agent);
+			}
+		}
 	}
+
+	/// <summary>The theatre of an agent below a theatre: none.</summary>
+	public const int BelowTheatre = 0;
 
 	/// <summary>The highest agent on a unit or any unit above it, or null.</summary>
 	public static CAgent? HighestOver(CUnit unit)
@@ -341,6 +364,15 @@ public static class CAgents
 	{
 		foreach (CAgent agent in new List<CAgent>(country.UnitAi.Agents))
 		{
+			// An agent below a theatre, a player's headquarters handed over, has none, and goes with its unit alone.
+			if (agent.Theatre == BelowTheatre)
+			{
+				if (agent.Unit is not { IsRemoved: false })
+				{
+					Remove(state, country, agent);
+				}
+				continue;
+			}
 			if (TheatreOf(state, country, agent) is not { } theatre)
 			{
 				Remove(state, country, agent);

@@ -38,6 +38,7 @@ public static class CTheatres
 			if (state.IsRunning && country.Strategy.Theatres.Count > 0)
 			{
 				CTheatreRefresh.Refresh(state, country);
+				AfterRefresh(country);
 			}
 			else
 			{
@@ -59,10 +60,30 @@ public static class CTheatres
 		if (state.IsRunning && country.Strategy.Theatres.Count > 0 && state.Played.Contains(country.Tag))
 		{
 			CTheatreRefresh.Refresh(state, country);
+			AfterRefresh(country);
 		}
 		else
 		{
 			CTheatreBuilder.Build(state, country);
+		}
+	}
+
+	/// <summary>
+	/// A refresh of the theatres of a country whose units the AI does not run asks each of its agents below a theatre for its
+	/// area again (<c>unitpanel.md</c>, section 9.1).
+	/// </summary>
+	private static void AfterRefresh(CCountry country)
+	{
+		if (country.UnitAi.RunsUnits)
+		{
+			return;
+		}
+		foreach (Agents.CAgent agent in country.UnitAi.Agents)
+		{
+			if (agent.Theatre == Agents.CAgents.BelowTheatre)
+			{
+				agent.PlanBuildPending = true;
+			}
 		}
 	}
 
