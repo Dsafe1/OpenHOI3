@@ -413,9 +413,10 @@ which it does not move, which the window sets to the hour it was opened.
 - Its row is `ORDER_AIR_RESERVE`, its tooltip `ORDER_AIR_RESERVE_DESC`, its line in the unit panel
   `ORDER_AIR_RESERVE_SHORT_DESC`, with nothing filled in.
 
-*Not built*: the message the original posts to the player for the day's exchange, `REINFORCE_AIR` - a type the
-install does not declare, so it arrives as no type at all; a unit another air unit is on its way to join is passed
-over by the exchange in the original. And the original has a second step it never reaches, sending wings off as a
+**The player is told of each unit served** by `REINFORCE_AIR`, with the reserve, the unit and the pairs that changed
+places - a type the install does not declare and has no text for, so it arrives as no type at all, a line of the log
+(`messages.md`, section 1); a mod may declare it. *Not built*: a unit another air unit is on its way to join is
+passed over by the exchange in the original. And the original has a second step it never reaches, sending wings off as a
 new unit to join a short one: both counts it rests on are made into a copy that is thrown away
 (`docs/enhanced.md`).
 

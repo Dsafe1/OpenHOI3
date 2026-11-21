@@ -2487,7 +2487,7 @@ None of these blocks the list above.
   point lies over it or under is the reading's guess; the marker, checked with `--click` on Lisbon, was not set beside
   a picture of the original's (`mapunits.md`, section 9).
 - **Of an air unit's orders eighteen are built, the reserve the last** (2026-11-21, `fleetsandair.md`, section 5.1 -
-  tried by tests, not on screen; its `REINFORCE_AIR` message is not raised): air superiority, the intercept, the eight
+  seen working in play that day): air superiority, the intercept, the eight
   bombing missions, the change of base, and since 2026-10-16 carrier protection, the paradrop,
   the rebase to carrier and the air supply (`transport.md`, section 13), the nuclear bomb
   (`nukes.md`), and since 2026-11-14 the raid on convoys (`navalmissions.md`, section 8.1).

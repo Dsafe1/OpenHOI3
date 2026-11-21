@@ -13,6 +13,9 @@ namespace OpenHOI3.Sim.Missions;
 /// </summary>
 public static class CAirReserve
 {
+	/// <summary>The message the day's exchange posts to the reserve's player.</summary>
+	public const string Message = "REINFORCE_AIR";
+
 	/// <summary>
 	/// The window's own test of the row, beside the range: the unit in no battle, an air base built in the province -
 	/// whatever bombing has left of it - and the unit free to stand there. Nothing is asked of who holds it beyond that.
@@ -85,7 +88,22 @@ public static class CAirReserve
 			{
 				break;
 			}
-			moved += CReserve.Exchange(state, unit, other);
+			int pairs = CReserve.Exchange(state, unit, other);
+			moved += pairs;
+			// The player is told of each unit served. The install declares no such message type, so it reaches him as the
+			// original's does: as no type at all, a line in the log (fleetsandair.md, section 5.1).
+			if (pairs > 0 && state.Played.Contains(country.Tag))
+			{
+				state.RaisePactMessage(new Agreements.CPactMessage(Message, "", "", country.Tag, country.Tag)
+				{
+					Told = country.Tag,
+					Values = new[]
+					{
+						("RESERVE", unit.Name), ("TARGET", other.Name),
+						("NUM", pairs.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+					},
+				});
+			}
 		}
 		return moved;
 	}
