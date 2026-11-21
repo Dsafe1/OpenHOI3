@@ -220,6 +220,18 @@ cancelled, three alignments and eleven licences, no Lua error - and still no NAP
 the original's saves, which hold none made since the start. Every alignment and influence those saves hold is one ours
 makes, Britain's influence on South Africa on the very day (8 March).
 
+**Whether the AI declines every NAP as the original's does** (looked at 2026-11-21): every answer of
+`DiploScore_NonAgression` on a new game is below nought here (`OpenHOI3.SaveCheck aiscore`), and the install's script
+makes it so by its own terms - the relation above 150, a much larger actor, friendliness and antagonism, halved for a
+country that is no neighbour, **less the whole distance between the two acting capitals** in the map's measure - so a
+NAP scores above the proposer's 50 only between countries a capital's width apart, or where a country's script sets the
+score (`JAP.lua` and `SOV.lua` give each other 100 at war with China or Germany). The original's saves agree: the
+Ireland game holds **no NAP its AI made until 29 December 1937**, China and the Soviet Union, and none in 1936 or 1937
+before it; its Japan-China pact of August 1938 and every Vichy one are script (event 520, `surrender2.txt`), as is the
+Molotov-Ribbentrop pact. So declining every NAP on a new game is the original's too. *Measured* on the saves, the script
+read; whether ours makes the China-Soviet pact of December 1937 is not looked at, its China capitulating by then
+(`headless.md`, section 4).
+
 ## 10. Ours
 
 - **The country's areas** the readiness test walks are taken as the areas of the land it holds; the original's list of

@@ -15,7 +15,7 @@ Agreed 2026-10-07. Each stage ends with something that runs.
 | 2. The clock and the economy | The hourly tick with its daily and monthly passes in the original's order; every state change as a command; IC, resources, manpower, production, research. The interface runtime arrives here, with the top bar as its first screen | A 1936-1948 run completes headless with totals that are plausible against a real savegame. **The clock, the command queue, fixed-point numbers, buildings, laws, ministers, technology levels, each country's IC, its home production, what its stockpile starts with, its six shares of IC and what consumer goods and supplies do with theirs, its leadership with what its four shares make, research and manpower are in (2026-10-08) and checked against savegames, and so is the interface runtime with the top bar and the production and technology screens; of what needs units, reinforcement, upgrades and the build queue are in (stage 3), with the four windows a unit is ordered from** |
 | 3. Units and war | Orders of battle, units on the map, movement, land combat, supply; then air and naval | Two countries can fight a land war to a result. **The unit types and the orders of battle are in (2026-10-08): every brigade, ship and wing the base game starts with, holding what the original gives it on the first hour, checked one by one against a savegame. So is what a unit draws each day - supplies and fuel, the men who go home, reinforcement and upgrades - checked brigade by brigade two days on; and the officer ratio with what it does to organisation, hour by hour, checked the same way. And the build queue: what a unit costs and takes, the day's work on it, and the unit that comes out, checked against five saves of one game over four months - with the division designer and the ship, air and brigade builders that order one, read out of the original and not yet looked at beside it. And the units are on the map (2026-10-09): a counter for every unit that is not in port or at its base, stacked by province, and the menu a finished unit is placed from. And land units move (2026-10-09): an order by a right click, a route found as the original finds it, and an hourly march at the original's speed over the original's distances - every one of the map's 83,596 edges checked against the cache the game keeps of its own. And a selected unit has its panel (2026-10-09). And fleets and air units are sent about (2026-10-09): the port and the airfield on the map a docked fleet and a grounded wing are picked by, the window of orders a right click brings up, a move and a change of base, the range, and the sea's own distances - all 17,621,016 of them checked against the cache the game keeps of them, and the sailing and the routes against savegames. And land units fight (2026-10-09): a unit walking at an enemy starts a battle and fights it from where it stands, the front and the reserves, the hourly round with its damage, the side that gives way and falls back, the province taken, and the delay an attack leaves - read out of the original and not watched, there being no savegame with a battle in it. What a leader does to a battle is not in yet. And units are supplied (2026-10-10): a network of depots, the day's carrying province by province, and convoys across the sea - the network set against three savegames province for province, the carrying against a fourth in 184 networks of 234, and all 261 of that save's convoys made again way for way. And fleets fight at sea (2026-10-10), the first of five pieces of air and naval combat: the sighting, each ship's own distance, who it shoots at, sinking, breaking away and falling back - read out of the original and not watched, like the land battle** |
 | 4. Politics and script | Events and decisions with their triggers and effects; diplomacy, factions, politics, espionage, occupation, revolt | The base game's events load with no unknown key and fire on schedule. **The first half is reached (2026-10-12): every event and decision of the base game is read, with no unknown key** |
-| 5. AI | The planning and scoring layers, last because they consume everything else | A whole game runs with no human player. **The tech and production ministers are in (2026-10-16): every country nobody plays researches, sets its sliders, builds and places its units by the install's Lua** |
+| 5. AI | The planning and scoring layers, last because they consume everything else | A whole game runs with no human player. **Reached 2026-11-20**: the full 1936-1948 headless run of that day, every country's AI at work and nobody playing, threw nothing, had no Lua error and no goods or manpower below nought; its replay parted from its recording at midnight on 19 July 1942, which `CAiEntry.Prepare` mended (`replay.md`, section 3), and the run's three leads are in *Loose ends*. The last of the AI's named gaps - its strategic bombing and nukes, and the war's end in a captured base and a landless country - were built on 2026-11-21, and a run to September 1938 after them was clean (`headless.md`, section 4). **The tech and production ministers are in (2026-10-16): every country nobody plays researches, sets its sliders, builds and places its units by the install's Lua** |
 
 Two notes on stage 1. The province bitmap turned out not to need a cache: it is read in
 about 120 ms. And `docs/mechanics/map.md` lists the things about the map that are not
@@ -1753,8 +1753,8 @@ base for their role, then close support, intercepts, logistical strikes and nava
 January save**, 774 of 908 divisions move or stay as the original's and 275 of 542 head for its province, the axis 106 of
 106, embark and debark 93 of 106, air units stand where the original's do 53 of 59, and **the save's three AI air orders,
 Italy's intercepts, are made again at their stance and province, each an hour early**; fleets come out 221 to its 222. A headless 1936
-runs clean in six minutes and keeps the Spanish Civil War going once it fires. Not built: paradrops (no 1936 order of
-battle has an airborne army) and strategic bombing (nothing hands the agents the enemy's war industry).
+runs clean in six minutes and keeps the Spanish Civil War going once it fires. ~~Not built: paradrops (no 1936 order of
+battle has an airborne army) and strategic bombing (nothing hands the agents the enemy's war industry).~~ Built: paradrops on 2026-11-18 (`moving.md`, section 9.1), strategic bombing and the nuke mission on 2026-11-21 (sections 12 and 17.4).
 
 **Next: waiting on the user's word.** A headless run to 1939 (`headless.md`, section 4, 2026-10-19) found three
 things worth looking into first: **China surrenders to Japan in five months**, the Marco Polo Bridge comes a year late, and
@@ -1762,7 +1762,7 @@ the Spanish Civil War is over in six months; and 40 Lua errors from a misspelt f
 2026-11-02 the Marco Polo Bridge was mended** - it comes on 1 July 1937 as the original's does, the reference Ireland
 game played on to August 1938 being the measure (`moving.md`, section 21): a province's front was read off a cache, and
 the consumer goods demand left out the standing army, so every country the AI runs built too much. **China now lasts six
-months to the original's thirteen and a half**, ending the original's way by `china_war_goal`'s event; its technology,
+months to the original's thirteen and a half** - ~~a gap~~: on 2026-11-21 a second game of the original's was found to end the war on 17 January 1938, the day ours ends it, so the original's own China lasts six and a half months in one game and thirteen and a half in another (`headless.md`, section 4) - ending the original's way by `china_war_goal`'s event; its technology,
 32 levels summed to the save's 56, was the first suspect (`headless.md`, section 4, the last run). **Mended the same
 day**: a new game gives every country, the player's too, the original's head start in technology and brings its laws
 forward (`research.md`, section 9; `politics.md`, section 13; `docs/compatibility.md`, entry 6 reversed) - every
@@ -2146,6 +2146,12 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 
 ## Loose ends
 
+- **The full headless run of 2026-11-20 left three leads** (reported by the session that ran it, and not written up
+  elsewhere): the war after 1942 - Germany collapses in late 1944 and France goes over to the Comintern - which wants a
+  new recorded run, the old recording predating `CAiEntry.Prepare`; Germany's supplies, about three times the original's
+  from 1937, trade ruled out, for which `OpenHOI3.SaveCheck supplyledger` is the tool; and a year taking seven times as
+  long by 1947 while the units only doubled. Paused on 2026-11-20 for the multiplayer work.
+
 - ~~**A fleet's base check in its hour**~~ - built 2026-11-20: every fleet's hour ends in it, and a fleet with no base and
   no port left to its country is removed at the hour's end (`fleetsandair.md`, section 2.1). Left: the air unit's own
   check (`CAir::CheckBase`, the same slot of an air unit's hour - with no base, the nearest of its country's air bases in
@@ -2251,7 +2257,7 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 
 None of these blocks the list above.
 
-- **Only a theatre's headquarters can be handed to the AI** by the unit panel's box (`unitpanel.md`, section 9); the original lets a corps, an army or an army group go too, and the agents here are a theatre's. The AI's own liberating and puppets are still reported unbuilt (`politics.md`, section 11.1).
+- **Only a theatre's headquarters can be handed to the AI** by the unit panel's box (`unitpanel.md`, section 9); the original lets a corps, an army or an army group go too, and the agents here are a theatre's. ~~The AI's own liberating and puppets are still reported unbuilt~~ - built: the install's `Liberation` and `HandlePuppets` post the two commands through Lua (`politics.md`, section 11.1).
 - **An expeditionary force's first piece is built** (`docs/mechanics/expeditions.md`): the window, the rows, the offer and answer, the hand-over and the return, the flag and what a lent unit may not do. A lent unit's officers, supply, reinforcement and combat figures are its lender's. The AI lends and sends home through its agents (`agents.md`, section 10.5), with nothing asked of the other country, the AI's command carrying a unit's whole tree; no AI offers one to the player. An annexation and, since 2026-11-14, a government going into exile send home what was lent to the country, both sides told, and shatter it at its lender's (`expeditions.md`, section 5).
 - **The deploy menu's drag into the order of battle browser** (built 2026-11-13, `mapunits.md`, section 6): where the original's join finds no province for a dropped unit, what its following attach does was not traced; here the unit stays waiting.
 - **The map's surface** (2026-11-06, `docs/mechanics/mapdraw.md`, section 6): it takes about 0.9 s as a game is made,
@@ -2289,9 +2295,9 @@ None of these blocks the list above.
 - **The unit agents leave out** (2026-10-17, `docs/mechanics/agents.md`, section 13): the war stance's combat values. The
   air units' move between theatres by group difference is built since 2026-11-13 (`agents.md`, section 10.3). The division need is read whole since 2026-10-19, and
   the balancing agrees with the 4 January save in all 106 theatres since 2026-11-09, the AI's lending of units with it (`agents.md`, sections 10.5 and 14).
-- **Moving and attacking leaves out** (2026-10-19, `docs/mechanics/moving.md`, sections 19 and 20): paradrops and
-  strategic bombing, nothing yet handing the agents the enemy's war industry; the Allies' Baltic ban; a friend's area
-  reinforced by sea. ~~**Fleets come out too many**~~ - 221 to the 4 January save's 222 since 2026-10-20, a join no
+- **Moving and attacking leaves out** (2026-10-19, `docs/mechanics/moving.md`, sections 19 and 20): the Allies' Baltic
+  ban; a friend's area reinforced by sea. ~~Paradrops~~ are built since 2026-11-18 (section 9.1), and ~~strategic
+  bombing~~ since 2026-11-21, the enemy's war industry handed to the agents (sections 12 and 17.4). ~~**Fleets come out too many**~~ - 221 to the 4 January save's 222 since 2026-10-20, a join no
   longer undone in the pass that ordered it, and a war with an empty side no longer keeping its last country at war;
   ~~**Japan's air groups stay apart**~~ and ~~**Italy's three intercepts are given an hour before the save's**~~ - read on
   2026-11-12 from a new game the original played hour by hour (`reversing/findings/FINDINGS-liveread.md`, section 56): at
@@ -2390,12 +2396,14 @@ None of these blocks the list above.
   32-bit `lua51.dll` on the PATH, which Godot loaded in its place.
 - **War and its end leave out** (`war.md`, *Not built*): the cabinet a new puppet's government would fill; an exile's
   free supply from friends, its brigades at its leader's technology and its partisans turned to militia when it comes
-  home (its sending home of the units lent to it is built since 2026-11-14, `expeditions.md`, section 5); and a
+  home (its sending home of the units lent to it is built since 2026-11-14, `expeditions.md`, section 5); and ~~a
   landless country's units, which the original
-  destroys each hour. **A change of hands leaves out** the air and naval units based in the province, which the original
-  sends to the old side's nearest base, and radar. **A
+  destroys each hour~~ (built 2026-11-21, `war.md`, section 11). ~~**A change of hands leaves out** the air and naval units based in the province, which the original
+  sends to the old side's nearest base, and radar~~ - both built (section 11). **A
   pact is one object for both countries**, so annexation ends both sides of one (`war.md`, *Ours*). **Units on ground
-  they may no longer stand on are not marked** (`war.md`, *Not built*), and the revolt war is not built.
+  they may no longer stand on are not marked** (`war.md`, *Not built*). ~~The revolt war is not built~~: it is, a freed
+  rebel country's war on each former owner (`rebels.md`, section 10). A puppet's cabinet, an exile's free supply,
+  its brigades at its leader's levels and its partisans turned to militia are built too (`war.md`, *Not built*).
 - **Factions leave out** (`factions.md`, *Not built*): the victory conditions' random fill for a faction with fewer
   primaries than the count, reported.
 - **The agreements leave out** (`agreements.md`, section 9): the player handing his diplomacy to the AI as the
@@ -2404,8 +2412,9 @@ None of these blocks the list above.
   against it. The dialog's influence and alignment drift
   says each day's `align_towards` and the days; a message's `VAL` and `TIME`, which no text of the
   base game uses, are not given. **Every `DiploScore_NonAgression` answer on a new game is below
-  nought** (`OpenHOI3.SaveCheck aiscore`), so the AI declines every NAP; whether the original's
-  answers are too was not checked.
+  nought** (`OpenHOI3.SaveCheck aiscore`), so the AI declines every NAP - **as the original's does**, looked at on
+  2026-11-21: the script subtracts the capitals' whole distance, and the Ireland game's AI makes its first NAP on 29
+  December 1937 (`foreignminister.md`, section 9).
 - **Aid leaves out** (`aid.md`, *Ours*): the licence list's combat-value comparison (technology levels
   stand in), a licence row's stat block, a convoy's lend-lease efficiency lowered by sinkings, and the
   production screen losing its tooltips while the lend-lease window is open. **Every licence model shows
@@ -2519,10 +2528,12 @@ None of these blocks the list above.
   original's scrollbar is given a flag that swaps its two buttons, and what sets it was not
   read (`interface.md`, section 2). The sliders, across, take away on the left as here.
 - **A land battle has its leaders since 2026-10-11**, and their aggressiveness since the plans, given to the attacker's
-  pick alone as the original gives it (`landcombat.md`, section 11). Of the things that bear on a unit in a round, three
+  pick alone as the original gives it (`landcombat.md`, section 11). ~~Of the things that bear on a unit in a round, three
   wait for what they read - shore bombardment, mission efficiency, landing craft -
-  and three technology figures are left out for want of their keys; `landcombat.md`,
-  section 4, lists them. A round gives no practical knowledge (section 3).
+  and three technology figures are left out for want of their keys~~ - all built: shore bombardment on 2026-11-18, the
+  landing craft with the landing (`transport.md`, section 9), mission efficiency and `ground_defence_effiency` on
+  2026-11-21 (`landcombat.md`, sections 4 and 5), and `unit_cooperation` and `dig_in_cap` before. ~~A round gives no
+  practical knowledge~~: every battle does since 2026-11-18 (`research.md`, section 10).
 - **What is left of the battle window's list** (`docs/mechanics/combatview.md` ends with it): the naval map mode's
   icons and a land marker's first three hours. Units in a battle stand in a stack for the attackers and one
   for the defenders since 2026-11-14, as the original's (`mapunits.md`, section 3); what a click on the original's marker does was not read - here it opens the window.
@@ -2637,8 +2648,8 @@ None of these blocks the list above.
   may be, a convoy's choice of harbour - and are given what was built, so that bombing does
   not rearrange a network. `bombing.md`, section 7.
 - ~~**No AI gives an air mission**~~ - the AI's air body gives them since 2026-10-19 (`moving.md`, section 17): close
-  support, intercepts, logistical strikes and naval and port strikes. It gives no strategic bombing, nothing yet
-  handing it the enemy's war industry.
+  support, intercepts, logistical strikes and naval and port strikes. ~~It gives no strategic bombing, nothing yet
+  handing it the enemy's war industry~~ - it does since 2026-11-21, and a nuke mission with a bomb in stock (`moving.md`, section 17.4).
 - **A building's picture is drawn at a size and from a zoom that are the reading's
   and ours**, never set beside the original; and a selected fleet in port has nothing on
   the map to show it is selected. `docs/mechanics/mapunits.md`, section 9.
@@ -2770,7 +2781,8 @@ None of these blocks the list above.
   four things wrong that only screenshots of the original showed. Its sounds are built since 2026-11-12 (`sound.md`, section 8).
 - **Carrying by sea and by air are built, and neither was reviewed on screen in play**
   (`transport.md`); the carrier, the paradrop and the air supply were tried only with
-  `OpenHOI3.SaveCheck airborne`. The AI drops no paratroopers (`moving.md`, section 20); and the technology figures `paradrop_mission` and
+  `OpenHOI3.SaveCheck airborne`. ~~The AI drops no paratroopers~~ - it does since 2026-11-18 (`moving.md`, section 9.1), where it has airborne divisions
+  and transports, which no 1936 order of battle has; and the technology figures `paradrop_mission` and
   `transport_supplies_mission` do nothing, no reader of them having been found. Three small things
   are ours and listed in the spec's *Ours*: the nearest air base a carrier's groups go to and the
   order the planes' load button looks in - a paradrop's start is held every frame while its row is ticked since
@@ -2863,8 +2875,8 @@ None of these blocks the list above.
   apart), the opening laws and shares now standing where the original's do. The 18 of 76 is still what the start-date
   run's day-nought sum gives ("fuel at the start: all a country's provinces hold, less two days' refining"), which
   reasons from the files and not from a game's own first days. `docs/mechanics/upkeep.md`, the end.
-- **The AI's politics neither liberates a country nor releases a puppet** (2026-10-14, `politics.md`, sections 11.1
-  and 12): both stay reported as unbuilt. What repeats a new game's look at the laws in the original
+- ~~**The AI's politics neither liberates a country nor releases a puppet**~~ (2026-10-14, `politics.md`, sections 11.1
+  and 12): both are built - the install's `Liberation` and `HandlePuppets`, through Lua. What repeats a new game's look at the laws in the original
   was not found, and a minister's hour rests on a numbering of countries that is ours.
 - **Whose units share a base, and whether a technology's `naval_base_efficiency` is what
   widens a port**, are `inferred`. `organisation.md`, section 4.

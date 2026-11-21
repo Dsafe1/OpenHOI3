@@ -259,6 +259,33 @@ research 74% of its leadership to 77% - and **its technology is not: 32 levels s
 the speed. The Lua: 149 errors, all the misspelt faction of `JAP.lua` line 699, which starts once China is out of the
 war.
 
+### To September 1938 once more, and a second game of the original's (2026-11-21)
+
+`headless <install> 1938.9.1` with the Ireland game's five saves of July 1937 to August 1938 beside it, a Release build,
+291 s: nothing thrown, nothing below nought, **no Lua error** (149 on 2026-11-02, all `JAP.lua` line 699).
+
+| date | ours | the original's, the Ireland game | the original's, a second game |
+| --- | --- | --- | --- |
+| 1 July 1937, 19:00 | the Marco Polo Bridge | 1 or 2 July | |
+| 20 October 1937 | Japan annexes Shanxi | about 9 October | |
+| 17 January 1938 | **China capitulates**, Mengkukuo made the next day | about 23 August 1938 | **17 January 1938** |
+
+**China's technology is the original's now** - 58 levels summed on 5 July 1937 to the save's 56, 63 to 64 in October, 70
+to 69 in January - so it was not what made the war short. What still differs is **its stockpile, from October**: on 5
+January 1938 its crude oil 0.75 to the save's 2,718, energy 1.95 to 9,815, metal 4 to 5,465, supplies 127 to 4,176 - a
+country losing its war, against one holding on.
+
+**The second game** is the original's own too: `Ireland1939_09_06_18.hoi3`, the save the war-start recordings are made
+from (`docs/replay.md`), which is no bookmark's - its Germany-Soviet pact starts on 6 August 1939 at 16:00, where the
+bookmark's history has 23 August, and its finished wars carry no names, where the 1939 bookmark's save has the Spanish
+Civil War's and the Abyssinian War's - and so a game the original's AI played on from 1936. Its Japan-China
+non-aggression pact, which event 520 makes as China capitulates (section 4), **starts on 17 January 1938 at 00:00**, and it
+holds Mengkukuo's 86 provinces and China's 246, as the Ireland game's August save does. So **two games of the original's
+end the war six and a half months and thirteen and a half months after it began**, and ours ends it on the first one's
+day. *Inferred* - the date of the capitulation is read off the pact the event makes, and the save was not watched being
+made. The six months set against thirteen and a half (above) was one game of the original's against ours, and is no gap
+by itself; what the original makes of China's war from run to run is not measured beyond these two.
+
 ## 5. From a later bookmark (2026-11-15)
 
 Each of the three later bookmarks run forward with `from=`, four months each and nobody playing, Their Finest Hour
