@@ -106,7 +106,11 @@ This file is the order of work across the two repositories and what was decided 
      (`mechanics/modwindows.md`, section 6.3). **And Country Info whole**, the same day: Country Modifiers,
      IC Days, Puppets, Strategic Res., Strategic Trades, Global Market, National Focus, Minister Buildings and the
      three AI forms, their setters posting the original's `CSetVariableCommand` as the page gathers, which goes the
-     way of a player's order (section 6.1). **Not built**: the overlay's remaining pages - Setup, Stats, Options,
+     way of a player's order (section 6.1). **And Setup**, the same day, with nothing asked
+     of the engine: Country - the country every page reports on, the mod's Lua global `G_PlayerCountry` as on the
+     original - and Misc. Its Special page, which moves the original's 3D unit sprites aside for the sake of a
+     32-bit address space, is left out: this engine loads none, and a page writes nothing into an install.
+     **Not built**: the overlay's remaining pages - Stats, Options,
      Help and the Inspector's larger ones; and the two reads Country Modifiers asks of BiceLib, a country's offmap
      IC and its trickleback. The setting's effect for script is not wanted for now (`enhanced.md`, *Rules*). Agreed, 2026-11-22: **no single file that registers the pages** - one a submod would have to
      overwrite - but a file a page, found by listing a folder over every layer; and the widgets a page may ask for
