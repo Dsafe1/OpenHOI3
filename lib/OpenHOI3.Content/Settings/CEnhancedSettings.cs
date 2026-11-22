@@ -29,8 +29,12 @@ public sealed record CEnhancedSettings(int PreMonthDays = 0, int TimedMinutes = 
 	/// <summary>The look of a mod's windows: one of <see cref="WindowThemes"/>.</summary>
 	public const string DefaultWindowTheme = "dark";
 
-	/// <summary>The looks the drawing library has of its own, which are the ones offered.</summary>
-	public static readonly string[] WindowThemes = { "dark", "light", "classic" };
+	/// <summary>
+	/// The looks offered: the three the drawing library has of its own, and <c>army_green</c> - olive panels and
+	/// amber headings, asked for by the user on 2026-11-22 after the look of that name BlackICE's overlay has on the
+	/// original. Its colours are this engine's own, made from that description.
+	/// </summary>
+	public static readonly string[] WindowThemes = { "dark", "light", "classic", "army_green" };
 
 	public static readonly CEnhancedSettings Default = new();
 

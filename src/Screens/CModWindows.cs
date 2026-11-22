@@ -144,10 +144,83 @@ public sealed partial class CModWindows : Node
 			case "classic":
 				ImGui.StyleColorsClassic();
 				break;
+			case "army_green":
+				ArmyGreen();
+				break;
 			default:
 				ImGui.StyleColorsDark();
 				break;
 		}
+	}
+
+	/// <summary>
+	/// Olive panels and amber headings: the dark look with its blue taken out. What holds something is olive, darker
+	/// the further back it stands; what is chosen, held or marks a place is amber; text is a pale khaki.
+	/// </summary>
+	private static void ArmyGreen()
+	{
+		ImGui.StyleColorsDark();
+		ImGuiStylePtr style = ImGui.GetStyle();
+		static System.Numerics.Vector4 Rgb(int red, int green, int blue, float alpha = 1f) =>
+			new(red / 255f, green / 255f, blue / 255f, alpha);
+		var text = Rgb(226, 222, 196);
+		var dim = Rgb(140, 142, 112);
+		var back = Rgb(30, 34, 22, 0.96f);
+		var panel = Rgb(38, 44, 28);
+		var frame = Rgb(58, 66, 40);
+		var frameHover = Rgb(76, 86, 52);
+		var olive = Rgb(88, 100, 58);
+		var oliveHover = Rgb(108, 122, 70);
+		var amber = Rgb(226, 162, 38);
+		var amberDeep = Rgb(168, 118, 26);
+		var border = Rgb(96, 104, 66, 0.6f);
+
+		style.Colors[(int)ImGuiCol.Text] = text;
+		style.Colors[(int)ImGuiCol.TextDisabled] = dim;
+		style.Colors[(int)ImGuiCol.WindowBg] = back;
+		style.Colors[(int)ImGuiCol.ChildBg] = Rgb(0, 0, 0, 0f);
+		style.Colors[(int)ImGuiCol.PopupBg] = Rgb(34, 38, 24, 0.98f);
+		style.Colors[(int)ImGuiCol.Border] = border;
+		style.Colors[(int)ImGuiCol.FrameBg] = frame;
+		style.Colors[(int)ImGuiCol.FrameBgHovered] = frameHover;
+		style.Colors[(int)ImGuiCol.FrameBgActive] = olive;
+		style.Colors[(int)ImGuiCol.TitleBg] = panel;
+		style.Colors[(int)ImGuiCol.TitleBgActive] = amberDeep;
+		style.Colors[(int)ImGuiCol.TitleBgCollapsed] = panel;
+		style.Colors[(int)ImGuiCol.MenuBarBg] = panel;
+		style.Colors[(int)ImGuiCol.ScrollbarBg] = Rgb(24, 28, 18, 0.6f);
+		style.Colors[(int)ImGuiCol.ScrollbarGrab] = olive;
+		style.Colors[(int)ImGuiCol.ScrollbarGrabHovered] = oliveHover;
+		style.Colors[(int)ImGuiCol.ScrollbarGrabActive] = amber;
+		style.Colors[(int)ImGuiCol.CheckMark] = amber;
+		style.Colors[(int)ImGuiCol.SliderGrab] = amberDeep;
+		style.Colors[(int)ImGuiCol.SliderGrabActive] = amber;
+		style.Colors[(int)ImGuiCol.Button] = olive;
+		style.Colors[(int)ImGuiCol.ButtonHovered] = oliveHover;
+		style.Colors[(int)ImGuiCol.ButtonActive] = amberDeep;
+		style.Colors[(int)ImGuiCol.Header] = Rgb(168, 118, 26, 0.55f);
+		style.Colors[(int)ImGuiCol.HeaderHovered] = Rgb(226, 162, 38, 0.45f);
+		style.Colors[(int)ImGuiCol.HeaderActive] = amberDeep;
+		style.Colors[(int)ImGuiCol.Separator] = Rgb(226, 162, 38, 0.6f);
+		style.Colors[(int)ImGuiCol.SeparatorHovered] = amber;
+		style.Colors[(int)ImGuiCol.SeparatorActive] = amber;
+		style.Colors[(int)ImGuiCol.ResizeGrip] = Rgb(168, 118, 26, 0.4f);
+		style.Colors[(int)ImGuiCol.ResizeGripHovered] = amberDeep;
+		style.Colors[(int)ImGuiCol.ResizeGripActive] = amber;
+		style.Colors[(int)ImGuiCol.Tab] = frame;
+		style.Colors[(int)ImGuiCol.TabHovered] = amberDeep;
+		style.Colors[(int)ImGuiCol.TabSelected] = amberDeep;
+		style.Colors[(int)ImGuiCol.TabDimmed] = panel;
+		style.Colors[(int)ImGuiCol.TabDimmedSelected] = frame;
+		style.Colors[(int)ImGuiCol.PlotLines] = amber;
+		style.Colors[(int)ImGuiCol.PlotLinesHovered] = text;
+		style.Colors[(int)ImGuiCol.PlotHistogram] = amberDeep;
+		style.Colors[(int)ImGuiCol.TableHeaderBg] = Rgb(58, 66, 40);
+		style.Colors[(int)ImGuiCol.TableBorderStrong] = border;
+		style.Colors[(int)ImGuiCol.TableBorderLight] = Rgb(96, 104, 66, 0.35f);
+		style.Colors[(int)ImGuiCol.TableRowBgAlt] = Rgb(255, 255, 255, 0.03f);
+		style.Colors[(int)ImGuiCol.TextSelectedBg] = Rgb(226, 162, 38, 0.35f);
+		style.Colors[(int)ImGuiCol.NavCursor] = amber;
 	}
 
 	/// <summary>A setting of the window's as a page reads it (<c>IModWindowCanvas.WindowSetting</c>).</summary>

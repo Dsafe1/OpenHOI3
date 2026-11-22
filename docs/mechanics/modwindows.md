@@ -230,8 +230,12 @@ BlackICE's Utility Options - through `OpenHOI3.Window`, which answers while a pa
   `CancelCapture()`, gives the choosing up; `Capturing()` says whether it is under way. **The key is asked for where
   the game's own keys are** (`CSession._UnhandledInput`), before them, so a key of the game's given to the window is
   the window's, and a letter typed into a box of the game's or of a page's still types.
-- `Theme()`, `Themes()`, `SetTheme(name)` - its look, one of the three the drawing library has of its own: `dark`,
-  `light`, `classic`. The overlay's four on the original are BiceLib's own colours and are not these.
+- `Theme()`, `Themes()`, `SetTheme(name)` - its look: the three the drawing library has of its own, `dark`,
+  `light` and `classic`, and **`army_green`**, olive panels and amber headings - the user's, 2026-11-22, on seeing
+  the three: "Please also Army green theme", after the look of that name BlackICE's overlay has on the original.
+  Its colours are this engine's own (`CModWindows.ArmyGreen`), made from the description "olive panels, amber
+  headings" and the overlay's amber, 226,162,38, which BlackICE's own page on its features gives; BiceLib's colours
+  were not read. The overlay's Grey is not here.
 - `Scale()`, `SetScale(factor)` - the size of its text as a factor, held between 0.6 and 2.
 - `ResetLayout()` - the window back where and as large as it first stood.
 
@@ -333,7 +337,7 @@ collection is to become a record of the engine's own (`docs/enhanced.md`, *Inter
 
 - Orders beyond the conversion's (section 6.1), and a command a mod defines itself.
 - A button for the window on a screen of the game.
-- Looks of a mod's own choosing beside the library's three, and a text size that is kept.
+- Looks a mod declares itself, the overlay's Grey, and a text size that is kept.
 - Sorting a table by a column's header, and the rest of the library's widgets.
 - A scrollbar across a picture wider than its pane, which the overlay's sprite has: a child takes no flags here.
 - The pages in the front end: they are a game's.

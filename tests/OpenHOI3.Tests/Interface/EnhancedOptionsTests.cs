@@ -57,6 +57,9 @@ public class EnhancedOptionsTests
 		// A look that is none is reported and left at the default.
 		Assert.Equal("dark", CEnhancedSettingsFile.Parse("window_theme = purple\n", "test", warnings.Add).WindowTheme);
 		Assert.Single(warnings);
+		// The army green look, which is none of the drawing library's own, is one of them.
+		Assert.Equal("army_green", CEnhancedSettingsFile.Parse("window_theme = army_green\n", "test", warnings.Add).WindowTheme);
+		Assert.Single(warnings);
 
 		// The game options' rows show neither, and applying them changes neither.
 		var rows = new CEnhancedOptions();
