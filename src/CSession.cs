@@ -1049,6 +1049,21 @@ public partial class CSession : Node
 					Tell(message);
 				}
 			};
+			// A battle decided and a bombing ended (messages.md, sections 9.1 and 9.2).
+			_simulation.State.CombatConcluded += (combat, attackerLost) =>
+			{
+				if (CBattleOverMessages.BattleOver(gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, combat, attackerLost) is { } message)
+				{
+					Tell(message);
+				}
+			};
+			_simulation.State.BombingEnded += bombing =>
+			{
+				if (CBattleOverMessages.BombingEnded(gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, bombing) is { } message)
+				{
+					Tell(message);
+				}
+			};
 			_simulation.State.UnitArrived += unit =>
 			{
 				if (CMessages.UnitArrived(gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, unit) is { } message)

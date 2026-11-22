@@ -434,6 +434,8 @@ public sealed class CGameState
 		PactMessaged = null;
 		OfferAsked = null;
 		CombatBegan = null;
+		CombatConcluded = null;
+		BombingEnded = null;
 		ConvoyRaidMessaged = null;
 		PatrolTracked = null;
 		DecisionTaken = null;
@@ -858,6 +860,34 @@ public sealed class CGameState
 
 	/// <summary>Raised as a battle or a bombing first runs, for its message. Never for anything that changes the game.</summary>
 	public event Action<Combat.CCombat>? CombatBegan;
+
+	/// <summary>
+	/// Raised as a battle on land, at sea or in the air is decided, before its on_actions, for its message - with whether
+	/// the attacker lost. Never for anything that changes the game. See <c>docs/mechanics/messages.md</c>, section 9.1.
+	/// </summary>
+	public event Action<Combat.CCombat, bool>? CombatConcluded;
+
+	internal void RaiseCombatConcluded(Combat.CCombat combat, bool attackerLost)
+	{
+		if (!combat.IsConvoyBattle)
+		{
+			CombatConcluded?.Invoke(combat, attackerLost);
+		}
+	}
+
+	/// <summary>
+	/// Raised as a bombing ends, its units still on its sides, for its message. Never for anything that changes the game.
+	/// See <c>docs/mechanics/messages.md</c>, section 9.2.
+	/// </summary>
+	public event Action<Combat.CCombat>? BombingEnded;
+
+	internal void RaiseBombingEnded(Combat.CCombat bombing)
+	{
+		if (!bombing.IsConvoyBattle)
+		{
+			BombingEnded?.Invoke(bombing);
+		}
+	}
 
 	internal void RaiseCombatBegan(Combat.CCombat combat)
 	{

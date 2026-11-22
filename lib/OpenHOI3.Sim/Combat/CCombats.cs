@@ -518,8 +518,9 @@ public static class CCombats
 
 	/// <summary>
 	/// A battle is decided, once: the world's last-battle losses are set (<c>docs/mechanics/triggers.md</c>,
-	/// section 5.2), and its on_actions fire - each side's countries' battles counted and their events picked, the
-	/// winners' first (<c>docs/mechanics/events.md</c>, section 8). The original's message goes here too, not built.
+	/// section 5.2), its message is raised (<c>docs/mechanics/messages.md</c>, section 9.1), and its on_actions fire -
+	/// each side's countries' battles counted and their events picked, the winners' first
+	/// (<c>docs/mechanics/events.md</c>, section 8).
 	/// </summary>
 	public static void Conclude(CGameState state, CCombat combat, bool attackerLost)
 	{
@@ -531,6 +532,8 @@ public static class CCombats
 		combat.AttackerLost = attackerLost;
 		state.LastBattleLosses.Record(combat, attackerLost);
 		Diplomacy.CRelations.LandBattleWon(state, combat, attackerLost);
+		// The battle's message, before its on_actions, so that an event they fire comes after it.
+		state.RaiseCombatConcluded(combat, attackerLost);
 		Events.COnActions.Battle(state, combat, attackerLost);
 	}
 
@@ -549,6 +552,11 @@ public static class CCombats
 	/// </summary>
 	public static void Finish(CGameState state, CCombat combat)
 	{
+		// A bombing's report, while its units are still on its sides.
+		if (CBombing.IsBombing(combat.Kind))
+		{
+			state.RaiseBombingEnded(combat);
+		}
 		StrategicWarfare.CWarfareTally.BattleEnded(state, combat);
 		// A fleet let out of a battle will start no other for some hours.
 		if (combat.Kind == ECombatKind.Naval)

@@ -545,7 +545,7 @@ public static class CMessages
 	/// The key of a country's ruler's title, <c>&lt;government&gt;_ruler</c>, which is looked up when
 	/// shown; a country with none has the original's null government, <c>nogovernment</c>.
 	/// </summary>
-	private static string RulerTitle(CCountry country) =>
+	internal static string RulerTitle(CCountry country) =>
 		(country.GovernmentType.Length > 0 ? country.GovernmentType : "nogovernment") + "_ruler";
 
 	private static CMessage Made(Func<string, string> localise, CMessageTypes types, CGameState state, string name,
@@ -559,7 +559,7 @@ public static class CMessages
 	}
 
 	/// <summary>Each post of the player's government, by its key: "$TITLE$ $NAME$".</summary>
-	private static void Government(Func<string, string> localise, CGameState state, CCountryTag? player, CMessage message)
+	internal static void Government(Func<string, string> localise, CGameState state, CCountryTag? player, CMessage message)
 	{
 		if (state.Country(player) is not { } country)
 		{

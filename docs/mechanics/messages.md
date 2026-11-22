@@ -213,6 +213,88 @@ The six battle types use `CombatStartPopup`. Under the six lines the divider and
 
 `ElectionResultPopup` carries `_HEADER` and `_1` with no colour changed; a pie of every party but the null one at no less than one percent, so that a party with nothing shows one and the slices can come to more than a hundred, its tooltip the party and its percent; and the new cabinet in two lists split as the politics screen's. OK stands 53 above the picture's foot.
 
+### 9.1 A battle decided
+
+*From `reversing/findings/FINDINGS-battleover.md`, read 2026-11-22.* `CBattleOverMessages.BattleOver`, raised by
+`CGameState.CombatConcluded`. Everything here is the executable's [exe] but the texts, which are the localisation's
+[mod: `unit_messages.csv`], and whether a type pops up, is logged or stands on the map [mod: `messagetypes.txt`].
+
+As a battle on land, at sea or in the air is decided - once, after the relation a land battle changes and **before the
+battle's on_actions** - the player is told `LANDBATTLEOVER`, `NAVALBATTLEOVER` or `AIRBATTLEOVER`: one message, only
+where he is among the countries of one side and both sides have a country. A sea battle with an empty side says
+nothing and still runs its on_actions (`events.md`, section 8).
+
+Whose side he is on is asked of the attackers first; whether he *lost* is the attackers' result turned round where he
+is among the defenders. After the standing values (section 3):
+
+| | land | air | sea |
+| --- | --- | --- | --- |
+| `OUREXHAUSTION`, `ENEMYEXHAUSTION` | the constant `WE: §Y0.00`, both | - | - |
+| `WINORLOSE` | the text of `YOU_WON` or `YOU_LOST` | same | same |
+| `MESSENGER` | `MESSAGE_HEAD_MARS` | same | same |
+| `NAME` | the text of `BATTLE_OF`, a space, the province's name | same | same |
+| `USLOSS`, `THEIRLOST` | each side's losses, cut to a whole number | same | - |
+| `USNUM`, `THEIRNUM` | each side's size: every type's tally cut to a whole number, added | same | - |
+| `OTHER` | the other side's units' countries by name | same | same |
+| `RESULT` | `RESULT_WON` or `RESULT_LOSS` | same | same |
+| `OTHERRESULT` | the other of the two | same | `COMBAT_FLEE` where we won, `COMBAT_TRIUMPH` where we lost |
+| `SHIPS` | - | - | our side's sunk ships and two line feeds |
+| `THEIRSHIP` | - | - | the other side's sunk ships |
+| `WINNER` | - | - | `COMBAT_WINNERTYPE_OUR` or `_THEIR` |
+
+A side's sunk ships are the text of `NONE`, or for each ship a line feed, `@` and its owner's tag, a space, `£` and
+its type's key, a space and its name - a flag, a counter and a name a line (`tooltips.md`). A side's size on land is
+its men, a hundred to a point of strength of every brigade as it joined; in the air a whole one a wing.
+
+The message is the battle's province's; its countries on land and in the air are the player and the defenders' first
+country, whichever side he is on, and at sea the attacking side's - the player where he attacks, else the attackers'
+first - and the defending side's the same way. Its Goto goes to the province (section 4.1).
+
+*Kept as the original's and listed in `docs/enhanced.md`:* the two exhaustion values say the same constant whatever
+happened.
+
+*Ours:* the countries of a side are those still standing on it (`CCombatSide.Standing`), as the message of a battle's
+start and the last battle's losses take them.
+
+### 9.2 A bombing ended
+
+*From `reversing/findings/FINDINGS-bombend.md`, read 2026-11-22.* `CBattleOverMessages.BombingEnded` and `Damage`,
+raised by `CGameState.BombingEnded` as a bombing is taken off the list, its units still on it. All [exe] but the
+texts and the type's settings, as above.
+
+Nothing is said of a convoy raid, of a bombing whose bombers have no country or no unit left, or whose first unit has
+no order. The player among the bombers' countries is told `BOMBENDTHEM`; failing that, among the bombed side's,
+`BOMBENDUS`; anyone else nothing. **It is told whatever was hit.** After the standing values: `PROV` the province's
+name, `ATTACKER` the bombers' first country's name and `ATTACKER_ADJ` its adjective, `ORDER` the name of the first
+bomber unit's order, and `DAMAGE` and `DAMAGE_SHORT`, which are the same text. Both of the message's countries are the
+bombers' first, on the bombed player's message too; its Goto goes to the province.
+
+The damage, a line each, each ending in a line feed:
+
+1. every building in the building file's order of which something was destroyed: `BOMB_DAMAGE_BUILDING` with `NAME`
+   its name and `SIZE` the levels to three places, cut;
+2. each good - supplies, fuel, money, crude oil, metal, energy, rare materials - of which something was taken from the
+   stockpile: `BOMB_DAMAGE_STOCKPILE`, `NAME` the good's name (its `*_IRO` text) and `SIZE` as above;
+3. each good, in that order, of which production was destroyed: `BOMB_DAMAGE_PRODUCTION`.
+
+Then one last line with no line feed, by the first bomber unit's order and by *d*, the strength the bombs dealt times
+10 over 1000, cut - so under a tenth of a point it is nought:
+
+- ground attack or interdiction and *d* not nought: `BOMB_DAMAGE_MEN`, `SIZE` *d* written as men (`builders.md`), which
+  comes to **the strength dealt in whole points** - 46.039 dealt reads 46;
+- naval strike, port strike or carrier protection: `BOMB_SINK_SHIP` with `SUNK` the ships sunk, as 9.1 writes them,
+  where any were; else `BOMB_DAMAGING_SHIPS` where *d* is not nought;
+- any other order, nothing.
+
+A text of under three characters is the text of `NONE`.
+
+*Kept as the original's and listed in `docs/enhanced.md`:* `DAMAGE_SHORT` is the whole text again - the original makes a
+copy for it and hands over the long one.
+
+*Ours:* the ships a bombing sinks are kept on the bombed side here and read from there (`bombing.md`); the original
+keeps them with the bombers. The original writes *d* back over the strength dealt before its strategic-warfare tally
+reads it; here the tally scales its own share (`strategicwarfare.md`) and nothing is written back.
+
 ## 10. A unit put on the map
 
 *From `reversing/findings/FINDINGS-messages.md`, "A unit put on the map", read 2026-11-21.* `CDeployment`.

@@ -79,13 +79,12 @@ screens. Also open: the Debug tab; whether old battle reports are gathered or dr
 a page to move the map, and the two Country Modifiers lacks: a country's offmap IC and its trickleback.
 
 **Found on the way, the normal engine's own gap** - the user's, 2026-11-22: "The message popup for it also doesnt
-work", of a bombing's end. **None of the five messages of a battle that is over is built**: `LANDBATTLEOVER`,
-`NAVALBATTLEOVER`, `AIRBATTLEOVER`, `BOMBENDTHEM` and `BOMBENDUS` are named only in the list of what a message's Goto
-does (`CMessageGotos`); nothing raises them, whatever `messagetypes.txt` says. Their texts ask for `RESULT`,
-`USLOSS`, `USNUM`, `THEIRLOST`, `THEIRNUM`, `OTHER`, `OTHERRESULT`, `NAME`, and for a bombing `ORDER`, `PROV`,
-`DAMAGE`, `DAMAGE_SHORT`, `ATTACKER_ADJ`. **Not read**: who is told, when, and how each value is made - the fact
-base has only the bombing's report by name, *inferred* (`reversing/findings/FINDINGS-savedbattle.md`,
-`CBomberCombatant::ReportBombingEnd`). A reading there comes first.
+work", of a bombing's end. None of the five messages of a battle that is over was built. **Built the same day**, read
+first (`reversing/findings/FINDINGS-battleover.md`, `FINDINGS-bombend.md`): `LANDBATTLEOVER`, `NAVALBATTLEOVER` and
+`AIRBATTLEOVER` as a battle is decided, `BOMBENDTHEM` and `BOMBENDUS` as a bombing ends, with the bombing's account of
+what it damaged (`docs/mechanics/messages.md`, sections 9.1 and 9.2; `CBattleOverMessages`). Tried with a scripted run
+of Ethiopia's first weeks; **not reviewed in play**, and they come up in the plain message popup - whether the
+original's has a popup of its own for them was not read.
 
 **Multiplayer - the last large piece of the normal engine** (`docs/multiplayer.md`, which holds every decision, what is
 built and what is not; begun 2026-11-20). **Finished, by the word of 2026-11-21: "I think multiplayer is finished
