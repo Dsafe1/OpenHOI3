@@ -264,7 +264,7 @@ made where the factories are (section 4).
 
 **It is changed by a command alone**, `CSetConversionCommand`: a country, which conversion, and the setting whole. A
 faithful game refuses it, and a figure below nought, and a tag that is no country's. So it is the same on every machine and in a replay. An effect
-that sets it is not built.
+that sets it is not built, and not wanted for now (`docs/enhanced.md`, *Rules*).
 
 **It is in an enhanced save** (`savegame.md`, section 21) and in the state's hash, a country's field `conversion
 settings`.

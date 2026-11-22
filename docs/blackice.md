@@ -101,7 +101,7 @@ This file is the order of work across the two repositories and what was decided 
      game**, the same day: the conversion of resources, a setting of a country's own with its command
      (`mechanics/ic.md`, section 4.1), read and ordered by BlackICE's Resource Conversion page - a page gives an
      order as it draws and the screen posts it (`mechanics/modwindows.md`, section 6.1). **Not built**: the
-     setting's effect for script, and the overlay's other pages. Agreed, 2026-11-22: **no single file that registers the pages** - one a submod would have to
+     overlay's other pages. The setting's effect for script is not wanted for now (`enhanced.md`, *Rules*). Agreed, 2026-11-22: **no single file that registers the pages** - one a submod would have to
      overwrite - but a file a page, found by listing a folder over every layer; and the widgets a page may ask for
      grow as pages need them ("lets not limit ourselves"). What a mod declares in `.gui` files stays for what stands
      inside the game's own windows, as the game options' rows do.

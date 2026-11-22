@@ -53,7 +53,7 @@ first page, BlackICE's Active Flags - after the fact base's reading that the ori
 **And the conversion of resources** is built, 2026-11-22: a setting of a country's own with its command, in an
 enhanced save and the hash (`docs/mechanics/ic.md`, section 4.1), and its page, the first that changes the game - a
 page gives an order as it draws (`docs/mechanics/modwindows.md`, section 6.1). **To be tried by hand**: the page's
-Apply buttons. **Next**: the setting's effect for script; the overlay's other pages and the reads they ask of the
+Apply buttons. **Next**: the overlay's other pages and the reads they ask of the
 engine.
 
 **Multiplayer - the last large piece of the normal engine** (`docs/multiplayer.md`, which holds every decision, what is

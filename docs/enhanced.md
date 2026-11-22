@@ -135,7 +135,10 @@ names of keys and defines are proposals.
   the enhanced save, set from a window and by an effect. A country nobody plays converts as the original. The caps the
   original has - its capacity by IC, the energy industry needs that day, the rate by technology - stand.
   **Built 2026-11-22** (`mechanics/ic.md`, section 4.1): the setting, its command, the save's two keys, the hash, and
-  what a mod's page reads and orders it by (`mechanics/modwindows.md`, section 6.1). **Not built**: the effect.
+  what a mod's page reads and orders it by (`mechanics/modwindows.md`, section 6.1). **Not built, and not wanted for
+  now**: the effect - the user's, 2026-11-22. BlackICE's events that set the conversion on the original are left as
+  they are for the release that plays on both engines, do nothing here, and are marked there for removal; the page
+  is the way to set it.
 
 **Texts - built in, their wording from the localisation**
 
