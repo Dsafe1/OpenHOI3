@@ -67,7 +67,8 @@ Inspector. Nothing of it is the original's, and a faithful game has none of it.
 
 **In an enhanced game a click on the ribbon over a selected unit's brigades** - `sup_subunits`' `bg_label_brigade`,
 which says how many it has - opens a card of the whole unit in the brigade card's own window, `brigade_view`, so a
-mod that restyles the one restyles the other. The ribbon's tooltip is the text of `OPENHOI_UNITCARD_TIP`. One card
+mod that restyles the one restyles the other. The ribbon's tooltip is the text of `OPENHOI_UNITCARD_TIP`, and it is
+drawn brighter while the mouse is over it, to say it may be pressed. One card
 to a unit, as many of different units as are asked for; filled once as it opens; it goes when it is shut or its
 unit can no longer be found. A unit with no brigade of its own has none.
 

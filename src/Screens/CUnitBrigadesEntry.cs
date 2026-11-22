@@ -30,6 +30,9 @@ public sealed class CUnitBrigadesEntry : CUnitPanelEntry
 	private int _rowHeight;
 	private readonly List<CUnitBrigadeRow> _rows = new();
 
+	/// <summary>The ribbon under the mouse where it opens the whole unit's card: brighter by a third.</summary>
+	private static readonly Godot.Color RibbonLit = new(1.35f, 1.35f, 1.35f);
+
 	/// <summary>A brigade's row was clicked.</summary>
 	public event System.Action<CSubUnit>? BrigadeChosen;
 
@@ -54,23 +57,21 @@ public sealed class CUnitBrigadesEntry : CUnitPanelEntry
 		_header = window.FindTextBox("header");
 		_list = window.FindListBox("list");
 		_label = (int)(window.FindIcon("bg_label_brigade")?.Size.Y ?? 0f);
-		// An enhanced game's: the ribbon opens the card of the whole unit (brigadecard.md, section 7).
-		if (state.Rules.Enhanced && window.FindIcon("bg_label_brigade") is { } ribbon)
-		{
-			ribbon.Clicked += () =>
-			{
-				if (CUnitCardText.HasCard(unit))
-				{
-					UnitCardWanted?.Invoke(unit);
-				}
-			};
-			ribbon.Tooltip = () => new CTooltip { Text = context.Localisation.Localise(CUnitCardText.RibbonTip) };
-		}
 		_fileHeight = (int)window.Size.Y;
 		// Only a fleet says anything here: how its ships get in each other's way.
 		Set(window.FindTextBox("positioning"), "");
 		// Before the rows are made: each row answers for its own elements.
 		AnswerFor(name => CBrigadeTooltips.Window(context.Localisation.Localise, state, unit, name), "positioning");
+		// An enhanced game's: the ribbon opens the card of the whole unit (brigadecard.md, section 7). Its tooltip is
+		// set after the entry's own answers, which would otherwise answer for it with nothing; and it brightens under
+		// the mouse, as a button does, to say it may be pressed.
+		if (state.Rules.Enhanced && CUnitCardText.HasCard(unit) && window.FindIcon("bg_label_brigade") is { } ribbon)
+		{
+			ribbon.Clicked += () => UnitCardWanted?.Invoke(unit);
+			ribbon.Tooltip = () => new CTooltip { Text = context.Localisation.Localise(CUnitCardText.RibbonTip) };
+			ribbon.MouseEntered += () => ribbon.Modulate = RibbonLit;
+			ribbon.MouseExited += () => ribbon.Modulate = Godot.Colors.White;
+		}
 		Fill();
 	}
 
