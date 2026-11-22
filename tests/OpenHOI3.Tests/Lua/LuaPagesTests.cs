@@ -33,7 +33,28 @@ public sealed class LuaPagesTests : IDisposable
 
 	private void Page(string name, string lua)
 	{
-		File.WriteAllText(Path.Combine(_root, "script", "openhoi", "windows", name + ".lua"), lua);
+		string file = Path.Combine(_root, "script", "openhoi", "windows", name + ".lua");
+		Directory.CreateDirectory(Path.GetDirectoryName(file)!);
+		File.WriteAllText(file, lua);
+	}
+
+	[Fact]
+	public void APageInASubfolderIsNamedByItsPathAndTheFolderSaysNothingOfItsTab()
+	{
+		Page("top", "return { order = 30, Draw = function() end }");
+		Page("country/conversion", "return { order = 20, group = 'GROUP_COUNTRY', Draw = function() end }");
+		Page("country/deep/flags", "return { order = 10, group = 'GROUP_INSPECTOR', Draw = function(data) OpenHOI3.ImGui.Text(data) end, " +
+			"Collect = function() return 'gathered' end }");
+		// Two folders may hold a file of one name: they are two pages.
+		Page("stats/flags", "return { order = 40, Draw = function() end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			Assert.Equal(new[] { "country/deep/flags", "country/conversion", "top", "stats/flags" }, windows.Pages.Select(page => page.Name));
+			Assert.Equal("GROUP_INSPECTOR", windows.Pages[0].Group);
+			Assert.Equal("", windows.Pages[3].Group);
+			Assert.Empty(_reports);
+		}
 	}
 
 	private (CAiScripts Scripts, CLuaWindows Windows) Load()

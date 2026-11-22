@@ -20,7 +20,7 @@ what stands inside the game's own windows. A page of a mod's own is Lua and its 
 
 | | where |
 | --- | --- |
-| the page | a `.lua` file of the mod's `script/openhoi/windows/` |
+| the page | a `.lua` file of the mod's `script/openhoi/windows/`, or of a folder below it |
 | its texts | a `.csv` of the mod's `localisation/openhoi/` |
 
 Both folders are read in an enhanced game alone, and the original opens neither: its listing of `localisation`
@@ -31,6 +31,13 @@ takes one folder and drops directories, and it does not list `script` at all
 frontmost layer, as every listing of a folder goes. So a submod adds a page by adding its file, and replaces one by
 shipping a file of the same name.
 
+**And the folders below it, however deep** - the user's, 2026-11-22, for a mod to keep its pages in order by
+("either add a prefix to the LUA files to group them by page, or enable the use of subfolders"): each folder listed
+the same way, a folder's own files before its subfolders' (`CDirectorySettings.ListFilesRecursive`). **A folder
+says nothing to the engine**: the tab a page stands under is its `group` and nothing else, so a mod may sort its
+files a folder a tab, as BlackICE does, or any other way. A file is one page by its path below the pages' folder:
+a submod replaces `country_info/conversion.lua` by a file at that path, and two folders may each hold a `flags.lua`.
+
 ## 2. The page's file
 
 It is run once, as the pages are first asked for, as the body of a function - so what it declares `local` is its own
@@ -38,14 +45,16 @@ and is kept from frame to frame: a filter's text, a ticked box - and what it ret
 
     return {
         title = "OPENHOI_WIN_FLAGS",             -- the localisation key of its name, in its tab's list
-        order = 20,                              -- its place in that list: lower first, then by file name
+        order = 20,                              -- its place in that list: lower first, then by the page's name
         group = "OPENHOI_WIN_GROUP_INSPECTOR",   -- the localisation key of the tab it stands under
         group_order = 40,                        -- where that tab stands among the tabs (section 5)
         Collect = function(player) ... end,
         Draw = function(data, player) ... end,
     }
 
-- The file's name without `.lua` is the page's name: letters, digits, `-` and `_`.
+- The file's path below the pages' folder, without `.lua`, is the page's name - `flags`, `country_info/conversion`:
+  letters, digits, `-` and `_` in the file's name and in each folder's. A file named otherwise is reported and is no
+  page.
 - A file that does not parse, fails as it runs, returns no table or has no `Draw` is no page, and is reported with
   the Lua error, as every Lua error is.
 - `player` is the tag of the country played, as text.
@@ -121,7 +130,7 @@ tab, or brings a new one, by its file alone (`CModPageGroup`).
 - **The tabs' order**: by the lowest `group_order` any of a tab's pages gives - one not given counts as nought -
   and then by key. BlackICE's follow its overlay's: Setup 10, Country Info 20, Game Info 30, Inspector 40, Stats 50,
   Options 60, Help 70, Debug 80.
-- **A tab's pages**: by `order`, then by file name.
+- **A tab's pages**: by `order`, then by the page's name, its folders with it.
 - **Each tab keeps the page chosen under it** while another tab is looked at, and while the window is hidden; a tab
   first looked at shows its first page.
 - **Only the page looked at runs**: it alone gathers and draws. Chosen, it gathers before it is first drawn, and
@@ -178,7 +187,8 @@ province's figures, a leader's state, the selection).
 
 ## 8. Checked
 
-`LuaPagesTests`, with a canvas that writes down what it is asked: the pages of a folder in the menu's order, a file
+`LuaPagesTests`, with a canvas that writes down what it is asked: the pages of a folder in the menu's order, a page
+in a subfolder named by its path (`--screen=modwindows:` takes that name or the file's alone), a file
 that fails, a page gathering with the game and drawing without it, a widget's `changed, value`, what a page left open
 ended for it, a failed drawing said in the window until the page gathers again, and a page that asks the game while
 it draws. And on 2026-11-22, BlackICE's working copy played from a linked stand-in install: a window of the library

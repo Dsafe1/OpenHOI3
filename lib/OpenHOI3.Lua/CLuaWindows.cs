@@ -17,7 +17,9 @@ namespace OpenHOI3.Lua;
 /// the key of its name (<c>title</c>), its place on the menu (<c>order</c>), and two functions -
 /// <c>Collect(player)</c>, which reads the game and answers whatever the page will show, and
 /// <c>Draw(data, player)</c>, which draws that with <c>OpenHOI3.ImGui</c> (<see cref="CLuaImGui"/>). So a page is
-/// added by adding its file, and nothing lists the pages in one place a submod would have to overwrite.
+/// added by adding its file, and nothing lists the pages in one place a submod would have to overwrite. The folder's
+/// subfolders are walked too, for a mod to keep its pages in order by: a page's name is its path below the folder,
+/// and a folder says nothing of the tab a page stands under.
 ///
 /// The two are apart because a page is drawn every frame, the frames in which the game's hours run beside it among
 /// them: <c>Draw</c> is given no game to ask, and reads only what <c>Collect</c> kept when the game stood still.
@@ -100,9 +102,9 @@ public sealed class CLuaWindows : IModPages
 			_report("LUA Error: " + e.Message);
 			return;
 		}
-		foreach (string file in directories.ListFiles(Folder, "*.lua"))
+		foreach (CDirectorySettings.LayeredFile file in directories.ListFilesRecursive(Folder, "*.lua"))
 		{
-			Register(file);
+			Register(file.RelativePath, file.AbsolutePath);
 		}
 		_pages.Sort((a, b) => a.Order != b.Order ? a.Order.CompareTo(b.Order) : string.CompareOrdinal(a.Name, b.Name));
 	}
@@ -113,13 +115,15 @@ public sealed class CLuaWindows : IModPages
 	/// A page's file run and its table kept: the file is the body of a function whose answer is registered under the
 	/// file's name, so that what it declares local stays its own. A file that fails is reported and is no page.
 	/// </summary>
-	private void Register(string file)
+	/// <param name="relative">The file's path below the pages' folder, written with '/'.</param>
+	private void Register(string relative, string file)
 	{
-		string name = Path.GetFileNameWithoutExtension(file);
+		// A page's name is its path below the folder without the ending: "country/conversion".
+		string name = relative[..^Path.GetExtension(relative).Length];
 		// The name stands in the chunk as a Lua string: only what a string holds as it is.
-		if (name.Any(c => !(char.IsLetterOrDigit(c) || c is '_' or '-') || c > 127))
+		if (name.Any(c => !(char.IsLetterOrDigit(c) || c is '_' or '-' or '/') || c > 127))
 		{
-			_report($"{file}: a page's file name may hold letters, digits, - and _ only; it is not loaded");
+			_report($"{file}: a page's file and its folders may be named with letters, digits, - and _ only; it is not loaded");
 			return;
 		}
 		byte[] body;
@@ -135,7 +139,7 @@ public sealed class CLuaWindows : IModPages
 		// On the file's own first line, so that a Lua error names the file's line.
 		byte[] head = Encoding.Latin1.GetBytes("__ohoi_w_page = (function() ");
 		byte[] tail = Encoding.Latin1.GetBytes("\nend)()");
-		if (!_scripts.RunChunk(head.Concat(body).Concat(tail).ToArray(), Folder + "/" + Path.GetFileName(file)))
+		if (!_scripts.RunChunk(head.Concat(body).Concat(tail).ToArray(), Folder + "/" + relative))
 		{
 			return;
 		}

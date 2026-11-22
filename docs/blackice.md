@@ -32,7 +32,7 @@ This file is the order of work across the two repositories and what was decided 
   | other data files of ours | `common/openhoi_*.txt` |
   | Lua for this engine | `script/openhoi/`, required with a slash: `require('openhoi/x')` |
   | elements of the mod's inside the game's own windows | `interface/openhoi/` |
-  | windows of the mod's own, a page a file | `script/openhoi/windows/` |
+  | windows of the mod's own, a page a file | `script/openhoi/windows/` and the folders below it |
   | their texts | `localisation/openhoi/` |
   | an enhanced game's saves | `save games/openhoi/` |
   | an engine a mod ships | `tfh/mod/<mod>/engine/` (`launcher.md`, section 2) |

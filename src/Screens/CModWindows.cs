@@ -102,15 +102,22 @@ public sealed partial class CModWindows : Node
 		_gathered = null;
 	}
 
-	/// <summary>The window shown on a page, by the page's name: for a run a script drives.</summary>
+	/// <summary>
+	/// The window shown on a page, by the page's name - its path below the pages' folder, or its file's name alone:
+	/// for a run a script drives.
+	/// </summary>
 	public void Show(string pageName)
 	{
 		_shown = true;
 		_gathered = null;
-		if (Groups()?.FirstOrDefault(group => group.Pages.Any(page => page.Name == pageName)) is { } group)
+		foreach (CModPageGroup group in Groups() ?? new List<CModPageGroup>())
 		{
-			_chosen[group.Key] = pageName;
-			_bringForward = group.Key;
+			if (group.Pages.FirstOrDefault(page => page.Name == pageName || page.Name.EndsWith("/" + pageName, StringComparison.Ordinal)) is { } found)
+			{
+				_chosen[group.Key] = found.Name;
+				_bringForward = group.Key;
+				return;
+			}
 		}
 	}
 
