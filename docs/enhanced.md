@@ -164,6 +164,22 @@ names of keys and defines are proposals.
   page that reads** (`mechanics/modwindows.md`), and otherwise than this line proposed: drawn with Dear ImGui by the
   page's own Lua and not laid out in `.gui` files, by the user's decision of that day. The menu, a page a file, and
   the first page, Active Flags.
+- **After the port, some of those pages are to move closer into the engine** - the user's, 2026-11-22, once the
+  utility stands here as it stands on the original: "There are some pages which we could incorporate more closely
+  with the new engine, after we have the current utility state ported." Two were named, as examples and not as the
+  whole list:
+  - **The custom sliders and the trade AI as part of the game's own interface** - "the custome slider and trade ai
+    could be incorporated as a native game GUI": what the Prod. Sliders AI, LS Sliders AI and Trade AI pages set
+    belongs beside the production, technology and trade screens it steers, and not in a utility window. *Not
+    designed*: where on those screens, and whether their settings stay country variables the mod's AI Lua reads
+    or become settings of the country's own with a command, as the conversion of resources did.
+  - **Statistics from a source of the engine's own** - "the stat collection should then also be made use a built-in
+    data source, not the CSV-via-LUA approach": the mod's collection writes a text file a statistic a country a
+    day from the ministers' Lua, its folders made by the shell, and **it does not work on this engine** (the
+    user's, the same day; set aside by his word). The engine already keeps series for its own Statistics screen
+    and strategic warfare charts; the collection is to be a record the engine keeps and a page reads, and no
+    file written by a script. *Not designed*: which figures, for whom, how long, and whether in the save.
+  Until then the ported pages stay as they are, the Statistics page with nothing to read.
 
 **What mods build on**
 

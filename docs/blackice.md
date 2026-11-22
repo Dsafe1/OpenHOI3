@@ -112,8 +112,10 @@ This file is the order of work across the two repositories and what was decided 
      32-bit address space, is left out: this engine loads none, and a page writes nothing into an install.
      **And Stats**, the same day: Setup, which switches the mod's collection of statistics and edits its list of
      countries, and Statistics, which reads the run's files and draws a line a series (`PlotLines`). Not carried
-     over: all series in one plot, the dates under the mouse, the mod's external plotting tool. **Not tried**:
-     whether the collection itself, the mod's Lua from the ministers' ticks, writes its files on this engine.
+     over: all series in one plot, the dates under the mouse, the mod's external plotting tool. **The collection
+     itself, the mod's Lua from the ministers' ticks, does not work on this engine** (the user's, having tried
+     it) and is set aside: after the port it is to read a record of the engine's own, and the sliders' and trade
+     AI's pages to move into the game's own screens (`enhanced.md`, *Interface*).
      **Not built**: the overlay's remaining pages - Options,
      Help and the Inspector's larger ones; and the two reads Country Modifiers asks of BiceLib, a country's offmap
      IC and its trickleback. The setting's effect for script is not wanted for now (`enhanced.md`, *Rules*). Agreed, 2026-11-22: **no single file that registers the pages** - one a submod would have to

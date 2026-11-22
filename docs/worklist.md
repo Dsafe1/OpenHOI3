@@ -60,8 +60,10 @@ row, the level buttons and the filters on them - tried, "looks good". **And Coun
 eleven more pages, their setters posting the original's `CSetVariableCommand` as the page gathers
 (`modwindows.md`, section 6.1). **To be tried by hand**: everything on them that sets something. **And Setup**, on the
 mod's side alone: Country, which chooses the country the pages report on, and Misc (`docs/blackice.md`). **And Stats**: Setup and
-Statistics, with a line plot for a page. **To be tried**: whether BlackICE's collection of statistics itself writes
-its files on this engine - until it does, the Statistics page has nothing real to read. **Next**: the
+Statistics, with a line plot for a page. BlackICE's collection of statistics itself does not work on this engine
+and is set aside by the user's word, the Statistics page having nothing to read until then. **After the port**
+(`docs/enhanced.md`, *Interface*): the statistics from a record of the engine's own, and the custom sliders and
+trade AI in the game's own screens. **Next**: the
 overlay's remaining pages - Options, Help and the Inspector's larger ones (combat reports, the order
 of battle, the unit inspector, province buildings, the custom map mode) - the reads and orders they ask of the
 engine, and the two Country Modifiers lacks: a country's offmap IC and its trickleback.

@@ -304,8 +304,10 @@ nine thousand. With `--screen=modwindows:<page>` Setup was drawn on a new game -
 every country - and Statistics, which said "Nothing collected yet."; and once with two series put into the page
 for the run and taken out again, each a line with its lowest and highest and its first and last day. A page reads
 the run's files itself, by `io.open` and `OpenHOI3.Files` under the working folder as the mod's Lua does.
-**Whether the mod's collection itself writes its files on this engine was not tried**: it makes its folders with
-the shell's `mkdir` through `os.execute`, from the ministers' ticks. So no real series has been read here.
+**The mod's collection itself does not work on this engine** - the user's, the same day, having tried it; it
+makes its folders with the shell's `mkdir` through `os.execute`, from the ministers' ticks, and why it fails was
+not looked into: "lets ignore that for now". So no real series has been read here, and none will be this way: the
+collection is to become a record of the engine's own (`docs/enhanced.md`, *Interface*).
 
 ## Not built
 
