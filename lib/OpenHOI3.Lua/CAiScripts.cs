@@ -567,6 +567,39 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		return _lua.Call("__ohoi_ask", 1)[0];
 	}
 
+	/// <summary>
+	/// A global function of the state called with this game being asked: what a mod's windows call their pages through
+	/// (<see cref="CLuaWindows"/>). A Lua error is reported as every other is, and null answered.
+	/// </summary>
+	public object?[]? CallInGame(CGameState state, string function, int results, params object?[] arguments)
+	{
+		_state = state;
+		try
+		{
+			return _lua.Call(function, results, arguments);
+		}
+		catch (CLuaException e)
+		{
+			Fail(e.Message);
+			return null;
+		}
+	}
+
+	/// <summary>A chunk run in the state, a Lua error reported and false answered.</summary>
+	public bool RunChunk(byte[] chunk, string name)
+	{
+		try
+		{
+			_lua.Run(chunk, name);
+			return true;
+		}
+		catch (CLuaException e)
+		{
+			Fail(e.Message);
+			return false;
+		}
+	}
+
 	public void Dispose()
 	{
 		_workers?.Dispose();

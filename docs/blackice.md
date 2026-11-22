@@ -92,8 +92,11 @@ This file is the order of work across the two repositories and what was decided 
      in `openhoi_settings.txt` beside `settings.txt`. A tab of their own can come with the release made for this
      engine alone.
    - *The utility as windows of the game*: the interface for windows a mod defines, laid out in `.gui` files under
-     `interface/openhoi/` and fed by the mod's Lua under `script/openhoi/`, with the two pages above first. Not
-     built. Agreed so far, 2026-11-22: the original's element kinds to begin with, and new kinds of this engine's
+     `interface/openhoi/` and fed by the mod's Lua under `script/openhoi/`, with the two pages above first.
+     **Begun 2026-11-22** (`mechanics/modwindows.md`): the menu of pages on Insert, a page for each file of
+     `script/openhoi/windows/`, its `Collect` filling the window, a click handed to its `OnClick`, and the first
+     page, BlackICE's Active Flags. **Not built**: a page that posts commands - the conversion of resources, which
+     waits for that setting's own command - and the overlay's other pages. Agreed, 2026-11-22: the original's element kinds to begin with, and new kinds of this engine's
      where a page needs one ("lets not limit ourselves"); a page's Lua answers a `Collect()` with a plain table by
      element name and an `OnClick(name)` that may post commands and changes nothing itself; and **no single file
      that registers the windows** - one a submod would have to overwrite - but a file a page, found by listing a

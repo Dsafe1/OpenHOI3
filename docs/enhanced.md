@@ -155,7 +155,8 @@ names of keys and defines are proposals.
 - Windows of the engine's own for what the engine holds: a country's flags, variables and timed modifiers, the order of
   battle as a tree and counted, a selected unit's figures, where a building stands, the record of battles.
 - Windows a mod defines, through the interface for mod-defined elements: laid out in `.gui` files and fed by the mod's
-  Lua - BlackICE's country, game-information, set-up, help and statistics pages.
+  Lua - BlackICE's country, game-information, set-up, help and statistics pages. **Begun 2026-11-22**
+  (`mechanics/modwindows.md`): the menu, a page a file, and the first page, Active Flags.
 
 **What mods build on**
 

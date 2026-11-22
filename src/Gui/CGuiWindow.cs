@@ -374,6 +374,24 @@ public partial class CGuiWindow : CGuiObject
 		return _buttons.GetValueOrDefault(name);
 	}
 
+	/// <summary>A text box the window may or may not have; see <see cref="TryFindButton"/>.</summary>
+	public CGuiTextBox? TryFindTextBox(string name)
+	{
+		return _textBoxes.GetValueOrDefault(name);
+	}
+
+	/// <summary>A list box the window may or may not have; see <see cref="TryFindButton"/>.</summary>
+	public CGuiListBox? TryFindListBox(string name)
+	{
+		return _listBoxes.GetValueOrDefault(name);
+	}
+
+	/// <summary>
+	/// Every button of the window by its name, for a screen that does not know them beforehand: a window a mod defines,
+	/// whose buttons its Lua answers for (<c>docs/mechanics/modwindows.md</c>).
+	/// </summary>
+	public IEnumerable<KeyValuePair<string, CGuiButton>> Buttons => _buttons;
+
 	/// <summary>An icon the window may or may not have; see <see cref="TryFindButton"/>.</summary>
 	public CGuiIcon? TryFindIcon(string name)
 	{

@@ -894,6 +894,16 @@ public partial class CSession : Node
 			layer.AddChild(_events);
 			layer.MoveChild(_events, _production!.GetIndex());
 
+			// The windows a mod defines for an enhanced game, with the events, under the main screens: a menu of pages
+			// on Insert (docs/mechanics/modwindows.md). Their Lua runs in the screens' own Lua state, made when first asked.
+			if (_enhancedGame)
+			{
+				_modWindowsView = new CModWindows();
+				_modWindowsView.Setup(gui, ModWindows, _simulation, Player.Tag);
+				layer.AddChild(_modWindowsView);
+				layer.MoveChild(_modWindowsView, _production!.GetIndex());
+			}
+
 			// Messages: the log on the bottom bar, and the popups beside the events.
 			var messageLog = new CMessageLogView();
 			messageLog.Setup(gui);
@@ -1710,6 +1720,31 @@ public partial class CSession : Node
 
 	private bool _debugSavesSaid;
 
+	private CModWindows? _modWindowsView;
+	private Content.Windows.IModWindows? _modWindows;
+	private bool _modWindowsFailed;
+
+	/// <summary>
+	/// The mod's own windows as its Lua gives them, made the first time they are asked for, over the Lua state the
+	/// screens have for themselves; null where that state cannot be had, which is said once.
+	/// </summary>
+	private Content.Windows.IModWindows? ModWindows()
+	{
+		if (_modWindows is null && !_modWindowsFailed)
+		{
+			if (State.DisplayScripts?.Invoke() is CAiScripts scripts)
+			{
+				_modWindows = new CLuaWindows(scripts, _directories, _localisation.Localise);
+			}
+			else
+			{
+				_modWindowsFailed = true;
+				CDiagnostics.Warn("The mod's windows have no Lua to ask: the screens' Lua state could not be made");
+			}
+		}
+		return _modWindows;
+	}
+
 	/// <summary>Whether the folders played make an enhanced game, which has options of its own (docs/enhanced.md).</summary>
 	private bool _enhancedGame;
 
@@ -2266,6 +2301,10 @@ public partial class CSession : Node
 				// What nothing took first - the map lets a selection go on the first, a shown button with the shortcut
 				// takes its own - opens the in-game menu, or closes it (ingamemenu.md, section 1).
 				_menu?.Toggle();
+				break;
+			case Key.Insert:
+				// An enhanced game's menu of the mod's own windows (modwindows.md, section 2).
+				_modWindowsView?.Toggle();
 				break;
 			case Key.KpAdd or Key.Plus or Key.Equal:
 				// A change of speed clicks, by key as by button (sound.md, section 7).
@@ -2871,6 +2910,11 @@ public partial class CSession : Node
 			else if (argument == "--screen=victory")
 			{
 				_victoryConditions?.Toggle();
+			}
+			else if (argument == "--screen=modwindows")
+			{
+				// An enhanced game's menu of the mod's own windows, as the Insert key shows it (modwindows.md).
+				_modWindowsView?.Toggle();
 			}
 			else if (argument == "--screen=endgame")
 			{

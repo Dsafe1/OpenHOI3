@@ -45,8 +45,12 @@ Steps 3 to 5 are written on BlackICE's side - the pinned engine and its fetch, t
 installed and played from, and the page on what a file for both engines may hold. Of step 6, the first features,
 the game options are built: four rows on the Game tab for two more autosaves, scrolling at the screen's edge - built
 with it, the engine not having had it - and where an event's window comes up (`docs/mechanics/gameoptions.md`,
-section 5). **Next: the interface for windows a mod defines**, and before it the fact base's reading of what the
-original makes of a subfolder of `interface/` and of a `.gui` file or element it does not know.
+section 5). And the windows a mod defines are begun (`docs/mechanics/modwindows.md`): a menu of pages on Insert, a
+page a Lua file of the mod's `script/openhoi/windows/` filling a window of its `interface/openhoi/`, and the first
+page, BlackICE's Active Flags - after the fact base's reading that the original opens no subfolder of `interface`,
+`localisation` or `script`. **Next**: the conversion of resources as a setting of a country's own with its command
+(`docs/enhanced.md`, *Rules*), and its page, the first that posts; then the overlay's other pages and the reads they
+ask of the engine.
 
 **Multiplayer - the last large piece of the normal engine** (`docs/multiplayer.md`, which holds every decision, what is
 built and what is not; begun 2026-11-20). **Finished, by the word of 2026-11-21: "I think multiplayer is finished

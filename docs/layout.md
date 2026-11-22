@@ -141,7 +141,10 @@ lib/OpenHOI3.Content/   reading an install: finding and layering it, localisatio
     Messages/           the message types of interface/messagetypes.txt
     Mods/               a .mod file, the mods a command line selects and their order, the layering's rules
     Saves/              the original's .hoi3 saves: the loader, a save's values, its ids, units, orders, leaders and lines, wars, pacts and convoys, battles, what a load left unread, the writer and its layout
-    Settings/           the player's settings.txt, from the original's folder under Documents
+    Settings/           the player's settings.txt, from the original's folder under Documents, and an
+                        enhanced game's own openhoi_settings.txt beside it
+    Windows/            ours: the windows a mod defines, as a screen asks for them - a page, what it shows,
+                        and who answers (docs/mechanics/modwindows.md); the mod's Lua answers, in OpenHOI3.Lua
     Frontend/           the bookmarks of common/bookmarks.txt, the lobby's Historical Start
     Music/              the songs of music/*.txt
     Sound/              the sound effects of interface/sound.sfx
