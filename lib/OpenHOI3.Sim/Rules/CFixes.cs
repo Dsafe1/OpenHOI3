@@ -14,6 +14,7 @@ public static class CFixes
 	{
 		(EFix.MinisterTechDecay, "minister_tech_decay"),
 		(EFix.SimplifiedTerrainSea, "simplified_terrain_sea"),
+		(EFix.OffmapIc, "offmap_ic"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

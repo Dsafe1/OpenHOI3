@@ -192,6 +192,11 @@ Under the global `OpenHOI3`, beside `Files`, `Enhanced` and `Fixes` (`mods.md`, 
   `played`, `oil_rate`, `energy_cap`, `energy_floor`, `crude_cap`, what it holds as `energy`, `crude_oil` and
   `fuel`, and `energy_conversion` and `crude_oil_conversion`, each `{ own, per_day, keep, target }` - figures in a
   stockpile's units;
+- `OpenHOI3.OffmapIc(tag)` - a country's off-map IC in whole IC, as the day's IC last made it (`ic.md`, section 3);
+  nought in a game without the fix `offmap_ic`, nil for no country or no game;
+- `OpenHOI3.Trickleback(tag)` - the share of a country's casualties that returns to its manpower, as a fraction:
+  its modifier's and its technologies' `casualty_trickleback` together, held at nought, which is what a battle
+  applies; nil for no country or no game;
 - `OpenHOI3.SetConversion(tag, which, own, per_day, keep, target)` - **an order**, section 6.1: `which` is `energy`
   or `crude_oil`. Answers whether it was understood.
 

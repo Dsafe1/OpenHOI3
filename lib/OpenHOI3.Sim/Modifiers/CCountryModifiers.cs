@@ -81,14 +81,18 @@ public static class CCountryModifiers
 			}
 		}
 
-		// Everything the provinces it controls have, the local kinds along with the rest.
+		// Everything the provinces it controls have, the local kinds along with the rest. Their IC and the base
+		// values' are counted beside, for the off-map IC (ic.md, section 3).
+		long sharedIc = baseValues?[CIndustrialCapacity.ProvinceIc].Raw ?? 0;
 		if (fromProvinces.TryGetValue(country.Tag.Value, out List<CProvince>? provinces))
 		{
 			foreach (CProvince province in provinces)
 			{
 				AddSource(country, province.Modifier, province.Name);
+				sharedIc += province.Modifier[CIndustrialCapacity.ProvinceIc].Raw;
 			}
 		}
+		country.SharedIcInModifier = sharedIc;
 
 		if ((state.IsAtWar(country.Tag) ? war : peace) is { } standing)
 		{

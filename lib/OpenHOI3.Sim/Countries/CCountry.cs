@@ -351,6 +351,20 @@ public sealed class CCountry
 	public int BaseIc { get; set; }
 
 	/// <summary>
+	/// The off-map IC within <see cref="BaseIc"/>: what the country's own <c>ic</c> modifier holds beyond what
+	/// <c>base_values</c> gives every country, in whole IC, as the day last worked it out. Nought in a game without
+	/// the fix <see cref="Rules.EFix.OffmapIc"/>, where the original never reads that figure. It may be negative.
+	/// </summary>
+	public int OffmapIc { get; set; }
+
+	/// <summary>
+	/// How much of the <c>ic</c> in <see cref="Modifier"/> is not the country's own, in thousandths: what
+	/// <c>base_values</c> gives every country and the plain IC of each province it controls, as the modifier's last
+	/// rebuild added them. What the off-map IC is told apart by.
+	/// </summary>
+	public long SharedIcInModifier { get; set; }
+
+	/// <summary>
 	/// The IC it has to spend, in whole IC. At least 1 as calculated, though a day's
 	/// shortage of resources can cut it to nothing.
 	/// </summary>

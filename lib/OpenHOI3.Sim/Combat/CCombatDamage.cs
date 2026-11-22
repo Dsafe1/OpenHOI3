@@ -157,6 +157,15 @@ public static class CCombatDamage
 	}
 
 	/// <summary>
+	/// The share of a country's casualties that returns to its manpower: its modifier's and its technologies' figure
+	/// of the same name together, held at nought (reversing/findings/FINDINGS-manpower.md, casualty trickleback).
+	/// </summary>
+	public static CFixedPoint TricklebackOf(CCountry owner)
+	{
+		return new CFixedPoint(Math.Max(0, owner.Modifier[Trickleback].Raw + owner.Technology[Trickleback].Raw));
+	}
+
+	/// <summary>
 	/// What comes back to the manpower pool of the men a unit lost: they are priced as
 	/// replacing them is, and the country's trickleback says how much of that returns.
 	/// </summary>
@@ -170,7 +179,7 @@ public static class CCombatDamage
 		}
 		// The modifier and the technologies' figure of the same name together, held at nought (reversing/findings/
 		// FINDINGS-manpower.md, casualty trickleback; read on the listing 2026-11-21).
-		long trickleback = Math.Max(0, owner.Modifier[Trickleback].Raw + owner.Technology[Trickleback].Raw);
+		long trickleback = TricklebackOf(owner).Raw;
 		manpower = trickleback * manpower / CFixedPoint.Scale;
 		manpower = manpower * CFixedPoint.Scale / (100L * CFixedPoint.Scale);
 		owner.Manpower = new CFixedPoint(Math.Max(0, owner.Manpower.Raw + manpower));

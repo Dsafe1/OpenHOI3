@@ -15,4 +15,10 @@ public enum EFix
 	/// (<c>docs/mechanics/mapmodes.md</c>, section 6). Display only: it moves no figure of a game.
 	/// </summary>
 	SimplifiedTerrainSea,
+
+	/// <summary>
+	/// A country-level <c>ic</c> modifier counts, as off-map IC: a country's IC is its provinces' sum and that figure
+	/// (<c>docs/mechanics/ic.md</c>, section 3).
+	/// </summary>
+	OffmapIc,
 }

@@ -68,6 +68,11 @@ public sealed class CLuaWindows : IModPages
 		"local name, expires, never = string.match(line, '^(.*)\\t(.*)\\t(.*)$') " +
 		"list[#list + 1] = { name = name, expires = expires, never = never == '1' } end " +
 		"return list end " +
+		// Two figures of a country the original's Lua cannot reach: its off-map IC, in whole IC, and the share of its
+		// casualties that returns to its manpower, its modifier's and its technologies' together. Nil for no country.
+		"local offmapic, trickleback = __ohoi_w_offmapic, __ohoi_w_trickleback __ohoi_w_offmapic, __ohoi_w_trickleback = nil, nil " +
+		"OpenHOI3.OffmapIc = function(tag) return (offmapic(tostring(tag))) end " +
+		"OpenHOI3.Trickleback = function(tag) return (trickleback(tostring(tag))) end " +
 		// A page asks, as it draws, to gather again at once: what it shows hangs on a choice just made.
 		"OpenHOI3.Refresh = function() refresh() end " +
 		// Where the running game has a leader: nil for none of that number, else whether he is in service and, where
@@ -156,6 +161,9 @@ public sealed class CLuaWindows : IModPages
 		lua.SetGlobal("__ohoi_w_countrymodifiers", (CLuaFunction)CountryModifiers);
 		lua.SetGlobal("__ohoi_w_refresh", (CLuaFunction)(call => { _refresh = true; return 0; }));
 		lua.SetGlobal("__ohoi_w_leader", (CLuaFunction)LeaderDetails);
+		lua.SetGlobal("__ohoi_w_offmapic", (CLuaFunction)(call => Country(call) is { } country ? call.Return((double)country.OffmapIc) : 0));
+		lua.SetGlobal("__ohoi_w_trickleback", (CLuaFunction)(call => Country(call) is { } country
+			? call.Return(Number(Sim.Combat.CCombatDamage.TricklebackOf(country))) : 0));
 		lua.SetGlobal("__ohoi_w_province", (CLuaFunction)ProvinceDetails);
 		lua.SetGlobal("__ohoi_w_oob", (CLuaFunction)OrderOfBattle);
 		lua.SetGlobal("__ohoi_w_today", (CLuaFunction)Today);
@@ -329,6 +337,13 @@ public sealed class CLuaWindows : IModPages
 			long hour = given.UntilHour % CGameState.HoursPerDay;
 			return $"{given.Modifier.Name}\t{date.Year}.{date.Month}.{date.Day} {hour}:00\t{(date.Year <= 1 ? 1 : 0)}";
 		})));
+	}
+
+	/// <summary>The country of the tag a call's first argument gives, whatever its case, or none.</summary>
+	private CCountry? Country(CLuaCall call)
+	{
+		string tag = call.String(1);
+		return _state?.Countries.FirstOrDefault(c => string.Equals(c.Tag.Value, tag, StringComparison.OrdinalIgnoreCase));
 	}
 
 	/// <summary>

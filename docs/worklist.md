@@ -76,7 +76,10 @@ be a utility.** **Next**, as the user placed the Inspector's other two on 2026-1
 **the custom map mode** as a list a right click on a map mode's button opens; and what was set down for after the
 port - the statistics from a record of the engine's own, the custom sliders and trade AI in the game's own
 screens. Also open: whether old battle reports are gathered or dropped; a way for
-a page to move the map, and the two Country Modifiers lacks: a country's offmap IC and its trickleback.
+a page to move the map. The two figures Country Modifiers lacked are built since, 2026-11-22: a country's off-map
+IC, with the fix `offmap_ic` that makes a country-level `ic` count (`mechanics/ic.md`, section 3), and its
+trickleback (`OpenHOI3.OffmapIc`, `OpenHOI3.Trickleback`). BlackICE gives no country-level `ic` today, so its
+figure reads 0 until some modifier of the mod's does.
 
 **Found on the way, the normal engine's own gap** - the user's, 2026-11-22: "The message popup for it also doesnt
 work", of a bombing's end. None of the five messages of a battle that is over was built. **Built the same day**, read

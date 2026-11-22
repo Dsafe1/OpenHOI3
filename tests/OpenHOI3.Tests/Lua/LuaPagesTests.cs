@@ -587,6 +587,31 @@ public sealed class LuaPagesTests : IDisposable
 	}
 
 	[Fact]
+	public void APageReadsACountrysOffMapIcAndItsTrickleback()
+	{
+		Page("figures", "local ImGui = OpenHOI3.ImGui return { "
+			+ "Collect = function(player) return { ic = OpenHOI3.OffmapIc('ger'), back = OpenHOI3.Trickleback(player), "
+			+ "none = tostring(OpenHOI3.OffmapIc('XXX')) .. tostring(OpenHOI3.Trickleback('XXX')) } end, "
+			+ "Draw = function(data) ImGui.Text(data.ic .. ' ' .. data.back * 1000 .. ' ' .. data.none) end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			CGameState state = State();
+			CCountry germany = state.Country(Ger)!;
+			germany.OffmapIc = 12;
+			germany.Modifier.Set("casualty_trickleback", CFixedPoint.Parse("0.2"));
+			germany.Technology.Set("casualty_trickleback", CFixedPoint.Parse("0.05"));
+			CModPage page = windows.Pages[0];
+			windows.Collect(state, page, Ger);
+
+			var canvas = new CRecordingCanvas();
+			windows.Draw(page, Ger, canvas);
+			Assert.Equal("Text 12 250 nilnil", canvas.Calls[0]);
+			Assert.Empty(_reports);
+		}
+	}
+
+	[Fact]
 	public void APageThatAsksTheGameWhileItDrawsFailsAndOneThatEndsWhatItDidNotBeginIsToldSo()
 	{
 		Page("asks", "return { Draw = function() local date = CCurrentGameState.GetCurrentDate() end }");

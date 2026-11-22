@@ -121,6 +121,21 @@ worked out on loading without its ministers, as one that never had any is, and k
 (`CCountry.IcWorkedOut`); Estonia's 8 is 7 after a load (`docs/enhanced.md`, *A whole game's
 replay*).
 
+**Off-map IC - an enhanced game's rule** (the fix `offmap_ic`, 2026-11-22; `docs/enhanced.md`). The original keeps
+a country's own `ic` modifier - what an event modifier, a triggered modifier, a law or a minister gives as
+`ic = N` - and never reads it [exe] (`reversing/findings/FINDINGS-ic.md`, *The offmap IC fix*). A country's modifier
+holds under `ic` three things: what `base_values` gives, which is the sum's seed already; the plain IC of every
+province it controls, which is the sum; and the country's own. With the fix, the country's own is cut to whole IC and
+added to the base before the country's bonus applies: `base = whole(sum) + whole(ic - base_values' - provinces')`. It
+may be negative and is added all the same. The figure is kept as `CCountry.OffmapIc`, made again by each day's IC and
+nought in a game without the fix; a save keeps no IC, so a load makes it again as it makes the rest. [mod: which
+modifiers give a country `ic`; BlackICE gives none today, so every country's reads 0.]
+
+*Ours:* BiceLib's patch of the original subtracts, from the entry cut to whole IC, the day's sum less what `local_ic`
+added, each cut on its own, which can come out one IC under where the fractions meet. Here the modifier's rebuild
+counts what the base values and the provinces put in (`CCountry.SharedIcInModifier`) and the rest is cut once - so a
+country with no `ic` of its own has exactly none, and a modifier not made yet, as at a new game's set-up, gives none.
+
 **Nothing else computes IC.** Everything that spends or shows it reads what this wrote.
 
 ## 4. What follows the total, each day

@@ -86,6 +86,35 @@ public class IndustrialCapacityTests
 	}
 
 	[Fact]
+	public void ACountrysOwnIcCountsAsOffMapIcOnlyInAnEnhancedGameWithTheFix()
+	{
+		CGameState state = State(Province(1, Ger, "5"));
+		CCountry germany = state.Country(Ger)!;
+		// Its modifier holds its provinces' plain IC with its own: 5 and 12.7.
+		germany.Modifier.Set("ic", CFixedPoint.Parse("17.7"));
+		germany.SharedIcInModifier = 5000;
+		germany.Modifier.Set("global_ic", CFixedPoint.Parse("0.5"));
+		CProvinceModifiers.Rebuild(state);
+
+		// The faithful game never reads it.
+		CIndustrialCapacity.Update(state);
+		Assert.Equal((5, 0, 7), (germany.BaseIc, germany.OffmapIc, germany.TotalIc));
+
+		// The fix: whole IC of it beside the provinces' sum, before the country's bonus.
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		CIndustrialCapacity.Update(state);
+		Assert.Equal((17, 12, 25), (germany.BaseIc, germany.OffmapIc, germany.TotalIc));
+
+		// A negative one takes away; and a mod that goes without the fix has the original's figure.
+		germany.Modifier.Set("ic", CFixedPoint.Parse("2.5"));
+		CIndustrialCapacity.Update(state);
+		Assert.Equal((3, -2), (germany.BaseIc, germany.OffmapIc));
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(new[] { OpenHOI3.Sim.Rules.EFix.OffmapIc }));
+		CIndustrialCapacity.Update(state);
+		Assert.Equal((5, 0), (germany.BaseIc, germany.OffmapIc));
+	}
+
+	[Fact]
 	public void FractionsAddUpBeforeTheyAreDropped()
 	{
 		CGameState state = State(Province(1, Ger, "0.5"), Province(2, Ger, "0.5"), Province(3, Ger, "0.9"));

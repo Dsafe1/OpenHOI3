@@ -127,6 +127,16 @@ public static class CIndustrialCapacity
 		// never reaches the total.
 		long baseIc = sum / CFixedPoint.Scale;
 
+		// The country's own `ic`, which the original keeps and never reads: off-map IC, in an enhanced game with the
+		// fix. That modifier also holds what base_values gives, which is the seed above, and the plain IC of every
+		// province the country controls, which is the sum: its rebuild says how much of it those two are
+		// (CCountry.SharedIcInModifier), and what is left is the country's own.
+		long offmap = state.Rules.Has(Rules.EFix.OffmapIc)
+			? (country.Modifier[ProvinceIc].Raw - country.SharedIcInModifier) / CFixedPoint.Scale
+			: 0;
+		baseIc += offmap;
+		country.OffmapIc = (int)offmap;
+
 		day.CoreHome.TryGetValue(country.Tag.Value, out long home);
 		country.CoreHomeIc = home;
 		country.BaseIc = (int)baseIc;
