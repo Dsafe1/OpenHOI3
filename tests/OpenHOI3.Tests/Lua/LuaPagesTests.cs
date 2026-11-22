@@ -72,6 +72,46 @@ public sealed class LuaPagesTests : IDisposable
 	}
 
 	[Fact]
+	public void APageNamesItsTabAndTheTabsAreSortedByTheLowestPlaceAnyOfTheirPagesGives()
+	{
+		Page("flags", "return { title = 'FLAGS', order = 20, group = 'GROUP_INSPECTOR', group_order = 40, Draw = function() end }");
+		Page("variables", "return { title = 'VARS', order = 10, group = 'GROUP_INSPECTOR', Draw = function() end }");
+		Page("modifiers", "return { title = 'MODS', order = 5, group = 'GROUP_COUNTRY', group_order = 20, Draw = function() end }");
+		Page("loose", "return { Draw = function() end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			CModPage flags = windows.Pages.Single(page => page.Name == "flags");
+			Assert.Equal("GROUP_INSPECTOR", flags.Group);
+			Assert.Equal(40, flags.GroupOrder);
+			Assert.Equal("", windows.Pages.Single(page => page.Name == "loose").Group);
+
+			List<CModPageGroup> groups = CModPageGroup.Of(windows.Pages);
+			// The pages naming no tab and the Inspector, one of whose pages gives no place, both stand at nought: by key.
+			Assert.Equal(new[] { "", "GROUP_INSPECTOR", "GROUP_COUNTRY" }, groups.Select(group => group.Key));
+			// A tab's pages by their own order.
+			Assert.Equal(new[] { "variables", "flags" }, groups[1].Pages.Select(page => page.Name));
+			Assert.Empty(_reports);
+		}
+	}
+
+	[Fact]
+	public void TabsAreSortedByPlaceAndThenByKey()
+	{
+		var pages = new[]
+		{
+			new CModPage("a", "", 0, "GROUP_STATS", 50),
+			new CModPage("b", "", 0, "GROUP_SETUP", 10),
+			new CModPage("c", "", 30, "GROUP_SETUP", 10),
+			new CModPage("d", "", 30, "GROUP_HELP", 50),
+			new CModPage("e", "", 20, "GROUP_SETUP", 10),
+		};
+		List<CModPageGroup> groups = CModPageGroup.Of(pages);
+		Assert.Equal(new[] { "GROUP_SETUP", "GROUP_HELP", "GROUP_STATS" }, groups.Select(group => group.Key));
+		Assert.Equal(new[] { "b", "e", "c" }, groups[0].Pages.Select(page => page.Name));
+	}
+
+	[Fact]
 	public void AFileThatFailsOrDrawsNothingIsNoPageAndIsReported()
 	{
 		Page("broken", "return {{{");

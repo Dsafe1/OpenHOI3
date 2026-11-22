@@ -1,7 +1,7 @@
 # Windows a mod defines
 
 **Ours**: an enhanced game's only (`docs/enhanced.md`, *The shape*), and the way BlackICE's utility comes to this
-engine (`docs/blackice.md`, step 6). Nothing of it is in the original. Built 2026-11-22 as far as the menu and a page
+engine (`docs/blackice.md`, step 6). Nothing of it is in the original. Built 2026-11-22 as far as the window and pages
 that reads; a page that changes the game is not built.
 
 **They are drawn with Dear ImGui**, by a page's own Lua - the user's decision of 2026-11-22, on seeing the first
@@ -37,8 +37,10 @@ It is run once, as the pages are first asked for, as the body of a function - so
 and is kept from frame to frame: a filter's text, a ticked box - and what it returns is the page:
 
     return {
-        title = "OPENHOI_WIN_FLAGS",       -- the localisation key of its name, on the menu and on its window
-        order = 20,                        -- its place on the menu: lower first, then by file name
+        title = "OPENHOI_WIN_FLAGS",             -- the localisation key of its name, in its tab's list
+        order = 20,                              -- its place in that list: lower first, then by file name
+        group = "OPENHOI_WIN_GROUP_INSPECTOR",   -- the localisation key of the tab it stands under
+        group_order = 40,                        -- where that tab stands among the tabs (section 5)
         Collect = function(player) ... end,
         Draw = function(data, player) ... end,
     }
@@ -96,12 +98,33 @@ window as a failed drawing is.
 **More widgets are added as pages need them** - "lets not limit ourselves" (the user's, 2026-11-22). The list is a
 choice, not the library's whole.
 
-## 5. The menu
+## 5. The one window: tabs, a list of pages, a page
 
-The **Insert** key shows and hides the menu - the key BlackICE's overlay had - a window of the library's titled by
-the key `OPENHOI_WINDOWS_MENU`, with a box to tick for each page, in the menu's order, by the page's title localised
-(its name where it has none). **Every page ticked is a window of its own**, so several stand open side by side;
-a page's close box unticks it. Hiding the menu hides the pages with it and keeps which were open.
+**One window holds everything** - the user's, 2026-11-22: where BlackICE's overlay has a small main window that
+switches others on and off, here "only … a single window. The tabs on this window are the ones from the original
+main, and the pages from those windows should be listed vertically on the left side." Its first shape here, a menu of
+tick boxes with a window to each page, lasted an afternoon.
+
+The **Insert** key shows and hides it - the key the overlay had. It is titled by the key `OPENHOI_WINDOWS_MENU`, and
+within it (`CModWindows`):
+
+- **a tab along the top for each group of pages**, named by the group's key localised;
+- **the tab's pages listed down its left side**, each by its title localised (its name where it has none), the one
+  chosen marked;
+- **the page chosen on the rest of the window**, drawn by its Lua.
+
+**Nothing declares the tabs**: a tab is there because a page names it. Two pages whose `group` is the same key stand
+under one tab; a page naming none stands under a tab named by `OPENHOI_WINDOWS_UNGROUPED`. So a submod's page joins a
+tab, or brings a new one, by its file alone (`CModPageGroup`).
+
+- **The tabs' order**: by the lowest `group_order` any of a tab's pages gives - one not given counts as nought -
+  and then by key. BlackICE's follow its overlay's: Setup 10, Country Info 20, Game Info 30, Inspector 40, Stats 50,
+  Options 60, Help 70, Debug 80.
+- **A tab's pages**: by `order`, then by file name.
+- **Each tab keeps the page chosen under it** while another tab is looked at, and while the window is hidden; a tab
+  first looked at shows its first page.
+- **Only the page looked at runs**: it alone gathers and draws. Chosen, it gathers before it is first drawn, and
+  shown again after the window was hidden it gathers afresh.
 
 ## 6. What the engine gives a page
 
@@ -136,10 +159,10 @@ province's figures, a leader's state, the selection).
 that fails, a page gathering with the game and drawing without it, a widget's `changed, value`, what a page left open
 ended for it, a failed drawing said in the window until the page gathers again, and a page that asks the game while
 it draws. And on 2026-11-22, BlackICE's working copy played from a linked stand-in install: a window of the library
-drawn in the client and in an export; and with `--screen=modwindows:flags` the menu and BlackICE's first page, Active
+drawn in the client and in an export; and with `--screen=modwindows:flags` the window on BlackICE's first page, Active
 Flags - Germany's tag, a filter box and a table of its three flags after thirty days.
 
-**The mouse and the keyboard were tried by the user by hand**, 2026-11-22, in an export: a page ticked on the menu and
+**The mouse and the keyboard were tried by the user by hand**, 2026-11-22, in an export, in the first shape - a menu of tick boxes, a window to a page: a page ticked on the menu and
 shut by its close box, the filter typed into, a window dragged and resized, a click on a window kept from the map
 beneath, and no shortcut of the game's set off by typing - all as they should be. **One thing was not, and is
 mended**: an edit box of the game's that has the keyboard - a unit being renamed - took the keys typed into a box of
@@ -152,7 +175,7 @@ and the arrow keys, which the map asks of the keyboard each frame, do not scroll
 
 - A page that changes the game: what a page may post, and where - `Draw` has no game. The conversion of resources,
   the first such page, comes with that setting's own command (`docs/enhanced.md`, *Rules*).
-- A key of the mod's choosing in the place of Insert; a button for the menu on a screen of the game.
+- A key of the mod's choosing in the place of Insert; a button for the window on a screen of the game.
 - A theme and a text size of the player's choosing, which the overlay has.
 - Sorting a table by a column's header, and the rest of the library's widgets.
 - The pages in the front end: they are a game's.

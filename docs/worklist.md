@@ -46,7 +46,7 @@ installed and played from, and the page on what a file for both engines may hold
 the game options are built: four rows on the Game tab for two more autosaves, scrolling at the screen's edge - built
 with it, the engine not having had it - and where an event's window comes up (`docs/mechanics/gameoptions.md`,
 section 5). And the windows a mod defines are built as far as a page that reads (`docs/mechanics/modwindows.md`):
-drawn with Dear ImGui, by the user's decision of 2026-11-22 - a menu of pages on Insert, a page a Lua file of the
+drawn with Dear ImGui, by the user's decision of 2026-11-22 - one window on Insert with a tab a group and its pages listed down the left, a page a Lua file of the
 mod's `script/openhoi/windows/` that gathers with `Collect` and draws with `Draw` and `OpenHOI3.ImGui`, and the
 first page, BlackICE's Active Flags - after the fact base's reading that the original opens no subfolder of
 `interface`, `localisation` or `script`. **To be tried by hand**: the mouse and the keyboard on those windows.

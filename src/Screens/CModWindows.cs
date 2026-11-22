@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using ImGuiGodot;
 using ImGuiNET;
@@ -10,21 +11,28 @@ using OpenHOI3.Sim.Countries;
 namespace OpenHOI3.Screens;
 
 /// <summary>
-/// The windows a mod defines for an enhanced game (<c>docs/mechanics/modwindows.md</c>), drawn with Dear ImGui: a menu
-/// of the pages, which the Insert key shows and hides, and every page ticked on it in a window of its own. What a page
-/// shows and how is its Lua's; this opens the windows, asks an open page now and then to gather what it shows - never
-/// while the game's hours run beside the frame - and has it draw itself every frame, which it does from what it
-/// gathered and with no game to ask. So it is processed always, and stands outside the HUD, which is not.
+/// The window a mod defines for an enhanced game (<c>docs/mechanics/modwindows.md</c>), drawn with Dear ImGui and shown
+/// and hidden by the Insert key: one window, a tab along its top for each group of pages, the tab's pages listed down
+/// its left side, and the page chosen there on the rest of it. What a page shows and how is its Lua's; this asks the
+/// page shown now and then to gather what it shows - never while the game's hours run beside the frame - and has it
+/// draw itself every frame, which it does from what it gathered and with no game to ask. So it is processed always,
+/// and stands outside the HUD, which is not.
 /// </summary>
 public sealed partial class CModWindows : Node
 {
-	/// <summary>The localisation key of the menu's title.</summary>
-	public const string MenuTitle = "OPENHOI_WINDOWS_MENU";
+	/// <summary>The localisation key of the window's title.</summary>
+	public const string WindowTitle = "OPENHOI_WINDOWS_MENU";
 
-	/// <summary>How often an open page gathers again, in seconds of real time.</summary>
+	/// <summary>The localisation key of the tab of the pages that name no tab of their own.</summary>
+	public const string UngroupedTitle = "OPENHOI_WINDOWS_UNGROUPED";
+
+	/// <summary>How often the page shown gathers again, in seconds of real time.</summary>
 	private const double CollectEvery = 2.0;
 
-	/// <summary>The typeface the windows are drawn in, one of ours, and its size in pixels of the canvas.</summary>
+	/// <summary>How wide the list of a tab's pages is, in pixels of the canvas.</summary>
+	private const float ListWidth = 190f;
+
+	/// <summary>The typeface the window is drawn in, one of ours, and its size in pixels of the canvas.</summary>
 	private const string TypefacePath = "res://fonts/LiberationSans-Regular.ttf";
 	private const int TypefaceSize = 16;
 
@@ -36,8 +44,16 @@ public sealed partial class CModWindows : Node
 	private CSimulation _simulation = null!;
 	private CCountryTag _player;
 	private readonly CImGuiCanvas _canvas = new();
-	private readonly HashSet<string> _open = new(StringComparer.Ordinal);
-	private readonly HashSet<string> _uncollected = new(StringComparer.Ordinal);
+	private List<CModPageGroup>? _groups;
+
+	/// <summary>The page chosen under each tab, by the tab's key: kept while another tab is looked at.</summary>
+	private readonly Dictionary<string, string> _chosen = new(StringComparer.Ordinal);
+
+	/// <summary>A tab to be brought to the front at the next frame, by its key: a page shown by its name.</summary>
+	private string? _bringForward;
+
+	/// <summary>The page that has gathered and may be drawn; another shown gathers first.</summary>
+	private string? _gathered;
 	private bool _shown;
 	private ulong _collectedAt;
 
@@ -73,124 +89,143 @@ public sealed partial class CModWindows : Node
 	public bool IsShown => _shown;
 
 	/// <summary>
-	/// Whether a text box of one of the windows is being typed into: the keys are then its own, and neither the game's
-	/// edit box that has the keyboard nor the map's arrow keys take them.
+	/// Whether a text box of the window is being typed into: the keys are then its own, and neither the game's edit box
+	/// that has the keyboard nor the map's arrow keys take them.
 	/// </summary>
 	public bool IsTyping => _shown && ImGui.GetIO().WantTextInput;
 
-	/// <summary>The menu and the pages open on it shown or hidden; which pages are open is kept while they are hidden.</summary>
+	/// <summary>The window shown or hidden; the tab and the pages chosen are kept while it is hidden.</summary>
 	public void Toggle()
 	{
 		_shown = !_shown;
-		if (_shown)
-		{
-			_uncollected.UnionWith(_open);
-		}
+		// Shown again, what it shows is gathered afresh.
+		_gathered = null;
 	}
 
-	/// <summary>The menu shown with a page open on it, by the page's name: for a run a script drives.</summary>
+	/// <summary>The window shown on a page, by the page's name: for a run a script drives.</summary>
 	public void Show(string pageName)
 	{
 		_shown = true;
-		_open.Add(pageName);
-		_uncollected.UnionWith(_open);
+		_gathered = null;
+		if (Groups()?.FirstOrDefault(group => group.Pages.Any(page => page.Name == pageName)) is { } group)
+		{
+			_chosen[group.Key] = pageName;
+			_bringForward = group.Key;
+		}
+	}
+
+	/// <summary>The pages sorted into tabs, once: they do not change while a game runs.</summary>
+	private List<CModPageGroup>? Groups()
+	{
+		if (_groups is null && _pages() is { } pages)
+		{
+			_groups = CModPageGroup.Of(pages.Pages);
+		}
+		return _groups;
 	}
 
 	public override void _Process(double delta)
 	{
-		if (!_shown || _pages() is not { } pages)
+		if (!_shown || _pages() is not { } pages || Groups() is not { } groups)
 		{
 			return;
 		}
-		Collect(pages);
 
 		bool shown = true;
-		ImGui.SetNextWindowPos(new System.Numerics.Vector2(40, 140), ImGuiCond.FirstUseEver);
-		ImGui.SetNextWindowSize(new System.Numerics.Vector2(260, 420), ImGuiCond.FirstUseEver);
-		if (ImGui.Begin(_localise(MenuTitle) + "###openhoi_windows_menu", ref shown))
+		CModPage? showing = null;
+		ImGui.SetNextWindowPos(new System.Numerics.Vector2(60, 140), ImGuiCond.FirstUseEver);
+		ImGui.SetNextWindowSize(new System.Numerics.Vector2(860, 620), ImGuiCond.FirstUseEver);
+		if (ImGui.Begin(_localise(WindowTitle) + "###openhoi_windows", ref shown))
 		{
-			foreach (CModPage page in pages.Pages)
+			if (ImGui.BeginTabBar("openhoi_groups"))
 			{
-				bool open = _open.Contains(page.Name);
-				if (ImGui.Checkbox(Title(page) + "###" + page.Name, ref open))
+				foreach (CModPageGroup group in groups)
 				{
-					SetOpen(page, open);
+					ImGuiTabItemFlags flags = _bringForward == group.Key ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None;
+					// The tab's key is its own, whatever its name is in the language played.
+					if (BeginTab(_localise(group.Key.Length > 0 ? group.Key : UngroupedTitle) + "###tab_" + group.Key, flags))
+					{
+						showing = DrawGroup(pages, group);
+						ImGui.EndTabItem();
+					}
 				}
+				_bringForward = null;
+				ImGui.EndTabBar();
 			}
 		}
 		ImGui.End();
-
-		foreach (CModPage page in pages.Pages)
-		{
-			if (!_open.Contains(page.Name))
-			{
-				continue;
-			}
-			bool open = true;
-			ImGui.SetNextWindowPos(new System.Numerics.Vector2(340, 140), ImGuiCond.FirstUseEver);
-			ImGui.SetNextWindowSize(new System.Numerics.Vector2(520, 560), ImGuiCond.FirstUseEver);
-			// The page's name is the window's own, whatever its title is in the language played.
-			if (ImGui.Begin(Title(page) + "###openhoi_page_" + page.Name, ref open))
-			{
-				// A page opened while hours run has gathered nothing yet, and waits a frame or two for them.
-				if (!_uncollected.Contains(page.Name))
-				{
-					pages.Draw(page, _player, _canvas);
-				}
-			}
-			ImGui.End();
-			if (!open)
-			{
-				SetOpen(page, false);
-			}
-		}
 		if (!shown)
 		{
 			_shown = false;
 		}
-	}
-
-	private string Title(CModPage page) => _localise(page.Title.Length > 0 ? page.Title : page.Name);
-
-	private void SetOpen(CModPage page, bool open)
-	{
-		if (open)
-		{
-			_open.Add(page.Name);
-			_uncollected.Add(page.Name);
-		}
-		else
-		{
-			_open.Remove(page.Name);
-			_uncollected.Remove(page.Name);
-		}
+		// Gathered after the frame's drawing, for the next: the page seen now, when it is new or its interval is up.
+		Collect(pages, showing);
 	}
 
 	/// <summary>
-	/// The open pages gather what they show: a page just opened at once, every one of them again when the interval is
-	/// up - and none while the game's hours run beside the frame, when nothing may read the game.
+	/// A tab begun with flags and no close box: the binding's own call with flags asks for the box's variable, which
+	/// would draw one, so the library is asked directly.
 	/// </summary>
-	private void Collect(IModPages pages)
+	private static unsafe bool BeginTab(string label, ImGuiTabItemFlags flags)
 	{
-		if (_gameBusy())
+		byte[] text = System.Text.Encoding.UTF8.GetBytes(label + "\0");
+		fixed (byte* pointer = text)
+		{
+			return ImGuiNative.igBeginTabItem(pointer, null, flags) != 0;
+		}
+	}
+
+	/// <summary>A tab's inside: its pages down the left, the one chosen on the right. Answers the page chosen.</summary>
+	private CModPage? DrawGroup(IModPages pages, CModPageGroup group)
+	{
+		if (group.Pages.Count == 0)
+		{
+			return null;
+		}
+		CModPage chosen = group.Pages.FirstOrDefault(page => _chosen.TryGetValue(group.Key, out string? name) && page.Name == name)
+			?? group.Pages[0];
+		if (ImGui.BeginChild("pages_" + group.Key, new System.Numerics.Vector2(ListWidth, 0), ImGuiChildFlags.Borders))
+		{
+			foreach (CModPage page in group.Pages)
+			{
+				if (ImGui.Selectable(_localise(page.Title.Length > 0 ? page.Title : page.Name) + "###page_" + page.Name, page == chosen))
+				{
+					chosen = page;
+				}
+			}
+		}
+		ImGui.EndChild();
+		_chosen[group.Key] = chosen.Name;
+
+		ImGui.SameLine();
+		// The page's name is the part's own, so that each page keeps its own scrolling.
+		if (ImGui.BeginChild("page_" + chosen.Name, new System.Numerics.Vector2(0, 0)))
+		{
+			// A page not yet gathered - just chosen, or chosen while hours run - waits a frame or two, undrawn.
+			if (_gathered == chosen.Name)
+			{
+				pages.Draw(chosen, _player, _canvas);
+			}
+		}
+		ImGui.EndChild();
+		return chosen;
+	}
+
+	/// <summary>
+	/// The page shown gathers what it shows: at once where it is another than the last, and again when the interval is
+	/// up - and not while the game's hours run beside the frame, when nothing may read the game.
+	/// </summary>
+	private void Collect(IModPages pages, CModPage? showing)
+	{
+		if (showing is null || _gameBusy())
 		{
 			return;
 		}
 		bool due = Time.GetTicksMsec() - _collectedAt >= CollectEvery * 1000.0;
-		if (!due && _uncollected.Count == 0)
+		if (_gathered != showing.Name || due)
 		{
-			return;
-		}
-		foreach (CModPage page in pages.Pages)
-		{
-			if (_open.Contains(page.Name) && (due || _uncollected.Contains(page.Name)))
-			{
-				pages.Collect(_simulation.State, page, _player);
-			}
-		}
-		_uncollected.Clear();
-		if (due)
-		{
+			pages.Collect(_simulation.State, showing, _player);
+			_gathered = showing.Name;
 			_collectedAt = Time.GetTicksMsec();
 		}
 	}

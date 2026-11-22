@@ -95,9 +95,9 @@ This file is the order of work across the two repositories and what was decided 
    - *The utility as windows of its own*, with the two pages above first. **Built 2026-11-22 as far as a page that
      reads** (`mechanics/modwindows.md`): **drawn with Dear ImGui by the page's own Lua** - the user's decision of that
      day, on seeing the first shape, pages laid out in the original's `.gui` elements, which he did not like the look
-     of and which is gone. The menu of pages on Insert; a page for each file of `script/openhoi/windows/`, its
+     of and which is gone. One window on Insert - a tab for each group of pages, the tab's pages down its left, the page chosen beside them (the user's, the same day); a page for each file of `script/openhoi/windows/`, its
      `Collect` reading the game now and then and its `Draw` drawing every frame with `OpenHOI3.ImGui`, given no game
-     to ask; every page a window of its own; and the first page, BlackICE's Active Flags. **Not built**: a page that
+     to ask; and the first pages, BlackICE's Active Flags and Global Flags. **Not built**: a page that
      changes the game - the conversion of resources, which waits for that setting's own command - and the overlay's
      other pages. Agreed, 2026-11-22: **no single file that registers the pages** - one a submod would have to
      overwrite - but a file a page, found by listing a folder over every layer; and the widgets a page may ask for
