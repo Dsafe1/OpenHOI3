@@ -35,7 +35,7 @@ public sealed class CLuaImGui
 		"Text", "TextDisabled", "TextWrapped", "TextColored", "Separator", "SeparatorText", "SameLine", "Spacing", "NewLine",
 		"SetNextItemWidth", "Button", "SmallButton", "Selectable", "Checkbox", "InputText", "InputInt", "InputTextMultiline", "GetContentRegionAvail", "SliderInt", "SliderFloat",
 		"Combo", "CollapsingHeader", "IsItemHovered", "SetTooltip", "BeginTable", "BeginPanes", "TableSetupColumn", "TableHeadersRow",
-		"IsItemActive", "IsItemDeactivatedAfterEdit", "ProgressBar", "InputFloat", "IsWindowFocused", "IsKeyPressed", "SetScrollHereY", "SetClipboardText", "ImageSize", "Image",
+		"IsItemActive", "IsItemDeactivatedAfterEdit", "ProgressBar", "PlotLines", "InputFloat", "IsWindowFocused", "IsKeyPressed", "SetScrollHereY", "SetClipboardText", "ImageSize", "Image",
 		"TableNextRow", "TableNextColumn", "EndTable", "BeginTabBar", "EndTabBar", "BeginTabItem", "EndTabItem",
 		"BeginChild", "EndChild", "TreeNode", "TreePop", "PushID", "PopID", "BeginDisabled", "EndDisabled",
 	};
@@ -88,6 +88,7 @@ public sealed class CLuaImGui
 			["ProgressBar"] = call => Do(call, canvas => canvas.ProgressBar((float)call.Number(1),
 				call.ArgumentCount >= 2 ? (float)call.Number(2) : 0f, call.ArgumentCount >= 3 ? call.String(3) : "")),
 			["InputFloat"] = InputFloat,
+			["PlotLines"] = PlotLines,
 			["SetTooltip"] = call => Do(call, canvas => canvas.SetTooltip(call.String(1))),
 			["BeginTable"] = call => Begin(call, EScope.Table, canvas => canvas.BeginTable(call.String(1), call.Integer(2), false)),
 			// Columns side by side with a divider to drag; ended by EndTable, as a table is.
@@ -133,6 +134,9 @@ public sealed class CLuaImGui
 			glue.Append(GlobalPrefix).Append(name).Append(" = nil ");
 		}
 		// A combo's choices come as a list, which crosses as so many texts.
+		// The values cross as one text: a series may be longer than a call takes arguments.
+		glue.Append("local plot = OpenHOI3.ImGui.PlotLines OpenHOI3.ImGui.PlotLines = function(label, values, width, height, overlay) "
+			+ "return plot(label, table.concat(values or {}, ' '), width or 0, height or 0, overlay or '') end ");
 		glue.Append("local combo = OpenHOI3.ImGui.Combo OpenHOI3.ImGui.Combo = function(label, index, items) "
 			+ "return combo(label, index, unpack(items or {})) end");
 		lua.Run(Encoding.Latin1.GetBytes(glue.ToString()), "=OpenHOI3");
@@ -275,6 +279,24 @@ public sealed class CLuaImGui
 		int decimals = call.ArgumentCount >= 3 ? call.Integer(3) : 2;
 		bool changed = Canvas is { } canvas && canvas.InputFloat(call.String(1), ref value, decimals);
 		return call.ReturnMany(changed, value);
+	}
+
+	/// <summary><c>PlotLines(label, values [, width, height, overlay])</c>: the values a list of numbers.</summary>
+	private int PlotLines(CLuaCall call)
+	{
+		if (Canvas is { } canvas)
+		{
+			var values = new List<float>();
+			foreach (string part in call.String(2).Split(' ', StringSplitOptions.RemoveEmptyEntries))
+			{
+				if (float.TryParse(part, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float value))
+				{
+					values.Add(value);
+				}
+			}
+			canvas.PlotLines(call.String(1), values, (float)call.Number(3), (float)call.Number(4), call.String(5));
+		}
+		return 0;
 	}
 
 	private int InputInt(CLuaCall call)

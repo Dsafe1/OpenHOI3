@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using OpenHOI3.Content.Windows;
 
 namespace OpenHOI3.Tests.Lua;
@@ -133,6 +134,9 @@ public sealed class CRecordingCanvas : IModWindowCanvas
 
 	/// <summary>Whether an item answers let go of after an edit.</summary>
 	public bool Released { get; set; }
+
+	public void PlotLines(string label, IReadOnlyList<float> values, float width, float height, string overlay) =>
+		Calls.Add($"PlotLines {label} {string.Join(',', values.Select(value => (int)value))} {(int)height} {overlay}");
 
 	public void ProgressBar(float fraction, float width, string text) => Calls.Add($"ProgressBar {(int)(fraction * 100)} {text}");
 

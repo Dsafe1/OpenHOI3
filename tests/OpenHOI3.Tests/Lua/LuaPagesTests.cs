@@ -215,6 +215,28 @@ public sealed class LuaPagesTests : IDisposable
 	}
 
 	[Fact]
+	public void APageDrawsALineThroughAListOfValuesHoweverLong()
+	{
+		// Nine thousand values: more than a call of the Lua's takes as arguments, which is why they cross as one text.
+		Page("plots", "local ImGui = OpenHOI3.ImGui return { Draw = function() "
+			+ "ImGui.PlotLines('##a', { 1, 2.5, -3 }, 0, 90, 'three') "
+			+ "local long = {} for i = 1, 9000 do long[i] = i end "
+			+ "ImGui.PlotLines('##b', long) ImGui.PlotLines('##c', {}) end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			var canvas = new CRecordingCanvas();
+			windows.Draw(windows.Pages[0], Ger, canvas);
+			Assert.Equal(3, canvas.Calls.Count);
+			Assert.Equal("PlotLines ##a 1,2,-3 90 three", canvas.Calls[0]);
+			Assert.StartsWith("PlotLines ##b 1,2,3,", canvas.Calls[1]);
+			Assert.EndsWith(",8999,9000 0 ", canvas.Calls[1]);
+			Assert.Equal("PlotLines ##c  0 ", canvas.Calls[2]);
+			Assert.Empty(_reports);
+		}
+	}
+
+	[Fact]
 	public void WhatTheLuaPostsAsAPageGathersIsThePagesOrderAndNotTheGamesOutbox()
 	{
 		// The original's own way of setting a variable, as BlackICE's data functions do it.

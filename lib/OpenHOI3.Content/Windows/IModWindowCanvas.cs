@@ -48,6 +48,12 @@ public interface IModWindowCanvas
 
 	/// <summary>A bar filled to a share of its width, a text over it; a width of nought is the room left.</summary>
 	void ProgressBar(float fraction, float width, string text);
+
+	/// <summary>
+	/// A line through values, one after another across the width, between the lowest and the highest of them; a
+	/// text over it. A width of nought is the room left, a height of nought a line's.
+	/// </summary>
+	void PlotLines(string label, IReadOnlyList<float> values, float width, float height, string overlay);
 	void SetTooltip(string text);
 
 	/// <summary>

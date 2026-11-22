@@ -102,6 +102,7 @@ place and size, which the library remembers - is the engine's; a page draws what
 | greyed | `BeginDisabled(disabled)`, `EndDisabled` - what stands between is greyed and takes no press where `disabled` is true; ended whatever was given |
 | the item before | `IsItemHovered`, `IsItemActive` - held, or typed into - `IsItemDeactivatedAfterEdit` - let go of this frame, changed: a slider released - `SetTooltip(text)` |
 | a number and a bar | `InputFloat(label, value [, decimals])`, answering `changed, value` - a box with no buttons beside it; `ProgressBar(share [, width, text])` - filled to a share of its width, the text over it |
+| a line | `PlotLines(label, values [, width, height, text])` - a line through a list of numbers, one after another at even steps across the width, between the lowest and the highest of them; the library's own, which says the value under the mouse. The list crosses into the engine as one text, a series being longer than a call takes arguments |
 
 **A text is a text**: a percent sign in what a page gives `TextDisabled`, `TextWrapped`, `TextColored` or
 `SetTooltip` is drawn as one. The library takes those four as a format in the C manner, and a page's "100%" lost its
@@ -297,6 +298,14 @@ Trades, Global Market, National Focus, Minister Buildings, and the three forms o
 configured". Two figures of Country Modifiers the mod asks of BiceLib and has none of here: Offmap IC reads 0 and
 Trickleback "unavailable". **Nothing was set in a run**: the slider, the focus buttons, the checkboxes and the
 forms' Apply and Enable are to be tried by hand.
+
+**The Stats tab's pages**, 2026-11-22: `LuaPagesTests` has a page draw a line through three values and through
+nine thousand. With `--screen=modwindows:<page>` Setup was drawn on a new game - no run number yet, the list of
+every country - and Statistics, which said "Nothing collected yet."; and once with two series put into the page
+for the run and taken out again, each a line with its lowest and highest and its first and last day. A page reads
+the run's files itself, by `io.open` and `OpenHOI3.Files` under the working folder as the mod's Lua does.
+**Whether the mod's collection itself writes its files on this engine was not tried**: it makes its folders with
+the shell's `mkdir` through `os.execute`, from the ministers' ticks. So no real series has been read here.
 
 ## Not built
 

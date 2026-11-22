@@ -71,6 +71,13 @@ public sealed class CImGuiCanvas : IModWindowCanvas
 
 	public bool IsItemDeactivatedAfterEdit() => ImGui.IsItemDeactivatedAfterEdit();
 
+	public void PlotLines(string label, IReadOnlyList<float> values, float width, float height, string overlay)
+	{
+		float[] points = values.Count > 0 ? values.ToArray() : new[] { 0f };
+		ImGui.PlotLines(label, ref points[0], points.Length, 0, overlay, float.MaxValue, float.MaxValue,
+			new System.Numerics.Vector2(width > 0f ? width : -1f, height));
+	}
+
 	public void ProgressBar(float fraction, float width, string text) =>
 		ImGui.ProgressBar(fraction, new System.Numerics.Vector2(width > 0f ? width : -1f, 0f), text);
 
