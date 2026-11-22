@@ -48,8 +48,23 @@ public sealed class CLocalisation
 		{
 			localisation.LoadFile(file, (int)language, warn);
 		}
+		// An enhanced game's own tables after them, from a folder of their own, which the original never reads - its
+		// listing takes one folder and no subfolder (reversing/findings/FINDINGS-guifolders.md, section 3).
+		if (Rules.CRulesReader.IsEnhanced(directories))
+		{
+			foreach (string file in directories.ListFiles(EnhancedDirectory, "*.csv"))
+			{
+				localisation.LoadFile(file, (int)language, warn);
+			}
+		}
 		return localisation;
 	}
+
+	/// <summary>
+	/// Where a mod keeps the tables it has for an enhanced game alone: read after the others and only in an enhanced
+	/// game, in the same form (<c>docs/mechanics/gameoptions.md</c>, section 5).
+	/// </summary>
+	public const string EnhancedDirectory = "localisation/openhoi";
 
 	private void LoadFile(string absolutePath, int column, Action<string> warn)
 	{

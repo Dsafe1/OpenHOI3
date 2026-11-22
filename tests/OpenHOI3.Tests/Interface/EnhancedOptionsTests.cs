@@ -178,6 +178,37 @@ public class EnhancedOptionsTests
 		}
 	}
 
+	[Fact]
+	public void AModsEnhancedLocalisationFolderIsReadOnlyWhereTheModeIsOnAndAfterTheRest()
+	{
+		string root = Path.Combine(Path.GetTempPath(), "openhoi3-enhloc-" + Guid.NewGuid().ToString("N"));
+		try
+		{
+			Directory.CreateDirectory(Path.Combine(root, "localisation", "openhoi"));
+			Directory.CreateDirectory(Path.Combine(root, "tfh", "common"));
+			File.WriteAllText(Path.Combine(root, "localisation", "text.csv"), "PLAIN;Plain;;;;;;;;;;;;;x\nSHARED;The original's;;;;;;;;;;;;;x\n");
+			File.WriteAllText(Path.Combine(root, "localisation", "openhoi", "options.csv"),
+				"OPENHOI_OPT_OFF;Off;;;;;;;;;;;;;x\nSHARED;Ours;;;;;;;;;;;;;x\n");
+			var warnings = new List<string>();
+
+			// A faithful game: the folder is not read, as the original does not read it.
+			var faithful = OpenHOI3.Content.CLocalisation.Load(OpenHOI3.Content.CDirectorySettings.At(root), warn: warnings.Add);
+			Assert.Equal("Plain", faithful.Localise("PLAIN"));
+			Assert.Null(faithful.Find("OPENHOI_OPT_OFF"));
+
+			// An enhanced one: its tables after the rest, so a key both have keeps the first text, as between any two tables.
+			File.WriteAllText(Path.Combine(root, "tfh", "common", "openhoi_enhanced.txt"), "");
+			var enhanced = OpenHOI3.Content.CLocalisation.Load(OpenHOI3.Content.CDirectorySettings.At(root), warn: warnings.Add);
+			Assert.Equal("Off", enhanced.Localise("OPENHOI_OPT_OFF"));
+			Assert.Equal("Plain", enhanced.Localise("PLAIN"));
+			Assert.Equal("The original's", enhanced.Localise("SHARED"));
+		}
+		finally
+		{
+			Directory.Delete(root, recursive: true);
+		}
+	}
+
 	// --- the extra autosaves ---
 
 	[Fact]

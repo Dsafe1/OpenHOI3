@@ -30,8 +30,9 @@ This file is the order of work across the two repositories and what was decided 
   | --- | --- |
   | the file that turns the mode on | `common/openhoi_enhanced.txt` |
   | other data files of ours | `common/openhoi_*.txt` |
-  | Lua for this engine | `script/openhoi/` |
+  | Lua for this engine | `script/openhoi/`, required with a slash: `require('openhoi/x')` |
   | windows a mod defines | `interface/openhoi/` |
+  | their texts | `localisation/openhoi/` |
   | an enhanced game's saves | `save games/openhoi/` |
   | an engine a mod ships | `tfh/mod/<mod>/engine/` (`launcher.md`, section 2) |
   | a launcher a mod ships | `tfh/mod/<mod>/launcher/` |
@@ -87,13 +88,23 @@ This file is the order of work across the two repositories and what was decided 
      `settings.gui` the original would draw. **The mod declares the rows' elements itself**, in
      `interface/openhoi/gameoptions.gui`, which this engine reads in an enhanced game after the other `.gui` files -
      the first use of that folder, and the way the utility's windows are to come - and **every word is the mod's
-     localisation**, `localisation/openhoi_options.csv`: the engine words nothing (both the user's, 2026-11-21). Kept
+     localisation**, `localisation/openhoi/options.csv`: the engine words nothing (both the user's, 2026-11-21). Kept
      in `openhoi_settings.txt` beside `settings.txt`. A tab of their own can come with the release made for this
      engine alone.
    - *The utility as windows of the game*: the interface for windows a mod defines, laid out in `.gui` files under
-     `interface/openhoi/` and fed by the mod's Lua under `script/openhoi/`, with the two pages above first.
-   - Before either, one reading in the fact base: whether the original lists `interface/` and `script/` with their
-     subfolders, and what it makes of a `.gui` file or an element type it does not know.
+     `interface/openhoi/` and fed by the mod's Lua under `script/openhoi/`, with the two pages above first. Not
+     built. Agreed so far, 2026-11-22: the original's element kinds to begin with, and new kinds of this engine's
+     where a page needs one ("lets not limit ourselves"); a page's Lua answers a `Collect()` with a plain table by
+     element name and an `OnClick(name)` that may post commands and changes nothing itself; and **no single file
+     that registers the windows** - one a submod would have to overwrite - but a file a page, found by listing a
+     folder over every layer, so that a submod adds a page by adding its files.
+   - **The fact base's reading is done, 2026-11-22** (`reversing/findings/FINDINGS-guifolders.md`): the original
+     never opens a subfolder of `interface`, `localisation` or `script` - its listing takes one folder and drops
+     directories, and `script` is not listed at all, a file there opened only by a `require` that names it, with a
+     slash and not a dot; a top-level window no code asks for is an unused type; an extra child of a window the
+     original makes is built, shown and drawn; and an unknown kind inside a `.gfx` type block is a null write as it
+     loads, so no new kind goes into a `.gfx` file the original reads. So everything of this engine's in the three
+     folders is in their `openhoi` subfolder, the localisation tables with it since that day.
 7. **The fixes and the rules** of `enhanced.md`, *BiceLib's features, each one's place*, one at a time, each with its
    name in `CFixes` or its define, a test for each arm, and where the DLL needs it for the original a second
    declaration in the mod.

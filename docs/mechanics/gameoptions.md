@@ -115,8 +115,10 @@ original would draw, its contents never hidden.
   any missing window is. The first shape of it, the engine copying the tab's autosave row, lasted an hour.
 - **A mod keeps such files in `interface/openhoi/`**, a folder of its own, read after `interface/*.gui` and only in an
   enhanced game (`CGuiTypes.EnhancedDirectory`). They are not in `settings.gui` because the original reads that and
-  draws what it finds in a window it makes. What stands in a folder of ours is nothing to the original even should it
-  read the file: it makes a window only where its code asks for one by name, and none asks for these. BlackICE's is
+  draws what it finds in a window it makes - every child a window declares is built, shown and drawn with it, asked
+  for by name or not. **The original never opens a subfolder of `interface`, `localisation` or `script`**: its
+  listing takes one folder and drops directories, and it lists `script` not at all - read on 2026-11-22
+  (`reversing/findings/FINDINGS-guifolders.md`). BlackICE's is
   `interface/openhoi/gameoptions.gui`, each row its `settings.gui`'s autosave row 46 pixels further down.
 - **Each is stepped by its arrows and wraps at its ends**, as the frequency above them (`CEnhancedOptions`):
   - *Save before the month ends*: Off, then 1 to 27 days before the 1st of the next month (`savegame.md`, section
@@ -133,9 +135,11 @@ original would draw, its contents never hidden.
   localisation."): the engine words nothing, and a key no table has shows as itself, as every missing text does. A
   label's key is whatever its file says. A value's is the engine's (`CEnhancedOptionsText`): `OPENHOI_OPT_OFF`,
   `OPENHOI_OPT_ON`, `OPENHOI_OPT_PREMONTH_ONE`, `OPENHOI_OPT_PREMONTH_DAYS` with `$DAYS$`, `OPENHOI_OPT_TIMED_MINUTES`
-  with `$MINUTES$`, `OPENHOI_OPT_EVENT_DEFAULT`, `OPENHOI_OPT_EVENT_LEFT`, `OPENHOI_OPT_EVENT_CENTRE`. BlackICE's are in
-  `localisation/openhoi_options.csv`, which the original reads too and has no use for. A value has the width between
-  the two arrows and no more.
+  with `$MINUTES$`, `OPENHOI_OPT_EVENT_DEFAULT`, `OPENHOI_OPT_EVENT_LEFT`, `OPENHOI_OPT_EVENT_CENTRE`. **A mod keeps such
+  tables in `localisation/openhoi/`**, read after `localisation/*.csv` and only in an enhanced game
+  (`CLocalisation.EnhancedDirectory`); a key both have keeps the first text, as between any two tables. BlackICE's are
+  in `localisation/openhoi/options.csv` (in `localisation/` itself for a day, where the original read them too). A
+  value has the width between the two arrows and no more.
 - **Made again from their file at every opening and stored by Apply**, after `settings.txt` is written: in force at
   once and written to **`openhoi_settings.txt`** in the player's folder, beside `settings.txt` and not in it - the
   original reads that one too and has to find it as it wrote it (`CEnhancedSettingsFile`; UTF-8, four keys:
