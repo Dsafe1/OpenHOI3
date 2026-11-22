@@ -30,6 +30,9 @@ public interface IModWindowCanvas
 	bool Checkbox(string label, ref bool value);
 	bool InputText(string label, ref string value, int maxLength);
 	bool InputInt(string label, ref int value);
+
+	/// <summary>A box a number is typed into, shown to that many decimals, with no buttons beside it.</summary>
+	bool InputFloat(string label, ref double value, int decimals);
 	bool SliderInt(string label, ref int value, int min, int max);
 	bool SliderFloat(string label, ref float value, float min, float max);
 	bool Combo(string label, ref int index, IReadOnlyList<string> items);
@@ -39,6 +42,12 @@ public interface IModWindowCanvas
 
 	/// <summary>Whether the item last drawn is held or typed into.</summary>
 	bool IsItemActive();
+
+	/// <summary>Whether the item last drawn was let go of this frame, changed: a slider released, a box left.</summary>
+	bool IsItemDeactivatedAfterEdit();
+
+	/// <summary>A bar filled to a share of its width, a text over it; a width of nought is the room left.</summary>
+	void ProgressBar(float fraction, float width, string text);
 	void SetTooltip(string text);
 
 	/// <summary>

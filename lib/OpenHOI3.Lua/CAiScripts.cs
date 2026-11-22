@@ -573,7 +573,20 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	/// </summary>
 	public object?[]? CallInGame(CGameState state, string function, int results, params object?[] arguments)
 	{
+		return CallInGame(state, null, function, results, arguments);
+	}
+
+	/// <summary>
+	/// The same, with a place for what the Lua posts while it runs - <c>CCurrentGameState.Post</c>, <c>ai:Post</c> - in
+	/// the stead of the game's own outbox: a page's Lua is no script of the game's but the player's hand, and what it
+	/// posts has to go the way a player's order goes.
+	/// </summary>
+	public object?[]? CallInGame(CGameState state, List<Sim.Commands.CCommand>? posted, string function, int results,
+		params object?[] arguments)
+	{
 		_state = state;
+		List<Sim.Commands.CCommand>? before = _api.Posted;
+		_api.Posted = posted ?? before;
 		try
 		{
 			return _lua.Call(function, results, arguments);
@@ -582,6 +595,10 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		{
 			Fail(e.Message);
 			return null;
+		}
+		finally
+		{
+			_api.Posted = before;
 		}
 	}
 

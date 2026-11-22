@@ -103,8 +103,12 @@ This file is the order of work across the two repositories and what was decided 
      order as it draws and the screen posts it (`mechanics/modwindows.md`, section 6.1). **And eight more pages**, the
      same day: the Inspector's Active Variables and Active Event Modifiers, and Game Info whole - Traits, Generals,
      Modifiers, Techs, Units, Unit Models - on BlackICE's own data functions, which run here as they are
-     (`mechanics/modwindows.md`, section 6.3). **Not built**: the overlay's remaining pages - Setup, the rest of
-     Country Info, Stats, Options, Help and the Inspector's larger ones. The setting's effect for script is not wanted for now (`enhanced.md`, *Rules*). Agreed, 2026-11-22: **no single file that registers the pages** - one a submod would have to
+     (`mechanics/modwindows.md`, section 6.3). **And Country Info whole**, the same day: Country Modifiers,
+     IC Days, Puppets, Strategic Res., Strategic Trades, Global Market, National Focus, Minister Buildings and the
+     three AI forms, their setters posting the original's `CSetVariableCommand` as the page gathers, which goes the
+     way of a player's order (section 6.1). **Not built**: the overlay's remaining pages - Setup, Stats, Options,
+     Help and the Inspector's larger ones; and the two reads Country Modifiers asks of BiceLib, a country's offmap
+     IC and its trickleback. The setting's effect for script is not wanted for now (`enhanced.md`, *Rules*). Agreed, 2026-11-22: **no single file that registers the pages** - one a submod would have to
      overwrite - but a file a page, found by listing a folder over every layer; and the widgets a page may ask for
      grow as pages need them ("lets not limit ourselves"). What a mod declares in `.gui` files stays for what stands
      inside the game's own windows, as the game options' rows do.

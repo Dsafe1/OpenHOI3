@@ -35,7 +35,7 @@ public sealed class CLuaImGui
 		"Text", "TextDisabled", "TextWrapped", "TextColored", "Separator", "SeparatorText", "SameLine", "Spacing", "NewLine",
 		"SetNextItemWidth", "Button", "SmallButton", "Selectable", "Checkbox", "InputText", "InputInt", "InputTextMultiline", "GetContentRegionAvail", "SliderInt", "SliderFloat",
 		"Combo", "CollapsingHeader", "IsItemHovered", "SetTooltip", "BeginTable", "BeginPanes", "TableSetupColumn", "TableHeadersRow",
-		"IsItemActive", "IsWindowFocused", "IsKeyPressed", "SetScrollHereY", "SetClipboardText", "ImageSize", "Image",
+		"IsItemActive", "IsItemDeactivatedAfterEdit", "ProgressBar", "InputFloat", "IsWindowFocused", "IsKeyPressed", "SetScrollHereY", "SetClipboardText", "ImageSize", "Image",
 		"TableNextRow", "TableNextColumn", "EndTable", "BeginTabBar", "EndTabBar", "BeginTabItem", "EndTabItem",
 		"BeginChild", "EndChild", "TreeNode", "TreePop", "PushID", "PopID", "BeginDisabled", "EndDisabled",
 	};
@@ -84,6 +84,10 @@ public sealed class CLuaImGui
 			["CollapsingHeader"] = call => Ask(call, canvas => canvas.CollapsingHeader(call.String(1))),
 			["IsItemHovered"] = call => Ask(call, canvas => canvas.IsItemHovered()),
 			["IsItemActive"] = call => Ask(call, canvas => canvas.IsItemActive()),
+			["IsItemDeactivatedAfterEdit"] = call => Ask(call, canvas => canvas.IsItemDeactivatedAfterEdit()),
+			["ProgressBar"] = call => Do(call, canvas => canvas.ProgressBar((float)call.Number(1),
+				call.ArgumentCount >= 2 ? (float)call.Number(2) : 0f, call.ArgumentCount >= 3 ? call.String(3) : "")),
+			["InputFloat"] = InputFloat,
 			["SetTooltip"] = call => Do(call, canvas => canvas.SetTooltip(call.String(1))),
 			["BeginTable"] = call => Begin(call, EScope.Table, canvas => canvas.BeginTable(call.String(1), call.Integer(2), false)),
 			// Columns side by side with a divider to drag; ended by EndTable, as a table is.
@@ -262,6 +266,15 @@ public sealed class CLuaImGui
 			_open.Add(EScope.Disabled);
 		}
 		return 0;
+	}
+
+	/// <summary><c>InputFloat(label, value [, decimals])</c>, answering <c>changed, value</c>.</summary>
+	private int InputFloat(CLuaCall call)
+	{
+		double value = call.Number(2);
+		int decimals = call.ArgumentCount >= 3 ? call.Integer(3) : 2;
+		bool changed = Canvas is { } canvas && canvas.InputFloat(call.String(1), ref value, decimals);
+		return call.ReturnMany(changed, value);
 	}
 
 	private int InputInt(CLuaCall call)

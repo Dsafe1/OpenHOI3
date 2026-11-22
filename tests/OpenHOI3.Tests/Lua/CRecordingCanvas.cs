@@ -129,6 +129,23 @@ public sealed class CRecordingCanvas : IModWindowCanvas
 
 	public bool IsItemHovered() => false;
 	public bool IsItemActive() => false;
+	public bool IsItemDeactivatedAfterEdit() => Released;
+
+	/// <summary>Whether an item answers let go of after an edit.</summary>
+	public bool Released { get; set; }
+
+	public void ProgressBar(float fraction, float width, string text) => Calls.Add($"ProgressBar {(int)(fraction * 100)} {text}");
+
+	public bool InputFloat(string label, ref double value, int decimals)
+	{
+		Calls.Add($"InputFloat {label} {(long)(value * 1000)} {decimals}");
+		if (!TypedNumbers.TryGetValue(label, out int typed))
+		{
+			return false;
+		}
+		value = typed;
+		return true;
+	}
 	public void SetTooltip(string text) => Calls.Add("SetTooltip " + text);
 
 	public bool BeginTable(string id, int columns, bool panes)

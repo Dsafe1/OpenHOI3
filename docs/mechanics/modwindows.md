@@ -100,7 +100,8 @@ place and size, which the library remembers - is the engine's; a page draws what
 | room | `GetContentRegionAvail()`, answering `width, height` - what is left to the right and below, for sharing out |
 | parts | `BeginChild(id [, width, height])`, `EndChild`, `TreeNode`, `TreePop`, `PushID`, `PopID` |
 | greyed | `BeginDisabled(disabled)`, `EndDisabled` - what stands between is greyed and takes no press where `disabled` is true; ended whatever was given |
-| the item before | `IsItemHovered`, `IsItemActive` - held, or typed into - `SetTooltip(text)` |
+| the item before | `IsItemHovered`, `IsItemActive` - held, or typed into - `IsItemDeactivatedAfterEdit` - let go of this frame, changed: a slider released - `SetTooltip(text)` |
+| a number and a bar | `InputFloat(label, value [, decimals])`, answering `changed, value` - a box with no buttons beside it; `ProgressBar(share [, width, text])` - filled to a share of its width, the text over it |
 
 **A text is a text**: a percent sign in what a page gives `TextDisabled`, `TextWrapped`, `TextColored` or
 `SetTooltip` is drawn as one. The library takes those four as a format in the C manner, and a page's "100%" lost its
@@ -186,6 +187,16 @@ so that half a number is never an order.
 **The orders a page may give are the ones the engine names**, each a function under `OpenHOI3` that makes one
 command: the conversion's is the first. A command a mod defines itself, its body an effect block
 (`docs/enhanced.md`, *What mods build on*), is not built.
+
+**And the original's own commands, posted the original's own way.** A mod's Lua that already changes the game by
+`CCurrentGameState.Post(CSetVariableCommand(tag, name, value))` - every setter of BlackICE's data functions does -
+may go on doing so from a page, **in its `Collect`**, where the game's classes answer: while a page gathers, what
+the Lua posts is kept with the page's orders (`CAiScripts.CallInGame` with a place for it) and the screen posts it
+as it posts the others. It does not go into the game's outbox from there - a page's Lua is the player's hand and
+not a script of the game's - so it reaches the host between several machines and a recording like any order. So a
+press that sets something is noted as the page draws and done as it next gathers, which it asks for at once
+(section 6.2); BlackICE's `pagekit.lua` has that as `Kit.Ask`. **A page may so post for any country**, as on the
+original, where nothing checks whose variable a machine sets: no rule for it is decided.
 
 ### 6.2 A page that shows what was just chosen
 
@@ -275,7 +286,17 @@ that is before the library's layer too, so no page ever heard one - nor could a 
 one. `CModWindows._Input` now hands an arrow key to the library itself while the window has the keyboard, as it
 hands the mouse. **Not tried by hand since, and no scripted run can try it**: the library takes the pointer's place
 from the system and not from a scripted event, so a scripted click never lands on the window - which is also why a
-scripted click over it reaches the map, where a real one does not.
+scripted click over it reaches the map, where a real one does not. The user tried the keys, the drag over an event
+window and the divider by hand the same day: "looks good".
+
+**Country Info's pages**, 2026-11-22: `LuaPagesTests` has a page post the original's `CSetVariableCommand` as it
+gathers - the command among the page's orders, the game's outbox empty, the variable untouched. With
+`--screen=modwindows:<page>` all eleven were drawn on a new game's first hour with the mod's own data: Country
+Modifiers' four sections - Germany's base IC 258, IC modifier 19.50% - IC Days, Puppets, Strategic Res., Strategic
+Trades, Global Market, National Focus, Minister Buildings, and the three forms on their defaults, "Never
+configured". Two figures of Country Modifiers the mod asks of BiceLib and has none of here: Offmap IC reads 0 and
+Trickleback "unavailable". **Nothing was set in a run**: the slider, the focus buttons, the checkboxes and the
+forms' Apply and Enable are to be tried by hand.
 
 ## Not built
 

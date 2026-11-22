@@ -215,6 +215,40 @@ public sealed class LuaPagesTests : IDisposable
 	}
 
 	[Fact]
+	public void WhatTheLuaPostsAsAPageGathersIsThePagesOrderAndNotTheGamesOutbox()
+	{
+		// The original's own way of setting a variable, as BlackICE's data functions do it.
+		Page("sets", "local ImGui = OpenHOI3.ImGui local want = false return { "
+			+ "Collect = function(player) if want then want = false "
+			+ "CCurrentGameState.Post(CSetVariableCommand(CCountryDataBase.GetTag(player), CString('national_focus'), CFixedPoint(3))) end "
+			+ "return {} end, "
+			+ "Draw = function() if ImGui.Button('set') then want = true OpenHOI3.Refresh() end "
+			+ "local changed, value = ImGui.InputFloat('##n', 2.5, 2) ImGui.ProgressBar(0.25, 0, '25%') "
+			+ "ImGui.Text(tostring(ImGui.IsItemDeactivatedAfterEdit())) end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			CGameState state = State();
+			var canvas = new CRecordingCanvas();
+			canvas.Pressed.Add("set");
+			windows.Draw(windows.Pages[0], Ger, canvas);
+			Assert.Equal(new[] { "Button set", "InputFloat ##n 2500 2", "ProgressBar 25 25%", "Text false" }, canvas.Calls);
+			Assert.True(windows.TakeRefresh());
+			Assert.Empty(windows.TakePosted());
+
+			windows.Collect(state, windows.Pages[0], Ger);
+			Assert.Empty(state.Outbox);
+			var posted = Assert.IsType<OpenHOI3.Sim.Commands.CSetVariableCommand>(Assert.Single(windows.TakePosted()));
+			Assert.Equal(Ger, posted.Country);
+			Assert.Equal("national_focus", posted.Name);
+			Assert.Equal(CFixedPoint.FromInt(3), posted.Value);
+			// Nothing was changed by the gathering itself: the order is the screen's to post.
+			Assert.False(state.Countries[0].Variables.ContainsKey("national_focus"));
+			Assert.Empty(_reports);
+		}
+	}
+
+	[Fact]
 	public void APageReadsWhereALeaderIs()
 	{
 		Page("leader", "local ImGui = OpenHOI3.ImGui return { "

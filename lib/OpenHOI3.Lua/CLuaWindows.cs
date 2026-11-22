@@ -191,7 +191,10 @@ public sealed class CLuaWindows : IModPages
 		_state = state;
 		try
 		{
-			if (_scripts.CallInGame(state, "__ohoi_window_collect", 0, page.Name, player.Value) is not null)
+			// What the mod's Lua posts as the page gathers - a data function of the mod's own setting a country's
+			// variable with the original's CSetVariableCommand - joins the page's orders, and the screen posts it as
+			// a player's order; it does not go into the game's outbox from here.
+			if (_scripts.CallInGame(state, _posted, "__ohoi_window_collect", 0, page.Name, player.Value) is not null)
 			{
 				// Gathered afresh, a page whose drawing failed is tried again.
 				_failed.Remove(page.Name);

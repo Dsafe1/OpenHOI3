@@ -50,6 +50,9 @@ public sealed class CImGuiCanvas : IModWindowCanvas
 
 	public bool InputInt(string label, ref int value) => ImGui.InputInt(label, ref value);
 
+	public bool InputFloat(string label, ref double value, int decimals) =>
+		ImGui.InputDouble(label, ref value, 0.0, 0.0, "%." + System.Math.Clamp(decimals, 0, 6) + "f");
+
 	public bool SliderInt(string label, ref int value, int min, int max) => ImGui.SliderInt(label, ref value, min, max);
 
 	public bool SliderFloat(string label, ref float value, float min, float max) => ImGui.SliderFloat(label, ref value, min, max);
@@ -65,6 +68,11 @@ public sealed class CImGuiCanvas : IModWindowCanvas
 	public bool IsItemHovered() => ImGui.IsItemHovered();
 
 	public bool IsItemActive() => ImGui.IsItemActive();
+
+	public bool IsItemDeactivatedAfterEdit() => ImGui.IsItemDeactivatedAfterEdit();
+
+	public void ProgressBar(float fraction, float width, string text) =>
+		ImGui.ProgressBar(fraction, new System.Numerics.Vector2(width > 0f ? width : -1f, 0f), text);
 
 	public void SetTooltip(string text) => ImGui.SetTooltip(Plain(text));
 
