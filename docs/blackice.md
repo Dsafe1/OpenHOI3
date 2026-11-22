@@ -31,7 +31,8 @@ This file is the order of work across the two repositories and what was decided 
   | the file that turns the mode on | `common/openhoi_enhanced.txt` |
   | other data files of ours | `common/openhoi_*.txt` |
   | Lua for this engine | `script/openhoi/`, required with a slash: `require('openhoi/x')` |
-  | windows a mod defines | `interface/openhoi/` |
+  | elements of the mod's inside the game's own windows | `interface/openhoi/` |
+  | windows of the mod's own, a page a file | `script/openhoi/windows/` |
   | their texts | `localisation/openhoi/` |
   | an enhanced game's saves | `save games/openhoi/` |
   | an engine a mod ships | `tfh/mod/<mod>/engine/` (`launcher.md`, section 2) |
@@ -91,16 +92,17 @@ This file is the order of work across the two repositories and what was decided 
      localisation**, `localisation/openhoi/options.csv`: the engine words nothing (both the user's, 2026-11-21). Kept
      in `openhoi_settings.txt` beside `settings.txt`. A tab of their own can come with the release made for this
      engine alone.
-   - *The utility as windows of the game*: the interface for windows a mod defines, laid out in `.gui` files under
-     `interface/openhoi/` and fed by the mod's Lua under `script/openhoi/`, with the two pages above first.
-     **Begun 2026-11-22** (`mechanics/modwindows.md`): the menu of pages on Insert, a page for each file of
-     `script/openhoi/windows/`, its `Collect` filling the window, a click handed to its `OnClick`, and the first
-     page, BlackICE's Active Flags. **Not built**: a page that posts commands - the conversion of resources, which
-     waits for that setting's own command - and the overlay's other pages. Agreed, 2026-11-22: the original's element kinds to begin with, and new kinds of this engine's
-     where a page needs one ("lets not limit ourselves"); a page's Lua answers a `Collect()` with a plain table by
-     element name and an `OnClick(name)` that may post commands and changes nothing itself; and **no single file
-     that registers the windows** - one a submod would have to overwrite - but a file a page, found by listing a
-     folder over every layer, so that a submod adds a page by adding its files.
+   - *The utility as windows of its own*, with the two pages above first. **Built 2026-11-22 as far as a page that
+     reads** (`mechanics/modwindows.md`): **drawn with Dear ImGui by the page's own Lua** - the user's decision of that
+     day, on seeing the first shape, pages laid out in the original's `.gui` elements, which he did not like the look
+     of and which is gone. The menu of pages on Insert; a page for each file of `script/openhoi/windows/`, its
+     `Collect` reading the game now and then and its `Draw` drawing every frame with `OpenHOI3.ImGui`, given no game
+     to ask; every page a window of its own; and the first page, BlackICE's Active Flags. **Not built**: a page that
+     changes the game - the conversion of resources, which waits for that setting's own command - and the overlay's
+     other pages. Agreed, 2026-11-22: **no single file that registers the pages** - one a submod would have to
+     overwrite - but a file a page, found by listing a folder over every layer; and the widgets a page may ask for
+     grow as pages need them ("lets not limit ourselves"). What a mod declares in `.gui` files stays for what stands
+     inside the game's own windows, as the game options' rows do.
    - **The fact base's reading is done, 2026-11-22** (`reversing/findings/FINDINGS-guifolders.md`): the original
      never opens a subfolder of `interface`, `localisation` or `script` - its listing takes one folder and drops
      directories, and `script` is not listed at all, a file there opened only by a `require` that names it, with a

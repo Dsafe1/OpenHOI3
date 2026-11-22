@@ -585,6 +585,26 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		}
 	}
 
+	/// <summary>
+	/// A global function of the state called with no game to ask - what a mod's page draws itself through, every frame
+	/// and while the game's hours run beside it, so that it cannot read a game being changed: a class of the game's
+	/// asked there raises a Lua error. Answers the error's text, reported too, or null where the call went through.
+	/// </summary>
+	public string? CallOutsideGame(string function, params object?[] arguments)
+	{
+		_state = null;
+		try
+		{
+			_lua.Call(function, 0, arguments);
+			return null;
+		}
+		catch (CLuaException e)
+		{
+			Fail(e.Message);
+			return e.Message;
+		}
+	}
+
 	/// <summary>A chunk run in the state, a Lua error reported and false answered.</summary>
 	public bool RunChunk(byte[] chunk, string name)
 	{

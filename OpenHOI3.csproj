@@ -4,6 +4,7 @@
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <RootNamespace>OpenHOI3</RootNamespace>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!--
       The export ships its code compiled ahead, the game and the four libraries alike, so that nothing is compiled while it
       runs: a new game made and a day run took 7.4 s where it took 7.9 (2026-11-12, the savegame tool published both ways).
@@ -34,5 +35,6 @@
     <ProjectReference Include="lib/OpenHOI3.Content/OpenHOI3.Content.csproj" />
     <ProjectReference Include="lib/OpenHOI3.Interface/OpenHOI3.Interface.csproj" />
     <ProjectReference Include="lib/OpenHOI3.Lua/OpenHOI3.Lua.csproj" />
+    <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
   </ItemGroup>
 </Project>

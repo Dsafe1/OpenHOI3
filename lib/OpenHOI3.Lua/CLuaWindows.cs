@@ -13,67 +13,53 @@ namespace OpenHOI3.Lua;
 
 /// <summary>
 /// The windows a mod defines for an enhanced game, as its Lua gives them (<c>docs/mechanics/modwindows.md</c>). Every
-/// <c>.lua</c> file of <c>script/openhoi/windows</c>, over all the layers, is a page: the file returns a table naming
-/// the window of <c>interface/openhoi</c> it fills (<c>window</c>), the key of its name on the menu (<c>title</c>),
-/// its place there (<c>order</c>), and two functions - <c>Collect(player)</c>, which answers a table by element name,
-/// and <c>OnClick(element, row, player)</c>. So a page is added by adding its files, and nothing lists them in one
-/// place a submod would have to overwrite.
+/// <c>.lua</c> file of <c>script/openhoi/windows</c>, over all the layers, is a page: the file returns a table with
+/// the key of its name (<c>title</c>), its place on the menu (<c>order</c>), and two functions -
+/// <c>Collect(player)</c>, which reads the game and answers whatever the page will show, and
+/// <c>Draw(data, player)</c>, which draws that with <c>OpenHOI3.ImGui</c> (<see cref="CLuaImGui"/>). So a page is
+/// added by adding its file, and nothing lists the pages in one place a submod would have to overwrite.
 ///
-/// A <c>Collect</c>'s table, each entry by the name of an element of the window: a string or a number is its text; a
-/// boolean, whether it is shown; a list of tables, the rows of the list box of that name, each row a table of the same
-/// kind for the elements of the list's entry window.
-///
-/// The pages run in a Lua state the screens have for themselves, never the one the AI's ministers run in, and only
-/// read: what a page may change, it changes by posting a command.
+/// The two are apart because a page is drawn every frame, the frames in which the game's hours run beside it among
+/// them: <c>Draw</c> is given no game to ask, and reads only what <c>Collect</c> kept when the game stood still.
+/// The pages run in a Lua state the screens have for themselves, never the one the AI's ministers run in.
 /// </summary>
-public sealed class CLuaWindows : IModWindows
+public sealed class CLuaWindows : IModPages
 {
 	/// <summary>The folder a mod keeps its pages in, a file a page.</summary>
 	public const string Folder = "script/openhoi/windows";
 
 	/// <summary>
-	/// The Lua the pages are kept and called through, and what the engine gives them under <c>OpenHOI3</c>:
-	/// <c>Localise(key)</c>, <c>CountryFlags(tag)</c> and <c>GlobalFlags()</c>, each list sorted by name.
+	/// The Lua the pages are kept and called through, and what the engine gives them under <c>OpenHOI3</c> beside the
+	/// widgets: <c>Localise(key)</c>, <c>CountryFlags(tag)</c> and <c>GlobalFlags()</c>, each list sorted by name.
 	/// </summary>
 	private const string Glue =
-		"local w_text, w_shown, w_list, w_row, w_end = __ohoi_w_text, __ohoi_w_shown, __ohoi_w_list, __ohoi_w_row, __ohoi_w_end " +
 		"local localise, countryflags, globalflags = __ohoi_w_localise, __ohoi_w_countryflags, __ohoi_w_globalflags " +
-		"__ohoi_w_text, __ohoi_w_shown, __ohoi_w_list, __ohoi_w_row, __ohoi_w_end = nil, nil, nil, nil, nil " +
 		"__ohoi_w_localise, __ohoi_w_countryflags, __ohoi_w_globalflags = nil, nil, nil " +
-		"local pages = {} " +
+		"local pages, data = {}, {} " +
 		"local function lines(joined) local list = {} " +
 		"for line in string.gmatch(joined or '', '[^\\n]+') do list[#list + 1] = line end return list end " +
 		"OpenHOI3.Localise = function(key) return localise(tostring(key)) end " +
 		"OpenHOI3.CountryFlags = function(tag) return lines(countryflags(tostring(tag))) end " +
 		"OpenHOI3.GlobalFlags = function() return lines(globalflags()) end " +
-		"local function apply(map) for name, value in pairs(map) do local kind = type(value) " +
-		"if kind == 'string' or kind == 'number' then w_text(tostring(name), tostring(value)) " +
-		"elseif kind == 'boolean' then w_shown(tostring(name), value) end end end " +
 		"function __ohoi_window_register(name, page) " +
 		"if type(page) ~= 'table' then error('the page ' .. name .. ' does not return a table', 0) end " +
-		"if type(page.window) ~= 'string' then error('the page ' .. name .. ' names no window', 0) end " +
-		"pages[name] = page return page.window, tostring(page.title or ''), tonumber(page.order) or 0 end " +
+		"if type(page.Draw) ~= 'function' then error('the page ' .. name .. ' has no Draw function', 0) end " +
+		"pages[name] = page return tostring(page.title or ''), tonumber(page.order) or 0 end " +
 		"function __ohoi_window_collect(name, player) local page = pages[name] " +
-		"if type(page.Collect) ~= 'function' then return end " +
-		"local data = page.Collect(player) if type(data) ~= 'table' then return end " +
-		"apply(data) " +
-		"for list, rows in pairs(data) do if type(rows) == 'table' then w_list(tostring(list)) " +
-		"for i = 1, #rows do w_row() if type(rows[i]) == 'table' then apply(rows[i]) end w_end() end end end end " +
-		"function __ohoi_window_click(name, player, element, row) local page = pages[name] " +
-		"if type(page.OnClick) == 'function' then page.OnClick(element, row, player) end end";
+		"if type(page.Collect) == 'function' then data[name] = page.Collect(player) end end " +
+		"function __ohoi_window_draw(name, player) pages[name].Draw(data[name], player) end";
 
 	private readonly CAiScripts _scripts;
 	private readonly Func<string, string> _localise;
 	private readonly Action<string> _report;
-	private readonly List<CModWindowPage> _pages = new();
+	private readonly CLuaImGui _widgets = new();
+	private readonly List<CModPage> _pages = new();
 
-	/// <summary>The game being asked, while a page runs.</summary>
+	/// <summary>Why each page's drawing failed, shown in its window until the page is gathered again.</summary>
+	private readonly Dictionary<string, string> _failed = new(StringComparer.Ordinal);
+
+	/// <summary>The game being asked, while a page gathers.</summary>
 	private CGameState? _state;
-
-	/// <summary>What the page running is filling: its data, the list being filled and the row.</summary>
-	private CModWindowData? _data;
-	private List<CModWindowRow>? _list;
-	private CModWindowRow? _row;
 
 	/// <param name="scripts">The Lua state the screens have for themselves, the install's scripts loaded.</param>
 	/// <param name="localise">The localisation, which a page asks through <c>OpenHOI3.Localise</c>.</param>
@@ -83,16 +69,20 @@ public sealed class CLuaWindows : IModWindows
 		_localise = localise;
 		_report = report ?? CDiagnostics.Warn;
 		CLuaState lua = scripts.Lua;
-		lua.SetGlobal("__ohoi_w_text", (CLuaFunction)Text);
-		lua.SetGlobal("__ohoi_w_shown", (CLuaFunction)Shown);
-		lua.SetGlobal("__ohoi_w_list", (CLuaFunction)List);
-		lua.SetGlobal("__ohoi_w_row", (CLuaFunction)Row);
-		lua.SetGlobal("__ohoi_w_end", (CLuaFunction)End);
 		lua.SetGlobal("__ohoi_w_localise", (CLuaFunction)(call => call.Return(_localise(call.String(1)))));
 		lua.SetGlobal("__ohoi_w_countryflags", (CLuaFunction)CountryFlags);
 		lua.SetGlobal("__ohoi_w_globalflags", (CLuaFunction)GlobalFlags);
 		if (!scripts.RunChunk(Encoding.Latin1.GetBytes(Glue), "=OpenHOI3"))
 		{
+			return;
+		}
+		try
+		{
+			_widgets.Install(lua);
+		}
+		catch (CLuaException e)
+		{
+			_report("LUA Error: " + e.Message);
 			return;
 		}
 		foreach (string file in directories.ListFiles(Folder, "*.lua"))
@@ -102,7 +92,7 @@ public sealed class CLuaWindows : IModWindows
 		_pages.Sort((a, b) => a.Order != b.Order ? a.Order.CompareTo(b.Order) : string.CompareOrdinal(a.Name, b.Name));
 	}
 
-	public IReadOnlyList<CModWindowPage> Pages => _pages;
+	public IReadOnlyList<CModPage> Pages => _pages;
 
 	/// <summary>
 	/// A page's file run and its table kept: the file is the body of a function whose answer is registered under the
@@ -128,63 +118,41 @@ public sealed class CLuaWindows : IModWindows
 			return;
 		}
 		// On the file's own first line, so that a Lua error names the file's line.
-		byte[] head = Encoding.Latin1.GetBytes($"__ohoi_w_page = (function() ");
+		byte[] head = Encoding.Latin1.GetBytes("__ohoi_w_page = (function() ");
 		byte[] tail = Encoding.Latin1.GetBytes("\nend)()");
 		if (!_scripts.RunChunk(head.Concat(body).Concat(tail).ToArray(), Folder + "/" + Path.GetFileName(file)))
 		{
 			return;
 		}
-		object?[]? answer = null;
-		if (_scripts.RunChunk(Encoding.Latin1.GetBytes(
+		if (!_scripts.RunChunk(Encoding.Latin1.GetBytes(
 			$"function __ohoi_w_register() local page = __ohoi_w_page __ohoi_w_page = nil return __ohoi_window_register('{name}', page) end"), "=OpenHOI3"))
 		{
-			// No game is asked while a page is registered: a page that reads one at its top level fails here, and says so.
-			answer = CallQuietly("__ohoi_w_register", 3);
+			return;
 		}
-		if (answer is [string window, string title, double order])
-		{
-			_pages.Add(new CModWindowPage(name, window, title, (int)order));
-		}
-	}
-
-	private object?[]? CallQuietly(string function, int results)
-	{
 		try
 		{
-			return _scripts.Lua.Call(function, results);
+			// No game is asked while a page is registered: a page reads one in its Collect.
+			if (_scripts.Lua.Call("__ohoi_w_register", 2) is [string title, double order])
+			{
+				_pages.Add(new CModPage(name, title, (int)order));
+			}
 		}
 		catch (CLuaException e)
 		{
 			_report("LUA Error: " + e.Message);
-			return null;
 		}
 	}
 
-	public CModWindowData? Collect(CGameState state, CModWindowPage page, CCountryTag player)
-	{
-		_state = state;
-		_data = new CModWindowData();
-		_list = null;
-		_row = null;
-		try
-		{
-			return _scripts.CallInGame(state, "__ohoi_window_collect", 0, page.Name, player.Value) is null ? null : _data;
-		}
-		finally
-		{
-			_state = null;
-			_data = null;
-			_list = null;
-			_row = null;
-		}
-	}
-
-	public void Click(CGameState state, CModWindowPage page, CCountryTag player, string element, int row)
+	public void Collect(CGameState state, CModPage page, CCountryTag player)
 	{
 		_state = state;
 		try
 		{
-			_scripts.CallInGame(state, "__ohoi_window_click", 0, page.Name, player.Value, element, (double)row);
+			if (_scripts.CallInGame(state, "__ohoi_window_collect", 0, page.Name, player.Value) is not null)
+			{
+				// Gathered afresh, a page whose drawing failed is tried again.
+				_failed.Remove(page.Name);
+			}
 		}
 		finally
 		{
@@ -192,51 +160,33 @@ public sealed class CLuaWindows : IModWindows
 		}
 	}
 
-	private CModWindowRow? Target => _row ?? _data?.Window;
-
-	private int Text(CLuaCall call)
+	public void Draw(CModPage page, CCountryTag player, IModWindowCanvas canvas)
 	{
-		if (Target is { } target)
+		if (_failed.TryGetValue(page.Name, out string? why))
 		{
-			target.Texts[call.String(1)] = call.String(2);
+			canvas.TextWrapped(why);
+			return;
 		}
-		return 0;
-	}
-
-	private int Shown(CLuaCall call)
-	{
-		if (Target is { } target)
+		_widgets.Canvas = canvas;
+		try
 		{
-			target.Shown[call.String(1)] = call.Boolean(2);
+			string? error = _scripts.CallOutsideGame("__ohoi_window_draw", page.Name, player.Value);
+			// Whatever the page left open is ended for it, a failure half way among it; the library forgives neither.
+			_widgets.CloseAll();
+			if (error is not null)
+			{
+				_failed[page.Name] = error;
+			}
+			else if (_widgets.TakeUnmatched() > 0)
+			{
+				_failed[page.Name] = $"LUA Error: the page {page.Name} ends a table, a tab or a child it did not begin";
+				_report(_failed[page.Name]);
+			}
 		}
-		return 0;
-	}
-
-	/// <summary>A list box named: its rows follow, none where the page gave an empty list.</summary>
-	private int List(CLuaCall call)
-	{
-		if (_data is { } data)
+		finally
 		{
-			_list = new List<CModWindowRow>();
-			data.Lists[call.String(1)] = _list;
+			_widgets.Canvas = null;
 		}
-		return 0;
-	}
-
-	private int Row(CLuaCall call)
-	{
-		if (_list is { } list)
-		{
-			_row = new CModWindowRow();
-			list.Add(_row);
-		}
-		return 0;
-	}
-
-	private int End(CLuaCall call)
-	{
-		_row = null;
-		return 0;
 	}
 
 	/// <summary>The flags a country holds, sorted by name and joined by line breaks; empty for a tag that is no country's.</summary>

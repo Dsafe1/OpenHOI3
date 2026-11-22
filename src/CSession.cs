@@ -894,14 +894,15 @@ public partial class CSession : Node
 			layer.AddChild(_events);
 			layer.MoveChild(_events, _production!.GetIndex());
 
-			// The windows a mod defines for an enhanced game, with the events, under the main screens: a menu of pages
-			// on Insert (docs/mechanics/modwindows.md). Their Lua runs in the screens' own Lua state, made when first asked.
+			// The windows a mod defines for an enhanced game: a menu of pages on Insert, drawn with Dear ImGui over
+			// everything (docs/mechanics/modwindows.md). Their Lua runs in the screens' own Lua state, made when first
+			// asked. The session's own child and not the HUD's: a page is drawn every frame, the frames the HUD is not
+			// processed in among them, and reads the game only when it may (GameBusy).
 			if (_enhancedGame)
 			{
 				_modWindowsView = new CModWindows();
-				_modWindowsView.Setup(gui, ModWindows, _simulation, Player.Tag);
-				layer.AddChild(_modWindowsView);
-				layer.MoveChild(_modWindowsView, _production!.GetIndex());
+				_modWindowsView.Setup(_localisation.Localise, ModWindows, () => GameBusy, _simulation, Player.Tag);
+				AddChild(_modWindowsView);
 			}
 
 			// Messages: the log on the bottom bar, and the popups beside the events.
@@ -1721,14 +1722,14 @@ public partial class CSession : Node
 	private bool _debugSavesSaid;
 
 	private CModWindows? _modWindowsView;
-	private Content.Windows.IModWindows? _modWindows;
+	private Content.Windows.IModPages? _modWindows;
 	private bool _modWindowsFailed;
 
 	/// <summary>
 	/// The mod's own windows as its Lua gives them, made the first time they are asked for, over the Lua state the
 	/// screens have for themselves; null where that state cannot be had, which is said once.
 	/// </summary>
-	private Content.Windows.IModWindows? ModWindows()
+	private Content.Windows.IModPages? ModWindows()
 	{
 		if (_modWindows is null && !_modWindowsFailed)
 		{
@@ -2915,6 +2916,11 @@ public partial class CSession : Node
 			{
 				// An enhanced game's menu of the mod's own windows, as the Insert key shows it (modwindows.md).
 				_modWindowsView?.Toggle();
+			}
+			else if (argument.StartsWith("--screen=modwindows:", System.StringComparison.Ordinal))
+			{
+				// The same with a page open on it, by its file's name: --screen=modwindows:flags.
+				_modWindowsView?.Show(argument["--screen=modwindows:".Length..]);
 			}
 			else if (argument == "--screen=endgame")
 			{

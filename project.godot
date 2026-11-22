@@ -19,6 +19,10 @@ config/icon="res://icon.png"
 config/windows_native_icon="res://icon.ico"
 run/flush_stdout_on_print=true
 
+[autoload]
+
+ImGuiRoot="*res://addons/imgui-godot/data/ImGuiRoot.tscn"
+
 [debug]
 
 file_logging/max_log_files=20

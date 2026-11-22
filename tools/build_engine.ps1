@@ -75,6 +75,10 @@ Copy-Item (Join-Path $root 'fonts\*.txt') $licences
 Copy-Item (Join-Path $root 'fonts\readme.md') (Join-Path $licences 'fonts.md')
 Copy-Item (Join-Path $root 'native\luajit\COPYRIGHT') (Join-Path $licences 'LuaJIT-COPYRIGHT.txt')
 Copy-Item (Join-Path $root 'native\lua\COPYRIGHT') (Join-Path $licences 'Lua-COPYRIGHT.txt')
+# Dear ImGui, which a mod's own windows are drawn with (docs/mechanics/modwindows.md): the Godot plugin that draws it,
+# kept in addons/ with its licence, and the notes of the library and its .NET binding it rests on.
+Copy-Item (Join-Path $root 'addons\imgui-godot\LICENSE.txt') (Join-Path $licences 'imgui-godot-LICENSE.txt')
+Copy-Item (Join-Path $root 'addons\imgui-godot\third-party.txt') (Join-Path $licences 'imgui-third-party.txt')
 
 # Breitkopf Fraktur is not in the repository, its licence forbidding that it be published there: each builder downloads it
 # (fonts/readme.md). Without it the export draws the Axis names in Liberation Sans, and its licence does not go with it.

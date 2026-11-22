@@ -1,0 +1,31 @@
+Dear ImGui in OpenHOI3
+
+A mod's own windows in OpenHOI3's enhanced mode are drawn with Dear ImGui (docs/mechanics/modwindows.md). This
+folder is "Dear ImGui for Godot" (imgui-godot), version 6.3.2, its C#-only package as released, unchanged:
+
+  https://github.com/pkdawson/imgui-godot    MIT licence, LICENSE.txt beside this file
+
+It is somebody else's code kept here as it came: the rule of one type to a file, and this project's other rules of
+style, are not applied to it. To move to a newer version, replace the folder's contents with that release's
+addons/imgui-godot and keep this file and LICENSE.txt.
+
+It rests on these, which come with the build as libraries (cimgui.dll, ImGui.NET.dll), each under the MIT licence:
+
+  Dear ImGui     https://github.com/ocornut/imgui          Copyright (c) 2014-2025 Omar Cornut
+  cimgui         https://github.com/cimgui/cimgui          Copyright (c) 2015 Stephan Dilly
+  ImGui.NET      https://github.com/ImGuiNET/ImGui.NET     Copyright (c) 2017 Eric Mellino and ImGui.NET contributors
+
+The MIT licence, which all four are under:
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
