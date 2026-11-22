@@ -72,6 +72,12 @@ public sealed partial class CModWindows : Node
 
 	public bool IsShown => _shown;
 
+	/// <summary>
+	/// Whether a text box of one of the windows is being typed into: the keys are then its own, and neither the game's
+	/// edit box that has the keyboard nor the map's arrow keys take them.
+	/// </summary>
+	public bool IsTyping => _shown && ImGui.GetIO().WantTextInput;
+
 	/// <summary>The menu and the pages open on it shown or hidden; which pages are open is kept while they are hidden.</summary>
 	public void Toggle()
 	{

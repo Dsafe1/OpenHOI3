@@ -139,9 +139,14 @@ it draws. And on 2026-11-22, BlackICE's working copy played from a linked stand-
 drawn in the client and in an export; and with `--screen=modwindows:flags` the menu and BlackICE's first page, Active
 Flags - Germany's tag, a filter box and a table of its three flags after thirty days.
 
-**Not tried**: the mouse and the keyboard on a window of the library - a press on the menu's box, typing into the
-filter, whether a click on a window is kept from the map beneath - a scripted click having missed its box. Those are
-the plugin's part and are to be tried by hand.
+**The mouse and the keyboard were tried by the user by hand**, 2026-11-22, in an export: a page ticked on the menu and
+shut by its close box, the filter typed into, a window dragged and resized, a click on a window kept from the map
+beneath, and no shortcut of the game's set off by typing - all as they should be. **One thing was not, and is
+mended**: an edit box of the game's that has the keyboard - a unit being renamed - took the keys typed into a box of
+a page as well, the original's rule being that an edit box keeps the keyboard until another is given it
+(`interface.md`, section 8), and a page's box being no such other. So while a box of a page's is typed into
+(`CModWindows.IsTyping`, the library's own word for it) the game's edit box takes no key (`CGuiContext.TypingElsewhere`),
+and the arrow keys, which the map asks of the keyboard each frame, do not scroll it. Not tried again since.
 
 ## Not built
 

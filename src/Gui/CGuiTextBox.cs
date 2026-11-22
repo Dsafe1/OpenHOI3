@@ -188,7 +188,7 @@ public partial class CGuiTextBox : CGuiObject
 	/// </summary>
 	public override void _Input(InputEvent @event)
 	{
-		if (!HasKeyboard || @event is not InputEventKey { Pressed: true } key)
+		if (!HasKeyboard || @event is not InputEventKey { Pressed: true } key || _context?.TypingElsewhere?.Invoke() == true)
 		{
 			return;
 		}

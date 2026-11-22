@@ -34,6 +34,13 @@ public sealed class CGuiContext
 	/// </summary>
 	public CGuiTextBox? KeyboardFocus { get; set; }
 
+	/// <summary>
+	/// Whether something that is no element of these files is being typed into - a text box of a mod's own window
+	/// (<c>docs/mechanics/modwindows.md</c>, section 7): the edit box that has the keyboard then takes no key, the
+	/// original's rule of keeping it until another is given it knowing nothing of such a box. Null where there is none.
+	/// </summary>
+	public System.Func<bool>? TypingElsewhere { get; set; }
+
 	/// <summary>The sound effects the screens built from these files play (<c>docs/mechanics/sound.md</c>); none in a tool.</summary>
 	public Audio.CSoundEffects? Sounds { get; set; }
 

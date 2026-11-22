@@ -903,6 +903,8 @@ public partial class CSession : Node
 				_modWindowsView = new CModWindows();
 				_modWindowsView.Setup(_localisation.Localise, ModWindows, () => GameBusy, _simulation, Player.Tag);
 				AddChild(_modWindowsView);
+				// A box of theirs typed into takes the keyboard from the game's own edit box (modwindows.md, section 7).
+				gui.TypingElsewhere = () => _modWindowsView.IsTyping;
 			}
 
 			// Messages: the log on the bottom bar, and the popups beside the events.
@@ -1150,7 +1152,7 @@ public partial class CSession : Node
 		// section 1). The console goes through its history on Up and Down.
 		bool mainWindow() => _menu.IsOpen || _production?.IsOpen == true || _technology?.IsOpen == true
 			|| _diplomacy?.IsOpen == true || _politics?.IsOpen == true || _espionage?.IsOpen == true || _theatres?.IsOpen == true;
-		_mapView.ScrollKeysHeld = () => mainWindow()
+		_mapView.ScrollKeysHeld = () => mainWindow() || _modWindowsView?.IsTyping == true
 			? (true, true)
 			: (gui.KeyboardFocus is { HasKeyboard: true }, _console?.IsOpen == true);
 		_mapView.WheelHeld = mainWindow;
