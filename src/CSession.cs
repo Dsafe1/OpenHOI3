@@ -797,6 +797,7 @@ public partial class CSession : Node
 			var cards = new CBrigadeCards();
 			cards.Setup(gui, _simulation, Player);
 			_unitPanel.BrigadeChosen += cards.Open;
+			_unitPanel.UnitCardWanted += cards.OpenUnit;
 
 			// The order of battle browser, with the unit panel moved aside for it (docs/mechanics/oobbrowser.md).
 			var browser = new COobBrowser { Selection = () => _mapView.Units.Units };

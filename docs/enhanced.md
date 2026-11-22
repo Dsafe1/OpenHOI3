@@ -186,8 +186,9 @@ names of keys and defines are proposals.
   - **The unit inspector in the game's own interface** - "this one we should do in the native GUI directly, so skip
     the Utility implementation. To make it readable we will probably need some new engine-GUI elements." What it
     shows on the original: for whatever is selected, some forty figures of the unit as it stands - the sums over
-    its regiments with their technology in them - and its modifier on every terrain. *Not designed*: where in the
-    unit's panel, and which new kinds of element a mod's `.gui` file is given for it.
+    its regiments with their technology in them - and its modifier on every terrain. **Built 2026-11-22** as the
+    user set it out that day: the ribbon over a unit's brigades opens the brigade card's window for the whole
+    unit (`mechanics/brigadecard.md`, section 7). No new kind of element was needed for it.
   - **The custom map mode in the engine** - "done directly in the engine, skipping the utility step. For this I
     think we could just make the Map-Mode buttons right click-able to open a small list (like the unit upgrade
     selection)." A right click on a map mode's button by the minimap opens a short list to choose from, as a

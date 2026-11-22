@@ -36,6 +36,9 @@ public sealed class CUnitBrigadesEntry : CUnitPanelEntry
 	/// <summary>The left button went down on a brigade's row.</summary>
 	public event System.Action<CSubUnit>? BrigadeDragStarted;
 
+	/// <summary>The ribbon over the brigades was clicked, in an enhanced game: the whole unit's card is wanted.</summary>
+	public event System.Action<CUnit>? UnitCardWanted;
+
 	/// <summary>A brigade's upgrade button was pressed.</summary>
 	public event System.Action<CUnitBrigadeRow>? UpgradeWanted;
 
@@ -51,6 +54,18 @@ public sealed class CUnitBrigadesEntry : CUnitPanelEntry
 		_header = window.FindTextBox("header");
 		_list = window.FindListBox("list");
 		_label = (int)(window.FindIcon("bg_label_brigade")?.Size.Y ?? 0f);
+		// An enhanced game's: the ribbon opens the card of the whole unit (brigadecard.md, section 7).
+		if (state.Rules.Enhanced && window.FindIcon("bg_label_brigade") is { } ribbon)
+		{
+			ribbon.Clicked += () =>
+			{
+				if (CUnitCardText.HasCard(unit))
+				{
+					UnitCardWanted?.Invoke(unit);
+				}
+			};
+			ribbon.Tooltip = () => new CTooltip { Text = context.Localisation.Localise(CUnitCardText.RibbonTip) };
+		}
 		_fileHeight = (int)window.Size.Y;
 		// Only a fleet says anything here: how its ships get in each other's way.
 		Set(window.FindTextBox("positioning"), "");

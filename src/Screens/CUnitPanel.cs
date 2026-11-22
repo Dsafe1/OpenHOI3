@@ -79,6 +79,9 @@ public partial class CUnitPanel : Control
 	/// <summary>A brigade's row was clicked.</summary>
 	public event Action<CSubUnit>? BrigadeChosen;
 
+	/// <summary>Raised by the ribbon over the brigades in an enhanced game: the whole unit's card is wanted.</summary>
+	public event Action<CUnit>? UnitCardWanted;
+
 	/// <summary>The left button went down on a brigade's row.</summary>
 	public event Action<CSubUnit>? BrigadeDragStarted;
 
@@ -552,6 +555,7 @@ public partial class CUnitPanel : Control
 		{
 			brigades.UpgradeWanted += ShowUpgradeList;
 			brigades.BrigadeChosen += subUnit => BrigadeChosen?.Invoke(subUnit);
+			brigades.UnitCardWanted += wanted => UnitCardWanted?.Invoke(wanted);
 			brigades.BrigadeDragStarted += subUnit => BrigadeDragStarted?.Invoke(subUnit);
 			Add(brigades);
 		}

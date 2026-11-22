@@ -19,6 +19,7 @@ public partial class CBrigadeCards : Control
 	private CCountry _player = null!;
 	private readonly List<CBrigadeCard> _cards = new();
 	private readonly List<CSunkShipsWindow> _sunk = new();
+	private readonly List<CUnitCard> _units = new();
 
 	public void Setup(CGuiContext context, CSimulation simulation, CCountry player)
 	{
@@ -49,6 +50,21 @@ public partial class CBrigadeCards : Control
 		}
 	}
 
+	/// <summary>A card for the whole unit, unless it has one up: an enhanced game's (brigadecard.md, section 7).</summary>
+	public void OpenUnit(CUnit unit)
+	{
+		if (_units.Any(card => card.UnitId == unit.Id))
+		{
+			return;
+		}
+		CCountry owner = _simulation.State.Country(unit.FiguresOwner) ?? _player;
+		if (CUnitCard.Open(this, _context, _simulation, owner, unit) is { } card)
+		{
+			card.Closed += () => _units.Remove(card);
+			_units.Add(card);
+		}
+	}
+
 	private void OpenSunk(CSubUnit ship)
 	{
 		if (CSunkShipsWindow.Open(this, _context, _simulation, _player.Tag, ship) is { } window)
@@ -61,6 +77,10 @@ public partial class CBrigadeCards : Control
 	public override void _Process(double delta)
 	{
 		foreach (CBrigadeCard card in _cards.ToList())
+		{
+			card.Update();
+		}
+		foreach (CUnitCard card in _units.ToList())
 		{
 			card.Update();
 		}

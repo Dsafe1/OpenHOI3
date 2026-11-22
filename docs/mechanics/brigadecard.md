@@ -57,3 +57,52 @@ From `sunk` alone, another on each press. `label` is `SUNK_SHIP_LABEL`. `list` h
 Attrition's row is not times 100; a pride's 2 dissent on the dialog is a literal in the table and `PRIDE_SUNK_DISSENT_IMPACT` is read by nothing; `KM` has no text in the tables and reads as its key; a wing has no range row, where a brigade's summary gives one; the command tests nothing.
 
 *Unbuilt:* the `+*` that marks a model not the one the country builds today, as in a brigade's summary (`unitpanel.md`).
+
+## 7. The card of a whole unit - an enhanced game's
+
+*Ours, asked for on 2026-11-22: "make the ribbon which hold the amount of subunits in a unit clickable ... This
+would open a page just like when selecting a single subunit, but with the stats for the whole division (and
+anything missing from it)."* `CUnitCardText`, `CUnitCard`; it stands where BlackICE's utility had its Unit
+Inspector. Nothing of it is the original's, and a faithful game has none of it.
+
+**In an enhanced game a click on the ribbon over a selected unit's brigades** - `sup_subunits`' `bg_label_brigade`,
+which says how many it has - opens a card of the whole unit in the brigade card's own window, `brigade_view`, so a
+mod that restyles the one restyles the other. The ribbon's tooltip is the text of `OPENHOI_UNITCARD_TIP`. One card
+to a unit, as many of different units as are asked for; filled once as it opens; it goes when it is shut or its
+unit can no longer be found. A unit with no brigade of its own has none.
+
+`photo` and the stars' kind are **the unit's first brigade's**, which is its highest in `priority` - a division's
+headquarters brigade where it has one; the stars are the unit's average experience. `subunit_name` is the unit's
+name and is not typed into. `label` is the text of `OPENHOI_UNITCARD_ENTIRE`, "Entire unit". `sunk` and
+`make_pride` are hidden.
+
+`list` has the brigade card's rows in its order and format, each figure the unit's **as the game makes it from
+the brigades'**:
+
+| row | the unit's |
+| --- | --- |
+| `BV_STRENGTH` | the men added up; a fleet's or an air unit's average strength |
+| `BV_EXPERIENCE` | the average, a pride's bonus with it |
+| `MAX_STRENGTH` | added up |
+| `DEFAULT_ORG`, `DEFAULT_MORALE` | averaged over every brigade, those that no longer count giving nothing |
+| `RADIO_STRENGTH` | the first brigade's, which is what a headquarters reaches by (`leaders.md`, section 8) |
+| `MAXIMUM_SPEED` | the slowest brigade's |
+| `SUPPLY_CONSUMPTION`, `FUEL_CONSUMPTION` | the unit's day (`supply.md`) |
+| land: weight, defensiveness, air defence, suppression, the three attacks | added up |
+| `TOUGHNESS` | added up and doubled, as a battle counts it (`landcombat.md`) |
+| `SOFTNESS` | averaged |
+| `COMBAT_WIDTH` | added up and by the country's modifier, never under one |
+| `AP_ATTACK`, `ARMOR_VALUE` | the best brigade's, as a battle compares them |
+| a fleet, an air unit | `RANGE` the shortest; attacks, defences, hull and what it carries added up; detection, visibility, firing distance and the two amphibious figures the best ship's; positioning averaged |
+
+Then a blank row and **what the unit cost, which no brigade's card says**: the heading `OPENHOI_UNITCARD_COST`,
+`OPENHOI_UNITCARD_OFFICERS`, `_MANPOWER` and `_IC` added up, and `_TIME` the longest brigade's, built side by side
+as they are. Then a blank row and the circumstances and terrains as on a brigade's card, each the brigades' over how
+many the unit has, which is how a battle and a march take them. The technologies are a brigade's and are not
+listed.
+
+*Ours, and a guess where the game has no such figure:* a fleet's and an air unit's rows but speed, range and what
+they use - their ships and wings fight one by one, so a sum or a best there is a summary and not a figure the
+game holds. The old inspector's column of a unit's speed on each terrain is not carried over.
+
+The texts are the mod's, in `localisation/openhoi`.

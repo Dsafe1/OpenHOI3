@@ -933,7 +933,8 @@ never the font's own letters. So:
   - the space before the dots on the screenshot is that, and the character it gives up for the
   space likely the ten pixels short (not measured again). A colour in the text is counted as nothing and kept.
 - **A window whose file says `moveable = 1` is dragged with the left button held anywhere
-  on it but on a button, a scrollbar or a list** - a picture or a text lying over a button
+  on it but on a button, a scrollbar or a list** (a list's own scrollbar with it, which stands beside the list - it
+  was left out until 2026-11-22, and a card's scroll knob dragged the card) - a picture or a text lying over a button
   counts as the button - and a window that is the screen is never dragged. An
   account of the original's event window, 2026-10-12, and **no part of the window may leave
   the screen** - from the same account, the same day. That the rest of the original's moveable windows drag

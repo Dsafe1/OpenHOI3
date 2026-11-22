@@ -309,6 +309,17 @@ public partial class CGuiWindow : CGuiObject
 			if (child is CGuiButton or CGuiScrollbar or CGuiListBox or CGuiTextBox { Editor: not null })
 			{
 				yield return (Control)child;
+				// A list's scrollbar is its child and stands beside it, outside its rectangle.
+				if (child is CGuiListBox)
+				{
+					foreach (Node part in child.GetChildren())
+					{
+						if (part is CGuiScrollbar bar)
+						{
+							yield return bar;
+						}
+					}
+				}
 				continue;
 			}
 			foreach (Control below in Takers(child))
