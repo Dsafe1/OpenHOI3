@@ -391,9 +391,17 @@ public static class CBombing
 	/// The end of the hour for one side: a wing loses a hundredth of what was rolled
 	/// against it, a land unit is settled as in a battle, a ship loses all of it - and a
 	/// ship left with under a tenth of a point of strength is sunk.
+	///
+	/// What the side lost is added to its losses, as a battle's is: the original sums what settling takes for a
+	/// bombing of the ground and of land units as it does on land and in the air
+	/// (<c>reversing/findings/FINDINGS-combat.md</c>, <c>CCombatant::ApplyLosses</c>; watched on an Italian raid on
+	/// Ethiopia, the bombers losing 2.2 and the target 289.8). So wings count the strength they lost and land units
+	/// what a land battle counts. <i>Inferred</i>: a ship sunk by bombs counts a whole one, as at sea - the reading
+	/// has the flat thousand a ship for "naval" and does not say which of the two naval kinds.
 	/// </summary>
 	private static void Settle(CGameState state, CCombatSide side)
 	{
+		long lost = 0;
 		foreach (CUnit unit in new List<CUnit>(side.Units))
 		{
 			switch (unit.Kind)
@@ -401,17 +409,22 @@ public static class CBombing
 				case EUnitKind.Air:
 					foreach (CSubUnit wing in unit.SubUnits)
 					{
+						long before = wing.Strength.Raw;
 						CCombatDamage.Settle(wing);
+						lost += before - wing.Strength.Raw;
 					}
 					break;
 				case EUnitKind.Navy:
+					int ships = unit.SubUnits.Count;
 					SettleFleet(state, side, unit);
+					lost += (ships - unit.SubUnits.Count) * CFixedPoint.Scale;
 					break;
 				default:
-					CCombatDamage.SettleUnit(state, unit);
+					lost += CCombatDamage.SettleUnit(state, unit);
 					break;
 			}
 		}
+		side.Losses += new CFixedPoint(lost);
 	}
 
 	private static void SettleFleet(CGameState state, CCombatSide side, CUnit fleet)

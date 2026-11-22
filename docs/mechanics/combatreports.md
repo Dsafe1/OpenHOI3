@@ -88,3 +88,10 @@ on the first day, twenty days run with `--click=h480`: five battles in the recor
 bombing by Italy at Dolo on 18 January, with no winner and nothing lost on either side - shown on BlackICE's Combat
 Reports page with a land battle at Dolo still going. **No battle with losses and a winner was seen on the page**:
 those are the test's.
+
+**"Nothing lost on either side" was a fault, and the user's finding the same day**: "The land bombings dont track
+the casualties." A bombing settled its damage and added nothing to its sides' losses, which a battle on land, at
+sea and in the air each does - the engine's own gap, in a faithful game too, the original summing them for a
+bombing as for a battle (`bombing.md`, section 9; `reversing/findings/FINDINGS-combat.md`). Mended: the same raid
+then showed the bombers losing 6 and Ethiopia 134, where the fact base watched 2.2 and 289.8 on a raid of the same
+two countries in the original - the same kind of figure, not the same raid.

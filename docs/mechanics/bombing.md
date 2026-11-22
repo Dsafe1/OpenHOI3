@@ -261,6 +261,14 @@ Then each wing of the unit:
   settled; a ship all of it, and a ship left with under a tenth of a point of strength sinks.
 - A land unit under bombs is settled as in a battle: officers, the men who come back, and
   whether it shatters (`landcombat.md`, section 6).
+- **What each side loses is added to its losses, as a battle's is** (`CBombing.Settle`; a save's `losses`): the
+  original's `CCombatant::ApplyLosses` sums what settling takes for a bombing of the ground and of land units as on
+  land and in the air (`reversing/findings/FINDINGS-combat.md`, *confirmed* for those; watched on an Italian raid on
+  Ethiopia, the bombers losing 2.2 and the target 289.8). A wing counts the strength it lost, a land unit what a
+  land battle counts. *Inferred*: a ship sunk by bombs counts a whole one, as at sea - the reading has the flat
+  thousand a ship for "naval" and does not say which of the two naval kinds. **Not built until 2026-11-22**: a
+  bombing's sides had no losses at all, which the user found on the record of finished battles
+  (`combatreports.md`, section 5).
 
 **The leaders' traits in the attack**, each down the unit's chain of command (`leaders.md`,
 section 10): against land units the target's softness is x (1 + `defender_softness`) before it
