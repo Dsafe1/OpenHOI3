@@ -128,15 +128,28 @@ public sealed class CRecordingCanvas : IModWindowCanvas
 	}
 
 	public bool IsItemHovered() => false;
+	public bool IsItemActive() => false;
 	public void SetTooltip(string text) => Calls.Add("SetTooltip " + text);
 
-	public bool BeginTable(string id, int columns)
+	public bool BeginTable(string id, int columns, bool panes)
 	{
-		Calls.Add($"BeginTable {id} {columns}");
+		Calls.Add($"BeginTable {id} {columns}" + (panes ? " panes" : ""));
 		return ScopesOpen;
 	}
 
-	public void TableSetupColumn(string label) => Calls.Add("TableSetupColumn " + label);
+	public void TableSetupColumn(string label, float width) => Calls.Add("TableSetupColumn " + label + (width > 0f ? " " + width : ""));
+
+	public bool Focused { get; set; }
+
+	/// <summary>The keys that answer pressed.</summary>
+	public HashSet<string> Keys { get; } = new();
+
+	public bool IsWindowFocused() => Focused;
+	public bool IsKeyPressed(string key) => Keys.Contains(key);
+	public void SetScrollHereY(float ratio) => Calls.Add("SetScrollHereY " + ratio);
+	public void SetClipboardText(string text) => Calls.Add("SetClipboardText " + text);
+	public (float Width, float Height) ImageSize(string path) => path.EndsWith(".tga", System.StringComparison.Ordinal) ? (64f, 32f) : (0f, 0f);
+	public void Image(string path, float width, float height) => Calls.Add($"Image {path} {width} {height}");
 	public void TableHeadersRow() => Calls.Add("TableHeadersRow");
 	public void TableNextRow() => Calls.Add("TableNextRow");
 

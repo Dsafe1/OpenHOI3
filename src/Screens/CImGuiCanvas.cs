@@ -13,12 +13,18 @@ public sealed class CImGuiCanvas : IModWindowCanvas
 {
 	public void Text(string text) => ImGui.TextUnformatted(text);
 
-	public void TextDisabled(string text) => ImGui.TextDisabled(text);
+	/// <summary>
+	/// A text as the library's format: these four take a format in the C manner, in which a percent sign begins a
+	/// place to fill, and a page's text is no format - a percentage lost its sign and what stood behind it.
+	/// </summary>
+	private static string Plain(string text) => text.Replace("%", "%%");
 
-	public void TextWrapped(string text) => ImGui.TextWrapped(text);
+	public void TextDisabled(string text) => ImGui.TextDisabled(Plain(text));
+
+	public void TextWrapped(string text) => ImGui.TextWrapped(Plain(text));
 
 	public void TextColored(float red, float green, float blue, float alpha, string text) =>
-		ImGui.TextColored(new System.Numerics.Vector4(red, green, blue, alpha), text);
+		ImGui.TextColored(new System.Numerics.Vector4(red, green, blue, alpha), Plain(text));
 
 	public void Separator() => ImGui.Separator();
 
@@ -58,12 +64,48 @@ public sealed class CImGuiCanvas : IModWindowCanvas
 
 	public bool IsItemHovered() => ImGui.IsItemHovered();
 
-	public void SetTooltip(string text) => ImGui.SetTooltip(text);
+	public bool IsItemActive() => ImGui.IsItemActive();
 
-	public bool BeginTable(string id, int columns) =>
-		ImGui.BeginTable(id, columns, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable);
+	public void SetTooltip(string text) => ImGui.SetTooltip(Plain(text));
 
-	public void TableSetupColumn(string label) => ImGui.TableSetupColumn(label);
+	public bool BeginTable(string id, int columns, bool panes) =>
+		ImGui.BeginTable(id, columns, panes
+			? ImGuiTableFlags.Resizable | ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.NoSavedSettings
+			: ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable);
+
+	public void TableSetupColumn(string label, float width)
+	{
+		if (width > 0f)
+		{
+			ImGui.TableSetupColumn(label, ImGuiTableColumnFlags.WidthFixed, width);
+		}
+		else
+		{
+			ImGui.TableSetupColumn(label);
+		}
+	}
+
+	public bool IsWindowFocused() => ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows);
+
+	public bool IsKeyPressed(string key) => System.Enum.TryParse(key, out ImGuiKey found) && ImGui.IsKeyPressed(found);
+
+	public void SetScrollHereY(float ratio) => ImGui.SetScrollHereY(ratio);
+
+	public void SetClipboardText(string text) => Godot.DisplayServer.ClipboardSet(text);
+
+	/// <summary>A picture by its path below the install, a mod's among them; set by the screen, which has the textures.</summary>
+	public System.Func<string, Godot.Texture2D?>? Texture { get; set; }
+
+	public (float Width, float Height) ImageSize(string path) =>
+		Texture?.Invoke(path) is { } texture ? (texture.GetWidth(), texture.GetHeight()) : (0f, 0f);
+
+	public void Image(string path, float width, float height)
+	{
+		if (Texture?.Invoke(path) is { } texture)
+		{
+			ImGuiGodot.Widgets.Image(texture, new System.Numerics.Vector2(width, height));
+		}
+	}
 
 	public void TableHeadersRow() => ImGui.TableHeadersRow();
 

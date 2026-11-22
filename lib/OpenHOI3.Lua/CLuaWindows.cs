@@ -70,6 +70,12 @@ public sealed class CLuaWindows : IModPages
 		"return list end " +
 		// A page asks, as it draws, to gather again at once: what it shows hangs on a choice just made.
 		"OpenHOI3.Refresh = function() refresh() end " +
+		// Where the running game has a leader: nil for none of that number, else whether he is in service and, where
+		// he commands a unit, its name and the province it stands in.
+		"local leader = __ohoi_w_leader __ohoi_w_leader = nil " +
+		"OpenHOI3.LeaderDetails = function(id) local known, active, unit, province = leader(tonumber(id) or -1) " +
+		"if not known then return nil end " +
+		"return { active = active, unit_name = unit, province_id = province } end " +
 		"function __ohoi_window_register(name, page) " +
 		"if type(page) ~= 'table' then error('the page ' .. name .. ' does not return a table', 0) end " +
 		"if type(page.Draw) ~= 'function' then error('the page ' .. name .. ' has no Draw function', 0) end " +
@@ -106,6 +112,7 @@ public sealed class CLuaWindows : IModPages
 		lua.SetGlobal("__ohoi_w_countryvariables", (CLuaFunction)CountryVariables);
 		lua.SetGlobal("__ohoi_w_countrymodifiers", (CLuaFunction)CountryModifiers);
 		lua.SetGlobal("__ohoi_w_refresh", (CLuaFunction)(call => { _refresh = true; return 0; }));
+		lua.SetGlobal("__ohoi_w_leader", (CLuaFunction)LeaderDetails);
 		if (!scripts.RunChunk(Encoding.Latin1.GetBytes(Glue), "=OpenHOI3"))
 		{
 			return;
@@ -269,6 +276,22 @@ public sealed class CLuaWindows : IModPages
 			long hour = given.UntilHour % CGameState.HoursPerDay;
 			return $"{given.Modifier.Name}\t{date.Year}.{date.Month}.{date.Day} {hour}:00\t{(date.Year <= 1 ? 1 : 0)}";
 		})));
+	}
+
+	/// <summary>
+	/// A leader by his number: whether there is one, whether he is in service, and where he commands a unit its name
+	/// and the province it stands in - neither where he commands none.
+	/// </summary>
+	private int LeaderDetails(CLuaCall call)
+	{
+		if (_state is not { } state || !state.Leaders.TryGetValue(call.Integer(1), out Sim.Leaders.CLeader? leader))
+		{
+			return call.Return(false);
+		}
+		bool active = leader.Country is { } tag && state.Country(tag) is { } country && country.ActiveLeaders.Contains(leader);
+		return leader.Unit is { } unit
+			? call.ReturnMany(true, active, unit.Name, (double)unit.Location)
+			: call.ReturnMany(true, active);
 	}
 
 	/// <summary>Whether a page asked, as it drew, to gather again at once.</summary>

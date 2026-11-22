@@ -34,7 +34,8 @@ public sealed class CLuaImGui
 	{
 		"Text", "TextDisabled", "TextWrapped", "TextColored", "Separator", "SeparatorText", "SameLine", "Spacing", "NewLine",
 		"SetNextItemWidth", "Button", "SmallButton", "Selectable", "Checkbox", "InputText", "InputInt", "InputTextMultiline", "GetContentRegionAvail", "SliderInt", "SliderFloat",
-		"Combo", "CollapsingHeader", "IsItemHovered", "SetTooltip", "BeginTable", "TableSetupColumn", "TableHeadersRow",
+		"Combo", "CollapsingHeader", "IsItemHovered", "SetTooltip", "BeginTable", "BeginPanes", "TableSetupColumn", "TableHeadersRow",
+		"IsItemActive", "IsWindowFocused", "IsKeyPressed", "SetScrollHereY", "SetClipboardText", "ImageSize", "Image",
 		"TableNextRow", "TableNextColumn", "EndTable", "BeginTabBar", "EndTabBar", "BeginTabItem", "EndTabItem",
 		"BeginChild", "EndChild", "TreeNode", "TreePop", "PushID", "PopID", "BeginDisabled", "EndDisabled",
 	};
@@ -82,9 +83,23 @@ public sealed class CLuaImGui
 			["Combo"] = Combo,
 			["CollapsingHeader"] = call => Ask(call, canvas => canvas.CollapsingHeader(call.String(1))),
 			["IsItemHovered"] = call => Ask(call, canvas => canvas.IsItemHovered()),
+			["IsItemActive"] = call => Ask(call, canvas => canvas.IsItemActive()),
 			["SetTooltip"] = call => Do(call, canvas => canvas.SetTooltip(call.String(1))),
-			["BeginTable"] = call => Begin(call, EScope.Table, canvas => canvas.BeginTable(call.String(1), call.Integer(2))),
-			["TableSetupColumn"] = call => Do(call, canvas => canvas.TableSetupColumn(call.String(1))),
+			["BeginTable"] = call => Begin(call, EScope.Table, canvas => canvas.BeginTable(call.String(1), call.Integer(2), false)),
+			// Columns side by side with a divider to drag; ended by EndTable, as a table is.
+			["BeginPanes"] = call => Begin(call, EScope.Table, canvas => canvas.BeginTable(call.String(1), call.Integer(2), true)),
+			["TableSetupColumn"] = call => Do(call, canvas => canvas.TableSetupColumn(call.String(1),
+				call.ArgumentCount >= 2 ? (float)call.Number(2) : 0f)),
+			["IsWindowFocused"] = call => Ask(call, canvas => canvas.IsWindowFocused()),
+			["IsKeyPressed"] = call => Ask(call, canvas => canvas.IsKeyPressed(call.String(1))),
+			["SetScrollHereY"] = call => Do(call, canvas => canvas.SetScrollHereY(call.ArgumentCount >= 1 ? (float)call.Number(1) : 0.5f)),
+			["SetClipboardText"] = call => Do(call, canvas => canvas.SetClipboardText(call.String(1))),
+			["ImageSize"] = call =>
+			{
+				(float width, float height) = Canvas?.ImageSize(call.String(1)) ?? (0f, 0f);
+				return call.ReturnMany((double)width, (double)height);
+			},
+			["Image"] = call => Do(call, canvas => canvas.Image(call.String(1), (float)call.Number(2), (float)call.Number(3))),
 			["TableHeadersRow"] = call => Do(call, canvas => canvas.TableHeadersRow()),
 			["TableNextRow"] = call => Do(call, canvas => canvas.TableNextRow()),
 			["TableNextColumn"] = call => Ask(call, canvas => canvas.TableNextColumn()),

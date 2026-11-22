@@ -187,6 +187,64 @@ public sealed class LuaPagesTests : IDisposable
 	}
 
 	[Fact]
+	public void APageDrawsPanesAPictureAndAsksTheKeyboardAndTheClipboard()
+	{
+		Page("panes", "local ImGui = OpenHOI3.ImGui return { Draw = function() "
+			+ "if ImGui.BeginPanes('two', 2) then ImGui.TableSetupColumn('left', 280) ImGui.TableSetupColumn('right') "
+			+ "ImGui.TableNextRow() ImGui.TableNextColumn() "
+			+ "if ImGui.IsWindowFocused() and ImGui.IsKeyPressed('DownArrow') and not ImGui.IsKeyPressed('UpArrow') then ImGui.SetScrollHereY(1) end "
+			+ "ImGui.TableNextColumn() "
+			+ "local w, h = ImGui.ImageSize('gfx/a.tga') ImGui.Image('gfx/a.tga', w * 2, h * 2) "
+			+ "local none = ImGui.ImageSize('gfx/missing.png') ImGui.Text('none ' .. none) "
+			+ "ImGui.SetClipboardText('copied') "
+			// Left open: the panes are a table, and are ended for the page as one.
+			+ "end end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			var canvas = new CRecordingCanvas { Focused = true };
+			canvas.Keys.Add("DownArrow");
+			windows.Draw(windows.Pages[0], Ger, canvas);
+			Assert.Equal(new[]
+			{
+				"BeginTable two 2 panes", "TableSetupColumn left 280", "TableSetupColumn right", "TableNextRow", "TableNextColumn",
+				"SetScrollHereY 1", "TableNextColumn", "Image gfx/a.tga 128 64", "Text none 0", "SetClipboardText copied", "EndTable",
+			}, canvas.Calls);
+			Assert.Empty(_reports);
+		}
+	}
+
+	[Fact]
+	public void APageReadsWhereALeaderIs()
+	{
+		Page("leader", "local ImGui = OpenHOI3.ImGui return { "
+			+ "Collect = function() return { a = OpenHOI3.LeaderDetails(7), b = OpenHOI3.LeaderDetails(8), c = OpenHOI3.LeaderDetails(9) } end, "
+			+ "Draw = function(data) "
+			+ "ImGui.Text(tostring(data.a.active) .. ' ' .. data.a.unit_name .. ' ' .. data.a.province_id) "
+			+ "ImGui.Text(tostring(data.b.active) .. ' ' .. tostring(data.b.unit_name) .. ' ' .. tostring(data.b.province_id)) "
+			+ "ImGui.Text(tostring(data.c)) end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			CGameState state = State();
+			CCountry germany = state.Countries[0];
+			var commanding = new OpenHOI3.Sim.Leaders.CLeader(7) { Country = Ger };
+			commanding.Unit = new OpenHOI3.Sim.Units.CUnit(OpenHOI3.Sim.Units.EUnitKind.Army, Ger) { Id = 1, Location = 1861, Name = "Heeresgruppe" };
+			var idle = new OpenHOI3.Sim.Leaders.CLeader(8) { Country = Ger };
+			state.Leaders[7] = commanding;
+			state.Leaders[8] = idle;
+			germany.ActiveLeaders.Add(commanding);
+
+			var canvas = new CRecordingCanvas();
+			windows.Collect(state, windows.Pages[0], Ger);
+			windows.Draw(windows.Pages[0], Ger, canvas);
+			// In service with a unit; known and out of service with none; and no leader of that number.
+			Assert.Equal(new[] { "Text true Heeresgruppe 1861", "Text false nil nil", "Text nil" }, canvas.Calls);
+			Assert.Empty(_reports);
+		}
+	}
+
+	[Fact]
 	public void APageAsksToGatherAgainAsItDrawsAndTheAskingIsTakenOnce()
 	{
 		Page("asks", "local ImGui = OpenHOI3.ImGui return { Draw = function() "

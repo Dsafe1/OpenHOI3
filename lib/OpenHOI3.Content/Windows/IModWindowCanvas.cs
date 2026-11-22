@@ -36,10 +36,36 @@ public interface IModWindowCanvas
 	bool CollapsingHeader(string label);
 
 	bool IsItemHovered();
+
+	/// <summary>Whether the item last drawn is held or typed into.</summary>
+	bool IsItemActive();
 	void SetTooltip(string text);
 
-	bool BeginTable(string id, int columns);
-	void TableSetupColumn(string label);
+	/// <summary>
+	/// A table. With <paramref name="panes"/> it is no table of rows but columns side by side with a divider between
+	/// them that is dragged: no outer border, no striped rows, no heading.
+	/// </summary>
+	bool BeginTable(string id, int columns, bool panes);
+
+	/// <summary>A column; a width above nought is the width it begins at, which the player may then drag.</summary>
+	void TableSetupColumn(string label, float width);
+
+	/// <summary>Whether the window being drawn, or a part of it, has the keyboard.</summary>
+	bool IsWindowFocused();
+
+	/// <summary>Whether a key went down this frame, by the library's name for it: <c>UpArrow</c>, <c>Home</c>.</summary>
+	bool IsKeyPressed(string key);
+
+	/// <summary>Scrolls so that the item last drawn stands at that share of the height: 0.5, its middle.</summary>
+	void SetScrollHereY(float ratio);
+
+	void SetClipboardText(string text);
+
+	/// <summary>A picture's size in its own pixels, by its path below the install; nought where there is none.</summary>
+	(float Width, float Height) ImageSize(string path);
+
+	/// <summary>A picture drawn at a size, by its path below the install; nothing where there is none.</summary>
+	void Image(string path, float width, float height);
 	void TableHeadersRow();
 	void TableNextRow();
 	bool TableNextColumn();

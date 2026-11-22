@@ -905,6 +905,20 @@ public partial class CSession : Node
 				AddChild(_modWindowsView);
 				// A box of theirs typed into takes the keyboard from the game's own edit box (modwindows.md, section 7).
 				gui.TypingElsewhere = () => _modWindowsView.IsTyping;
+				// A picture a page draws, by its path below the install - a mod's own file by its folder, as the mod's Lua
+				// names it, or a file of the game's found through the layers. Asked every frame, so what was found is kept.
+				var pictures = new Dictionary<string, Texture2D?>(System.StringComparer.OrdinalIgnoreCase);
+				_modWindowsView.Texture = path =>
+				{
+					if (!pictures.TryGetValue(path, out Texture2D? picture))
+					{
+						string absolute = System.IO.Path.Combine(_directories.GameRoot, path.Replace('\\', '/'));
+						picture = System.IO.File.Exists(absolute) ? gui.Textures.LoadFromFile(absolute)
+							: gui.Textures.Exists(path) ? gui.Textures.LoadFromGamePath(path) : null;
+						pictures[path] = picture;
+					}
+					return picture;
+				};
 			}
 
 			// Messages: the log on the bottom bar, and the popups beside the events.
@@ -1152,7 +1166,7 @@ public partial class CSession : Node
 		// section 1). The console goes through its history on Up and Down.
 		bool mainWindow() => _menu.IsOpen || _production?.IsOpen == true || _technology?.IsOpen == true
 			|| _diplomacy?.IsOpen == true || _politics?.IsOpen == true || _espionage?.IsOpen == true || _theatres?.IsOpen == true;
-		_mapView.ScrollKeysHeld = () => mainWindow() || _modWindowsView?.IsTyping == true
+		_mapView.ScrollKeysHeld = () => mainWindow() || _modWindowsView?.IsTyping == true || _modWindowsView?.HasKeyboard == true
 			? (true, true)
 			: (gui.KeyboardFocus is { HasKeyboard: true }, _console?.IsOpen == true);
 		_mapView.WheelHeld = mainWindow;

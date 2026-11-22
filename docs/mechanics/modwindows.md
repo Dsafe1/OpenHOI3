@@ -91,13 +91,20 @@ place and size, which the library remembers - is the engine's; a page draws what
 | layout | `Separator`, `SeparatorText(text)`, `SameLine`, `Spacing`, `NewLine`, `SetNextItemWidth(width)` |
 | pressed, answering true or false | `Button`, `SmallButton`, `Selectable(label, selected)`, `CollapsingHeader` |
 | a value, answering `changed, value` | `Checkbox(label, value)`, `InputText(label, text [, most])`, `InputInt(label, value)`, `SliderInt(label, value, least, most)`, `SliderFloat`, `Combo(label, choice, list)` - the choice counted from one |
-| tables | `BeginTable(id, columns)`, `TableSetupColumn`, `TableHeadersRow`, `TableNextRow`, `TableNextColumn`, `EndTable` |
+| tables | `BeginTable(id, columns)`, `TableSetupColumn(label [, width])` - a width is the one the column begins at - `TableHeadersRow`, `TableNextRow`, `TableNextColumn`, `EndTable` |
+| panes | `BeginPanes(id, columns)` - columns side by side with a divider between them that the player drags, with no border, stripes or heading; set up, filled and ended as a table is, by `EndTable` |
+| a picture | `ImageSize(path)`, answering `width, height` in the picture's own pixels and nought where there is none; `Image(path, width, height)` - the path below the install, a mod's own file by its folder (`tfh/mod/<mod>/gfx/...`) or a file of the game's found through the layers; decoded once and kept |
+| keyboard and clipboard | `IsWindowFocused()` - the part being drawn, or one within it, was the last thing clicked; `IsKeyPressed(name)` by the library's name, `DownArrow`, `Home`; `SetScrollHereY([share])` - the item last drawn scrolled to that share of the height, its middle with none given; `SetClipboardText(text)` |
 | tabs | `BeginTabBar(id)`, `BeginTabItem(label)`, `EndTabItem`, `EndTabBar` |
 | a box of text | `InputTextMultiline(label, text [, width, height, read_only])`, answering `changed, text` - several lines, which may be selected and copied; read-only, a page's way of showing a long text |
 | room | `GetContentRegionAvail()`, answering `width, height` - what is left to the right and below, for sharing out |
 | parts | `BeginChild(id [, width, height])`, `EndChild`, `TreeNode`, `TreePop`, `PushID`, `PopID` |
 | greyed | `BeginDisabled(disabled)`, `EndDisabled` - what stands between is greyed and takes no press where `disabled` is true; ended whatever was given |
-| the item before | `IsItemHovered`, `SetTooltip(text)` |
+| the item before | `IsItemHovered`, `IsItemActive` - held, or typed into - `SetTooltip(text)` |
+
+**A text is a text**: a percent sign in what a page gives `TextDisabled`, `TextWrapped`, `TextColored` or
+`SetTooltip` is drawn as one. The library takes those four as a format in the C manner, and a page's "100%" lost its
+sign and what stood behind it until the canvas doubled the sign for it (`CImGuiCanvas.Plain`).
 
 As in the library, a `Begin...` answers whether what it begins is open - a table off screen, a tab not chosen - and
 only an open one is filled and ended, but a child, which is ended whatever it answered.
@@ -152,6 +159,10 @@ Under the global `OpenHOI3`, beside `Files`, `Enhanced` and `Fixes` (`mods.md`, 
 - `OpenHOI3.CountryModifiers(tag)` - the modifiers it was given for a time (`add_country_modifier`), in the order
   given, each `{ name, expires, never }`: `expires` the hour it ends at as `year.month.day hour:00` unpadded, `never`
   true for one that does not end, which the original keeps as a date in year one;
+- `OpenHOI3.LeaderDetails(id)` - where the running game has the leader of that number: nil for none, else
+  `{ active, unit_name, province_id }` - whether he is in service, and the name of the unit he commands with the
+  province it stands in, both nil where he commands none. The shape is the one BiceLib's read has on the original,
+  so that the mod's data function asks whichever is there;
 - `OpenHOI3.Refresh()` - section 6.2;
 - `OpenHOI3.Conversion(tag)` - a country's two conversions (`ic.md`, section 4.1), or nil for no country or no game:
   `played`, `oil_rate`, `energy_cap`, `energy_floor`, `crude_cap`, what it holds as `energy`, `crude_oil` and
@@ -194,7 +205,8 @@ classes, and the DLL only draws. `autoexec.lua` loads them in every Lua state, t
 2026-11-22 they answered here as they are - 343 traits, 1,175 technologies, 1,650 unit types, Germany's 2,016
 leaders and 1,919 unit models. So a page of BlackICE's for this engine is a `Collect` that calls them and a `Draw`
 in `OpenHOI3.ImGui`; `script/openhoi/pagekit.lua` holds what the pages share. Where a data function asks BiceLib
-- where a leader stands - it answers "unknown" here until the engine gives the read.
+- where a leader stands - the mod's function asks the engine's read of the same shape here
+(`OpenHOI3.LeaderDetails`), which is the one line of the data layer that knows which engine it is on.
 
 More reads come page by page (`docs/enhanced.md`, *What mods build on*: modifier totals, a province's figures, a
 leader's state, the selection).
@@ -245,13 +257,23 @@ level, a leader's definition, a unit's figures and model string, a model's requi
 Active Event Modifiers were drawn on a new game's first hour, where Germany has neither; their rows are the test's
 alone. **No list was clicked in a run**: choosing a row, the level buttons and the filters are to be tried by hand.
 
+**The mouse held on the window reached the game's windows beneath it** - the user's, 2026-11-22: dragging the
+utility window dragged the event or message window under it too. A moveable window of the game's is dragged from
+its `_Input`, and so are a list's wheel and others; the library's own layer takes its input after all of them, being
+an autoload, so its "handled" came too late. Mended the same day: `CModWindows` keeps itself the last child of the
+session - the first asked for input - and while the library wants the mouse it hands a mouse event to the library
+itself and lets nobody else have it. **Not tried by hand since.** And with it, the same day, what the first pages
+lacked beside the overlay's: the divider dragged between two panes, the arrow keys, Home and End in a list - the map
+not scrolling while the window was the last thing clicked (`CModWindows.HasKeyboard`) - a picture, the clipboard and
+where a leader is. Drawn in a run: the panes, the Unit Models page's sprite - 192 by 104, "Country specific (exact
+level)" - and von Rundstedt in Berlin with Heeresgruppe Süd. The keys, the divider's drag and the Copy button are
+the test's and to be tried by hand.
+
 ## Not built
 
 - Orders beyond the conversion's (section 6.1), and a command a mod defines itself.
 - A key of the mod's choosing in the place of Insert; a button for the window on a screen of the game.
 - A theme and a text size of the player's choosing, which the overlay has.
 - Sorting a table by a column's header, and the rest of the library's widgets.
-- What the overlay's pages have and these lack, each for want of a widget or a read: a divider dragged between two
-  panes, the arrow keys in a list, a picture - the Unit Models page's sprite - the clipboard, and where the running
-  game has a leader.
+- A scrollbar across a picture wider than its pane, which the overlay's sprite has: a child takes no flags here.
 - The pages in the front end: they are a game's.

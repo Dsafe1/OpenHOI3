@@ -94,6 +94,18 @@ public sealed partial class CModWindows : Node
 	/// </summary>
 	public bool IsTyping => _shown && ImGui.GetIO().WantTextInput;
 
+	/// <summary>
+	/// Whether the window has the keyboard - it or a part of it was the last thing clicked: the arrow keys then go
+	/// through its lists and do not scroll the map.
+	/// </summary>
+	public bool HasKeyboard => _shown && ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow);
+
+	/// <summary>A picture by its path below the install, for a page that draws one.</summary>
+	public Func<string, Texture2D?>? Texture
+	{
+		set => _canvas.Texture = value;
+	}
+
 	/// <summary>The window shown or hidden; the tab and the pages chosen are kept while it is hidden.</summary>
 	public void Toggle()
 	{
@@ -131,8 +143,29 @@ public sealed partial class CModWindows : Node
 		return _groups;
 	}
 
+	/// <summary>
+	/// The mouse over the window, or held on it, is the window's alone. The library's own layer takes its input after
+	/// every node of the game's that asks for raw input - a moveable window of the game's, which is dragged by the
+	/// button held on it, a list's wheel - so a press on this window reached the event window beneath it as well. This
+	/// node is kept the last of the session's, which is the first asked; while the library wants the mouse it hands a
+	/// mouse event to the library itself and lets nobody else have it.
+	/// </summary>
+	public override void _Input(InputEvent @event)
+	{
+		if (_shown && @event is InputEventMouse && ImGui.GetIO().WantCaptureMouse)
+		{
+			ImGuiController.WindowInputCallback(@event);
+			GetViewport().SetInputAsHandled();
+		}
+	}
+
 	public override void _Process(double delta)
 	{
+		// The last child is the first asked for input: nodes added since - a popup, an event's window - come before it.
+		if (GetParent() is { } parent && GetIndex() != parent.GetChildCount() - 1)
+		{
+			parent.MoveChild(this, -1);
+		}
 		if (!_shown || _pages() is not { } pages || Groups() is not { } groups)
 		{
 			return;
