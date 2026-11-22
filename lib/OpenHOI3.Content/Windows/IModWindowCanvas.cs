@@ -50,6 +50,15 @@ public interface IModWindowCanvas
 	bool BeginTabItem(string label);
 	void EndTabItem();
 
+	/// <summary>
+	/// A box of several lines of text, which may be selected and copied; typed into unless it is read-only. A width or
+	/// a height of nought is the room left, and one below nought the room left less that much.
+	/// </summary>
+	bool InputTextMultiline(string label, ref string value, float width, float height, bool readOnly);
+
+	/// <summary>The room left from where the next thing would be drawn to the right and bottom edges.</summary>
+	(float Width, float Height) ContentRegionAvail();
+
 	bool BeginChild(string id, float width, float height);
 	void EndChild();
 

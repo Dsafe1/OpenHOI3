@@ -56,6 +56,20 @@ public sealed class CLuaWindows : IModPages
 		"OpenHOI3.Localise = function(key) return localise(tostring(key)) end " +
 		"OpenHOI3.CountryFlags = function(tag) return lines(countryflags(tostring(tag))) end " +
 		"OpenHOI3.GlobalFlags = function() return lines(globalflags()) end " +
+		// A country's variables and the modifiers it was given for a time, a row a line, the row's parts by tabs.
+		"local countryvariables, countrymodifiers, refresh = __ohoi_w_countryvariables, __ohoi_w_countrymodifiers, __ohoi_w_refresh " +
+		"__ohoi_w_countryvariables, __ohoi_w_countrymodifiers, __ohoi_w_refresh = nil, nil, nil " +
+		"OpenHOI3.CountryVariables = function(tag) local list = {} " +
+		"for _, line in ipairs(lines(countryvariables(tostring(tag)))) do " +
+		"local name, value = string.match(line, '^(.*)\\t(.*)$') list[#list + 1] = { name = name, value = tonumber(value) or 0 } end " +
+		"return list end " +
+		"OpenHOI3.CountryModifiers = function(tag) local list = {} " +
+		"for _, line in ipairs(lines(countrymodifiers(tostring(tag)))) do " +
+		"local name, expires, never = string.match(line, '^(.*)\\t(.*)\\t(.*)$') " +
+		"list[#list + 1] = { name = name, expires = expires, never = never == '1' } end " +
+		"return list end " +
+		// A page asks, as it draws, to gather again at once: what it shows hangs on a choice just made.
+		"OpenHOI3.Refresh = function() refresh() end " +
 		"function __ohoi_window_register(name, page) " +
 		"if type(page) ~= 'table' then error('the page ' .. name .. ' does not return a table', 0) end " +
 		"if type(page.Draw) ~= 'function' then error('the page ' .. name .. ' has no Draw function', 0) end " +
@@ -89,6 +103,9 @@ public sealed class CLuaWindows : IModPages
 		lua.SetGlobal("__ohoi_w_globalflags", (CLuaFunction)GlobalFlags);
 		lua.SetGlobal("__ohoi_w_conversion", (CLuaFunction)Conversion);
 		lua.SetGlobal("__ohoi_w_setconversion", (CLuaFunction)SetConversion);
+		lua.SetGlobal("__ohoi_w_countryvariables", (CLuaFunction)CountryVariables);
+		lua.SetGlobal("__ohoi_w_countrymodifiers", (CLuaFunction)CountryModifiers);
+		lua.SetGlobal("__ohoi_w_refresh", (CLuaFunction)(call => { _refresh = true; return 0; }));
 		if (!scripts.RunChunk(Encoding.Latin1.GetBytes(Glue), "=OpenHOI3"))
 		{
 			return;
@@ -219,6 +236,49 @@ public sealed class CLuaWindows : IModPages
 	private int GlobalFlags(CLuaCall call)
 	{
 		return call.Return(_state is null ? "" : Joined(_state.Flags.All.Where(flag => flag.Value).Select(flag => flag.Key)));
+	}
+
+	/// <summary>
+	/// A country's variables, a line each - the name, a tab, the value - sorted by name; empty for a tag that is no
+	/// country's. A variable at nought is among them: what a page leaves out is the page's.
+	/// </summary>
+	private int CountryVariables(CLuaCall call)
+	{
+		string tag = call.String(1);
+		CCountry? country = _state?.Countries.FirstOrDefault(c => string.Equals(c.Tag.Value, tag, StringComparison.OrdinalIgnoreCase));
+		return call.Return(country is null ? "" : Joined(country.Variables.Select(variable =>
+			variable.Key + "\t" + Number(variable.Value).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture))));
+	}
+
+	/// <summary>
+	/// The modifiers a country was given for a time, a line each in the order they were given - the name, a tab, the
+	/// hour it ends at as <c>year.month.day hour:00</c>, a tab, and 1 where it never ends, which the original keeps as
+	/// a date in year one.
+	/// </summary>
+	private int CountryModifiers(CLuaCall call)
+	{
+		string tag = call.String(1);
+		CCountry? country = _state?.Countries.FirstOrDefault(c => string.Equals(c.Tag.Value, tag, StringComparison.OrdinalIgnoreCase));
+		if (country is null)
+		{
+			return call.Return("");
+		}
+		return call.Return(string.Join("\n", country.EventModifiers.Select(given =>
+		{
+			CDate date = CDate.FromDayNumber((int)(given.UntilHour / CGameState.HoursPerDay));
+			long hour = given.UntilHour % CGameState.HoursPerDay;
+			return $"{given.Modifier.Name}\t{date.Year}.{date.Month}.{date.Day} {hour}:00\t{(date.Year <= 1 ? 1 : 0)}";
+		})));
+	}
+
+	/// <summary>Whether a page asked, as it drew, to gather again at once.</summary>
+	private bool _refresh;
+
+	public bool TakeRefresh()
+	{
+		bool asked = _refresh;
+		_refresh = false;
+		return asked;
 	}
 
 	/// <summary>The orders the pages have given since they were last taken: the screen posts them to the game.</summary>

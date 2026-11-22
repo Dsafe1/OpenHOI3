@@ -71,6 +71,19 @@ public sealed class CRecordingCanvas : IModWindowCanvas
 		return true;
 	}
 
+	public bool InputTextMultiline(string label, ref string value, float width, float height, bool readOnly)
+	{
+		Calls.Add($"InputTextMultiline {label} '{value}' {width} {height} {readOnly}");
+		if (readOnly || !Typed.TryGetValue(label, out string? typed))
+		{
+			return false;
+		}
+		value = typed;
+		return true;
+	}
+
+	public (float Width, float Height) ContentRegionAvail() => (400f, 300f);
+
 	/// <summary>What an integer box of a label answers as typed; one not named is left as it was.</summary>
 	public Dictionary<string, int> TypedNumbers { get; } = new();
 

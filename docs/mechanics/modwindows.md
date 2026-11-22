@@ -93,6 +93,8 @@ place and size, which the library remembers - is the engine's; a page draws what
 | a value, answering `changed, value` | `Checkbox(label, value)`, `InputText(label, text [, most])`, `InputInt(label, value)`, `SliderInt(label, value, least, most)`, `SliderFloat`, `Combo(label, choice, list)` - the choice counted from one |
 | tables | `BeginTable(id, columns)`, `TableSetupColumn`, `TableHeadersRow`, `TableNextRow`, `TableNextColumn`, `EndTable` |
 | tabs | `BeginTabBar(id)`, `BeginTabItem(label)`, `EndTabItem`, `EndTabBar` |
+| a box of text | `InputTextMultiline(label, text [, width, height, read_only])`, answering `changed, text` - several lines, which may be selected and copied; read-only, a page's way of showing a long text |
+| room | `GetContentRegionAvail()`, answering `width, height` - what is left to the right and below, for sharing out |
 | parts | `BeginChild(id [, width, height])`, `EndChild`, `TreeNode`, `TreePop`, `PushID`, `PopID` |
 | greyed | `BeginDisabled(disabled)`, `EndDisabled` - what stands between is greyed and takes no press where `disabled` is true; ended whatever was given |
 | the item before | `IsItemHovered`, `SetTooltip(text)` |
@@ -145,6 +147,12 @@ Under the global `OpenHOI3`, beside `Files`, `Enhanced` and `Fixes` (`mods.md`, 
 - `OpenHOI3.CountryFlags(tag)` - the names of the flags that country holds, sorted by name without case; a flag set
   and cleared again is not among them; empty for a tag that is no country's, and where no game is asked;
 - `OpenHOI3.GlobalFlags()` - the same of the game's own flags;
+- `OpenHOI3.CountryVariables(tag)` - that country's variables, each `{ name, value }`, sorted by name without case;
+  one at nought is among them, and leaving it out is the page's;
+- `OpenHOI3.CountryModifiers(tag)` - the modifiers it was given for a time (`add_country_modifier`), in the order
+  given, each `{ name, expires, never }`: `expires` the hour it ends at as `year.month.day hour:00` unpadded, `never`
+  true for one that does not end, which the original keeps as a date in year one;
+- `OpenHOI3.Refresh()` - section 6.2;
 - `OpenHOI3.Conversion(tag)` - a country's two conversions (`ic.md`, section 4.1), or nil for no country or no game:
   `played`, `oil_rate`, `energy_cap`, `energy_floor`, `crude_cap`, what it holds as `energy`, `crude_oil` and
   `fuel`, and `energy_conversion` and `crude_oil_conversion`, each `{ own, per_day, keep, target }` - figures in a
@@ -168,8 +176,28 @@ so that half a number is never an order.
 command: the conversion's is the first. A command a mod defines itself, its body an effect block
 (`docs/enhanced.md`, *What mods build on*), is not built.
 
-More come page by page (`docs/enhanced.md`, *What mods build on*: variables, timed modifiers, modifier totals, a
-province's figures, a leader's state, the selection).
+### 6.2 A page that shows what was just chosen
+
+A page that lists things and shows the chosen one reads the chosen one's figures in `Collect`, the only place the
+game may be asked - and `Collect` comes every two seconds. So **a page may ask, as it draws, to gather again at
+once**: `OpenHOI3.Refresh()` (`IModPages.TakeRefresh`). The screen then gathers the page after that frame's drawing,
+or as soon as the game may be read where hours run. The page notes the choice in a `local` of its own, asks, and
+its `Collect` answers for what is noted; until the answer is for the choice now made, it draws a "loading" line.
+What a press asks of the mod's own state that needs the game - BlackICE's Units page changing an assumed level -
+goes the same way: noted while drawing, done in `Collect`.
+
+### 6.3 What BlackICE's pages are made from
+
+**The mod's own data functions run here unchanged.** BlackICE's overlay on the original keeps its data apart from
+its drawing: `BiceLibGui.<Page>.<Function>` in the mod's Lua parses the mod's files and asks the game's Lua
+classes, and the DLL only draws. `autoexec.lua` loads them in every Lua state, the screens' own among them, and on
+2026-11-22 they answered here as they are - 343 traits, 1,175 technologies, 1,650 unit types, Germany's 2,016
+leaders and 1,919 unit models. So a page of BlackICE's for this engine is a `Collect` that calls them and a `Draw`
+in `OpenHOI3.ImGui`; `script/openhoi/pagekit.lua` holds what the pages share. Where a data function asks BiceLib
+- where a leader stands - it answers "unknown" here until the engine gives the read.
+
+More reads come page by page (`docs/enhanced.md`, *What mods build on*: modifier totals, a province's figures, a
+leader's state, the selection).
 
 ## 7. How it is drawn
 
@@ -209,10 +237,21 @@ draws, the order then run; and with `--screen=modwindows:conversion` BlackICE's 
 Germany's rate -0.90 and the line that says the conversion is shut. **Its Apply buttons were pressed by nobody
 yet** - a scripted click does not reliably reach a widget of the library.
 
+**The Inspector's and Game Info's pages**, 2026-11-22: `LuaPagesTests` has a page read a country's variables and
+given modifiers, ask to gather again, and draw a box of text. With `--screen=modwindows:<page>`, BlackICE's Traits,
+Modifiers, Techs, Generals, Units and Unit Models were drawn with the mod's own data, each also with a row chosen
+by a line put into the page for the run and taken out again - a trait's effects and triggers, a technology at its
+level, a leader's definition, a unit's figures and model string, a model's required levels. Active Variables and
+Active Event Modifiers were drawn on a new game's first hour, where Germany has neither; their rows are the test's
+alone. **No list was clicked in a run**: choosing a row, the level buttons and the filters are to be tried by hand.
+
 ## Not built
 
 - Orders beyond the conversion's (section 6.1), and a command a mod defines itself.
 - A key of the mod's choosing in the place of Insert; a button for the window on a screen of the game.
 - A theme and a text size of the player's choosing, which the overlay has.
 - Sorting a table by a column's header, and the rest of the library's widgets.
+- What the overlay's pages have and these lack, each for want of a widget or a read: a divider dragged between two
+  panes, the arrow keys in a list, a picture - the Unit Models page's sprite - the clipboard, and where the running
+  game has a leader.
 - The pages in the front end: they are a game's.

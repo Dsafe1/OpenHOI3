@@ -33,7 +33,7 @@ public sealed class CLuaImGui
 	private static readonly string[] Names =
 	{
 		"Text", "TextDisabled", "TextWrapped", "TextColored", "Separator", "SeparatorText", "SameLine", "Spacing", "NewLine",
-		"SetNextItemWidth", "Button", "SmallButton", "Selectable", "Checkbox", "InputText", "InputInt", "SliderInt", "SliderFloat",
+		"SetNextItemWidth", "Button", "SmallButton", "Selectable", "Checkbox", "InputText", "InputInt", "InputTextMultiline", "GetContentRegionAvail", "SliderInt", "SliderFloat",
 		"Combo", "CollapsingHeader", "IsItemHovered", "SetTooltip", "BeginTable", "TableSetupColumn", "TableHeadersRow",
 		"TableNextRow", "TableNextColumn", "EndTable", "BeginTabBar", "EndTabBar", "BeginTabItem", "EndTabItem",
 		"BeginChild", "EndChild", "TreeNode", "TreePop", "PushID", "PopID", "BeginDisabled", "EndDisabled",
@@ -71,6 +71,12 @@ public sealed class CLuaImGui
 			["Checkbox"] = Checkbox,
 			["InputText"] = InputText,
 			["InputInt"] = InputInt,
+			["InputTextMultiline"] = InputTextMultiline,
+			["GetContentRegionAvail"] = call =>
+			{
+				(float width, float height) = Canvas?.ContentRegionAvail() ?? (0f, 0f);
+				return call.ReturnMany((double)width, (double)height);
+			},
 			["SliderInt"] = SliderInt,
 			["SliderFloat"] = SliderFloat,
 			["Combo"] = Combo,
@@ -248,6 +254,17 @@ public sealed class CLuaImGui
 		int value = call.Integer(2);
 		bool changed = Canvas is { } canvas && canvas.InputInt(call.String(1), ref value);
 		return call.ReturnMany(changed, (double)value);
+	}
+
+	/// <summary><c>InputTextMultiline(label, text [, width, height, read_only])</c>, answering <c>changed, text</c>.</summary>
+	private int InputTextMultiline(CLuaCall call)
+	{
+		string value = call.ArgumentCount >= 2 ? call.String(2) : "";
+		float width = call.ArgumentCount >= 3 ? (float)call.Number(3) : 0f;
+		float height = call.ArgumentCount >= 4 ? (float)call.Number(4) : 0f;
+		bool readOnly = call.ArgumentCount >= 5 && call.Boolean(5);
+		bool changed = Canvas is { } canvas && canvas.InputTextMultiline(call.String(1), ref value, width, height, readOnly);
+		return call.ReturnMany(changed, value);
 	}
 
 	private int Checkbox(CLuaCall call)

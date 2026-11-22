@@ -53,8 +53,12 @@ first page, BlackICE's Active Flags - after the fact base's reading that the ori
 **And the conversion of resources** is built, 2026-11-22: a setting of a country's own with its command, in an
 enhanced save and the hash (`docs/mechanics/ic.md`, section 4.1), and its page, the first that changes the game - a
 page gives an order as it draws (`docs/mechanics/modwindows.md`, section 6.1). **To be tried by hand**: the page's
-Apply buttons. **Next**: the overlay's other pages and the reads they ask of the
-engine.
+Apply buttons. **And the Inspector's and Game Info's pages**, 2026-11-22: Active Variables and Active Event
+Modifiers on two new reads, and Traits, Generals, Modifiers, Techs, Units and Unit Models on BlackICE's own data
+functions, which run here unchanged (`modwindows.md`, sections 6.2 and 6.3). **To be tried by hand**: choosing a
+row, the level buttons and the filters on them. **Next**: the overlay's remaining pages - Setup, the rest of Country
+Info, Stats, Options, Help and the Inspector's larger ones (combat reports, the order of battle, the unit inspector,
+province buildings, the custom map mode) - and the reads and orders they ask of the engine.
 
 **Multiplayer - the last large piece of the normal engine** (`docs/multiplayer.md`, which holds every decision, what is
 built and what is not; begun 2026-11-20). **Finished, by the word of 2026-11-21: "I think multiplayer is finished

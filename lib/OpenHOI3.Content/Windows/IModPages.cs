@@ -31,4 +31,10 @@ public interface IModPages
 	/// page changes nothing itself: the screen posts these to the game as a player's orders are posted.
 	/// </summary>
 	IReadOnlyList<OpenHOI3.Sim.Commands.CCommand> TakePosted();
+
+	/// <summary>
+	/// Whether a page asked, as it drew, to gather again at once - what it shows hangs on a choice just made - and the
+	/// asking is taken with it. The screen then gathers the page as soon as the game may be read.
+	/// </summary>
+	bool TakeRefresh();
 }

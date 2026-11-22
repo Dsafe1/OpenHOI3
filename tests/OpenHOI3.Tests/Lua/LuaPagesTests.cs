@@ -151,6 +151,66 @@ public sealed class LuaPagesTests : IDisposable
 	}
 
 	[Fact]
+	public void APageReadsACountrysVariablesAndTheModifiersItWasGiven()
+	{
+		Page("inspect", "local ImGui = OpenHOI3.ImGui return { "
+			+ "Collect = function(player) return { v = OpenHOI3.CountryVariables(player), m = OpenHOI3.CountryModifiers(player), "
+			+ "none = #OpenHOI3.CountryVariables('XXX') + #OpenHOI3.CountryModifiers('XXX') } end, "
+			+ "Draw = function(data) "
+			+ "for _, v in ipairs(data.v) do ImGui.Text(v.name .. '=' .. v.value) end "
+			+ "for _, m in ipairs(data.m) do ImGui.Text(m.name .. '|' .. m.expires .. '|' .. tostring(m.never)) end "
+			+ "ImGui.Text('none ' .. data.none) end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			CGameState state = State();
+			CCountry germany = state.Countries[0];
+			germany.Variables["zeta"] = new CFixedPoint(12050);
+			germany.Variables["Alpha"] = new CFixedPoint(3000);
+			germany.Variables["nought"] = CFixedPoint.Zero;
+			// Thirty days from 1 January 1936, and one that never ends: a date in year one.
+			germany.EventModifiers.Add(OpenHOI3.Sim.Modifiers.CTimedModifier.Given(state, new OpenHOI3.Sim.Modifiers.CModifier("second_given"), 30));
+			germany.EventModifiers.Add(OpenHOI3.Sim.Modifiers.CTimedModifier.Given(state, new OpenHOI3.Sim.Modifiers.CModifier("for_ever"), -1));
+
+			var canvas = new CRecordingCanvas();
+			windows.Collect(state, windows.Pages[0], Ger);
+			windows.Draw(windows.Pages[0], Ger, canvas);
+			Assert.Equal(new[]
+			{
+				// The variables by name without case, one at nought among them; the modifiers in the order given.
+				"Text Alpha=3", "Text nought=0", "Text zeta=12.05",
+				"Text second_given|1936.1.31 0:00|false", "Text for_ever|1.1.1 0:00|true",
+				"Text none 0",
+			}, canvas.Calls);
+			Assert.Empty(_reports);
+		}
+	}
+
+	[Fact]
+	public void APageAsksToGatherAgainAsItDrawsAndTheAskingIsTakenOnce()
+	{
+		Page("asks", "local ImGui = OpenHOI3.ImGui return { Draw = function() "
+			+ "if ImGui.Button('again') then OpenHOI3.Refresh() end "
+			+ "local w, h = ImGui.GetContentRegionAvail() "
+			+ "local changed, text = ImGui.InputTextMultiline('##box', 'two\\nlines', -1, h / 2, true) "
+			+ "ImGui.Text(tostring(changed) .. ' ' .. w) end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			var canvas = new CRecordingCanvas();
+			windows.Draw(windows.Pages[0], Ger, canvas);
+			Assert.False(windows.TakeRefresh());
+			Assert.Equal(new[] { "Button again", "InputTextMultiline ##box 'two\nlines' -1 150 True", "Text false 400" }, canvas.Calls);
+
+			canvas.Pressed.Add("again");
+			windows.Draw(windows.Pages[0], Ger, canvas);
+			Assert.True(windows.TakeRefresh());
+			Assert.False(windows.TakeRefresh());
+			Assert.Empty(_reports);
+		}
+	}
+
+	[Fact]
 	public void APageGathersWithTheGameAndDrawsWhatItGathered()
 	{
 		Page("flags", "local ImGui = OpenHOI3.ImGui return { "

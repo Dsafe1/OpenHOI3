@@ -100,8 +100,11 @@ This file is the order of work across the two repositories and what was decided 
      to ask; and the first pages, BlackICE's Active Flags and Global Flags. **And the first page that changes the
      game**, the same day: the conversion of resources, a setting of a country's own with its command
      (`mechanics/ic.md`, section 4.1), read and ordered by BlackICE's Resource Conversion page - a page gives an
-     order as it draws and the screen posts it (`mechanics/modwindows.md`, section 6.1). **Not built**: the
-     overlay's other pages. The setting's effect for script is not wanted for now (`enhanced.md`, *Rules*). Agreed, 2026-11-22: **no single file that registers the pages** - one a submod would have to
+     order as it draws and the screen posts it (`mechanics/modwindows.md`, section 6.1). **And eight more pages**, the
+     same day: the Inspector's Active Variables and Active Event Modifiers, and Game Info whole - Traits, Generals,
+     Modifiers, Techs, Units, Unit Models - on BlackICE's own data functions, which run here as they are
+     (`mechanics/modwindows.md`, section 6.3). **Not built**: the overlay's remaining pages - Setup, the rest of
+     Country Info, Stats, Options, Help and the Inspector's larger ones. The setting's effect for script is not wanted for now (`enhanced.md`, *Rules*). Agreed, 2026-11-22: **no single file that registers the pages** - one a submod would have to
      overwrite - but a file a page, found by listing a folder over every layer; and the widgets a page may ask for
      grow as pages need them ("lets not limit ourselves"). What a mod declares in `.gui` files stays for what stands
      inside the game's own windows, as the game options' rows do.

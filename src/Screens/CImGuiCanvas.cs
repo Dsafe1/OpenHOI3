@@ -81,6 +81,16 @@ public sealed class CImGuiCanvas : IModWindowCanvas
 
 	public void EndTabItem() => ImGui.EndTabItem();
 
+	public bool InputTextMultiline(string label, ref string value, float width, float height, bool readOnly) =>
+		ImGui.InputTextMultiline(label, ref value, (uint)System.Math.Max(value.Length * 4 + 4096, 65536), new System.Numerics.Vector2(width, height),
+			readOnly ? ImGuiInputTextFlags.ReadOnly : ImGuiInputTextFlags.None);
+
+	public (float Width, float Height) ContentRegionAvail()
+	{
+		System.Numerics.Vector2 left = ImGui.GetContentRegionAvail();
+		return (left.X, left.Y);
+	}
+
 	public bool BeginChild(string id, float width, float height) => ImGui.BeginChild(id, new System.Numerics.Vector2(width, height));
 
 	public void EndChild() => ImGui.EndChild();

@@ -176,6 +176,11 @@ public sealed partial class CModWindows : Node
 		{
 			_collectedAt = Time.GetTicksMsec() - (ulong)((CollectEvery - AfterAnOrder) * 1000.0);
 		}
+		// A page that asked for it as it drew gathers again at once.
+		if (pages.TakeRefresh())
+		{
+			_collectedAt = 0;
+		}
 		// Gathered after the frame's drawing, for the next: the page seen now, when it is new or its interval is up.
 		Collect(pages, showing);
 	}
