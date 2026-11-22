@@ -68,9 +68,11 @@ pages, and Utility Options on the window's own settings - its key, look, text si
 holds (`modwindows.md`, section 6.4). **To be tried by hand**: choosing another key, the looks, the size, the
 layout's reset. **And three of the Inspector's larger pages**: Province Buildings, OOB Browser and OOB
 Report, on reads of a province's figures and of a country's whole order of battle. **To be tried by hand**: the
-tree's arrows and keys, the lists, the Copy buttons. **Next**: the Inspector's last three - the Unit Inspector
-(what is selected in the game, which a page cannot read yet), Combat Reports (a record of every finished battle,
-which the engine would have to keep) and Custom Mapmode (a map mode a mod declares) - and the Debug tab; a way for
+tree's arrows and keys, the lists, the Copy buttons. **Next**, as the user placed the Inspector's last three
+on 2026-11-22 (`docs/enhanced.md`, *Interface*): **Combat Reports**, the one that stays a page of the utility - the
+engine to keep a record of every finished battle, and a page to read it; then, in the game's own interface and not
+the utility, **the unit inspector** in the unit panel, on new kinds of element, and **the custom map mode** as a
+list a right click on a map mode's button opens. Also open: the Debug tab; a way for
 a page to move the map, and the two Country Modifiers lacks: a country's offmap IC and its trickleback.
 
 **Multiplayer - the last large piece of the normal engine** (`docs/multiplayer.md`, which holds every decision, what is

@@ -180,6 +180,22 @@ names of keys and defines are proposals.
     and strategic warfare charts; the collection is to be a record the engine keeps and a page reads, and no
     file written by a script. *Not designed*: which figures, for whom, how long, and whether in the save.
   Until then the ported pages stay as they are, the Statistics page with nothing to read.
+- **The Inspector's last three, each given its place by the user on 2026-11-22**, the first two not as pages of the
+  utility at all:
+  - **The unit inspector in the game's own interface** - "this one we should do in the native GUI directly, so skip
+    the Utility implementation. To make it readable we will probably need some new engine-GUI elements." What it
+    shows on the original: for whatever is selected, some forty figures of the unit as it stands - the sums over
+    its regiments with their technology in them - and its modifier on every terrain. *Not designed*: where in the
+    unit's panel, and which new kinds of element a mod's `.gui` file is given for it.
+  - **The custom map mode in the engine** - "done directly in the engine, skipping the utility step. For this I
+    think we could just make the Map-Mode buttons right click-able to open a small list (like the unit upgrade
+    selection)." A right click on a map mode's button by the minimap opens a short list to choose from, as a
+    brigade's upgrade list opens; what a mod declares for it is the line above this list, *A map mode a mod
+    declares in data*. *Not designed*: what the list offers for each button, and the file a mod declares it in.
+  - **Combat reports stay in the utility**, as a page - "This one should stay in the utility, but as you said needs
+    the engine to keep records": the engine keeps a record of every finished battle and a page reads it. *Not
+    designed*: what a record holds beyond the week's list of finished battles the air map mode already reads
+    (`mechanics/airmap.md`), how long it is kept, and whether it is in the save.
 
 **What mods build on**
 

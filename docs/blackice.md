@@ -126,8 +126,11 @@ This file is the order of work across the two repositories and what was decided 
      a read of a province's figures in BiceLib's shape; OOB Browser and OOB Report, on a read of a country's whole
      order of battle, the tree and the counts made in the mod's Lua (`mechanics/modwindows.md`, section 6). The
      browser's "Move to" is not there: a page has no way to move the map.
-     **Not built**: the Inspector's Unit Inspector, Combat Reports with the record of battles behind them, and
-     Custom Mapmode; the Debug tab; and the two reads Country Modifiers asks of BiceLib, a country's offmap
+     **The Inspector's last three**, by the user's word of that day (`enhanced.md`, *Interface*): the Unit
+     Inspector and the Custom Mapmode are **not to be pages** - the first goes into the game's own unit panel, on
+     new kinds of element, the second into the engine as a list a right click on a map mode's button opens - and
+     Combat Reports stays a page, on a record of finished battles the engine is to keep.
+     **Not built**: those three; the Debug tab; and the two reads Country Modifiers asks of BiceLib, a country's offmap
      IC and its trickleback. The setting's effect for script is not wanted for now (`enhanced.md`, *Rules*). Agreed, 2026-11-22: **no single file that registers the pages** - one a submod would have to
      overwrite - but a file a page, found by listing a folder over every layer; and the widgets a page may ask for
      grow as pages need them ("lets not limit ourselves"). What a mod declares in `.gui` files stays for what stands
