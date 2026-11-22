@@ -149,10 +149,20 @@ public sealed partial class CModWindows : Node
 	/// button held on it, a list's wheel - so a press on this window reached the event window beneath it as well. This
 	/// node is kept the last of the session's, which is the first asked; while the library wants the mouse it hands a
 	/// mouse event to the library itself and lets nobody else have it.
+	///
+	/// The arrow keys go the same way while the window has the keyboard, for another reason: the program's root stops
+	/// every arrow key before Godot's own interface answers it (<c>Main._Input</c>), which is before the library's
+	/// layer too - so a list of a page never heard one, and a box of a page could not move its caret by one.
 	/// </summary>
 	public override void _Input(InputEvent @event)
 	{
-		if (_shown && @event is InputEventMouse && ImGui.GetIO().WantCaptureMouse)
+		if (!_shown)
+		{
+			return;
+		}
+		bool mouse = @event is InputEventMouse && ImGui.GetIO().WantCaptureMouse;
+		bool arrow = @event is InputEventKey { Keycode: Key.Left or Key.Right or Key.Up or Key.Down } && HasKeyboard;
+		if (mouse || arrow)
 		{
 			ImGuiController.WindowInputCallback(@event);
 			GetViewport().SetInputAsHandled();

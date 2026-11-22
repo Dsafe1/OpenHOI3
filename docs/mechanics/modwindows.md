@@ -269,6 +269,14 @@ where a leader is. Drawn in a run: the panes, the Unit Models page's sprite - 19
 level)" - and von Rundstedt in Berlin with Heeresgruppe Süd. The keys, the divider's drag and the Copy button are
 the test's and to be tried by hand.
 
+**The arrow keys chose no row** - the user's, the same day: the map stood still and the list did nothing. The
+program's root stops every arrow key before Godot's own interface answers it (`Main._Input`; `tick.md` has why), and
+that is before the library's layer too, so no page ever heard one - nor could a box of a page move its caret by
+one. `CModWindows._Input` now hands an arrow key to the library itself while the window has the keyboard, as it
+hands the mouse. **Not tried by hand since, and no scripted run can try it**: the library takes the pointer's place
+from the system and not from a scripted event, so a scripted click never lands on the window - which is also why a
+scripted click over it reaches the map, where a real one does not.
+
 ## Not built
 
 - Orders beyond the conversion's (section 6.1), and a command a mod defines itself.
