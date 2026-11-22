@@ -295,6 +295,79 @@ public sealed class LuaPagesTests : IDisposable
 	}
 
 	[Fact]
+	public void APageReadsAProvincesOwnFiguresInThousandths()
+	{
+		Page("province", "local ImGui = OpenHOI3.ImGui return { "
+			+ "Collect = function() return { a = OpenHOI3.ProvinceDetails(1), none = OpenHOI3.ProvinceDetails(99) } end, "
+			+ "Draw = function(data) local a = data.a "
+			+ "ImGui.Text(a.id .. ' ' .. a.supply_pool .. ' ' .. a.fuel_pool .. ' ' .. a.metal .. ' ' .. a.manpower .. ' ' .. a.leadership) "
+			+ "ImGui.Text(a.modifiers.local_ic .. ' ' .. a.modifiers.local_rares .. ' ' .. a.modifiers.local_oil) "
+			+ "ImGui.Text(tostring(data.none)) end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			var germany = new CCountry { Tag = Ger, Name = "Germany", DefinitionFile = "" };
+			var province = new CProvince(1, "Essen", false) { Manpower = new CFixedPoint(340), Leadership = new CFixedPoint(1250) };
+			province.Pool[OpenHOI3.Sim.Economy.EGoods.Supplies] = new CFixedPoint(12500);
+			province.Pool[OpenHOI3.Sim.Economy.EGoods.Fuel] = new CFixedPoint(700);
+			province.CurrentProducing[OpenHOI3.Sim.Economy.EGoods.Metal] = new CFixedPoint(3000);
+			province.Modifier.Set("local_ic", new CFixedPoint(50));
+			province.Modifier.Set("local_rare_materials", new CFixedPoint(250));
+			var state = new CGameState(new CDate(1936, 1, 1), new[] { new CProvince(0, "", false), province }, new[] { germany });
+
+			var canvas = new CRecordingCanvas();
+			windows.Collect(state, windows.Pages[0], Ger);
+			windows.Draw(windows.Pages[0], Ger, canvas);
+			// Thousandths throughout, as the mod's own data divides them; nil for a number the map has not.
+			Assert.Equal(new[] { "Text 1 12500 700 3000 340 1250", "Text 50 250 0", "Text nil" }, canvas.Calls);
+			Assert.Empty(_reports);
+		}
+	}
+
+	[Fact]
+	public void APageReadsACountrysOrderOfBattleEveryUnitWithTheOneOverIt()
+	{
+		Page("oob", "local ImGui = OpenHOI3.ImGui return { "
+			+ "Collect = function(player) return { units = OpenHOI3.OrderOfBattle(player), none = #OpenHOI3.OrderOfBattle('XXX') } end, "
+			+ "Draw = function(data) for _, u in ipairs(data.units) do "
+			+ "ImGui.Text(u.id .. ' ' .. u.parent .. ' ' .. u.branch .. ' ' .. u.kind .. ' ' .. u.name .. ' ' .. u.province .. ' ' "
+			+ ".. (u.leader and (u.leader.name .. ' ' .. u.leader.skill .. '/' .. u.leader.max_skill) or 'nobody') .. ' ' "
+			+ ".. u.supply .. ' ' .. u.dug_in .. ' [' .. u.orders .. '] ' .. #u.regiments) end "
+			+ "ImGui.Text('none ' .. data.none) end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			CGameState state = State();
+			CCountry germany = state.Countries[0];
+			var corps = new OpenHOI3.Sim.Units.CUnit(OpenHOI3.Sim.Units.EUnitKind.Corps, Ger) { Id = 5, Location = 1861, Name = "I. A.K." };
+			corps.Leader = new OpenHOI3.Sim.Leaders.CLeader(7) { Name = "Schroth", Skill = 3, MaxSkill = 7 };
+			// A name with the game's colour escapes in it, a unit under another, one told to do neither.
+			var division = new OpenHOI3.Sim.Units.CUnit(OpenHOI3.Sim.Units.EUnitKind.Division, Ger)
+			{
+				Id = 9, Location = 1527, Name = "§Y1. Kavallerie-Brigade§W", Parent = corps, DigIn = new CFixedPoint(2500),
+				MayReinforce = false, MayUpgrade = false, IsPrioritised = true, SuppliesReceived = new CFixedPoint(500),
+			};
+			corps.Children.Add(division);
+			var fleet = new OpenHOI3.Sim.Units.CUnit(OpenHOI3.Sim.Units.EUnitKind.Navy, Ger) { Id = 12, Location = 30, Name = "Baltische Flotte" };
+			germany.Units.Add(corps);
+			germany.Units.Add(fleet);
+
+			var canvas = new CRecordingCanvas();
+			windows.Collect(state, windows.Pages[0], Ger);
+			windows.Draw(windows.Pages[0], Ger, canvas);
+			Assert.Equal(new[]
+			{
+				// A unit before what stands under it; the top ones in the country's own order.
+				"Text 5 0 land Corps I. A.K. 1861 Schroth 3/7 1 0 [reinforcing upgrading] 0",
+				"Text 9 5 land Division 1. Kavallerie-Brigade 1527 nobody 0.5 2.5 [priority] 0",
+				"Text 12 0 naval Fleet Baltische Flotte 30 nobody 1 0 [reinforcing upgrading] 0",
+				"Text none 0",
+			}, canvas.Calls);
+			Assert.Empty(_reports);
+		}
+	}
+
+	[Fact]
 	public void APageReadsWhereALeaderIs()
 	{
 		Page("leader", "local ImGui = OpenHOI3.ImGui return { "

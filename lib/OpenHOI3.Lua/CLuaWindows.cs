@@ -76,6 +76,27 @@ public sealed class CLuaWindows : IModPages
 		"OpenHOI3.LeaderDetails = function(id) local known, active, unit, province = leader(tonumber(id) or -1) " +
 		"if not known then return nil end " +
 		"return { active = active, unit_name = unit, province_id = province } end " +
+		// A province's own figures, in thousandths as the mod's data divides them: nil for no province of that number.
+		"local province, oob = __ohoi_w_province, __ohoi_w_oob __ohoi_w_province, __ohoi_w_oob = nil, nil " +
+		"OpenHOI3.ProvinceDetails = function(id) " +
+		"local known, supply, fuel, oil, metal, energy, rares, manpower, leadership, lic, loil, lenergy, lmetal, lrares, lleadership = province(tonumber(id) or -1) " +
+		"if not known then return nil end " +
+		"return { id = tonumber(id), supply_pool = supply, fuel_pool = fuel, oil = oil, metal = metal, energy = energy, rares = rares, " +
+		"manpower = manpower, leadership = leadership, modifiers = { local_ic = lic, local_oil = loil, local_energy = lenergy, " +
+		"local_metal = lmetal, local_rares = lrares, local_leadership = lleadership } } end " +
+		// A country's order of battle, every unit with what it holds: a line a unit and a line a regiment, their parts
+		// by tabs, made into tables here. A unit's parent is the number of the unit over it, 0 for none.
+		"OpenHOI3.OrderOfBattle = function(tag) local units, byId = {}, {} " +
+		"for _, line in ipairs(lines(oob(tostring(tag)))) do local p = {} " +
+		"for part in string.gmatch(line .. '\\t', '(.-)\\t') do p[#p + 1] = part end " +
+		"if p[1] == 'U' then local unit = { id = tonumber(p[2]), parent = tonumber(p[3]), branch = p[4], kind = p[5], name = p[6], " +
+		"province = tonumber(p[7]), supply = tonumber(p[11]), fuel = tonumber(p[12]), supply_used = tonumber(p[13]), fuel_used = tonumber(p[14]), " +
+		"dug_in = tonumber(p[15]), combined_arms = tonumber(p[16]), cooldown = tonumber(p[17]), orders = p[18], regiments = {} } " +
+		"if p[8] ~= '' or p[9] ~= '-1' then unit.leader = { name = p[8], skill = tonumber(p[9]), max_skill = tonumber(p[10]) } end " +
+		"units[#units + 1] = unit byId[unit.id] = unit " +
+		"elseif p[1] == 'R' and byId[tonumber(p[2])] ~= nil then local regiments = byId[tonumber(p[2])].regiments " +
+		"regiments[#regiments + 1] = { name = p[3], type = p[4], strength = tonumber(p[5]), organisation = tonumber(p[6]) } end end " +
+		"return units end " +
 		"function __ohoi_window_register(name, page) " +
 		"if type(page) ~= 'table' then error('the page ' .. name .. ' does not return a table', 0) end " +
 		"if type(page.Draw) ~= 'function' then error('the page ' .. name .. ' has no Draw function', 0) end " +
@@ -113,6 +134,8 @@ public sealed class CLuaWindows : IModPages
 		lua.SetGlobal("__ohoi_w_countrymodifiers", (CLuaFunction)CountryModifiers);
 		lua.SetGlobal("__ohoi_w_refresh", (CLuaFunction)(call => { _refresh = true; return 0; }));
 		lua.SetGlobal("__ohoi_w_leader", (CLuaFunction)LeaderDetails);
+		lua.SetGlobal("__ohoi_w_province", (CLuaFunction)ProvinceDetails);
+		lua.SetGlobal("__ohoi_w_oob", (CLuaFunction)OrderOfBattle);
 		if (!scripts.RunChunk(Encoding.Latin1.GetBytes(Glue), "=OpenHOI3"))
 		{
 			return;
@@ -295,6 +318,118 @@ public sealed class CLuaWindows : IModPages
 		return leader.Unit is { } unit
 			? call.ReturnMany(true, active, unit.Name, (double)unit.Location)
 			: call.ReturnMany(true, active);
+	}
+
+	/// <summary>
+	/// A province's own figures by its number, each in thousandths: what lies there of supplies and of fuel, what it
+	/// makes now of crude oil, metal, energy and rare materials, its manpower and leadership, and its own modifier of
+	/// six kinds - IC, crude oil, energy, metal, rare materials, leadership. Nothing for no such province. The shape
+	/// is the one BiceLib's read has on the original, so that the mod's data asks whichever is there.
+	/// </summary>
+	private int ProvinceDetails(CLuaCall call)
+	{
+		int id = call.Integer(1);
+		if (_state is not { } state || id < 1 || id >= state.Provinces.Count)
+		{
+			return call.Return(false);
+		}
+		Sim.Provinces.CProvince province = state.Province(id);
+		double Made(Sim.Economy.EGoods goods) => province.CurrentProducing[goods].Raw;
+		double Local(string kind) => province.Modifier[kind].Raw;
+		return call.ReturnMany(true,
+			(double)province.Pool[Sim.Economy.EGoods.Supplies].Raw, (double)province.Pool[Sim.Economy.EGoods.Fuel].Raw,
+			Made(Sim.Economy.EGoods.CrudeOil), Made(Sim.Economy.EGoods.Metal), Made(Sim.Economy.EGoods.Energy),
+			Made(Sim.Economy.EGoods.RareMaterials), (double)province.Manpower.Raw, (double)province.Leadership.Raw,
+			Local("local_ic"), Local("local_crude_oil"), Local("local_energy"), Local("local_metal"),
+			Local("local_rare_materials"), Local("local_leadership"));
+	}
+
+	/// <summary>
+	/// A country's units, a line each and a line for each regiment under its unit's, the parts by tabs: for a unit
+	/// <c>U</c>, its number, its parent's (0 for none), its branch, its kind, its name, its province, its leader's
+	/// name, skill and highest skill (-1 for no leader), the supplies and the fuel it gets as a share, what it uses a
+	/// day of each, how far it is dug in, its combined arms bonus, the hours it may not attack, and its orders; for
+	/// a regiment <c>R</c>, its unit's number, its name, its type, its strength and its organisation.
+	/// </summary>
+	private int OrderOfBattle(CLuaCall call)
+	{
+		string tag = call.String(1);
+		if (_state is not { } state
+			|| state.Countries.FirstOrDefault(c => string.Equals(c.Tag.Value, tag, StringComparison.OrdinalIgnoreCase)) is not { } country)
+		{
+			return call.Return("");
+		}
+		var text = new StringBuilder();
+		// A name as plain text: the parts' separators taken out, and the colour escapes a name may carry - the
+		// section sign and the letter after it - which the game's own text draws as colour and a page would as letters.
+		static string Clean(string name)
+		{
+			var plain = new StringBuilder(name.Length);
+			for (int i = 0; i < name.Length; i++)
+			{
+				char c = name[i];
+				if (c == '§')
+				{
+					i++;
+				}
+				else
+				{
+					plain.Append(c is '\t' or '\n' or '\r' ? ' ' : c);
+				}
+			}
+			return plain.ToString();
+		}
+		static string Figure(double value) => value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
+		// Every unit from the top ones down, each before what stands under it.
+		foreach (Sim.Units.CUnit unit in country.AllUnits())
+		{
+			if (unit.IsRemoved)
+			{
+				continue;
+			}
+			(string branch, string kind) = unit.Kind switch
+			{
+				Sim.Units.EUnitKind.Theatre => ("land", "Theatre"),
+				Sim.Units.EUnitKind.ArmyGroup => ("land", "Army group"),
+				Sim.Units.EUnitKind.Army => ("land", "Army"),
+				Sim.Units.EUnitKind.Corps => ("land", "Corps"),
+				Sim.Units.EUnitKind.Division => ("land", "Division"),
+				Sim.Units.EUnitKind.Navy => ("naval", "Fleet"),
+				_ => ("air", "Air wing"),
+			};
+			bool holds = unit.SubUnits.Count > 0;
+			double combined = unit.Kind == Sim.Units.EUnitKind.Division && holds
+				? Number(Sim.Units.CCombinedArms.Bonus(state, country, unit.SubUnits.Select(subUnit => subUnit.Type)))
+				: 0.0;
+			var orders = new List<string>();
+			if (unit.IsPrioritised)
+			{
+				orders.Add("priority");
+			}
+			if (unit.MayReinforce)
+			{
+				orders.Add("reinforcing");
+			}
+			if (unit.MayUpgrade)
+			{
+				orders.Add("upgrading");
+			}
+			text.Append("U\t").Append(unit.Id).Append('\t').Append(unit.Parent is { IsRemoved: false } parent ? parent.Id : 0).Append('\t')
+				.Append(branch).Append('\t').Append(kind).Append('\t').Append(Clean(unit.Name)).Append('\t').Append(unit.Location).Append('\t')
+				.Append(unit.Leader is { } leader ? Clean(leader.Name) : "").Append('\t')
+				.Append(unit.Leader?.Skill ?? -1).Append('\t').Append(unit.Leader?.MaxSkill ?? -1).Append('\t')
+				.Append(Figure(Number(unit.SuppliesReceived))).Append('\t').Append(Figure(Number(unit.FuelReceived))).Append('\t')
+				.Append(Figure(holds ? Number(Sim.Units.CUnitSupply.SupplyConsumption(state, country, unit)) : 0.0)).Append('\t')
+				.Append(Figure(holds ? Number(Sim.Units.CUnitSupply.FuelConsumption(state, country, unit)) : 0.0)).Append('\t')
+				.Append(Figure(Number(unit.DigIn))).Append('\t').Append(Figure(combined)).Append('\t')
+				.Append(Figure(Number(unit.AttackDelay))).Append('\t').Append(string.Join(' ', orders)).Append('\n');
+			foreach (Sim.Units.CSubUnit regiment in unit.SubUnits)
+			{
+				text.Append("R\t").Append(unit.Id).Append('\t').Append(Clean(regiment.Name)).Append('\t').Append(regiment.Type.Key).Append('\t')
+					.Append(Figure(Number(regiment.Strength))).Append('\t').Append(Figure(Number(regiment.Organisation))).Append('\n');
+			}
+		}
+		return call.Return(text.ToString());
 	}
 
 	/// <summary>Whether a page asked, as it drew, to gather again at once.</summary>

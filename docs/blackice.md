@@ -122,7 +122,12 @@ This file is the order of work across the two repositories and what was decided 
      key that shows it, its look, its text size, its layout. The overlay's Game Settings and Custom Auto-Saves
      pages are no pages here - they are the game options' rows (step 6, above) - and its crash reports and debug
      console are BiceLib's own.
-     **Not built**: the Inspector's larger pages; and the two reads Country Modifiers asks of BiceLib, a country's offmap
+     **And three of the Inspector's larger pages**, the same day: Province Buildings, on the mod's own data and
+     a read of a province's figures in BiceLib's shape; OOB Browser and OOB Report, on a read of a country's whole
+     order of battle, the tree and the counts made in the mod's Lua (`mechanics/modwindows.md`, section 6). The
+     browser's "Move to" is not there: a page has no way to move the map.
+     **Not built**: the Inspector's Unit Inspector, Combat Reports with the record of battles behind them, and
+     Custom Mapmode; the Debug tab; and the two reads Country Modifiers asks of BiceLib, a country's offmap
      IC and its trickleback. The setting's effect for script is not wanted for now (`enhanced.md`, *Rules*). Agreed, 2026-11-22: **no single file that registers the pages** - one a submod would have to
      overwrite - but a file a page, found by listing a folder over every layer; and the widgets a page may ask for
      grow as pages need them ("lets not limit ourselves"). What a mod declares in `.gui` files stays for what stands

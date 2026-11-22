@@ -165,6 +165,23 @@ Under the global `OpenHOI3`, beside `Files`, `Enhanced` and `Fixes` (`mods.md`, 
   `{ active, unit_name, province_id }` - whether he is in service, and the name of the unit he commands with the
   province it stands in, both nil where he commands none. The shape is the one BiceLib's read has on the original,
   so that the mod's data function asks whichever is there;
+- `OpenHOI3.ProvinceDetails(id)` - a province's own figures, nil for a number the map has not: `id`, `supply_pool`
+  and `fuel_pool` (what lies there), `oil`, `metal`, `energy`, `rares` (what it makes now), `manpower`,
+  `leadership`, and `modifiers` with `local_ic`, `local_oil`, `local_energy`, `local_metal`, `local_rares`,
+  `local_leadership` - its own modifier of the kinds `local_ic`, `local_crude_oil`, `local_energy`, `local_metal`,
+  `local_rare_materials`, `local_leadership`. **All in thousandths**, which is the shape and the scale BiceLib's
+  read has on the original and the mod's data divides. No test of what the country knows of the province, as on
+  the original;
+- `OpenHOI3.OrderOfBattle(tag)` - every unit of a country, each before what stands under it, as a list of
+  `{ id, parent, branch, kind, name, province, leader, supply, fuel, supply_used, fuel_used, dug_in,
+  combined_arms, cooldown, orders, regiments }`: `parent` the number of the unit over it and 0 for none; `branch`
+  `land`, `air` or `naval`; `kind` its level in words; `leader` `{ name, skill, max_skill }` or nil; `supply` and
+  `fuel` the shares it gets; `supply_used` and `fuel_used` what its own regiments use a day, as the game works it
+  out; `combined_arms` a division's bonus as a share; `cooldown` the hours it may not attack; `orders` the words
+  `priority`, `reinforcing`, `upgrading` that apply; `regiments` each `{ name, type, strength, organisation }`. A
+  name's colour escapes are taken out. **A whole order of battle is thousands of small reads**: a page asks for it
+  on a button and when the country is another, not every two seconds. No test of what the player knows of it
+  either;
 - `OpenHOI3.Refresh()` - section 6.2;
 - `OpenHOI3.Conversion(tag)` - a country's two conversions (`ic.md`, section 4.1), or nil for no country or no game:
   `played`, `oil_rate`, `energy_cap`, `energy_floor`, `crude_cap`, what it holds as `energy`, `crude_oil` and
@@ -313,6 +330,16 @@ hands the mouse. **Not tried by hand since, and no scripted run can try it**: th
 from the system and not from a scripted event, so a scripted click never lands on the window - which is also why a
 scripted click over it reaches the map, where a real one does not. The user tried the keys, the drag over an event
 window and the divider by hand the same day: "looks good".
+
+**Three of the Inspector's larger pages**, 2026-11-22: `LuaPagesTests` has a page read a province's figures and a
+country's order of battle. With `--screen=modwindows:<page>`, BlackICE's working copy on a new game: OOB Report -
+Germany's 83 units, 63 land, 13 air and 7 naval, in 375 regiments, by kind from theatre to fleet, its three top
+formations and 94 types of regiment - OOB Browser, with a division chosen by a line put in for the run - the tree
+open to it, Schroth, skill 3 of 7, at Königsberg, 55% combined arms, seven regiments - and Province Buildings, with
+Industry chosen the same way: 263 provinces, Berlin's 10 first, and a province's base production and local
+modifiers. **Nothing was clicked**: the tree's arrows and keys, the lists and the Copy buttons are to be tried by
+hand. **A regiment's strength is the game's own figure** - a brigade's 72.0, a staff's 3.2 - and was not set beside
+what the original's overlay shows.
 
 **Country Info's pages**, 2026-11-22: `LuaPagesTests` has a page post the original's `CSetVariableCommand` as it
 gathers - the command among the page's orders, the game's outbox empty, the variable untouched. With
