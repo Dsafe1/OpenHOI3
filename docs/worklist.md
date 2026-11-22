@@ -69,13 +69,13 @@ holds (`modwindows.md`, section 6.4). **To be tried by hand**: choosing another 
 layout's reset. **And three of the Inspector's larger pages**: Province Buildings, OOB Browser and OOB
 Report, on reads of a province's figures and of a country's whole order of battle. **To be tried by hand**: the
 tree's arrows and keys, the lists, the Copy buttons. **And Combat Reports**, the last of the utility's pages to be
-ported but the Debug tab: an enhanced game keeps a report for every battle that ends, in its state and its save
+ported but the Debug tab, which is left out by the decision of 2026-11-22 ("We can skip the debug tab"): an enhanced game keeps a report for every battle that ends, in its state and its save
 (`docs/mechanics/combatreports.md`), and the page reads it. **With that the utility stands here as far as it is to
 be a utility.** **Next**, as the user placed the Inspector's other two on 2026-11-22 (`docs/enhanced.md`,
 *Interface*), in the game's own interface: **the unit inspector** in the unit panel, on new kinds of element, and
 **the custom map mode** as a list a right click on a map mode's button opens; and what was set down for after the
 port - the statistics from a record of the engine's own, the custom sliders and trade AI in the game's own
-screens. Also open: the Debug tab; whether old battle reports are gathered or dropped; a way for
+screens. Also open: whether old battle reports are gathered or dropped; a way for
 a page to move the map, and the two Country Modifiers lacks: a country's offmap IC and its trickleback.
 
 **Found on the way, the normal engine's own gap** - the user's, 2026-11-22: "The message popup for it also doesnt

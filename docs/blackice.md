@@ -134,7 +134,7 @@ This file is the order of work across the two repositories and what was decided 
      and in an enhanced save (`mechanics/combatreports.md`), and BlackICE's page counts a country's over a period
      and lists its last sixteen - with none of the DLL's files, campaign numbers and sessions, a save loaded having
      its own record with it.
-     **Not built**: the other two, which are the engine's own interface; the Debug tab; and the two reads Country Modifiers asks of BiceLib, a country's offmap
+     **Not built**: the other two, which are the engine's own interface; and the two reads Country Modifiers asks of BiceLib, a country's offmap
      IC and its trickleback. The setting's effect for script is not wanted for now (`enhanced.md`, *Rules*). Agreed, 2026-11-22: **no single file that registers the pages** - one a submod would have to
      overwrite - but a file a page, found by listing a folder over every layer; and the widgets a page may ask for
      grow as pages need them ("lets not limit ourselves"). What a mod declares in `.gui` files stays for what stands
