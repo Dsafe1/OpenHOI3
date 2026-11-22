@@ -144,7 +144,9 @@ original would draw, its contents never hidden.
   once and written to **`openhoi_settings.txt`** in the player's folder, beside `settings.txt` and not in it - the
   original reads that one too and has to find it as it wrote it (`CEnhancedSettingsFile`; UTF-8, four keys:
   `premonth_autosave_days`, `timed_autosave_minutes`, `edge_scrolling`, `event_window`). A failure to write is told as
-  the settings' own is. Back drops what was not applied. The front end's Settings window has the rows too.
+  the settings' own is. **Two more keys are in that file since 2026-11-22 and no row shows them**: `window_key` and
+  `window_theme`, the key and the look of a mod's own windows, set from a page of theirs (`modwindows.md`, section
+  6.4); the rows are made from the file and Apply writes those two back as they were (`CEnhancedOptions`). Back drops what was not applied. The front end's Settings window has the rows too.
 - **Checked on 2026-11-21 with `--click`**, BlackICE's working copy played from a linked stand-in install: the rows
   drawn from its `gameoptions.gui` and worded from its table, stepped, applied - `openhoi_settings.txt` written and `settings.txt` byte for byte what it
   was - and in a second run an event's window at the left where the mod's file puts it in the middle, at the same

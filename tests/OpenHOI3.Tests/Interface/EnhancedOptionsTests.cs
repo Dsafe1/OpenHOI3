@@ -40,6 +40,33 @@ public class EnhancedOptionsTests
 	}
 
 	[Fact]
+	public void TheKeyAndTheLookOfAModsWindowsAreKeptInTheFileAndTheOptionsRowsLeaveThemAlone()
+	{
+		// A key's name with a space in it, which is why it is written in quotes.
+		var settings = new CEnhancedSettings(0, 0, true, EEventWindowPlace.AsFiled, "Page Up", "light");
+		var warnings = new List<string>();
+		CEnhancedSettings read = CEnhancedSettingsFile.Parse(CEnhancedSettingsFile.Write(settings), "test", warnings.Add);
+		Assert.Equal("Page Up", read.WindowKey);
+		Assert.Equal("light", read.WindowTheme);
+		Assert.Empty(warnings);
+
+		// A file of before these two has neither: Insert and the dark look.
+		CEnhancedSettings older = CEnhancedSettingsFile.Parse("edge_scrolling = no\n", "test", warnings.Add);
+		Assert.Equal("Insert", older.WindowKey);
+		Assert.Equal("dark", older.WindowTheme);
+		// A look that is none is reported and left at the default.
+		Assert.Equal("dark", CEnhancedSettingsFile.Parse("window_theme = purple\n", "test", warnings.Add).WindowTheme);
+		Assert.Single(warnings);
+
+		// The game options' rows show neither, and applying them changes neither.
+		var rows = new CEnhancedOptions();
+		rows.Refresh(settings);
+		CEnhancedSettings applied = rows.Apply();
+		Assert.Equal("Page Up", applied.WindowKey);
+		Assert.Equal("light", applied.WindowTheme);
+	}
+
+	[Fact]
 	public void AFigureIsHeldToWhatItMayBeAndWhatIsNotUnderstoodIsReported()
 	{
 		var warnings = new List<string>();

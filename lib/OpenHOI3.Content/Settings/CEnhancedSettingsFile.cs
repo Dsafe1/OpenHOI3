@@ -26,6 +26,8 @@ public static class CEnhancedSettingsFile
 	private const string TimedKey = "timed_autosave_minutes";
 	private const string EdgeKey = "edge_scrolling";
 	private const string EventKey = "event_window";
+	private const string WindowKeyKey = "window_key";
+	private const string WindowThemeKey = "window_theme";
 
 	/// <summary>The file for what is played: in the player's folder, a mod's own where it has one.</summary>
 	public static string DefaultPath(CDirectorySettings directories)
@@ -59,6 +61,12 @@ public static class CEnhancedSettingsFile
 				case EventKey when Place(value) is { } place:
 					settings = settings with { EventWindow = place };
 					break;
+				case WindowKeyKey when value.Length > 0:
+					settings = settings with { WindowKey = value };
+					break;
+				case WindowThemeKey when Array.IndexOf(CEnhancedSettings.WindowThemes, value) >= 0:
+					settings = settings with { WindowTheme = value };
+					break;
 				default:
 					warn(CDiagnostics.Located(source, entry.Line, $"'{entry.Key ?? entry.Value}' is not a setting of {FileName}, or its value is not one it takes; ignored"));
 					break;
@@ -77,6 +85,9 @@ public static class CEnhancedSettingsFile
 		text.Append(CultureInfo.InvariantCulture, $"{TimedKey} = {held.TimedMinutes}\n");
 		text.Append(CultureInfo.InvariantCulture, $"{EdgeKey} = {(held.EdgeScrolling ? "yes" : "no")}\n");
 		text.Append(CultureInfo.InvariantCulture, $"{EventKey} = {PlaceName(held.EventWindow)}\n");
+		// A key's name may hold a space - "Page Up" - so it is written in quotes.
+		text.Append(CultureInfo.InvariantCulture, $"{WindowKeyKey} = \"{held.WindowKey}\"\n");
+		text.Append(CultureInfo.InvariantCulture, $"{WindowThemeKey} = {held.WindowTheme}\n");
 		return text.ToString();
 	}
 

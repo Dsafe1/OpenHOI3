@@ -24,20 +24,27 @@ public sealed class CEnhancedOptions
 
 	public EEventWindowPlace EventWindow { get; private set; }
 
+	/// <summary>The settings the rows were made from: what no row shows of them is kept as it was.</summary>
+	private CEnhancedSettings _from = CEnhancedSettings.Default;
+
 	/// <summary>Every row made again from the settings.</summary>
 	public void Refresh(CEnhancedSettings settings)
 	{
 		CEnhancedSettings held = settings.Held();
+		_from = held;
 		PreMonthDays = held.PreMonthDays;
 		TimedMinutes = held.TimedMinutes;
 		EdgeScrolling = held.EdgeScrolling;
 		EventWindow = held.EventWindow;
 	}
 
-	/// <summary>The rows as settings.</summary>
+	/// <summary>
+	/// The rows as settings. What the rows do not show - the key and the look of a mod's windows, which a page of
+	/// theirs sets - is as it was when the rows were made.
+	/// </summary>
 	public CEnhancedSettings Apply()
 	{
-		return new CEnhancedSettings(PreMonthDays, TimedMinutes, EdgeScrolling, EventWindow);
+		return _from with { PreMonthDays = PreMonthDays, TimedMinutes = TimedMinutes, EdgeScrolling = EdgeScrolling, EventWindow = EventWindow };
 	}
 
 	/// <summary>A row stepped up or down by its arrows.</summary>

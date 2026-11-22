@@ -138,6 +138,17 @@ public sealed class CRecordingCanvas : IModWindowCanvas
 	public void PlotLines(string label, IReadOnlyList<float> values, float width, float height, string overlay) =>
 		Calls.Add($"PlotLines {label} {string.Join(',', values.Select(value => (int)value))} {(int)height} {overlay}");
 
+	/// <summary>The window's settings as a test left them.</summary>
+	public Dictionary<string, string> Settings { get; } = new() { ["scale"] = "1", ["theme"] = "dark", ["themes"] = "dark light classic", ["key"] = "Insert", ["capturing"] = "no" };
+
+	public string WindowSetting(string name) => Settings.TryGetValue(name, out string? value) ? value : "";
+
+	public void SetWindowSetting(string name, string value)
+	{
+		Calls.Add($"SetWindowSetting {name} {value}");
+		Settings[name] = value;
+	}
+
 	public void ProgressBar(float fraction, float width, string text) => Calls.Add($"ProgressBar {(int)(fraction * 100)} {text}");
 
 	public bool InputFloat(string label, ref double value, int decimals)

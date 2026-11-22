@@ -215,6 +215,30 @@ public sealed class LuaPagesTests : IDisposable
 	}
 
 	[Fact]
+	public void APageReadsAndSetsTheWindowsOwnSettings()
+	{
+		Page("options", "local ImGui, Window = OpenHOI3.ImGui, OpenHOI3.Window return { Draw = function() "
+			+ "ImGui.Text(Window.Key() .. ' ' .. Window.Theme() .. ' ' .. Window.Scale() .. ' ' .. tostring(Window.Capturing()) .. ' ' .. table.concat(Window.Themes(), ',')) "
+			+ "Window.SetTheme('light') Window.SetScale(1.25) Window.CaptureKey() Window.CancelCapture() Window.ResetLayout() "
+			+ "ImGui.Text(Window.Theme() .. ' ' .. tostring(OpenHOI3.ImGui.WindowSetting)) end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			var canvas = new CRecordingCanvas();
+			windows.Draw(windows.Pages[0], Ger, canvas);
+			Assert.Equal(new[]
+			{
+				"Text Insert dark 1 false dark,light,classic",
+				"SetWindowSetting theme light", "SetWindowSetting scale 1.25", "SetWindowSetting key capture",
+				"SetWindowSetting key cancel", "SetWindowSetting layout reset",
+				// They are the window's, under OpenHOI3.Window, and not among the widgets.
+				"Text light nil",
+			}, canvas.Calls);
+			Assert.Empty(_reports);
+		}
+	}
+
+	[Fact]
 	public void APageDrawsALineThroughAListOfValuesHoweverLong()
 	{
 		// Nine thousand values: more than a call of the Lua's takes as arguments, which is why they cross as one text.

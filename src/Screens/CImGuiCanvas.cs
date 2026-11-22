@@ -78,6 +78,15 @@ public sealed class CImGuiCanvas : IModWindowCanvas
 			new System.Numerics.Vector2(width > 0f ? width : -1f, height));
 	}
 
+	/// <summary>The window's own settings, answered and set by the screen that draws it.</summary>
+	public System.Func<string, string>? Setting { get; set; }
+
+	public System.Action<string, string>? SetSetting { get; set; }
+
+	public string WindowSetting(string name) => Setting?.Invoke(name) ?? "";
+
+	public void SetWindowSetting(string name, string value) => SetSetting?.Invoke(name, value);
+
 	public void ProgressBar(float fraction, float width, string text) =>
 		ImGui.ProgressBar(fraction, new System.Numerics.Vector2(width > 0f ? width : -1f, 0f), text);
 

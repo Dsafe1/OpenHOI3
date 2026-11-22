@@ -50,6 +50,19 @@ public interface IModWindowCanvas
 	void ProgressBar(float fraction, float width, string text);
 
 	/// <summary>
+	/// A setting of the window the pages stand in, as text: <c>scale</c> its text size as a factor, <c>theme</c> its
+	/// look, <c>themes</c> the looks there are joined by spaces, <c>key</c> the name of the key that shows and hides
+	/// it, <c>capturing</c> yes while the next key pressed is to become that key.
+	/// </summary>
+	string WindowSetting(string name);
+
+	/// <summary>
+	/// Sets one: <c>scale</c> and <c>theme</c> to a value; <c>key</c> to <c>capture</c> or <c>cancel</c>; <c>layout</c>
+	/// to <c>reset</c>, which puts the window back where and as large as it first stood.
+	/// </summary>
+	void SetWindowSetting(string name, string value);
+
+	/// <summary>
 	/// A line through values, one after another across the width, between the lowest and the highest of them; a
 	/// text over it. A width of nought is the room left, a height of nought a line's.
 	/// </summary>

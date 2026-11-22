@@ -126,7 +126,7 @@ switches others on and off, here "only … a single window. The tabs on this win
 main, and the pages from those windows should be listed vertically on the left side." Its first shape here, a menu of
 tick boxes with a window to each page, lasted an afternoon.
 
-The **Insert** key shows and hides it - the key the overlay had. It is titled by the key `OPENHOI_WINDOWS_MENU`, and
+The **Insert** key shows and hides it - the key the overlay had - until the player chooses another (section 6.4). It is titled by the key `OPENHOI_WINDOWS_MENU`, and
 within it (`CModWindows`):
 
 - **a tab along the top for each group of pages**, named by the group's key localised;
@@ -220,6 +220,26 @@ in `OpenHOI3.ImGui`; `script/openhoi/pagekit.lua` holds what the pages share. Wh
 - where a leader stands - the mod's function asks the engine's read of the same shape here
 (`OpenHOI3.LeaderDetails`), which is the one line of the data layer that knows which engine it is on.
 
+### 6.4 The window's own settings: `OpenHOI3.Window`
+
+The window the pages stand in is the engine's, and so are its settings; a page offers them to the player -
+BlackICE's Utility Options - through `OpenHOI3.Window`, which answers while a page draws and asks no game:
+
+- `Key()` - the name of the key that shows and hides the window, as the engine names keys: `Insert`, `F10`,
+  `Page Up`. `CaptureKey()` makes the next key pressed that key, which nobody else then hears; Escape, or
+  `CancelCapture()`, gives the choosing up; `Capturing()` says whether it is under way. **The key is asked for where
+  the game's own keys are** (`CSession._UnhandledInput`), before them, so a key of the game's given to the window is
+  the window's, and a letter typed into a box of the game's or of a page's still types.
+- `Theme()`, `Themes()`, `SetTheme(name)` - its look, one of the three the drawing library has of its own: `dark`,
+  `light`, `classic`. The overlay's four on the original are BiceLib's own colours and are not these.
+- `Scale()`, `SetScale(factor)` - the size of its text as a factor, held between 0.6 and 2.
+- `ResetLayout()` - the window back where and as large as it first stood.
+
+**The key and the look are the player's and are kept**, in `openhoi_settings.txt` with this engine's other
+settings (`gameoptions.md`, section 5; keys `window_key`, the name in quotes, and `window_theme`), written as they
+change; the game options' rows show neither and leave them as they are. **The text's size is not kept**, as the
+overlay's was not. The layout the library keeps itself (section 7).
+
 More reads come page by page (`docs/enhanced.md`, *What mods build on*: modifier totals, a province's figures, a
 leader's state, the selection).
 
@@ -312,8 +332,8 @@ collection is to become a record of the engine's own (`docs/enhanced.md`, *Inter
 ## Not built
 
 - Orders beyond the conversion's (section 6.1), and a command a mod defines itself.
-- A key of the mod's choosing in the place of Insert; a button for the window on a screen of the game.
-- A theme and a text size of the player's choosing, which the overlay has.
+- A button for the window on a screen of the game.
+- Looks of a mod's own choosing beside the library's three, and a text size that is kept.
 - Sorting a table by a column's header, and the rest of the library's widgets.
 - A scrollbar across a picture wider than its pane, which the overlay's sprite has: a child takes no flags here.
 - The pages in the front end: they are a game's.

@@ -903,6 +903,15 @@ public partial class CSession : Node
 				_modWindowsView = new CModWindows();
 				_modWindowsView.Setup(_localisation.Localise, ModWindows, () => GameBusy, _simulation, Player.Tag);
 				AddChild(_modWindowsView);
+				// The key that shows it and its look are the player's, kept with this engine's other settings; a page
+				// that offers them changes them, and they are written as they change.
+				_modWindowsView.Apply(EnhancedSettings.WindowKey, EnhancedSettings.WindowTheme);
+				_modWindowsView.SettingsChanged += (windowKey, windowTheme) =>
+				{
+					EnhancedSettings = EnhancedSettings with { WindowKey = windowKey, WindowTheme = windowTheme };
+					Content.Settings.CEnhancedSettingsFile.WriteFile(EnhancedSettings,
+						Content.Settings.CEnhancedSettingsFile.DefaultPath(_directories));
+				};
 				// A box of theirs typed into takes the keyboard from the game's own edit box (modwindows.md, section 7).
 				gui.TypingElsewhere = () => _modWindowsView.IsTyping;
 				// A picture a page draws, by its path below the install - a mod's own file by its folder, as the mod's Lua
@@ -2309,6 +2318,14 @@ public partial class CSession : Node
 			_console.Toggle();
 			return;
 		}
+		// An enhanced game's window of the mod's own pages, on the key the player chose for it - Insert until he
+		// chooses another - before the game's own keys, so that a key of theirs given to it is its own
+		// (modwindows.md, sections 5 and 6.4).
+		if (_modWindowsView is { } modWindows && key.Keycode == modWindows.ToggleKey)
+		{
+			modWindows.Toggle();
+			return;
+		}
 		switch (key.Keycode)
 		{
 			case Key.Space or Key.Pause:
@@ -2318,10 +2335,6 @@ public partial class CSession : Node
 				// What nothing took first - the map lets a selection go on the first, a shown button with the shortcut
 				// takes its own - opens the in-game menu, or closes it (ingamemenu.md, section 1).
 				_menu?.Toggle();
-				break;
-			case Key.Insert:
-				// An enhanced game's menu of the mod's own windows (modwindows.md, section 2).
-				_modWindowsView?.Toggle();
 				break;
 			case Key.KpAdd or Key.Plus or Key.Equal:
 				// A change of speed clicks, by key as by button (sound.md, section 7).

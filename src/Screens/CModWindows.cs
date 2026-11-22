@@ -73,6 +73,8 @@ public sealed partial class CModWindows : Node
 	{
 		Name = "ModWindows";
 		ProcessMode = ProcessModeEnum.Always;
+		_canvas.Setting = Setting;
+		_canvas.SetSetting = SetSetting;
 		if (!_typefaceSet)
 		{
 			// One of the typefaces shipped, as everything drawn is: the library's own default is a bitmap of a dozen pixels.
@@ -104,6 +106,81 @@ public sealed partial class CModWindows : Node
 	public Func<string, Texture2D?>? Texture
 	{
 		set => _canvas.Texture = value;
+	}
+
+	/// <summary>The key that shows and hides the window: Insert until the player chooses another.</summary>
+	public Key ToggleKey { get; private set; } = Key.Insert;
+
+	/// <summary>The window's look, one of <see cref="Content.Settings.CEnhancedSettings.WindowThemes"/>.</summary>
+	public string Theme { get; private set; } = Content.Settings.CEnhancedSettings.DefaultWindowTheme;
+
+	/// <summary>Raised when the player has chosen another key or look, for whoever keeps the settings: the key's name, the look.</summary>
+	public event Action<string, string>? SettingsChanged;
+
+	/// <summary>Whether the next key pressed is to become the key that shows and hides the window.</summary>
+	private bool _capturing;
+
+	/// <summary>Whether the window is to be put back where and as large as it first stood, at its next drawing.</summary>
+	private bool _resetLayout;
+
+	/// <summary>The key and the look as the player's settings have them, at the start of a game.</summary>
+	public void Apply(string key, string theme)
+	{
+		Key found = OS.FindKeycodeFromString(key);
+		ToggleKey = found == Key.None ? Key.Insert : found;
+		SetTheme(theme);
+	}
+
+	private void SetTheme(string theme)
+	{
+		Theme = Array.IndexOf(Content.Settings.CEnhancedSettings.WindowThemes, theme) >= 0
+			? theme
+			: Content.Settings.CEnhancedSettings.DefaultWindowTheme;
+		switch (Theme)
+		{
+			case "light":
+				ImGui.StyleColorsLight();
+				break;
+			case "classic":
+				ImGui.StyleColorsClassic();
+				break;
+			default:
+				ImGui.StyleColorsDark();
+				break;
+		}
+	}
+
+	/// <summary>A setting of the window's as a page reads it (<c>IModWindowCanvas.WindowSetting</c>).</summary>
+	private string Setting(string name) => name switch
+	{
+		"scale" => ImGui.GetIO().FontGlobalScale.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
+		"theme" => Theme,
+		"themes" => string.Join(' ', Content.Settings.CEnhancedSettings.WindowThemes),
+		"key" => OS.GetKeycodeString(ToggleKey),
+		"capturing" => _capturing ? "yes" : "no",
+		_ => "",
+	};
+
+	/// <summary>A setting of the window's as a page sets it (<c>IModWindowCanvas.SetWindowSetting</c>).</summary>
+	private void SetSetting(string name, string value)
+	{
+		switch (name)
+		{
+			case "scale" when float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float scale):
+				// The text's size alone, and not kept: it is the library's own factor, as the overlay's was.
+				ImGui.GetIO().FontGlobalScale = Mathf.Clamp(scale, 0.6f, 2.0f);
+				break;
+			case "theme":
+				SetTheme(value);
+				SettingsChanged?.Invoke(OS.GetKeycodeString(ToggleKey), Theme);
+				break;
+			case "key":
+				_capturing = value == "capture";
+				break;
+			case "layout" when value == "reset":
+				_resetLayout = true;
+				break;
+		}
 	}
 
 	/// <summary>The window shown or hidden; the tab and the pages chosen are kept while it is hidden.</summary>
@@ -160,6 +237,19 @@ public sealed partial class CModWindows : Node
 		{
 			return;
 		}
+		// Choosing the key that shows the window: the next key pressed is it, and nobody else hears that key. Escape
+		// gives the choosing up.
+		if (_capturing && @event is InputEventKey { Pressed: true, Echo: false } pressed)
+		{
+			_capturing = false;
+			if (pressed.Keycode != Key.Escape && pressed.Keycode != Key.None)
+			{
+				ToggleKey = pressed.Keycode;
+				SettingsChanged?.Invoke(OS.GetKeycodeString(ToggleKey), Theme);
+			}
+			GetViewport().SetInputAsHandled();
+			return;
+		}
 		bool mouse = @event is InputEventMouse && ImGui.GetIO().WantCaptureMouse;
 		bool arrow = @event is InputEventKey { Keycode: Key.Left or Key.Right or Key.Up or Key.Down } && HasKeyboard;
 		if (mouse || arrow)
@@ -183,8 +273,12 @@ public sealed partial class CModWindows : Node
 
 		bool shown = true;
 		CModPage? showing = null;
-		ImGui.SetNextWindowPos(new System.Numerics.Vector2(60, 140), ImGuiCond.FirstUseEver);
-		ImGui.SetNextWindowSize(new System.Numerics.Vector2(860, 620), ImGuiCond.FirstUseEver);
+		// Where and as large as it first stands; afterwards as the player left it, which the library keeps - until a
+		// page asks for the layout to be put back.
+		ImGuiCond when = _resetLayout ? ImGuiCond.Always : ImGuiCond.FirstUseEver;
+		_resetLayout = false;
+		ImGui.SetNextWindowPos(new System.Numerics.Vector2(60, 140), when);
+		ImGui.SetNextWindowSize(new System.Numerics.Vector2(860, 620), when);
 		if (ImGui.Begin(_localise(WindowTitle) + "###openhoi_windows", ref shown))
 		{
 			if (ImGui.BeginTabBar("openhoi_groups"))

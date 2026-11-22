@@ -116,8 +116,13 @@ This file is the order of work across the two repositories and what was decided 
      itself, the mod's Lua from the ministers' ticks, does not work on this engine** (the user's, having tried
      it) and is set aside: after the port it is to read a record of the engine's own, and the sliders' and trade
      AI's pages to move into the game's own screens (`enhanced.md`, *Interface*).
-     **Not built**: the overlay's remaining pages - Options,
-     Help and the Inspector's larger ones; and the two reads Country Modifiers asks of BiceLib, a country's offmap
+     **And Options and Help**, the same day. Help's three pages - Misc, Ministers + Buildings, National Focus -
+     are the mod's text and data drawn. Options is one page, Utility Options, on the window's own settings, which
+     the engine holds and a page reaches through `OpenHOI3.Window` (`mechanics/modwindows.md`, section 6.4): the
+     key that shows it, its look, its text size, its layout. The overlay's Game Settings and Custom Auto-Saves
+     pages are no pages here - they are the game options' rows (step 6, above) - and its crash reports and debug
+     console are BiceLib's own.
+     **Not built**: the Inspector's larger pages; and the two reads Country Modifiers asks of BiceLib, a country's offmap
      IC and its trickleback. The setting's effect for script is not wanted for now (`enhanced.md`, *Rules*). Agreed, 2026-11-22: **no single file that registers the pages** - one a submod would have to
      overwrite - but a file a page, found by listing a folder over every layer; and the widgets a page may ask for
      grow as pages need them ("lets not limit ourselves"). What a mod declares in `.gui` files stays for what stands

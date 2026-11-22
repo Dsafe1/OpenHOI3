@@ -35,7 +35,7 @@ public sealed class CLuaImGui
 		"Text", "TextDisabled", "TextWrapped", "TextColored", "Separator", "SeparatorText", "SameLine", "Spacing", "NewLine",
 		"SetNextItemWidth", "Button", "SmallButton", "Selectable", "Checkbox", "InputText", "InputInt", "InputTextMultiline", "GetContentRegionAvail", "SliderInt", "SliderFloat",
 		"Combo", "CollapsingHeader", "IsItemHovered", "SetTooltip", "BeginTable", "BeginPanes", "TableSetupColumn", "TableHeadersRow",
-		"IsItemActive", "IsItemDeactivatedAfterEdit", "ProgressBar", "PlotLines", "InputFloat", "IsWindowFocused", "IsKeyPressed", "SetScrollHereY", "SetClipboardText", "ImageSize", "Image",
+		"IsItemActive", "IsItemDeactivatedAfterEdit", "WindowSetting", "SetWindowSetting", "ProgressBar", "PlotLines", "InputFloat", "IsWindowFocused", "IsKeyPressed", "SetScrollHereY", "SetClipboardText", "ImageSize", "Image",
 		"TableNextRow", "TableNextColumn", "EndTable", "BeginTabBar", "EndTabBar", "BeginTabItem", "EndTabItem",
 		"BeginChild", "EndChild", "TreeNode", "TreePop", "PushID", "PopID", "BeginDisabled", "EndDisabled",
 	};
@@ -88,6 +88,8 @@ public sealed class CLuaImGui
 			["ProgressBar"] = call => Do(call, canvas => canvas.ProgressBar((float)call.Number(1),
 				call.ArgumentCount >= 2 ? (float)call.Number(2) : 0f, call.ArgumentCount >= 3 ? call.String(3) : "")),
 			["InputFloat"] = InputFloat,
+			["WindowSetting"] = call => call.Return(Canvas?.WindowSetting(call.String(1)) ?? ""),
+			["SetWindowSetting"] = call => Do(call, canvas => canvas.SetWindowSetting(call.String(1), call.String(2))),
 			["PlotLines"] = PlotLines,
 			["SetTooltip"] = call => Do(call, canvas => canvas.SetTooltip(call.String(1))),
 			["BeginTable"] = call => Begin(call, EScope.Table, canvas => canvas.BeginTable(call.String(1), call.Integer(2), false)),
@@ -134,6 +136,21 @@ public sealed class CLuaImGui
 			glue.Append(GlobalPrefix).Append(name).Append(" = nil ");
 		}
 		// A combo's choices come as a list, which crosses as so many texts.
+		// The window's own settings, for a page that offers them (modwindows.md, section 6.4). They are the window's and
+		// not the library's, so they stand beside the widgets and not among them.
+		glue.Append("local get, set = OpenHOI3.ImGui.WindowSetting, OpenHOI3.ImGui.SetWindowSetting "
+			+ "OpenHOI3.ImGui.WindowSetting, OpenHOI3.ImGui.SetWindowSetting = nil, nil "
+			+ "OpenHOI3.Window = { "
+			+ "Scale = function() return tonumber(get('scale')) or 1 end, "
+			+ "SetScale = function(scale) set('scale', string.format('%.2f', tonumber(scale) or 1)) end, "
+			+ "Theme = function() return get('theme') end, "
+			+ "Themes = function() local list = {} for name in string.gmatch(get('themes'), '%S+') do list[#list + 1] = name end return list end, "
+			+ "SetTheme = function(name) set('theme', tostring(name)) end, "
+			+ "Key = function() return get('key') end, "
+			+ "Capturing = function() return get('capturing') == 'yes' end, "
+			+ "CaptureKey = function() set('key', 'capture') end, "
+			+ "CancelCapture = function() set('key', 'cancel') end, "
+			+ "ResetLayout = function() set('layout', 'reset') end } ");
 		// The values cross as one text: a series may be longer than a call takes arguments.
 		glue.Append("local plot = OpenHOI3.ImGui.PlotLines OpenHOI3.ImGui.PlotLines = function(label, values, width, height, overlay) "
 			+ "return plot(label, table.concat(values or {}, ' '), width or 0, height or 0, overlay or '') end ");
