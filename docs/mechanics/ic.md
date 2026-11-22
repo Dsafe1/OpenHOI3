@@ -221,6 +221,63 @@ its technology levels (`resources.md`, section 4). **The original does not save 
 the total cannot be checked directly; what it saves is what industry used, which is a
 lower bound, and every country clears it.
 
+## 4.1 A country's own conversions - an enhanced game's rule
+
+**Ours, built 2026-11-22**: in the place of BiceLib's `customResourceConversion`, whose rule this is
+(`docs/bicelib/features.md` of the mod's repository; `docs/enhanced.md`, *Rules*), and by the decision of 2026-11-20 a
+setting of the country's own and not country variables. Only an enhanced game has it (`docs/enhanced.md`, *The
+shape*); it is no fix a mod names, there being nothing to mend - with no setting touched an enhanced game converts as
+a faithful one.
+
+**The setting** (`CConversionSetting`, two a country: `CCountry.EnergyConversion`, `CrudeOilConversion`): whether the
+country sets the conversion itself; the source to spend a day; the source to keep; the level of the product to stop
+at. Nought is "nothing a day" for the first figure and "no limit" for the other two.
+
+**It decides only** in an enhanced game, for **a country a person plays**, and for a conversion that country has taken
+into its own hands (`CConversions.IsOwn`). A country nobody plays, a conversion left alone and every faithful game go
+by section 4. A country that passes from a player to the AI or back changes rule at its next day.
+
+**Energy into crude oil, its own** (`OwnEnergyToConvert`), in thousandths with whole divisions:
+
+    nothing    where a stop is set and the crude oil held has reached it
+    floor      = the higher of 2 x IC and what it keeps
+    spare      = the energy held - floor;              nothing where that is nought or less
+    rate       = 0.1 + the technology's;               nothing at nought or below
+    per        = (1,000,000 + rate / 2) / rate, and never under 1,000     - the energy a crude oil costs, to the nearest
+    capacity   = the higher of 0.05 x IC and 1, times per
+    spent      = the least of a day's choice, the capacity and the spare
+
+The original's "only towards twice as much energy as crude oil" is **not** asked of it; the `2 x IC` floor, the
+capacity and the rate are. The floor is kept because the resource cap, next in the day, takes an IC for every two
+energy short and tells nobody.
+
+**Crude oil into fuel, its own** (`OwnCrudeOilToRefine`):
+
+    nothing    at 99,000 fuel - the original's stop, kept - or where a stop is set and the fuel held has reached it
+    capacity   = IC / 2, in whole crude oil
+    spent      = the least of a day's choice, the capacity, and the crude oil held less what it keeps
+
+The original's second stop - a year of the crude oil coming in and twice the crude oil held - is **not** asked of it.
+
+**What becomes of the amount is the original's either way**: the rate and the yield, the day's two ledgers, the fuel
+made where the factories are (section 4).
+
+**It is changed by a command alone**, `CSetConversionCommand`: a country, which conversion, and the setting whole. A
+faithful game refuses it, and a figure below nought, and a tag that is no country's. So it is the same on every machine and in a replay. An effect
+that sets it is not built.
+
+**It is in an enhanced save** (`savegame.md`, section 21) and in the state's hash, a country's field `conversion
+settings`.
+
+**The capacity's rounding is BiceLib's and not the original's**: `per` is to the nearest here and cut in section 4's
+rule, so the two capacities may differ by a thousandth of an energy a crude oil.
+
+*Mod-able*: the base rate's technology (`energy_to_oil_conversion`), the yield (`refinery_efficiency`,
+`fuel_conversion`). *Hardcoded here*, as in the original: 0.1, 0.05 x IC, 2 x IC, IC / 2, 99,000.
+
+`ConversionTests`: the setting asked only where it decides; each conversion's cuts, floors and stops; a day by the
+setting; the command; the save's two keys.
+
 ## What is not established, in one place
 
 - ~~which of a country's pools hold **yesterday's figures and which today's** at the moment

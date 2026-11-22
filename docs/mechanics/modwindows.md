@@ -1,8 +1,8 @@
 # Windows a mod defines
 
 **Ours**: an enhanced game's only (`docs/enhanced.md`, *The shape*), and the way BlackICE's utility comes to this
-engine (`docs/blackice.md`, step 6). Nothing of it is in the original. Built 2026-11-22 as far as the window and pages
-that reads; a page that changes the game is not built.
+engine (`docs/blackice.md`, step 6). Nothing of it is in the original. Built 2026-11-22 as far as the window, pages
+that read, and the first page that changes the game, by an order (section 6.1).
 
 **They are drawn with Dear ImGui**, by a page's own Lua - the user's decision of 2026-11-22, on seeing the first
 shape of this, pages laid out in the original's `.gui` elements: "I don't really like the way it looks. Maybe instead
@@ -79,12 +79,13 @@ place and size, which the library remembers - is the engine's; a page draws what
 | | |
 | --- | --- |
 | text | `Text`, `TextDisabled`, `TextWrapped`, `TextColored(r, g, b, a, text)` |
-| layout | `Separator`, `SameLine`, `Spacing`, `NewLine`, `SetNextItemWidth(width)` |
+| layout | `Separator`, `SeparatorText(text)`, `SameLine`, `Spacing`, `NewLine`, `SetNextItemWidth(width)` |
 | pressed, answering true or false | `Button`, `SmallButton`, `Selectable(label, selected)`, `CollapsingHeader` |
-| a value, answering `changed, value` | `Checkbox(label, value)`, `InputText(label, text [, most])`, `SliderInt(label, value, least, most)`, `SliderFloat`, `Combo(label, choice, list)` - the choice counted from one |
+| a value, answering `changed, value` | `Checkbox(label, value)`, `InputText(label, text [, most])`, `InputInt(label, value)`, `SliderInt(label, value, least, most)`, `SliderFloat`, `Combo(label, choice, list)` - the choice counted from one |
 | tables | `BeginTable(id, columns)`, `TableSetupColumn`, `TableHeadersRow`, `TableNextRow`, `TableNextColumn`, `EndTable` |
 | tabs | `BeginTabBar(id)`, `BeginTabItem(label)`, `EndTabItem`, `EndTabBar` |
 | parts | `BeginChild(id [, width, height])`, `EndChild`, `TreeNode`, `TreePop`, `PushID`, `PopID` |
+| greyed | `BeginDisabled(disabled)`, `EndDisabled` - what stands between is greyed and takes no press where `disabled` is true; ended whatever was given |
 | the item before | `IsItemHovered`, `SetTooltip(text)` |
 
 As in the library, a `Begin...` answers whether what it begins is open - a table off screen, a tab not chosen - and
@@ -134,7 +135,29 @@ Under the global `OpenHOI3`, beside `Files`, `Enhanced` and `Fixes` (`mods.md`, 
 - `OpenHOI3.Localise(key)` - the key's text, or the key where no table has it; it asks no game, so `Draw` may call it;
 - `OpenHOI3.CountryFlags(tag)` - the names of the flags that country holds, sorted by name without case; a flag set
   and cleared again is not among them; empty for a tag that is no country's, and where no game is asked;
-- `OpenHOI3.GlobalFlags()` - the same of the game's own flags.
+- `OpenHOI3.GlobalFlags()` - the same of the game's own flags;
+- `OpenHOI3.Conversion(tag)` - a country's two conversions (`ic.md`, section 4.1), or nil for no country or no game:
+  `played`, `oil_rate`, `energy_cap`, `energy_floor`, `crude_cap`, what it holds as `energy`, `crude_oil` and
+  `fuel`, and `energy_conversion` and `crude_oil_conversion`, each `{ own, per_day, keep, target }` - figures in a
+  stockpile's units;
+- `OpenHOI3.SetConversion(tag, which, own, per_day, keep, target)` - **an order**, section 6.1: `which` is `energy`
+  or `crude_oil`. Answers whether it was understood.
+
+### 6.1 A page that changes the game
+
+**A page changes nothing itself: it gives an order**, as a player does, and the order is a command of the game's.
+An order asks no game, so a page gives it as it draws - on a button's press. What a page gave is kept
+(`IModPages.TakePosted`), and the screen posts it when the page's drawing is over, through the one way into the game
+from outside (`CSimulation.Post`): so it waits by itself where hours run beside the frame, goes to the host between
+several machines, and is recorded and replayed like any order. A quarter of a second on the page gathers again, to
+show what came of it.
+
+A page holds what is typed until its own button sends it - BlackICE's conversion page has an Apply for each half -
+so that half a number is never an order.
+
+**The orders a page may give are the ones the engine names**, each a function under `OpenHOI3` that makes one
+command: the conversion's is the first. A command a mod defines itself, its body an effect block
+(`docs/enhanced.md`, *What mods build on*), is not built.
 
 More come page by page (`docs/enhanced.md`, *What mods build on*: variables, timed modifiers, modifier totals, a
 province's figures, a leader's state, the selection).
@@ -171,10 +194,14 @@ a page as well, the original's rule being that an edit box keeps the keyboard un
 (`CModWindows.IsTyping`, the library's own word for it) the game's edit box takes no key (`CGuiContext.TypingElsewhere`),
 and the arrow keys, which the map asks of the keyboard each frame, do not scroll it. Not tried again since.
 
+**The conversion page**, 2026-11-22: `LuaPagesTests` has a page read a country's conversions and give an order as it
+draws, the order then run; and with `--screen=modwindows:conversion` BlackICE's page was drawn under Country Info,
+Germany's rate -0.90 and the line that says the conversion is shut. **Its Apply buttons were pressed by nobody
+yet** - a scripted click does not reliably reach a widget of the library.
+
 ## Not built
 
-- A page that changes the game: what a page may post, and where - `Draw` has no game. The conversion of resources,
-  the first such page, comes with that setting's own command (`docs/enhanced.md`, *Rules*).
+- Orders beyond the conversion's (section 6.1), and a command a mod defines itself.
 - A key of the mod's choosing in the place of Insert; a button for the window on a screen of the game.
 - A theme and a text size of the player's choosing, which the overlay has.
 - Sorting a table by a column's header, and the rest of the library's widgets.

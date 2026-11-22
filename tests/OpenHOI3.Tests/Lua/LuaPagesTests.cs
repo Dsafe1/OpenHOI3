@@ -248,6 +248,53 @@ public sealed class LuaPagesTests : IDisposable
 	}
 
 	[Fact]
+	public void APageReadsACountrysConversionsAndOrdersOneSetWhileItDraws()
+	{
+		Page("conversion", "local ImGui = OpenHOI3.ImGui return { "
+			+ "Collect = function(player) return OpenHOI3.Conversion(player) end, "
+			+ "Draw = function(data, player) "
+			+ "ImGui.Text(tostring(data.played) .. ' ' .. tostring(data.energy_conversion.own) .. ' ' .. data.energy_conversion.per_day "
+			+ ".. ' ' .. data.crude_oil_conversion.keep .. ' ' .. data.energy_floor) "
+			+ "if ImGui.Button('Apply') then "
+			+ "ImGui.Text(tostring(OpenHOI3.SetConversion(player, 'crude_oil', true, 20, 100.5, 0))) "
+			+ "ImGui.Text(tostring(OpenHOI3.SetConversion(player, 'coal', true, 1, 1, 1))) end end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			CGameState state = State();
+			state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+			CCountry germany = state.Country(Ger)!;
+			germany.EnergyConversion.Set(true, CFixedPoint.FromInt(30), CFixedPoint.Zero, CFixedPoint.Zero);
+			germany.CrudeOilConversion.Set(false, CFixedPoint.Zero, CFixedPoint.Parse("12.5"), CFixedPoint.Zero);
+			CModPage page = windows.Pages[0];
+			windows.Collect(state, page, Ger);
+
+			var canvas = new CRecordingCanvas();
+			windows.Draw(page, Ger, canvas);
+			// Nobody plays it; the energy's setting its own at 30 a day; the crude oil's keep; no IC, so no floor.
+			Assert.Equal("Text false true 30 12.5 0", canvas.Calls[0]);
+			Assert.Empty(windows.TakePosted());
+
+			// A button pressed: the order is kept for the screen to post, and one that names no conversion is refused.
+			canvas.Calls.Clear();
+			canvas.Pressed.Add("Apply");
+			windows.Draw(page, Ger, canvas);
+			Assert.Equal(new[] { "Text true", "Text false" }, canvas.Calls.TakeLast(2));
+			var posted = windows.TakePosted();
+			Assert.Single(posted);
+			Assert.Empty(windows.TakePosted());
+
+			// Posted, it sets what it names and no more.
+			posted[0].Execute(state);
+			Assert.True(germany.CrudeOilConversion.Own);
+			Assert.Equal(CFixedPoint.FromInt(20), germany.CrudeOilConversion.PerDay);
+			Assert.Equal(CFixedPoint.Parse("100.5"), germany.CrudeOilConversion.Keep);
+			Assert.Equal(CFixedPoint.FromInt(30), germany.EnergyConversion.PerDay);
+			Assert.Empty(_reports);
+		}
+	}
+
+	[Fact]
 	public void APageThatAsksTheGameWhileItDrawsFailsAndOneThatEndsWhatItDidNotBeginIsToldSo()
 	{
 		Page("asks", "return { Draw = function() local date = CCurrentGameState.GetCurrentDate() end }");

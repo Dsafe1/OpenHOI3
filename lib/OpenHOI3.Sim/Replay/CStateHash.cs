@@ -211,6 +211,17 @@ public static class CStateHash
 					}
 				}
 			});
+			// An enhanced game's own: what the country set of its two conversions (ic.md, section 4.1).
+			yield return Field(tag, "conversion settings", h =>
+			{
+				foreach (CConversionSetting setting in new[] { country.EnergyConversion, country.CrudeOilConversion })
+				{
+					h.Add(setting.Own);
+					h.Add(setting.PerDay.Raw);
+					h.Add(setting.Keep.Raw);
+					h.Add(setting.Target.Raw);
+				}
+			});
 		}
 	}
 

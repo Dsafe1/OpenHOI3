@@ -158,9 +158,23 @@ public sealed partial class CModWindows : Node
 		{
 			_shown = false;
 		}
+		// What the page ordered as it drew - a button pressed - is posted as a player's order is, which waits by itself
+		// where hours run beside the frame; and the page gathers again a quarter of a second on, to show what came of it.
+		IReadOnlyList<Sim.Commands.CCommand> posted = pages.TakePosted();
+		foreach (Sim.Commands.CCommand command in posted)
+		{
+			_simulation.Post(command);
+		}
+		if (posted.Count > 0)
+		{
+			_collectedAt = Time.GetTicksMsec() - (ulong)((CollectEvery - AfterAnOrder) * 1000.0);
+		}
 		// Gathered after the frame's drawing, for the next: the page seen now, when it is new or its interval is up.
 		Collect(pages, showing);
 	}
+
+	/// <summary>How soon after a page's order the page gathers again, in seconds.</summary>
+	private const double AfterAnOrder = 0.25;
 
 	/// <summary>
 	/// A tab begun with flags and no close box: the binding's own call with flags asks for the box's variable, which

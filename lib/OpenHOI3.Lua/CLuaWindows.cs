@@ -34,7 +34,20 @@ public sealed class CLuaWindows : IModPages
 	/// </summary>
 	private const string Glue =
 		"local localise, countryflags, globalflags = __ohoi_w_localise, __ohoi_w_countryflags, __ohoi_w_globalflags " +
+		"local conversion, setconversion = __ohoi_w_conversion, __ohoi_w_setconversion " +
 		"__ohoi_w_localise, __ohoi_w_countryflags, __ohoi_w_globalflags = nil, nil, nil " +
+		"__ohoi_w_conversion, __ohoi_w_setconversion = nil, nil " +
+		// A country's conversions as a page reads them, and the order that sets one (ic.md, section 4.1).
+		"OpenHOI3.Conversion = function(tag) " +
+		"local played, rate, ecap, efloor, ccap, energy, crude, fuel, eo, ep, ek, et, co, cp, ck, ct = conversion(tostring(tag)) " +
+		"if played == nil then return nil end " +
+		"return { played = played, oil_rate = rate, energy_cap = ecap, energy_floor = efloor, crude_cap = ccap, " +
+		"energy = energy, crude_oil = crude, fuel = fuel, " +
+		"energy_conversion = { own = eo, per_day = ep, keep = ek, target = et }, " +
+		"crude_oil_conversion = { own = co, per_day = cp, keep = ck, target = ct } } end " +
+		"OpenHOI3.SetConversion = function(tag, which, own, per_day, keep, target) " +
+		"return setconversion(tostring(tag), tostring(which), own and true or false, " +
+		"tonumber(per_day) or 0, tonumber(keep) or 0, tonumber(target) or 0) end " +
 		"local pages, data = {}, {} " +
 		"local function lines(joined) local list = {} " +
 		"for line in string.gmatch(joined or '', '[^\\n]+') do list[#list + 1] = line end return list end " +
@@ -72,6 +85,8 @@ public sealed class CLuaWindows : IModPages
 		lua.SetGlobal("__ohoi_w_localise", (CLuaFunction)(call => call.Return(_localise(call.String(1)))));
 		lua.SetGlobal("__ohoi_w_countryflags", (CLuaFunction)CountryFlags);
 		lua.SetGlobal("__ohoi_w_globalflags", (CLuaFunction)GlobalFlags);
+		lua.SetGlobal("__ohoi_w_conversion", (CLuaFunction)Conversion);
+		lua.SetGlobal("__ohoi_w_setconversion", (CLuaFunction)SetConversion);
 		if (!scripts.RunChunk(Encoding.Latin1.GetBytes(Glue), "=OpenHOI3"))
 		{
 			return;
@@ -200,6 +215,80 @@ public sealed class CLuaWindows : IModPages
 	private int GlobalFlags(CLuaCall call)
 	{
 		return call.Return(_state is null ? "" : Joined(_state.Flags.All.Where(flag => flag.Value).Select(flag => flag.Key)));
+	}
+
+	/// <summary>The orders the pages have given since they were last taken: the screen posts them to the game.</summary>
+	private readonly List<Sim.Commands.CCommand> _posted = new();
+
+	public IReadOnlyList<Sim.Commands.CCommand> TakePosted()
+	{
+		if (_posted.Count == 0)
+		{
+			return Array.Empty<Sim.Commands.CCommand>();
+		}
+		Sim.Commands.CCommand[] taken = _posted.ToArray();
+		_posted.Clear();
+		return taken;
+	}
+
+	/// <summary>
+	/// A country's two conversions as sixteen figures, which the Lua's side makes a table of: whether a person plays it,
+	/// the crude oil one energy makes, the most energy a day, the energy kept for industry, the most crude oil a day,
+	/// the energy, crude oil and fuel it holds, and each setting's four. Nothing where no game is asked or the tag is
+	/// no country's.
+	/// </summary>
+	private int Conversion(CLuaCall call)
+	{
+		string tag = call.String(1);
+		if (_state is not { } state
+			|| state.Countries.FirstOrDefault(c => string.Equals(c.Tag.Value, tag, StringComparison.OrdinalIgnoreCase)) is not { } country)
+		{
+			return 0;
+		}
+		Sim.Economy.CGoodsPool? pool = state.Stockpile(country);
+		double Held(Sim.Economy.EGoods goods) => pool is null ? 0.0 : Number(pool[goods]);
+		Sim.Economy.CConversionSetting energy = country.EnergyConversion;
+		Sim.Economy.CConversionSetting crude = country.CrudeOilConversion;
+		return call.ReturnMany(
+			state.Played.Contains(country.Tag),
+			Number(Sim.Economy.CConversions.OilRate(country)),
+			Number(Sim.Economy.CConversions.EnergyCapacity(country)),
+			Number(Sim.Economy.CConversions.EnergyFloor(country)),
+			Number(Sim.Economy.CConversions.CrudeOilCapacity(country)),
+			Held(Sim.Economy.EGoods.Energy), Held(Sim.Economy.EGoods.CrudeOil), Held(Sim.Economy.EGoods.Fuel),
+			energy.Own, Number(energy.PerDay), Number(energy.Keep), Number(energy.Target),
+			crude.Own, Number(crude.PerDay), Number(crude.Keep), Number(crude.Target));
+	}
+
+	/// <summary>
+	/// An order to set one of a country's conversions, kept for the screen to post: <c>energy</c> or <c>crude_oil</c>,
+	/// whether the country sets it itself, and the three figures in a stockpile's units. It asks no game, so a page may
+	/// give it as it draws - on the press of a button. Answers whether the order was understood.
+	/// </summary>
+	private int SetConversion(CLuaCall call)
+	{
+		Sim.Economy.EConversion? which = call.String(2) switch
+		{
+			"energy" => Sim.Economy.EConversion.EnergyIntoCrudeOil,
+			"crude_oil" => Sim.Economy.EConversion.CrudeOilIntoFuel,
+			_ => null,
+		};
+		string tag = call.String(1);
+		if (which is not { } conversion || tag.Length != 3)
+		{
+			return call.Return(false);
+		}
+		_posted.Add(new Sim.Commands.CSetConversionCommand(new CCountryTag(tag.ToUpperInvariant()), conversion, call.Boolean(3),
+			Fixed(call.Number(4)), Fixed(call.Number(5)), Fixed(call.Number(6))));
+		return call.Return(true);
+	}
+
+	private static double Number(CFixedPoint value) => value.Raw / (double)CFixedPoint.Scale;
+
+	/// <summary>A figure of the Lua's as thousandths, to the nearest; one below nought is nought.</summary>
+	private static CFixedPoint Fixed(double value)
+	{
+		return double.IsFinite(value) && value > 0 ? new CFixedPoint((long)Math.Round(Math.Min(value, 1e12) * CFixedPoint.Scale)) : CFixedPoint.Zero;
 	}
 
 	private static string Joined(IEnumerable<string> names)

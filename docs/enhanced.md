@@ -134,6 +134,8 @@ names of keys and defines are proposals.
   how much of the source to keep and the level of the product to stop at - changed by a command of its own, kept in
   the enhanced save, set from a window and by an effect. A country nobody plays converts as the original. The caps the
   original has - its capacity by IC, the energy industry needs that day, the rate by technology - stand.
+  **Built 2026-11-22** (`mechanics/ic.md`, section 4.1): the setting, its command, the save's two keys, the hash, and
+  what a mod's page reads and orders it by (`mechanics/modwindows.md`, section 6.1). **Not built**: the effect.
 
 **Texts - built in, their wording from the localisation**
 

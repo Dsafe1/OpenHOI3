@@ -25,6 +25,7 @@ public sealed class CRecordingCanvas : IModWindowCanvas
 	public void TextWrapped(string text) => Calls.Add("TextWrapped " + text);
 	public void TextColored(float red, float green, float blue, float alpha, string text) => Calls.Add($"TextColored {red} {green} {blue} {alpha} {text}");
 	public void Separator() => Calls.Add("Separator");
+	public void SeparatorText(string label) => Calls.Add("SeparatorText " + label);
 	public void SameLine() => Calls.Add("SameLine");
 	public void Spacing() => Calls.Add("Spacing");
 	public void NewLine() => Calls.Add("NewLine");
@@ -63,6 +64,20 @@ public sealed class CRecordingCanvas : IModWindowCanvas
 	{
 		Calls.Add($"InputText {label} '{value}' {maxLength}");
 		if (!Typed.TryGetValue(label, out string? typed))
+		{
+			return false;
+		}
+		value = typed;
+		return true;
+	}
+
+	/// <summary>What an integer box of a label answers as typed; one not named is left as it was.</summary>
+	public Dictionary<string, int> TypedNumbers { get; } = new();
+
+	public bool InputInt(string label, ref int value)
+	{
+		Calls.Add($"InputInt {label} {value}");
+		if (!TypedNumbers.TryGetValue(label, out int typed))
 		{
 			return false;
 		}
@@ -153,4 +168,6 @@ public sealed class CRecordingCanvas : IModWindowCanvas
 	public void TreePop() => Calls.Add("TreePop");
 	public void PushId(string id) => Calls.Add("PushID " + id);
 	public void PopId() => Calls.Add("PopID");
+	public void BeginDisabled(bool disabled) => Calls.Add("BeginDisabled " + disabled);
+	public void EndDisabled() => Calls.Add("EndDisabled");
 }

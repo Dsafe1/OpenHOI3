@@ -303,7 +303,7 @@ public static class CProduction
 		bool exists = Countries.CCountryLists.OwnedCount(state, country.Tag) > 0 || country.InExile;
 		if (exists)
 		{
-			CConversions.EnergyIntoCrudeOil(country, stockpile);
+			CConversions.EnergyIntoCrudeOil(state, country, stockpile);
 		}
 
 		// A shortage costs IC across the board, before any of it is shared out - for

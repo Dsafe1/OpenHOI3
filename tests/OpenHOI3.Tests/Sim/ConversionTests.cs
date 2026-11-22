@@ -317,4 +317,197 @@ public class ConversionTests
 		Assert.Equal(CFixedPoint.FromInt(10), bhutan.ConversionUsed[EGoods.Energy]);
 		Assert.Equal(CFixedPoint.FromInt(880), state.Province(1).Pool[EGoods.Energy]);
 	}
+
+	// --- a country's own setting, an enhanced game's (ic.md, section 4.1) ---
+
+	private static void MakeEnhanced(CGameState state)
+	{
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+	}
+
+	private static void Set(CConversionSetting setting, string perDay, string keep = "0", string target = "0")
+	{
+		setting.Set(true, CFixedPoint.Parse(perDay), CFixedPoint.Parse(keep), CFixedPoint.Parse(target));
+	}
+
+	[Fact]
+	public void ACountrysOwnSettingDecidesOnlyInAnEnhancedGameAndForACountrySomebodyPlays()
+	{
+		CCountry germany = Country("GER", 1);
+		CGameState state = State(new[] { germany }, Land(1, "GER", industry: 100));
+		Set(germany.EnergyConversion, "30");
+		Set(germany.CrudeOilConversion, "20");
+
+		// A faithful game: the setting is there and nothing asks it.
+		state.Played.Add(germany.Tag);
+		Assert.False(CConversions.IsOwn(state, germany, EConversion.EnergyIntoCrudeOil));
+		// An enhanced game, the country nobody's: the original's rule.
+		MakeEnhanced(state);
+		state.Played.Clear();
+		Assert.False(CConversions.IsOwn(state, germany, EConversion.CrudeOilIntoFuel));
+		// Played: its own - and only the conversion it took into its own hands.
+		state.Played.Add(germany.Tag);
+		Assert.True(CConversions.IsOwn(state, germany, EConversion.EnergyIntoCrudeOil));
+		germany.CrudeOilConversion.Set(false, CFixedPoint.FromInt(20), CFixedPoint.Zero, CFixedPoint.Zero);
+		Assert.False(CConversions.IsOwn(state, germany, EConversion.CrudeOilIntoFuel));
+	}
+
+	[Fact]
+	public void ItsOwnEnergyIsWhatItChoseCutToItsCapacityAndToWhatItHoldsAboveTheFloor()
+	{
+		CCountry germany = Country("GER", 1);
+		CGameState state = State(new[] { germany }, Land(1, "GER", industry: 100));
+		CGoodsPool pool = state.Province(1).Pool;
+		CTick.RunEntryPass(state);
+		// A hundred IC and a rate of a tenth: ten energy a crude oil, at most five crude oil a day, 200 energy for industry.
+		Assert.Equal(CFixedPoint.FromInt(50), CConversions.EnergyCapacity(germany));
+		Assert.Equal(CFixedPoint.FromInt(200), CConversions.EnergyFloor(germany));
+
+		// Where the original converts nothing - less than twice as much energy as crude oil - its own choice stands.
+		Stock(pool, energy: "1000", crudeOil: "600");
+		Assert.Equal(CFixedPoint.Zero, CConversions.EnergyToConvert(germany, pool));
+		Set(germany.EnergyConversion, "30");
+		Assert.Equal(CFixedPoint.FromInt(30), CConversions.OwnEnergyToConvert(germany, pool));
+		// More than its capacity is cut to it.
+		Set(germany.EnergyConversion, "500");
+		Assert.Equal(CFixedPoint.FromInt(50), CConversions.OwnEnergyToConvert(germany, pool));
+		// Nothing a day is nothing.
+		Set(germany.EnergyConversion, "0");
+		Assert.Equal(CFixedPoint.Zero, CConversions.OwnEnergyToConvert(germany, pool));
+
+		// What it chose to keep, where that is above industry's need; and industry's need where it is not.
+		Set(germany.EnergyConversion, "500", keep: "980");
+		Assert.Equal(CFixedPoint.FromInt(20), CConversions.OwnEnergyToConvert(germany, pool));
+		Stock(pool, energy: "215", crudeOil: "600");
+		Set(germany.EnergyConversion, "500", keep: "100");
+		Assert.Equal(CFixedPoint.FromInt(15), CConversions.OwnEnergyToConvert(germany, pool));
+		Stock(pool, energy: "200", crudeOil: "0");
+		Assert.Equal(CFixedPoint.Zero, CConversions.OwnEnergyToConvert(germany, pool));
+
+		// The crude oil to stop at: nothing from there on.
+		Stock(pool, energy: "1000", crudeOil: "600");
+		Set(germany.EnergyConversion, "30", target: "600");
+		Assert.Equal(CFixedPoint.Zero, CConversions.OwnEnergyToConvert(germany, pool));
+		Set(germany.EnergyConversion, "30", target: "601");
+		Assert.Equal(CFixedPoint.FromInt(30), CConversions.OwnEnergyToConvert(germany, pool));
+	}
+
+	[Fact]
+	public void ARateOfNoughtOrBelowConvertsNothingWhateverItChose()
+	{
+		// As BlackICE's countries start: a modifier taking the whole rate away until a synthetic industry gives it back.
+		CCountry germany = Country("GER", 1, ("energy_to_oil_conversion", "0"));
+		CGameState state = State(new[] { germany }, Land(1, "GER", industry: 100));
+		CTick.RunEntryPass(state);
+		germany.Technology.Set("energy_to_oil_conversion", CFixedPoint.Parse("-1"));
+		Stock(state.Province(1).Pool, energy: "5000", crudeOil: "0");
+		Set(germany.EnergyConversion, "30");
+		Assert.Equal(CFixedPoint.Zero, CConversions.EnergyCapacity(germany));
+		Assert.Equal(CFixedPoint.Zero, CConversions.OwnEnergyToConvert(germany, state.Province(1).Pool));
+	}
+
+	[Fact]
+	public void ItsOwnCrudeOilIsWhatItChoseCutToItsCapacityAndToWhatItKeeps()
+	{
+		CCountry germany = Country("GER", 1);
+		CGameState state = State(new[] { germany }, Land(1, "GER", industry: 100));
+		CGoodsPool pool = state.Province(1).Pool;
+		CTick.RunEntryPass(state);
+		Assert.Equal(CFixedPoint.FromInt(50), CConversions.CrudeOilCapacity(germany));
+
+		// Where the original refines nothing - fuel beyond a year's crude oil and twice what is held - its own choice stands.
+		Stock(pool, energy: "0", crudeOil: "300", fuel: "731");
+		Set(germany.CrudeOilConversion, "20");
+		Assert.Equal(CFixedPoint.FromInt(20), CConversions.OwnCrudeOilToRefine(germany, pool));
+		Set(germany.CrudeOilConversion, "500");
+		Assert.Equal(CFixedPoint.FromInt(50), CConversions.OwnCrudeOilToRefine(germany, pool));
+		// What it keeps, and the fuel it stops at.
+		Set(germany.CrudeOilConversion, "500", keep: "290");
+		Assert.Equal(CFixedPoint.FromInt(10), CConversions.OwnCrudeOilToRefine(germany, pool));
+		Set(germany.CrudeOilConversion, "500", keep: "300");
+		Assert.Equal(CFixedPoint.Zero, CConversions.OwnCrudeOilToRefine(germany, pool));
+		Set(germany.CrudeOilConversion, "20", target: "731");
+		Assert.Equal(CFixedPoint.Zero, CConversions.OwnCrudeOilToRefine(germany, pool));
+		// The original's stop at 99,000 stays whatever it chose.
+		Stock(pool, energy: "0", crudeOil: "300", fuel: "99000");
+		Set(germany.CrudeOilConversion, "20");
+		Assert.Equal(CFixedPoint.Zero, CConversions.OwnCrudeOilToRefine(germany, pool));
+	}
+
+	[Fact]
+	public void ADayGoesByTheSettingAndWritesTheSameTwoLedgers()
+	{
+		CCountry germany = Country("GER", 1);
+		CGameState state = State(new[] { germany }, Land(1, "GER", industry: 100));
+		MakeEnhanced(state);
+		state.Played.Add(germany.Tag);
+		// Stocks at which the original converts nothing of either.
+		Stock(state.Province(1).Pool, energy: "1000", crudeOil: "600", fuel: "5000");
+		Set(germany.EnergyConversion, "30");
+		Set(germany.CrudeOilConversion, "20");
+
+		RunADay(state);
+
+		Assert.Equal(CFixedPoint.FromInt(30), germany.ConversionUsed[EGoods.Energy]);
+		Assert.Equal(CFixedPoint.FromInt(3), germany.ConversionMade[EGoods.CrudeOil]);
+		Assert.Equal(CFixedPoint.FromInt(20), germany.ConversionUsed[EGoods.CrudeOil]);
+		Assert.Equal(CFixedPoint.FromInt(20), germany.ConversionMade[EGoods.Fuel]);
+	}
+
+	[Fact]
+	public void TheSettingIsChangedByItsCommandWhichAFaithfulGameRefuses()
+	{
+		CCountry germany = Country("GER", 1);
+		CGameState state = State(new[] { germany }, Land(1, "GER", industry: 100));
+		var command = new OpenHOI3.Sim.Commands.CSetConversionCommand(germany.Tag, EConversion.CrudeOilIntoFuel, true,
+			CFixedPoint.FromInt(20), CFixedPoint.FromInt(100), CFixedPoint.FromInt(5000));
+
+		Assert.False(command.MayExecute(state));
+		command.Execute(state);
+		Assert.True(germany.CrudeOilConversion.IsUntouched);
+
+		MakeEnhanced(state);
+		Assert.True(command.MayExecute(state));
+		command.Execute(state);
+		Assert.True(germany.CrudeOilConversion.Own);
+		Assert.Equal(CFixedPoint.FromInt(20), germany.CrudeOilConversion.PerDay);
+		Assert.Equal(CFixedPoint.FromInt(100), germany.CrudeOilConversion.Keep);
+		Assert.Equal(CFixedPoint.FromInt(5000), germany.CrudeOilConversion.Target);
+		Assert.True(germany.EnergyConversion.IsUntouched);
+
+		// A country that is none, and a figure below nought, are refused.
+		Assert.False(new OpenHOI3.Sim.Commands.CSetConversionCommand(new CCountryTag("XXX"), EConversion.CrudeOilIntoFuel, true,
+			CFixedPoint.Zero, CFixedPoint.Zero, CFixedPoint.Zero).MayExecute(state));
+		Assert.False(new OpenHOI3.Sim.Commands.CSetConversionCommand(germany.Tag, EConversion.CrudeOilIntoFuel, true,
+			new CFixedPoint(-1), CFixedPoint.Zero, CFixedPoint.Zero).MayExecute(state));
+	}
+
+	[Fact]
+	public void AnEnhancedSaveHoldsASettingThatWasTouchedAndAFaithfulOneNone()
+	{
+		CCountry germany = Country("GER", 1);
+		CGameState state = State(new[] { germany }, Land(1, "GER", industry: 100));
+		Set(germany.EnergyConversion, "30", keep: "250.5", target: "1000");
+
+		var writer = new OpenHOI3.Content.Saves.CSaveTextWriter();
+		OpenHOI3.Content.Saves.CSaveConversions.Write(writer, state, germany);
+		Assert.Equal("", writer.Text);
+
+		MakeEnhanced(state);
+		OpenHOI3.Content.Saves.CSaveConversions.Write(writer, state, germany);
+		// The energy's, in thousandths; the crude oil's, never touched, not at all.
+		Assert.Contains("openhoi_energy_conversion", writer.Text);
+		Assert.Contains("1 30000 250500 1000000", writer.Text);
+		Assert.DoesNotContain("openhoi_crude_oil_conversion", writer.Text);
+
+		CCountry loaded = Country("GER", 1);
+		Set(loaded.CrudeOilConversion, "99");
+		OpenHOI3.Content.Saves.CSaveConversions.Read(loaded, OpenHOI3.Content.Clausewitz.ClausewitzParser.Parse(writer.Text));
+		Assert.True(loaded.EnergyConversion.Own);
+		Assert.Equal(CFixedPoint.FromInt(30), loaded.EnergyConversion.PerDay);
+		Assert.Equal(CFixedPoint.Parse("250.5"), loaded.EnergyConversion.Keep);
+		Assert.Equal(CFixedPoint.FromInt(1000), loaded.EnergyConversion.Target);
+		// A setting the save has not is as never touched, whatever the country held before.
+		Assert.True(loaded.CrudeOilConversion.IsUntouched);
+	}
 }

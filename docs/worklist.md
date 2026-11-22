@@ -50,9 +50,11 @@ drawn with Dear ImGui, by the user's decision of 2026-11-22 - one window on Inse
 mod's `script/openhoi/windows/` that gathers with `Collect` and draws with `Draw` and `OpenHOI3.ImGui`, and the
 first page, BlackICE's Active Flags - after the fact base's reading that the original opens no subfolder of
 `interface`, `localisation` or `script`. **To be tried by hand**: the mouse and the keyboard on those windows.
-**Next**: the conversion of resources as a setting of a country's own with its command (`docs/enhanced.md`,
-*Rules*), and its page, the first that changes the game; then the overlay's other pages and the reads they ask of
-the engine.
+**And the conversion of resources** is built, 2026-11-22: a setting of a country's own with its command, in an
+enhanced save and the hash (`docs/mechanics/ic.md`, section 4.1), and its page, the first that changes the game - a
+page gives an order as it draws (`docs/mechanics/modwindows.md`, section 6.1). **To be tried by hand**: the page's
+Apply buttons. **Next**: the setting's effect for script; the overlay's other pages and the reads they ask of the
+engine.
 
 **Multiplayer - the last large piece of the normal engine** (`docs/multiplayer.md`, which holds every decision, what is
 built and what is not; begun 2026-11-20). **Finished, by the word of 2026-11-21: "I think multiplayer is finished

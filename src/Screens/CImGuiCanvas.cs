@@ -22,6 +22,8 @@ public sealed class CImGuiCanvas : IModWindowCanvas
 
 	public void Separator() => ImGui.Separator();
 
+	public void SeparatorText(string label) => ImGui.SeparatorText(label);
+
 	public void SameLine() => ImGui.SameLine();
 
 	public void Spacing() => ImGui.Spacing();
@@ -39,6 +41,8 @@ public sealed class CImGuiCanvas : IModWindowCanvas
 	public bool Checkbox(string label, ref bool value) => ImGui.Checkbox(label, ref value);
 
 	public bool InputText(string label, ref string value, int maxLength) => ImGui.InputText(label, ref value, (uint)maxLength);
+
+	public bool InputInt(string label, ref int value) => ImGui.InputInt(label, ref value);
 
 	public bool SliderInt(string label, ref int value, int min, int max) => ImGui.SliderInt(label, ref value, min, max);
 
@@ -88,4 +92,8 @@ public sealed class CImGuiCanvas : IModWindowCanvas
 	public void PushId(string id) => ImGui.PushID(id);
 
 	public void PopId() => ImGui.PopID();
+
+	public void BeginDisabled(bool disabled) => ImGui.BeginDisabled(disabled);
+
+	public void EndDisabled() => ImGui.EndDisabled();
 }

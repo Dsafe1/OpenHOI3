@@ -25,4 +25,10 @@ public interface IModPages
 	/// game to ask. A page whose drawing failed says why in its window until it is gathered again.
 	/// </summary>
 	void Draw(CModPage page, CCountryTag player, IModWindowCanvas canvas);
+
+	/// <summary>
+	/// The orders the pages have given since they were last taken, in the order given - and they are taken with it. A
+	/// page changes nothing itself: the screen posts these to the game as a player's orders are posted.
+	/// </summary>
+	IReadOnlyList<OpenHOI3.Sim.Commands.CCommand> TakePosted();
 }

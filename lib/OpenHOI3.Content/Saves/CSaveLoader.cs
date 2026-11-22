@@ -33,6 +33,8 @@ public static class CSaveLoader
 		"auto_assign_leaders", "auto_maintain_convoy", "auto_supply_convoy", "auto_resource_convoy", "modifier",
 		"government_in_exile", "strategic_warfare", "land_battles_fought", "air_battles_fought", "naval_battles_fought",
 		"alignment", "nukes",
+		// An enhanced save's own (CSaveConversions).
+		CSaveConversions.EnergyKey, CSaveConversions.CrudeOilKey,
 	};
 
 	private static readonly HashSet<string> ProvinceKeys = new(StringComparer.Ordinal)
@@ -548,6 +550,7 @@ public static class CSaveLoader
 				country.Variables[name] = CSaveValues.Fixed(variable.Value);
 			}
 		}
+		CSaveConversions.Read(country, node);
 
 		foreach (ClausewitzNode child in node.Children)
 		{

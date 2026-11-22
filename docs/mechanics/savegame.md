@@ -951,3 +951,16 @@ order a country took its provinces in (*inferred*; the entry on that order).
 197 and 524 to 460** (at 1 March as loaded, 314 before the sweep of section 19 and 228 after it; the same day's later
 work brought it to the 215 this began from). The two games still part in
 the first hour after the load, in the generator, the relations and the units, as `docs/enhanced.md` says they must.
+
+## 21. An enhanced save's keys in a country: its own conversions
+
+**Ours** (`CSaveConversions`; `ic.md`, section 4.1). An enhanced game writes, in a country's block after its
+variables, a key for each conversion the country has ever set:
+
+    openhoi_energy_conversion = { 1 5000 20000 0 }
+    openhoi_crude_oil_conversion = { 0 0 0 0 }
+
+Four whole numbers: whether it is the country's own, 1 or 0; then a day's amount, what is kept and the level to stop
+at, in thousandths. A setting never touched writes no key, and a faithful game writes neither, so its save stays the
+original's key for key. Read back, a key with fewer than four numbers is as one never set.
+The prefix is the rule for everything of this engine's in a file the original also reads (`docs/blackice.md`).

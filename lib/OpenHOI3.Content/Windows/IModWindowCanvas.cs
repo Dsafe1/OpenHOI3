@@ -18,6 +18,7 @@ public interface IModWindowCanvas
 	void TextWrapped(string text);
 	void TextColored(float red, float green, float blue, float alpha, string text);
 	void Separator();
+	void SeparatorText(string label);
 	void SameLine();
 	void Spacing();
 	void NewLine();
@@ -28,6 +29,7 @@ public interface IModWindowCanvas
 	bool Selectable(string label, bool selected);
 	bool Checkbox(string label, ref bool value);
 	bool InputText(string label, ref string value, int maxLength);
+	bool InputInt(string label, ref int value);
 	bool SliderInt(string label, ref int value, int min, int max);
 	bool SliderFloat(string label, ref float value, float min, float max);
 	bool Combo(string label, ref int index, IReadOnlyList<string> items);
@@ -56,4 +58,8 @@ public interface IModWindowCanvas
 
 	void PushId(string id);
 	void PopId();
+
+	/// <summary>What follows is greyed and takes no press, until the matching end - where <paramref name="disabled"/> is false, it is as ever.</summary>
+	void BeginDisabled(bool disabled);
+	void EndDisabled();
 }

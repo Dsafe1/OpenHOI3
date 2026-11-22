@@ -418,6 +418,19 @@ public sealed class CCountry
 	/// <summary>And what it made: crude oil, and fuel.</summary>
 	public CGoodsPool ConversionMade { get; } = new();
 
+	/// <summary>
+	/// The country's own say in turning energy into crude oil, which only an enhanced game goes by and only for a
+	/// country a person plays (<c>docs/mechanics/ic.md</c>, section 4.1).
+	/// </summary>
+	public Economy.CConversionSetting EnergyConversion { get; } = new();
+
+	/// <summary>And in turning crude oil into fuel.</summary>
+	public Economy.CConversionSetting CrudeOilConversion { get; } = new();
+
+	/// <summary>The setting of one of the two conversions.</summary>
+	public Economy.CConversionSetting Conversion(Economy.EConversion conversion) =>
+		conversion == Economy.EConversion.EnergyIntoCrudeOil ? EnergyConversion : CrudeOilConversion;
+
 	/// <summary>How unhappy its people are. Never below nothing.</summary>
 	public CFixedPoint Dissent { get; set; }
 

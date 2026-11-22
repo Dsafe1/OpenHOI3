@@ -26,16 +26,17 @@ public sealed class CLuaImGui
 		Child,
 		Tree,
 		Id,
+		Disabled,
 	}
 
 	/// <summary>The functions, as <c>OpenHOI3.ImGui</c> names them.</summary>
 	private static readonly string[] Names =
 	{
-		"Text", "TextDisabled", "TextWrapped", "TextColored", "Separator", "SameLine", "Spacing", "NewLine",
-		"SetNextItemWidth", "Button", "SmallButton", "Selectable", "Checkbox", "InputText", "SliderInt", "SliderFloat",
+		"Text", "TextDisabled", "TextWrapped", "TextColored", "Separator", "SeparatorText", "SameLine", "Spacing", "NewLine",
+		"SetNextItemWidth", "Button", "SmallButton", "Selectable", "Checkbox", "InputText", "InputInt", "SliderInt", "SliderFloat",
 		"Combo", "CollapsingHeader", "IsItemHovered", "SetTooltip", "BeginTable", "TableSetupColumn", "TableHeadersRow",
 		"TableNextRow", "TableNextColumn", "EndTable", "BeginTabBar", "EndTabBar", "BeginTabItem", "EndTabItem",
-		"BeginChild", "EndChild", "TreeNode", "TreePop", "PushID", "PopID",
+		"BeginChild", "EndChild", "TreeNode", "TreePop", "PushID", "PopID", "BeginDisabled", "EndDisabled",
 	};
 
 	private const string GlobalPrefix = "__ohoi_ig_";
@@ -59,6 +60,7 @@ public sealed class CLuaImGui
 			["TextColored"] = call => Do(call, canvas => canvas.TextColored((float)call.Number(1), (float)call.Number(2),
 				(float)call.Number(3), (float)call.Number(4), call.String(5))),
 			["Separator"] = call => Do(call, canvas => canvas.Separator()),
+			["SeparatorText"] = call => Do(call, canvas => canvas.SeparatorText(call.String(1))),
 			["SameLine"] = call => Do(call, canvas => canvas.SameLine()),
 			["Spacing"] = call => Do(call, canvas => canvas.Spacing()),
 			["NewLine"] = call => Do(call, canvas => canvas.NewLine()),
@@ -68,6 +70,7 @@ public sealed class CLuaImGui
 			["Selectable"] = call => Ask(call, canvas => canvas.Selectable(call.String(1), call.ArgumentCount >= 2 && call.Boolean(2))),
 			["Checkbox"] = Checkbox,
 			["InputText"] = InputText,
+			["InputInt"] = InputInt,
 			["SliderInt"] = SliderInt,
 			["SliderFloat"] = SliderFloat,
 			["Combo"] = Combo,
@@ -90,6 +93,8 @@ public sealed class CLuaImGui
 			["TreePop"] = call => End(call, EScope.Tree),
 			["PushID"] = PushId,
 			["PopID"] = call => End(call, EScope.Id),
+			["BeginDisabled"] = BeginDisabled,
+			["EndDisabled"] = call => End(call, EScope.Disabled),
 		};
 		var glue = new StringBuilder("OpenHOI3.ImGui = { ");
 		foreach (string name in Names)
@@ -157,6 +162,9 @@ public sealed class CLuaImGui
 			case EScope.Id:
 				canvas.PopId();
 				break;
+			case EScope.Disabled:
+				canvas.EndDisabled();
+				break;
 		}
 	}
 
@@ -222,6 +230,24 @@ public sealed class CLuaImGui
 			_open.Add(EScope.Id);
 		}
 		return 0;
+	}
+
+	/// <summary>Greyed from here to its end where the page says so - with nothing given, greyed.</summary>
+	private int BeginDisabled(CLuaCall call)
+	{
+		if (Canvas is { } canvas)
+		{
+			canvas.BeginDisabled(call.ArgumentCount < 1 || call.Boolean(1));
+			_open.Add(EScope.Disabled);
+		}
+		return 0;
+	}
+
+	private int InputInt(CLuaCall call)
+	{
+		int value = call.Integer(2);
+		bool changed = Canvas is { } canvas && canvas.InputInt(call.String(1), ref value);
+		return call.ReturnMany(changed, (double)value);
 	}
 
 	private int Checkbox(CLuaCall call)
