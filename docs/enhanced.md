@@ -193,9 +193,11 @@ names of keys and defines are proposals.
     brigade's upgrade list opens; what a mod declares for it is the line above this list, *A map mode a mod
     declares in data*. *Not designed*: what the list offers for each button, and the file a mod declares it in.
   - **Combat reports stay in the utility**, as a page - "This one should stay in the utility, but as you said needs
-    the engine to keep records": the engine keeps a record of every finished battle and a page reads it. *Not
-    designed*: what a record holds beyond the week's list of finished battles the air map mode already reads
-    (`mechanics/airmap.md`), how long it is kept, and whether it is in the save.
+    the engine to keep records": the engine keeps a record of every finished battle and a page reads it.
+    **Built 2026-11-22** (`mechanics/combatreports.md`): a report a battle, with both sides named, their losses and
+    men and who won; kept for the whole game, in the game's state and in an enhanced save, so that a save loaded has
+    its own record - in the place of the DLL's files, campaigns and sessions. Not in the hash: nothing reads it but
+    a page. *Not decided*: whether old reports are gathered or dropped (*Save bloat*, below).
 
 **What mods build on**
 
@@ -656,6 +658,13 @@ All of these are risk-free but for what the entry says.
 ## Save bloat
 
 What the original's save writes that later play does not need, and that grows with the game. Begun on 2026-11-20. The normal engine writes all of it, since its save keeps the original's keys (`savegame.md`, 7 to 10); an enhanced engine's own save could leave it out or write it shorter. Unlike the replay's list above, these are about what a save holds *beyond* what play needs, not what it lacks.
+
+- **An enhanced game's record of finished battles grows for the whole game** - *ours*, and so ours to trim
+  (`mechanics/combatreports.md`): a line of ten figures for every battle that has ended, the air's and the
+  bombings' the most, and none ever taken off, because a page may ask what a war cost over any stretch. A long war
+  has tens of thousands. Gathering reports older than a year or two into a month's sums for each pair of countries
+  and kind would keep every figure the page shows over a long period and lose only the old battles one by one,
+  which the page lists sixteen of. *Not decided.* Risk: none to play - nothing in the game reads the record.
 
 - **Every sunk ship keeps its whole technology list.** `sunk_ships` holds every ship that has left the game - sunk at sea, finished by bombs, taken out with its fleet, or taken off by `remove_brigade` - and nothing is ever taken off it. Each is written as a ship still in a fleet is: its figures and a `<technology>={level progress}` line for every technology its type has. So the list grows with every loss for the whole game, and a late game with hundreds of sunk ships carries hundreds of technology lists nobody reads. What the game actually reads of a sunk ship is its id, owner, name, type and `sunk_by`: `total_of_ours_sunk` counts owners, `total_sunk_by_us` follows `sunk_by`, and a battle's `sunk_ship`, a ship's list of victims and the ledger page find ships by id and show their names and types. Only a brigade card left open on a ship that has gone shows its technology levels, under "Unit models". Keeping those five keys - and the card saying nothing under "Unit models" for a lost ship - would make each entry a few lines. The cost per ship depends on how many technologies its type has (`units/*.txt`, `technologies/*.txt`), so a mod with many ship technologies pays more. The game keeps the whole ship in memory too (`CSunkShips`), which the same change could trim. `savegame.md`, 7 and 10; `brigadecard.md`. *Oversight.* Risk: none to play; the save is no longer the original's, and a save written so is not known to load in the original.
 

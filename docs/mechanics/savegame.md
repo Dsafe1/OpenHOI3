@@ -964,3 +964,16 @@ Four whole numbers: whether it is the country's own, 1 or 0; then a day's amount
 at, in thousandths. A setting never touched writes no key, and a faithful game writes neither, so its save stays the
 original's key for key. Read back, a key with fewer than four numbers is as one never set.
 The prefix is the rule for everything of this engine's in a file the original also reads (`docs/blackice.md`).
+
+## 22. An enhanced save's record of finished battles
+
+**Ours** (`CSaveCombatReports`; `combatreports.md`). An enhanced game writes, at the top after `openhoi_engine`, a
+key for each battle that has ended, in the order they ended:
+
+    openhoi_combat_report={ 17002212 0 1861 GER POL 21900 26700 40500 9000 1 }
+
+Ten words: the hour it ended; its kind's number - 0 land, 1 naval, 2 air, 3 ground bombing, 4 land bombing, 5 naval
+bombing; its province; the attacker's and the defender's tag, `---` for a side with none; the attacker's losses in
+thousandths and its men; the defender's the same; and who won - 0 nobody, 1 the attacker, 2 the defender. A
+faithful game writes none. A load takes the save's record whole, and none where the save has none; a key with
+fewer than ten words, a number that is none or a kind there is none of is reported and left out.

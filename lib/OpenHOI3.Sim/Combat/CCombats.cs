@@ -569,6 +569,7 @@ public static class CCombats
 		Detach(combat.Defender);
 		state.Combats.Remove(combat);
 		state.CombatHistory.Record(combat, state.TotalHours);
+		state.CombatReports.Record(state, combat);
 		foreach (CUnit unit in new List<CUnit>(state.UnitsIn(combat.Province)))
 		{
 			if (unit.Location == combat.Province)

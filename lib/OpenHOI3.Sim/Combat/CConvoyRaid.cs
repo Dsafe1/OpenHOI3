@@ -248,6 +248,7 @@ public static class CConvoyRaid
 		}
 		// Like any battle that ends, it goes on the list of finished battles.
 		state.CombatHistory.Record(combat, state.TotalHours);
+		state.CombatReports.Record(state, combat);
 		return combat;
 	}
 
@@ -285,6 +286,7 @@ public static class CConvoyRaid
 			side.Units.Clear();
 		}
 		state.CombatHistory.Record(combat, state.TotalHours);
+		state.CombatReports.Record(state, combat);
 		return combat;
 	}
 

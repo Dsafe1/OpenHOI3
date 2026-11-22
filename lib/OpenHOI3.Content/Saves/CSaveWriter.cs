@@ -53,6 +53,7 @@ public static class CSaveWriter
 		CSaveTop.WriteFlags(writer, state);
 		CSaveTop.WriteGamePlay(writer, state);
 		CSaveTop.WriteRules(writer, state);
+		CSaveCombatReports.Write(writer, state);
 		CSaveTop.WriteVictoryConditions(writer, state);
 		writer.Int("seed", unchecked((int)state.Seed));
 		writer.Int("count", unchecked((int)state.Random.Draws));

@@ -182,6 +182,11 @@ Under the global `OpenHOI3`, beside `Files`, `Enhanced` and `Fixes` (`mods.md`, 
   name's colour escapes are taken out. **A whole order of battle is thousands of small reads**: a page asks for it
   on a button and when the country is another, not every two seconds. No test of what the player knows of it
   either;
+- `OpenHOI3.CombatTally(tag, from_day, to_day)` and `OpenHOI3.LastCombats(tag, count)` - a country's finished
+  battles counted over days, by kind, and its last ones, from the record an enhanced game keeps
+  (`combatreports.md`, section 4);
+- `OpenHOI3.Today()`, `OpenHOI3.DayNumber(year, month, day)` and `OpenHOI3.DateOf(day_number)` - the game's date,
+  and a date as its day's number and back (`combatreports.md`, section 4); the last two ask no game;
 - `OpenHOI3.Refresh()` - section 6.2;
 - `OpenHOI3.Conversion(tag)` - a country's two conversions (`ic.md`, section 4.1), or nil for no country or no game:
   `played`, `oil_rate`, `energy_cap`, `energy_floor`, `crude_cap`, what it holds as `energy`, `crude_oil` and

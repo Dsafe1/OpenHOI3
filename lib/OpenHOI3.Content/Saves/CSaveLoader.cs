@@ -300,6 +300,8 @@ public static class CSaveLoader
 		state.LastConvoyId = 0;
 		state.Combats.Clear();
 		state.CombatHistory.Clear();
+		// An enhanced game's record of finished battles is the save's own, or none where the save has none.
+		state.CombatReports.Clear();
 		state.SunkShips.Clear();
 		state.Theatres.Clear();
 		foreach (CProvince province in state.Provinces)

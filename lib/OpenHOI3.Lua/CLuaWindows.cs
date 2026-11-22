@@ -97,6 +97,28 @@ public sealed class CLuaWindows : IModPages
 		"elseif p[1] == 'R' and byId[tonumber(p[2])] ~= nil then local regiments = byId[tonumber(p[2])].regiments " +
 		"regiments[#regiments + 1] = { name = p[3], type = p[4], strength = tonumber(p[5]), organisation = tonumber(p[6]) } end end " +
 		"return units end " +
+		// The game's date, and a date as the number of its day and back: years of 365 days, as the game counts.
+		"local today, daynumber, dateof = __ohoi_w_today, __ohoi_w_daynumber, __ohoi_w_dateof " +
+		"__ohoi_w_today, __ohoi_w_daynumber, __ohoi_w_dateof = nil, nil, nil " +
+		"OpenHOI3.Today = function() local year, month, day, hour, number = today() if year == nil then return nil end " +
+		"return { year = year, month = month, day = day, hour = hour, day_number = number } end " +
+		"OpenHOI3.DayNumber = function(year, month, day) return daynumber(tonumber(year) or 0, tonumber(month) or 0, tonumber(day) or 0) end " +
+		"OpenHOI3.DateOf = function(number) return dateof(tonumber(number) or 0) end " +
+		// An enhanced game's record of finished battles (combatreports.md): a country's counted over days, by kind,
+		// and its last ones.
+		"local tally, lastcombats = __ohoi_w_combattally, __ohoi_w_lastcombats __ohoi_w_combattally, __ohoi_w_lastcombats = nil, nil " +
+		"OpenHOI3.CombatTally = function(tag, from_day, to_day) local joined, recorded = tally(tostring(tag), tonumber(from_day) or 0, tonumber(to_day) or 0) " +
+		"local result = { recorded = recorded or 0 } " +
+		"for _, line in ipairs(lines(joined)) do local p = {} for part in string.gmatch(line .. '\\t', '(.-)\\t') do p[#p + 1] = part end " +
+		"result[p[1]] = { combats = tonumber(p[2]), won = tonumber(p[3]), lost = tonumber(p[4]), as_attacker = tonumber(p[5]), " +
+		"as_defender = tonumber(p[6]), kills = tonumber(p[7]), losses = tonumber(p[8]) } end " +
+		"return result end " +
+		"OpenHOI3.LastCombats = function(tag, count) local list = {} " +
+		"for _, line in ipairs(lines(lastcombats(tostring(tag), tonumber(count) or 16))) do local p = {} " +
+		"for part in string.gmatch(line .. '\\t', '(.-)\\t') do p[#p + 1] = part end " +
+		"list[#list + 1] = { ended = p[1], kind = p[2], result = p[3], role = p[4], against = p[5], enemy_losses = tonumber(p[6]), " +
+		"enemy_men = tonumber(p[7]), own_losses = tonumber(p[8]), own_men = tonumber(p[9]), province = tonumber(p[10]) } end " +
+		"return list end " +
 		"function __ohoi_window_register(name, page) " +
 		"if type(page) ~= 'table' then error('the page ' .. name .. ' does not return a table', 0) end " +
 		"if type(page.Draw) ~= 'function' then error('the page ' .. name .. ' has no Draw function', 0) end " +
@@ -136,6 +158,11 @@ public sealed class CLuaWindows : IModPages
 		lua.SetGlobal("__ohoi_w_leader", (CLuaFunction)LeaderDetails);
 		lua.SetGlobal("__ohoi_w_province", (CLuaFunction)ProvinceDetails);
 		lua.SetGlobal("__ohoi_w_oob", (CLuaFunction)OrderOfBattle);
+		lua.SetGlobal("__ohoi_w_today", (CLuaFunction)Today);
+		lua.SetGlobal("__ohoi_w_daynumber", (CLuaFunction)DayNumber);
+		lua.SetGlobal("__ohoi_w_dateof", (CLuaFunction)DateOf);
+		lua.SetGlobal("__ohoi_w_combattally", (CLuaFunction)CombatTally);
+		lua.SetGlobal("__ohoi_w_lastcombats", (CLuaFunction)LastCombats);
 		if (!scripts.RunChunk(Encoding.Latin1.GetBytes(Glue), "=OpenHOI3"))
 		{
 			return;
@@ -428,6 +455,94 @@ public sealed class CLuaWindows : IModPages
 				text.Append("R\t").Append(unit.Id).Append('\t').Append(Clean(regiment.Name)).Append('\t').Append(regiment.Type.Key).Append('\t')
 					.Append(Figure(Number(regiment.Strength))).Append('\t').Append(Figure(Number(regiment.Organisation))).Append('\n');
 			}
+		}
+		return call.Return(text.ToString());
+	}
+
+	/// <summary>The game's date: year, month, day, hour and the number of its day; nothing where no game is asked.</summary>
+	private int Today(CLuaCall call)
+	{
+		if (_state is not { } state)
+		{
+			return 0;
+		}
+		CDate date = state.Date;
+		return call.ReturnMany((double)date.Year, (double)date.Month, (double)date.Day, (double)state.Hour, (double)date.DayNumber);
+	}
+
+	/// <summary>The number of a date's day, or nothing for what is no date. It asks no game.</summary>
+	private static int DayNumber(CLuaCall call)
+	{
+		var date = new CDate(call.Integer(1), call.Integer(2), call.Integer(3));
+		// A month's own length: the thirty-first of a month of thirty is no date.
+		return date.IsValid && date.Year > 0 && CDate.FromDayNumber(date.DayNumber) == date ? call.Return((double)date.DayNumber) : 0;
+	}
+
+	/// <summary>A day's date by its number: year, month, day. It asks no game.</summary>
+	private static int DateOf(CLuaCall call)
+	{
+		CDate date = CDate.FromDayNumber(Math.Max(0, call.Integer(1)));
+		return call.ReturnMany((double)date.Year, (double)date.Month, (double)date.Day);
+	}
+
+	/// <summary>The kinds of battle as a page names them, in the order of <see cref="Sim.Combat.ECombatKind"/>.</summary>
+	private static readonly string[] CombatKinds = { "land", "naval", "air", "ground_bombing", "land_bombing", "naval_bombing" };
+
+	/// <summary>
+	/// A country's finished battles from one day to another, both whole, counted for each kind - a line a kind: its
+	/// name, how many, won, lost, as attacker, as defender, what the others lost and what it lost, in thousandths - and
+	/// beside them how many battles the record holds in all.
+	/// </summary>
+	private int CombatTally(CLuaCall call)
+	{
+		string tag = call.String(1);
+		if (_state is not { } state
+			|| state.Countries.FirstOrDefault(c => string.Equals(c.Tag.Value, tag, StringComparison.OrdinalIgnoreCase)) is not { } country)
+		{
+			return call.ReturnMany("", 0.0);
+		}
+		long from = (long)call.Integer(2) * CGameState.HoursPerDay;
+		long to = (long)call.Integer(3) * CGameState.HoursPerDay + CGameState.HoursPerDay - 1;
+		var text = new StringBuilder();
+		for (int kind = 0; kind < CombatKinds.Length; kind++)
+		{
+			Sim.Combat.CCombatTally tally = state.CombatReports.Tally(country.Tag, from, to, (Sim.Combat.ECombatKind)kind);
+			text.Append(CombatKinds[kind]).Append('\t').Append(tally.Combats).Append('\t').Append(tally.Won).Append('\t').Append(tally.Lost)
+				.Append('\t').Append(tally.AsAttacker).Append('\t').Append(tally.AsDefender).Append('\t').Append(tally.Kills)
+				.Append('\t').Append(tally.Losses).Append('\n');
+		}
+		return call.ReturnMany(text.ToString(), (double)state.CombatReports.Entries.Count);
+	}
+
+	/// <summary>
+	/// A country's last battles, the newest first, a line each: when it ended as <c>year.month.day hour:00</c>, its
+	/// kind, <c>won</c>, <c>lost</c> or nothing, <c>attacker</c> or <c>defender</c>, the other side's tag, the other
+	/// side's losses and men, its own losses and men, and the province.
+	/// </summary>
+	private int LastCombats(CLuaCall call)
+	{
+		string tag = call.String(1);
+		if (_state is not { } state
+			|| state.Countries.FirstOrDefault(c => string.Equals(c.Tag.Value, tag, StringComparison.OrdinalIgnoreCase)) is not { } country)
+		{
+			return call.Return("");
+		}
+		var text = new StringBuilder();
+		foreach (Sim.Combat.CCombatReport report in state.CombatReports.Last(country.Tag, Math.Clamp(call.Integer(2), 1, 1000)))
+		{
+			bool attacked = report.Attacker == country.Tag;
+			CDate date = CDate.FromDayNumber((int)(report.Hour / CGameState.HoursPerDay));
+			text.Append(date.Year).Append('.').Append(date.Month).Append('.').Append(date.Day).Append(' ')
+				.Append(report.Hour % CGameState.HoursPerDay).Append(":00").Append('\t')
+				.Append(CombatKinds[(int)report.Kind]).Append('\t')
+				.Append(report.Winner == Sim.Combat.ECombatWinner.Nobody ? "" : report.WonBy(country.Tag) ? "won" : "lost").Append('\t')
+				.Append(attacked ? "attacker" : "defender").Append('\t')
+				.Append((attacked ? report.Defender : report.Attacker)?.Value ?? "---").Append('\t')
+				.Append(attacked ? report.DefenderLosses : report.AttackerLosses).Append('\t')
+				.Append(attacked ? report.DefenderMen : report.AttackerMen).Append('\t')
+				.Append(attacked ? report.AttackerLosses : report.DefenderLosses).Append('\t')
+				.Append(attacked ? report.AttackerMen : report.DefenderMen).Append('\t')
+				.Append(report.Province).Append('\n');
 		}
 		return call.Return(text.ToString());
 	}

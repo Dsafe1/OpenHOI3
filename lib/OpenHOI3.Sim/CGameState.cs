@@ -626,6 +626,12 @@ public sealed class CGameState
 	/// <summary>The battles that ended in the past week. See <c>docs/mechanics/airmap.md</c>, section 2.</summary>
 	public CCombatHistory CombatHistory { get; } = new();
 
+	/// <summary>
+	/// An enhanced game's record of every battle that has ended, with what each side lost. See
+	/// <c>docs/mechanics/combatreports.md</c>.
+	/// </summary>
+	public CCombatReports CombatReports { get; } = new();
+
 	/// <summary>Every ship that has left the game, in the order they went. See <see cref="CSunkShips"/>.</summary>
 	public List<CSunkShip> SunkShips { get; } = new();
 

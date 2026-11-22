@@ -57,6 +57,9 @@ public static class CSaveTop
 					report.Unread("top", $"{RulesKey}, '{node.Value}'");
 				}
 				return true;
+			case CSaveCombatReports.Key when node.IsBlock:
+				CSaveCombatReports.Read(state, node, report);
+				return true;
 			case EngineKey when !node.IsBlock:
 				state.SavedByEngine = node.Value ?? "";
 				return true;
