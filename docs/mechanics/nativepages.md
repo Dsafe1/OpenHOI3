@@ -97,7 +97,7 @@ own is a `field` button whose words the page sets to `X` - BlackICE's `script/op
 **Prod. Sliders AI** behind a button on the production screen and **LS Sliders AI** behind one on the technology
 screen, each the form the mod's own window had - Enable, Apply, Reload, the country, what became of the last Apply -
 with the mod's own data functions behind it unchanged. **A production category's priority is moved by two arrows**,
-the production queue's own, a step at a time between one and the number of categories, the category that had the
+the production queue's own, a step at a time between one and the number of categories - up a higher priority, which is a lower number - the category that had the
 number taking the one left - so no two share one - where the mod's own window had a box to type it into; asked for
 on 2026-11-24. Tried with `--click` on 2026-11-24: opened from their
 buttons, a box typed into, a tick and a mode turned, Apply answered "Applied". Not reviewed in play.
