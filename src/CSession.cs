@@ -932,7 +932,14 @@ public partial class CSession : Node
 			}
 
 			// Messages: the log on the bottom bar, and the popups beside the events.
-			var messageLog = new CMessageLogView();
+			var messageLog = new CMessageLogView
+			{
+				ModeButtonsTakeRightClicks = _enhancedGame,
+				// An enhanced game's: the three buttons with a list say so (custommapmodes.md, section 2).
+				ModeButtonHint = button => _enhancedGame && ModeOfButton(button) is { } listed && CCustomMapModes.KindOf(listed) is not null
+					? gui.Localisation.Localise(Interface.Map.CCustomMapLegend.ListHint)
+					: null,
+			};
 			messageLog.Setup(gui);
 			layer.AddChild(messageLog);
 			layer.MoveChild(messageLog, 0);
@@ -948,6 +955,27 @@ public partial class CSession : Node
 			layer.MoveChild(_menuBackground, 2);
 			_modeButtons = messageLog;
 			messageLog.ModeButtonPressed += ChooseMapMode;
+			// An enhanced game's custom map modes: a right click on a mode's button lists what it may shade by.
+			if (_enhancedGame)
+			{
+				var customModes = new CCustomMapModes();
+				customModes.Setup(gui, _simulation, _mapView, EnhancedSettings.MapPalette, () => GameBusy);
+				layer.AddChild(customModes);
+				_customMapModes = customModes;
+				customModes.PaletteChanged += palette =>
+				{
+					EnhancedSettings = EnhancedSettings with { MapPalette = palette };
+					Content.Settings.CEnhancedSettingsFile.WriteFile(EnhancedSettings,
+						Content.Settings.CEnhancedSettingsFile.DefaultPath(_directories));
+				};
+				messageLog.ModeButtonRightPressed += (button, where) =>
+				{
+					if (ModeOfButton(button) is { } host)
+					{
+						customModes.ToggleList(host, where);
+					}
+				};
+			}
 			var gotoBox = new CGotoBoxView();
 			gotoBox.Setup(gui, _simulation.State);
 			gotoBox.ProvinceChosen += province => _mapView.CentreOn(province);
@@ -1922,9 +1950,13 @@ public partial class CSession : Node
 		return 0;
 	}
 
-	/// <summary>A map mode button pressed: its mode set.</summary>
+	private CCustomMapModes? _customMapModes;
+
+	/// <summary>A map mode button pressed: its mode set, as the game has it - a custom source goes.</summary>
 	private void ChooseMapMode(int button)
 	{
+		_customMapModes?.CloseList();
+		_mapView.ClearCustom();
 		if (ModeOfButton(button) is { } mode)
 		{
 			// A mode chosen clicks unless it is already on (sound.md, section 7).
@@ -2966,6 +2998,28 @@ public partial class CSession : Node
 			{
 				// The same with a page open on it, by its file's name: --screen=modwindows:flags.
 				_modWindowsView?.Show(argument["--screen=modwindows:".Length..]);
+			}
+			else if (argument.StartsWith("--custommap=", System.StringComparison.Ordinal))
+			{
+				// An enhanced game's custom map source by its kind and key, as its list would choose it:
+				// --custommap=supply:days_of_supplies, --custommap=buildings:industry, --custommap=resources:energy.
+				string[] parts = argument["--custommap=".Length..].Split(':', 2);
+				CMapView.MapMode? customHost = parts[0] switch
+				{
+					"buildings" => CMapView.MapMode.Infrastructure,
+					"resources" => CMapView.MapMode.Resources,
+					"supply" => CMapView.MapMode.Supply,
+					_ => null,
+				};
+				if (_customMapModes is not null && customHost is { } mode && parts.Length == 2 && CCustomMapModes.KindOf(mode) is { } kind
+					&& Interface.Map.CCustomMapSources.Find(State, kind, parts[1]) is { } source)
+				{
+					_mapView.SetCustom(source, mode, _customMapModes.Palette);
+				}
+				else
+				{
+					GD.PrintErr($"--custommap: '{argument}' names no source of an enhanced game");
+				}
 			}
 			else if (argument.StartsWith("--window=", System.StringComparison.Ordinal) && _gui is not null && _hud is not null)
 			{

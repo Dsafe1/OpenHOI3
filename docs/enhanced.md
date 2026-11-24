@@ -94,6 +94,10 @@ is `blackice.md`.
   the water is drawn from the provinces' colours, and gives each sea province its terrain's colour as it gives the land
   (`mechanics/mapmodes.md`, section 6). Display only.
 - **BlackICE's working copy holds the file since 2026-11-21**, naming nothing it goes without.
+- **Custom map modes, 2026-11-24** (`mechanics/custommapmodes.md`): a right click on the Infrastructure, Resources
+  or Supply map mode button lists what else the mode can shade the land by - a building's level, a resource's
+  amount, one of eleven supply figures - in ten shades of one of two palettes, with a legend. Display only. With it
+  the Resources mode's tooltip says a province's manpower and leadership.
 - **Built-in interface elements, 2026-11-24** (`mechanics/builtin.md`): `built_in = { style = .. size = .. color = .. }`
   on an icon or a button of `interface/openhoi/` in place of a sprite, painted by the engine in a style of a small
   library a mod's `interface/openhoi/builtin_styles.txt` may change. What the engine's own new screens are laid out

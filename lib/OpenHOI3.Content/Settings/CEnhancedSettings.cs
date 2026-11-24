@@ -14,7 +14,7 @@ namespace OpenHOI3.Content.Settings;
 /// <param name="EventWindow">Where a country event's window comes up.</param>
 public sealed record CEnhancedSettings(int PreMonthDays = 0, int TimedMinutes = 0, bool EdgeScrolling = true,
 	EEventWindowPlace EventWindow = EEventWindowPlace.AsFiled, string WindowKey = CEnhancedSettings.DefaultWindowKey,
-	string WindowTheme = CEnhancedSettings.DefaultWindowTheme)
+	string WindowTheme = CEnhancedSettings.DefaultWindowTheme, string MapPalette = CEnhancedSettings.DefaultMapPalette)
 {
 	/// <summary>The most days before the month's end: the 27 that keep the day inside February.</summary>
 	public const int MostDays = 27;
@@ -25,6 +25,11 @@ public sealed record CEnhancedSettings(int PreMonthDays = 0, int TimedMinutes = 
 	/// <summary>What a game has with no file: nothing the original does not do.</summary>
 	/// <summary>The key that shows and hides a mod's windows, by the name the engine gives it.</summary>
 	public const string DefaultWindowKey = "Insert";
+
+	/// <summary>The palette of a custom map mode: one of <see cref="MapPalettes"/> (custommapmodes.md, section 5).</summary>
+	public const string DefaultMapPalette = "green";
+
+	public static readonly string[] MapPalettes = { "green", "heat" };
 
 	/// <summary>The look of a mod's windows: one of <see cref="WindowThemes"/>.</summary>
 	public const string DefaultWindowTheme = "dark";

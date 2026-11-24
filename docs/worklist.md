@@ -75,7 +75,9 @@ be a utility.** **Next**, as the user placed the Inspector's other two on 2026-1
 *Interface*), in the game's own interface: **the unit inspector** - built 2026-11-22 as the card of a whole unit,
 opened from the ribbon over its brigades in an enhanced game (`mechanics/brigadecard.md`, section 7), tried with
 `--click` and not reviewed in play - and
-**the custom map mode** as a list a right click on a map mode's button opens; and what was set down for after the
+**the custom map mode** - built 2026-11-24 as a list a right click on the Infrastructure, Resources or Supply
+button opens, each kind on the button it belongs to by the user's choice (`mechanics/custommapmodes.md`), tried with
+`--click` and not reviewed in play; and what was set down for after the
 port (below). **Before those, 2026-11-24, built-in elements** (`mechanics/builtin.md`): an icon or a button says
 `built_in = { style = .. size = .. color = .. }` in a file of `interface/openhoi/` and the engine paints it, in one of
 eight styles a mod's `builtin_styles.txt` may change - so the pages to come need no texture and no sprite entry for

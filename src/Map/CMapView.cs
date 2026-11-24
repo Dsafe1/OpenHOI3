@@ -725,6 +725,42 @@ public partial class CMapView : Node2D
 			Image.CreateFromData(width, height, false, Image.Format.Rg8, bytes));
 	}
 
+	/// <summary>The source an enhanced game's custom map mode shades the land by, or none (custommapmodes.md).</summary>
+	public Interface.Map.CCustomMapSource? CustomSource { get; private set; }
+
+	/// <summary>The map mode whose button listed <see cref="CustomSource"/>: it is shown in that mode alone.</summary>
+	public MapMode CustomHost { get; private set; }
+
+	/// <summary>The palette <see cref="CustomSource"/> is shaded in.</summary>
+	public string CustomPalette { get; private set; } = Interface.Map.CCustomMapColours.Green;
+
+	/// <summary>The scale the last colouring worked out for <see cref="CustomSource"/>, which its legend writes out.</summary>
+	public Interface.Map.CCustomMapScale? CustomScale { get; private set; }
+
+	/// <summary>Shows a custom source in its host mode, which is set with it.</summary>
+	public void SetCustom(Interface.Map.CCustomMapSource source, MapMode host, string palette)
+	{
+		CustomSource = source;
+		CustomHost = host;
+		CustomPalette = Interface.Map.CCustomMapColours.Palette(palette);
+		Mode = host;
+	}
+
+	/// <summary>The host mode as the game has it again.</summary>
+	public void ClearCustom()
+	{
+		if (CustomSource is null)
+		{
+			return;
+		}
+		CustomSource = null;
+		CustomScale = null;
+		if (IsInsideTree())
+		{
+			RefreshColours();
+		}
+	}
+
 	/// <summary>
 	/// Recolours every province from the game state, by the current mode: its holder's
 	/// colour, striped with its owner's where that is another country, or its terrain's,
@@ -742,6 +778,13 @@ public partial class CMapView : Node2D
 			: null;
 		Dictionary<int, CColor>? theatres = _mode == MapMode.Theatre ? CTheatreMapColours.Build(_state, Player, RegionColours) : null;
 		Dictionary<int, List<CUnit>>? landUnits = null;
+		// An enhanced game's custom source, in its host mode: its scale made again with every colouring.
+		Interface.Map.CCustomMapSource? custom = CustomSource is not null && CustomHost == _mode ? CustomSource : null;
+		Interface.Map.CCustomMapScale? customScale = custom is null ? null : Interface.Map.CCustomMapScale.Of(_state, custom);
+		if (custom is not null)
+		{
+			CustomScale = customScale;
+		}
 		for (int id = 0; id < _map.ProvinceCount; id++)
 		{
 			CProvince province = _state.Provinces[id];
@@ -790,6 +833,10 @@ public partial class CMapView : Node2D
 			else if (province.IsSea)
 			{
 				colour = SeaColour;
+			}
+			else if (custom is not null && customScale is not null)
+			{
+				colour = Interface.Map.CCustomMapColours.Of(_state, province, Player, custom, customScale, CustomPalette).ToGodot();
 			}
 			else if (_mode == MapMode.Terrain)
 			{

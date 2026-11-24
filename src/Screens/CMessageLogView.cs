@@ -42,6 +42,18 @@ public sealed partial class CMessageLogView : Control
 	/// <summary>Raised with a map mode button's number, from one, when it is pressed.</summary>
 	public event Action<int>? ModeButtonPressed;
 
+	/// <summary>
+	/// Raised with a map mode button's number and where it stands on the screen when it is right clicked, where
+	/// <see cref="ModeButtonsTakeRightClicks"/>: an enhanced game's list of the mode's sources (custommapmodes.md).
+	/// </summary>
+	public event Action<int, Rect2>? ModeButtonRightPressed;
+
+	/// <summary>Whether the map mode buttons answer a right click. Set before the view enters the tree.</summary>
+	public bool ModeButtonsTakeRightClicks { get; set; }
+
+	/// <summary>Asked with a map mode button's number for a line its tooltip gains, or none: that a right click lists more.</summary>
+	public Func<int, string?>? ModeButtonHint { get; set; }
+
 	/// <summary>Raised when the bar's zoom-in button is pressed, or Page Down: <c>minimap.md</c>, section 4.</summary>
 	public event Action? ZoomInPressed;
 	public event Action? GotoPressed;
@@ -164,7 +176,15 @@ public sealed partial class CMessageLogView : Control
 			}
 			int pressed = number;
 			button.Pressed += () => ModeButtonPressed?.Invoke(pressed);
+			if (ModeButtonsTakeRightClicks)
+			{
+				button.RightPressed += () => ModeButtonRightPressed?.Invoke(pressed, button.GetGlobalRect());
+			}
 			string tooltip = _context.Localisation.Localise(Interface.Map.CMapModeButtons.TooltipKey(number));
+			if (ModeButtonHint?.Invoke(number) is { Length: > 0 } hint)
+			{
+				tooltip += "\n" + hint;
+			}
 			button.Tooltip = () => new Interface.Tooltips.CTooltip { Text = tooltip };
 			_modeButtons[number - 1] = button;
 		}

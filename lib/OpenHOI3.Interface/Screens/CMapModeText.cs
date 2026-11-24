@@ -62,6 +62,20 @@ public static class CMapModeText
 				}
 			}
 		}
+		// An enhanced game's two lines more: the province's manpower and leadership, to two places rounded half up,
+		// behind the goods' own test (custommapmodes.md, section 7).
+		if (state.Rules.Enhanced && Known(state, province, player) >= 1)
+		{
+			foreach ((long figure, string key) in new[] { (province.Manpower.Raw, "MANPOWER_IRO"), (province.Leadership.Raw, "PV_LEADERSHIP") })
+			{
+				if (figure > 0)
+				{
+					long hundredths = (figure + 5) / 10;
+					text.Append('\n').Append(localise(key)).Append(": ").Append(hundredths / 100).Append('.')
+						.Append((hundredths % 100).ToString("00", System.Globalization.CultureInfo.InvariantCulture));
+				}
+			}
+		}
 		if (province.StrategicResource.Length > 0)
 		{
 			text.Append("\n§G").Append(localise(province.StrategicResource)).Append("§W");
