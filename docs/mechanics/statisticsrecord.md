@@ -25,14 +25,14 @@ the same one, and a game plays the same with it off.
 
 ## 2. The series
 
-Fixed, the engine's own, 73 with the base game's ideologies - the names BlackICE's collector wrote its files under:
+Fixed, the engine's own, 72 with the base game's ideologies - the names BlackICE's collector wrote its files under:
 
 | group | series |
 | --- | --- |
 | leadership | `ls_TotalLeadership`; `ls_Percent_Research`, `_Espionage`, `_Diplomacy`, `_NCO`, each share in percent |
 | spies and neutrality | `intel_FreeSpies`, `intel_DomesticSpies` (its level at home), `intel_TotalSpiesAbroad` (its levels in every other country added); `diplo_Neutrality`, `diplo_EffectiveNeutrality` |
 | industry | `prod__IcEff` (the `industrial_efficiency` modifier and the technologies' `ic_efficiency`, in percent), `prod__TotalIc`; and for each of `LendLease`, `Consumer`, `Production`, `Supply`, `Reinforce`, `Upgrade`: `prod_<Name>_%`, the share in percent, and `prod_<Name>_IC`, the share times the IC |
-| politics | `pol_Popularity_Single_<ideology>` for each ideology; `pol_Popularity_Group_<group>`, its ideologies' added |
+| politics | `pol_Popularity_Single_<ideology>` for each ideology - the null ideology, which has no name, has none (it had one, named with nothing after the `_`, until 2026-11-25); `pol_Popularity_Group_<group>`, its ideologies' added |
 | land and units | `other_ProvincesControlled`, `other_ProvincesOwned`; `other_u_LandCountTotal` (brigades), `other_u_AirCountTotal` (wings), `other_u_NavalCountTotal` (ships), `other_u_TotalDivisions`; `other_ManpowerTotal` |
 | goods | for each of `energy`, `metal`, `rares`, `oil`, `supplies`, `fuel`, `money`: `res_pool_<good>` (the stockpile), `res_balance_<good>` (the day's income less its spending, `stockpile.md`), `res_tradeFor_<good>` and `res_tradeAway_<good>` (traded, allied supply left out) |
 

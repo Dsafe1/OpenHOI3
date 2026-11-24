@@ -169,6 +169,15 @@ public class StatisticsRecordTests
 	}
 
 	[Fact]
+	public void TheNullIdeologyHasNoSeries()
+	{
+		CGameState state = State(new CDate(1936, 1, 1));
+		// The list of ideologies begins with the null one, which has no name.
+		Assert.Equal("", state.Ideologies[0].Name);
+		Assert.DoesNotContain("pol_Popularity_Single_", state.Statistics.Series(state).Names);
+	}
+
+	[Fact]
 	public void BytesStandInASaveAsABareWordOfLettersDigitsDashAndUnderscore()
 	{
 		byte[] bytes = Enumerable.Range(0, 256).Select(value => (byte)value).ToArray();

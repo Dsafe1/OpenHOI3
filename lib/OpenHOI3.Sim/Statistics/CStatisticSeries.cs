@@ -34,7 +34,16 @@ public sealed class CStatisticSeries
 
 	public CStatisticSeries(CGameState state)
 	{
-		_ideologies = state.Ideologies;
+		// The null ideology, number 0, has no name and is nobody's party: it has no series.
+		var named = new List<CIdeology>();
+		foreach (CIdeology ideology in state.Ideologies)
+		{
+			if (ideology.Index > 0 && ideology.Name.Length > 0)
+			{
+				named.Add(ideology);
+			}
+		}
+		_ideologies = named;
 		_names.AddRange(new[]
 		{
 			"ls_TotalLeadership", "ls_Percent_Research", "ls_Percent_Espionage", "ls_Percent_Diplomacy", "ls_Percent_NCO",
