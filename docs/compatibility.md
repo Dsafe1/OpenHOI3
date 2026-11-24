@@ -339,11 +339,11 @@ lands on 0, and that is to be fixed in OpenHOI3.
 | | |
 | --- | --- |
 | the original | decides on an autosave as the day begins and writes it a frame later (`reversing/findings/FINDINGS-autosave.md`), so what it holds hangs on the speed: at a slow speed the turn of the day, `1941.7.1.0`; at a fast one an hour later, `1941.7.1.1`, as every reference autosave |
-| here | the autosave is written as the day is decided on, the hour that turned it run whole: always the turn of the day |
+| here | the autosave is decided on as the day begins, the hour that turned it run whole, and written a frame later with no hour started in between - the frame the notice `AUTOSAVING` is drawn in, since 2026-11-25 (`mechanics/loadingscreen.md`, section 6); until then it was written as it was decided. Always the turn of the day |
 | the difference today | an autosave made at speed holds the hour before the original's would |
 | a mod loses | nothing; no file can tell the two apart |
 | why | a save should not hang on how fast the game was running when it was made |
-| to undo | keep the decision and write it on the frame after the next, after that frame's hours (`CSession.DecideAutosave`) |
+| to undo | let the hours start while an autosave is held (`CSession.StartHours`) |
 
 ## 17. The front end greys the scenarios and the custom games ~~, and offers one bookmark~~
 

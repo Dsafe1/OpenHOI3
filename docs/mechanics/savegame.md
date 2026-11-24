@@ -498,8 +498,9 @@ A save is `CSaveWriter`'s text in the original's bytes, the file truncated where
   1st of January and of July; `YEARLY`, the 1st of January, the default; `FIVE_YEAR`, the 1st of January of a year
   five divides (`CAutosave.IsDue`).
 - **Written a frame later** in the original: the frame that finds the decision only marks that it has waited, and the
-  next writes, so what it holds hangs on the speed. **Here it is written as it is decided**, the hour that turned the
-  day run whole, so it always holds the turn of the day (`CSession.DecideAutosave`; `docs/compatibility.md`, entry 16).
+  next writes, so what it holds hangs on the speed. **Here too it is written a frame later, since 2026-11-25, and no
+  hour of the game is started in between**, so it always holds the turn of the day (`CSession.DecideAutosave`,
+  `HoldAutosave`; `docs/compatibility.md`, entry 16). The frame between is the notice's.
 - **Three files** in the player's `save games` folder: `olderautosave.hoi3` is deleted, `oldautosave.hoi3` becomes
   it, `autosave.hoi3` becomes `oldautosave.hoi3`, and the game is written to `autosave.hoi3`. **They are the
   original's own files** - the player's folder is shared, as the settings are - so a game played here shifts the
@@ -507,7 +508,9 @@ A save is `CSaveWriter`'s text in the original's bytes, the file truncated where
 - **`debug_saves`** other than nought [mod: settings.txt] makes the original ignore the frequency and save on the 1st of
   every Nth month, one file a save, under a name the reading left part unread. **Not built**: said once, and nothing
   autosaves.
-- No message says a save was made; a failure is logged, `Failed to write save file`.
+- **The notice `AUTOSAVING`** stands in the middle of the screen while the file is written (`loadingscreen.md`,
+  section 6; built 2026-11-25 - this line said until then that no message says a save was made, which was the
+  message log's and not the screen's). A failure is logged, `Failed to write save file`.
 
 **Checked** by `SaveFilesTests` - the six frequencies' days, the three files shifted along and the dialog's names - and
 with `--click`: the dialog listing the reference save folder newest first, offering `Germany1936_01_01_00`, asking

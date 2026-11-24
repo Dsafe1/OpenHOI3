@@ -108,6 +108,33 @@ largest, costs some 80 ms at its first opening. With both, from Play on a new ga
 `--loadingshot=path.png` saves the first loading screen with a line on it, as that line is drawn, to look at; nothing else
 can, the other switches coming after it.
 
+## 6. The notices over a game
+
+Read in `reversing/findings/FINDINGS-loadingscreen.md`, section 3.3. The in-game screen draws three notices as the
+last thing of a frame, over the interface: **one line in `Loading_Font`, centred on the whole screen, with no picture
+and no strip** [exe: the placement; mod: the font, and the text by its key]. Each is the localisation of its key, and
+no table of the original's has any of the three, so each shows as its key.
+
+- **`AUTOSAVING`** [exe] on the one frame between an autosave being found wanted and its being written: the original
+  marks that frame, draws the notice into it, and writes on the next - the write holding the game, the notice stands
+  for as long as the write takes, and is gone with the first frame after. **Built 2026-11-25**, asked for as "the
+  'AUTOSAVING' text popup is missing": an autosave decided on as a day begins puts the notice up and is held
+  (`CHeldAutosaves`); the frame is drawn; the next frame writes before anything else and takes the notice down
+  (`CSession.HoldAutosave`, `WriteHeldAutosaves`; the notice is `CScreenNotice`, the font `CLoadingFont`, which the
+  loading screen's line is drawn through too). **No hour of the game starts while one is held** - *ours*: the
+  original's hours run on in that frame, which is why its autosaves made at speed hold an hour later; here the file
+  holds the turn of the day as before (`docs/compatibility.md`, entry 16). An enhanced game's two extra autosaves
+  (`savegame.md`, section 11.1) show the same notice. Hours a script or `--days` runs with no frame between them
+  write a held autosave at once, unshown.
+- **`SCREENSHOT_TAKEN`** [exe] for 15 frames from the frame a screenshot is taken, and **`MAP_SAVED`** [exe] for 15
+  from the frame the map is saved - by frames, so how long hangs on the frame rate. **Neither is built**: there is
+  no screenshot key here and no saving of the map.
+
+**Checked** by `LoadingScreenTests` - the holding - and looked at once on 2026-11-25, BlackICE run by `--click` to 30
+January 1936, the day of its pre-month autosave: the file written, and `AUTOSAVING` white in the middle of the
+screen over the event windows - in a build that left the notice up after the write, the one frame not being caught
+by a screenshot. **Not reviewed in play**, and not set beside the original for the font's size.
+
 ## Not established
 
 - The order the original lists the pictures in.

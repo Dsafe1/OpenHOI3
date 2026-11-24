@@ -1747,6 +1747,7 @@ public partial class CSession : Node
 	{
 		long frameStart = Stopwatch.GetTimestamp();
 		_owedSeconds += delta;
+		WriteHeldAutosaves();
 		// The hours run beside the last frames, where they are done: what they told is told now, on this thread.
 		int hours = CollectHours(finish: false);
 		double simulation = hours > 0 ? _simulation.LastRunMilliseconds : 0;
@@ -1864,15 +1865,7 @@ public partial class CSession : Node
 		{
 			return;
 		}
-		string folder = System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderFor(_directories));
-		try
-		{
-			Content.Saves.CAutosave.Write(State, _localisation.Localise, folder, Content.Saves.CExtraAutosaves.FilesOf(kind));
-		}
-		catch (System.Exception failed) when (failed is System.IO.IOException or System.UnauthorizedAccessException)
-		{
-			CDiagnostics.Warn($"Failed to write save file {folder}: {failed.Message}");
-		}
+		HoldAutosave(Content.Saves.CExtraAutosaves.FilesOf(kind));
 	}
 
 	/// <summary>
@@ -1903,14 +1896,59 @@ public partial class CSession : Node
 		{
 			return;
 		}
-		string folder = System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderFor(_directories));
-		try
+		HoldAutosave(Content.Saves.CAutosave.Files);
+	}
+
+	/// <summary>The autosaves decided on, held for the frame that shows their notice (loadingscreen.md, section 6).</summary>
+	private readonly Interface.Loading.CHeldAutosaves _heldAutosaves = new();
+
+	private Loading.CScreenNotice? _notice;
+
+	/// <summary>The key of the notice an autosave is written under; no table of the original's has it, so it shows as itself.</summary>
+	private const string AutosavingKey = "AUTOSAVING";
+
+	/// <summary>
+	/// An autosave wanted: the notice goes up, the frame that shows it is drawn with no hour of the game started, and
+	/// the next frame writes (<see cref="WriteHeldAutosaves"/>) - so the file still holds the turn of the day.
+	/// </summary>
+	private void HoldAutosave(string[] files)
+	{
+		_heldAutosaves.Ask(files);
+		if (_notice is null)
 		{
-			Content.Saves.CAutosave.Write(State, _localisation.Localise, folder);
+			_notice = new Loading.CScreenNotice { Name = "Notice" };
+			_notice.Setup(_directories);
+			AddChild(_notice);
 		}
-		catch (System.Exception failed) when (failed is System.IO.IOException or System.UnauthorizedAccessException)
+		_notice.Line = _localisation.Localise(AutosavingKey);
+	}
+
+	/// <summary>
+	/// As a frame begins: the autosaves the last frame showed the notice for are written, that frame standing on the
+	/// screen while they are, and the notice is taken down. A failure is logged as the original logs it.
+	/// </summary>
+	private void WriteHeldAutosaves(bool whetherShownOrNot = false)
+	{
+		IReadOnlyList<string[]> due = _heldAutosaves.Take(whetherShownOrNot);
+		if (due.Count == 0)
 		{
-			CDiagnostics.Warn($"Failed to write save file {folder}: {failed.Message}");
+			return;
+		}
+		string folder = System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderFor(_directories));
+		foreach (string[] files in due)
+		{
+			try
+			{
+				Content.Saves.CAutosave.Write(State, _localisation.Localise, folder, files);
+			}
+			catch (System.Exception failed) when (failed is System.IO.IOException or System.UnauthorizedAccessException)
+			{
+				CDiagnostics.Warn($"Failed to write save file {folder}: {failed.Message}");
+			}
+		}
+		if (_notice is not null)
+		{
+			_notice.Line = "";
 		}
 	}
 
@@ -2492,6 +2530,12 @@ public partial class CSession : Node
 	{
 		if (_simulation.IsBusy || _replayEnded || !IsInsideTree())
 		{
+			return;
+		}
+		// An autosave decided on waits for the frame just drawn, which shows its notice, and no hour runs meanwhile.
+		if (_heldAutosaves.Waiting)
+		{
+			_heldAutosaves.FrameDrawn();
 			return;
 		}
 		// A client's hours are the host's, started as they have come; and a game another is being loaded in place of runs none.
@@ -3139,6 +3183,8 @@ public partial class CSession : Node
 				// Runs that many days at once, whatever the clock says: a unit ordered or
 				// under construction can then be found finished.
 				UnlessTheReplayEnds(() => _simulation.RunHours(days * 24));
+				// Hours run with no frame between them: an autosave they decided on is written at once.
+				WriteHeldAutosaves(whetherShownOrNot: true);
 			}
 			else if (argument.StartsWith("--lock=")
 				&& System.Enum.TryParse(argument["--lock=".Length..], ignoreCase: true, out EProductionCategory locked))
@@ -3498,7 +3544,12 @@ public partial class CSession : Node
 	/// <summary>The clicks of <c>--click=</c>, played into the session's viewport (<see cref="Debug.CClickScript"/>).</summary>
 	private System.Threading.Tasks.Task Click(string points)
 	{
-		return new Debug.CClickScript(GetParent(), () => UnlessTheReplayEnds(() => _simulation.RunHours(1))).Run(points);
+		// A script's hours run with no frame between them: an autosave an earlier one decided on is written before the next.
+		return new Debug.CClickScript(GetParent(), () =>
+		{
+			WriteHeldAutosaves(whetherShownOrNot: true);
+			return UnlessTheReplayEnds(() => _simulation.RunHours(1));
+		}).Run(points);
 	}
 
 	/// <summary>What the console's commands ask of the running game.</summary>

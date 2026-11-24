@@ -20,7 +20,7 @@ public partial class CLoadingPicture : Control
 {
 	public const string Folder = "gfx/loadingscreens";
 	public const string TextBackground = "gfx/load_textbg.dds";
-	public const string FontName = "Loading_Font";
+	public const string FontName = CLoadingFont.FontName;
 
 	private CDirectorySettings _directories = null!;
 	private CTextureManager _textures = null!;
@@ -28,10 +28,7 @@ public partial class CLoadingPicture : Control
 	private CLoadingPictures _pictures = new(0, false);
 	private bool _firstOnly;
 	private Texture2D? _textBackground;
-	private Font? _font;
-	private int _fontSize;
-	private Color _fontColour = Colors.White;
-	private CGuiFont? _bitmapFont;
+	private CLoadingFont? _font;
 	private string _line = "";
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
@@ -72,30 +69,7 @@ public partial class CLoadingPicture : Control
 		_files = _directories.ListFiles(Folder, "*dds");
 		_pictures = new CLoadingPictures(_files.Length, _firstOnly);
 		_textBackground = _textures.LoadFromGamePath(TextBackground);
-		FindFont();
-	}
-
-	/// <summary>
-	/// <c>Loading_Font</c> among the <c>font</c> entries first, then the bitmap fonts, as the original looks it up. A
-	/// <c>font</c> entry's typeface is drawn in the shipped one that stands for it, at the size whose cell is the entry's
-	/// <c>height</c>, as Windows takes a positive height.
-	/// </summary>
-	private void FindFont()
-	{
-		if (CTrueTypeFontReader.Read(_directories).TryGetValue(FontName, out CTrueTypeFont? entry))
-		{
-			_font = new CShippedTypefaces().For(entry.FontName, bold: false, italic: false, out _);
-			if (_font is not null && entry.Height > 0)
-			{
-				const int probe = 100;
-				float cell = _font.GetHeight(probe);
-				_fontSize = Math.Max(1, (int)Math.Round(entry.Height * probe / cell));
-				_fontColour = entry.Color.ToGodot();
-				return;
-			}
-			_font = null;
-		}
-		_bitmapFont = CGuiFonts.Load(_directories).Find(FontName);
+		_font = new CLoadingFont(_directories);
 	}
 
 	private readonly Dictionary<int, Texture2D?> _loaded = new();
@@ -136,21 +110,6 @@ public partial class CLoadingPicture : Control
 			return;
 		}
 		(System.Numerics.Vector2 boxAt, System.Numerics.Vector2 boxSize) = CLoadingLayout.Text(width, height);
-		if (_font is not null)
-		{
-			float lineWidth = _font.GetStringSize(_line, HorizontalAlignment.Left, -1f, _fontSize).X;
-			float cell = _font.GetHeight(_fontSize);
-			var baseline = new Vector2(Mathf.Round(boxAt.X + (boxSize.X - lineWidth) / 2f),
-				Mathf.Round(boxAt.Y + (boxSize.Y - cell) / 2f + _font.GetAscent(_fontSize)));
-			DrawString(_font, baseline, Interface.Text.CWindows1252.ToDisplay(_line), HorizontalAlignment.Left, -1f, _fontSize,
-				_fontColour);
-		}
-		else if (_bitmapFont is not null)
-		{
-			float lineWidth = _bitmapFont.Width(_line);
-			var baseline = new Vector2(Mathf.Round(boxAt.X + (boxSize.X - lineWidth) / 2f),
-				Mathf.Round(boxAt.Y + (boxSize.Y - _bitmapFont.LineHeight) / 2f + _bitmapFont.Ascent));
-			_bitmapFont.Draw(this, baseline, _line, _bitmapFont.Color);
-		}
+		_font?.DrawCentred(this, new Vector2(boxAt.X, boxAt.Y), new Vector2(boxSize.X, boxSize.Y), _line);
 	}
 }

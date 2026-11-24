@@ -2214,6 +2214,9 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 
 ## Loose ends
 
+- **Two of the three notices over a game are not built** (2026-11-25, `loadingscreen.md`, section 6): `AUTOSAVING`
+  is; `SCREENSHOT_TAKEN` and `MAP_SAVED`, 15 frames each in the original, wait for a screenshot key and a saving of
+  the map, neither of which is here. `AUTOSAVING` itself is not reviewed in play.
 - **The order of `slider_locks` and `mobilize` in a played country's block** (2026-11-21, `savegame.md`, section 15): the
   original writes them both ways - `slider_locks` first in `Germany1936_03_31_19` and `_09_02_21`, `mobilize` first in
   `Multiplayer_Germany1941_07_05_10` and `Multiplayer_Italy1936_01_04_21` - and ours writes `mobilize` first. What chooses

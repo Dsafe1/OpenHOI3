@@ -54,6 +54,37 @@ public class LoadingScreenTests
 	}
 
 	[Fact]
+	public void AnAutosaveIsHeldUntilAFrameHasShownItsNotice()
+	{
+		var held = new CHeldAutosaves();
+		Assert.False(held.Waiting);
+		held.FrameDrawn();
+		Assert.Empty(held.Take());
+
+		string[] own = { "autosave.hoi3" };
+		string[] extra = { "autosave_premonth.hoi3" };
+		held.Ask(extra);
+		held.Ask(own);
+		// Asked, and no frame drawn since: the notice is up, and nothing is written yet.
+		Assert.True(held.Waiting);
+		Assert.Empty(held.Take());
+		Assert.True(held.Waiting);
+		// The frame with the notice drawn: both are written as the next begins, in the order asked, and once.
+		held.FrameDrawn();
+		Assert.Equal(new[] { extra, own }, held.Take());
+		Assert.False(held.Waiting);
+		Assert.Empty(held.Take());
+
+		// A frame drawn before the asking shows no notice and counts for nothing.
+		held.FrameDrawn();
+		held.Ask(own);
+		Assert.Empty(held.Take());
+		// Where the game is run on with no frame between, it is written at once.
+		Assert.Equal(new[] { own }, held.Take(whetherShownOrNot: true));
+		Assert.False(held.Waiting);
+	}
+
+	[Fact]
 	public void ATrueTypeFontIsReadByItsNameTheLaterWinning()
 	{
 		var fonts = new Dictionary<string, CTrueTypeFont>();
