@@ -85,15 +85,12 @@ public partial class CLobbyOptions : Control
 						Localise(play.CollectStatistics ? "YES" : "NO")));
 				};
 			}
-			// What the rule keeps, said under the mouse on the tick, its words and the `?` beside them: figures of
-			// the game, in the save - a player may take "collect statistics" for his own being gathered.
+			// What the rule keeps, said under the mouse on the `?` beside it and nowhere else: figures of the game, in
+			// the save - a player may take "collect statistics" for his own being gathered.
 			string tip = Localise(StatisticsTip);
-			foreach (string name in new[] { StatisticsButton, StatisticsButton + "_label", StatisticsButton + "_help" })
+			if (_rules.TryFindButton(StatisticsButton + "_help") is { } help)
 			{
-				if (_rules.TryFindElement(name) is { } element)
-				{
-					element.Tooltip = () => new Interface.Tooltips.CTooltip { Text = tip };
-				}
+				help.Tooltip = () => new Interface.Tooltips.CTooltip { Text = tip };
 			}
 		}
 		Refresh();
