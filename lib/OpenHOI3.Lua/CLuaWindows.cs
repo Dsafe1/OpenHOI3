@@ -126,8 +126,13 @@ public sealed class CLuaWindows : IModPages
 		"return list end " +
 		"function __ohoi_window_register(name, page) " +
 		"if type(page) ~= 'table' then error('the page ' .. name .. ' does not return a table', 0) end " +
-		"if type(page.Draw) ~= 'function' then error('the page ' .. name .. ' has no Draw function', 0) end " +
-		"pages[name] = page return tostring(page.title or ''), tonumber(page.order) or 0, tostring(page.group or ''), tonumber(page.group_order) or 0 end " +
+		// A page that names a window is a native one and fills it; any other draws itself.
+		"local native = type(page.window) == 'string' and page.window ~= '' " +
+		"if native and type(page.Fill) ~= 'function' then error('the page ' .. name .. ' names a window and has no Fill function', 0) end " +
+		"if not native and type(page.Draw) ~= 'function' then error('the page ' .. name .. ' has no Draw function', 0) end " +
+		"pages[name] = page return tostring(page.title or ''), tonumber(page.order) or 0, tostring(page.group or ''), tonumber(page.group_order) or 0, " +
+		"native and page.window or '', tostring(page.host or ''), tostring(page.opener or '') end " +
+		"function __ohoi_window_fill(name, player) pages[name].Fill(data[name], player) end " +
 		"function __ohoi_window_collect(name, player) local page = pages[name] " +
 		"if type(page.Collect) == 'function' then data[name] = page.Collect(player) end end " +
 		"function __ohoi_window_draw(name, player) pages[name].Draw(data[name], player) end";
@@ -136,6 +141,7 @@ public sealed class CLuaWindows : IModPages
 	private readonly Func<string, string> _localise;
 	private readonly Action<string> _report;
 	private readonly CLuaImGui _widgets = new();
+	private readonly CLuaGui _gui = new();
 	private readonly List<CModPage> _pages = new();
 
 	/// <summary>Why each page's drawing failed, shown in its window until the page is gathered again.</summary>
@@ -178,6 +184,7 @@ public sealed class CLuaWindows : IModPages
 		try
 		{
 			_widgets.Install(lua);
+			_gui.Install(lua);
 		}
 		catch (CLuaException e)
 		{
@@ -233,9 +240,10 @@ public sealed class CLuaWindows : IModPages
 		try
 		{
 			// No game is asked while a page is registered: a page reads one in its Collect.
-			if (_scripts.Lua.Call("__ohoi_w_register", 4) is [string title, double order, string group, double groupOrder])
+			if (_scripts.Lua.Call("__ohoi_w_register", 7) is [string title, double order, string group, double groupOrder,
+				string window, string host, string opener])
 			{
-				_pages.Add(new CModPage(name, title, (int)order, group, (int)groupOrder));
+				_pages.Add(new CModPage(name, title, (int)order, group, (int)groupOrder, window, host, opener));
 			}
 		}
 		catch (CLuaException e)
@@ -290,6 +298,26 @@ public sealed class CLuaWindows : IModPages
 		finally
 		{
 			_widgets.Canvas = null;
+		}
+	}
+
+	public void Fill(CModPage page, CCountryTag player, INativeWindowCanvas canvas)
+	{
+		if (_failed.ContainsKey(page.Name))
+		{
+			return;
+		}
+		_gui.Canvas = canvas;
+		try
+		{
+			if (_scripts.CallOutsideGame("__ohoi_window_fill", page.Name, player.Value) is { } error)
+			{
+				_failed[page.Name] = error;
+			}
+		}
+		finally
+		{
+			_gui.Canvas = null;
 		}
 	}
 

@@ -385,6 +385,12 @@ public partial class CGuiWindow : CGuiObject
 		return _buttons.GetValueOrDefault(name);
 	}
 
+	/// <summary>A list box the window may or may not have; see <see cref="TryFindButton"/>.</summary>
+	public CGuiListBox? TryFindListBox(string name)
+	{
+		return _listBoxes.GetValueOrDefault(name);
+	}
+
 	/// <summary>An icon the window may or may not have; see <see cref="TryFindButton"/>.</summary>
 	public CGuiIcon? TryFindIcon(string name)
 	{

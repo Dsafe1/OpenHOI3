@@ -77,7 +77,10 @@ opened from the ribbon over its brigades in an enhanced game (`mechanics/brigade
 `--click` and not reviewed in play - and
 **the custom map mode** - built 2026-11-24 as a list a right click on the Infrastructure, Resources or Supply
 button opens, each kind on the button it belongs to by the user's choice (`mechanics/custommapmodes.md`), tried with
-`--click` and not reviewed in play; and what was set down for after the
+`--click` and not reviewed in play; **the custom sliders** - built 2026-11-24 as the first native pages, windows of
+the game's own interface a mod's Lua fills (`mechanics/nativepages.md`), BlackICE's Prod. Sliders AI on the
+production screen and LS Sliders AI on the technology screen, tried with `--click` and not reviewed in play; and
+what was set down for after the
 port (below). **Before those, 2026-11-24, built-in elements** (`mechanics/builtin.md`): an icon or a button says
 `built_in = { style = .. size = .. color = .. }` in a file of `interface/openhoi/` and the engine paints it, in one of
 eight styles a mod's `builtin_styles.txt` may change - so the pages to come need no texture and no sprite entry for

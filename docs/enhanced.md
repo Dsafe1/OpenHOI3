@@ -94,6 +94,10 @@ is `blackice.md`.
   the water is drawn from the provinces' colours, and gives each sea province its terrain's colour as it gives the land
   (`mechanics/mapmodes.md`, section 6). Display only.
 - **BlackICE's working copy holds the file since 2026-11-21**, naming nothing it goes without.
+- **Native pages, 2026-11-24** (`mechanics/nativepages.md`): a mod's Lua fills a window of the game's own interface -
+  `OpenHOI3.Gui`, a page that names a `window`, a `host` screen and an `opener` - the user's choice over moving a
+  mod's logic into the engine. BlackICE's two slider AI pages are the first, behind buttons on the production and
+  technology screens.
 - **Custom map modes, 2026-11-24** (`mechanics/custommapmodes.md`): a right click on the Infrastructure, Resources
   or Supply map mode button lists what else the mode can shade the land by - a building's level, a resource's
   amount, one of eleven supply figures - in ten shades of one of two palettes, with a legend. Display only. With it

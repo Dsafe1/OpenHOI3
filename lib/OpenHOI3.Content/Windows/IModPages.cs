@@ -27,6 +27,12 @@ public interface IModPages
 	void Draw(CModPage page, CCountryTag player, IModWindowCanvas canvas);
 
 	/// <summary>
+	/// A native page fills its window, each frame it is up, from what it last gathered: no game is asked. A page whose
+	/// filling fails is reported once and left as it stands until it is gathered again.
+	/// </summary>
+	void Fill(CModPage page, CCountryTag player, INativeWindowCanvas canvas);
+
+	/// <summary>
 	/// The orders the pages have given since they were last taken, in the order given - and they are taken with it. A
 	/// page changes nothing itself: the screen posts these to the game as a player's orders are posted.
 	/// </summary>

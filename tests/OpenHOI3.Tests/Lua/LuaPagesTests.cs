@@ -612,6 +612,90 @@ public sealed class LuaPagesTests : IDisposable
 	}
 
 	[Fact]
+	public void APageThatNamesAWindowIsANativeOneWithItsHostAndOpenerAndNeedsAFillFunction()
+	{
+		Page("sliders", "return { title = 'T', window = 'my_window', host = 'production', opener = 'my_opener', Fill = function() end }");
+		Page("plain", "return { Draw = function() end }");
+		Page("broken", "return { window = 'other', Draw = function() end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			CModPage native = windows.Pages.Single(page => page.Name == "sliders");
+			Assert.True(native.IsNative);
+			Assert.Equal(("my_window", "production", "my_opener"), (native.Window, native.Host, native.Opener));
+			Assert.False(windows.Pages.Single(page => page.Name == "plain").IsNative);
+			// A window named and nothing to fill it with: no page.
+			Assert.DoesNotContain(windows.Pages, page => page.Name == "broken");
+			Assert.Single(_reports, report => report.Contains("names a window and has no Fill function"));
+		}
+	}
+
+	[Fact]
+	public void ANativePageFillsItsWindowFromWhatItGatheredAndReadsWhatThePlayerDid()
+	{
+		Page("form", "local Gui = OpenHOI3.Gui local typed = '' return { window = 'w', "
+			+ "Collect = function(player) return { tag = player } end, "
+			+ "Fill = function(data, player) "
+			+ "Gui.SetText('title', data.tag .. ' ' .. player) "
+			+ "if Gui.Edited('amount') then typed = Gui.Text('amount') end "
+			+ "Gui.SetText('echo', typed) "
+			+ "if Gui.Pressed('apply') then Gui.SetEnabled('apply', false) Gui.SetRows('list', 'entry', 3) Gui.SetText('list#2/name', 'second') end "
+			+ "Gui.SetChecked('tick', not Gui.Checked('tick')) "
+			+ "Gui.SetColor('swatch', 255, 0, 0) Gui.SetColour('swatch', 0, 128, 0, 64) "
+			+ "Gui.SetVisible('extra', false) Gui.SetTooltip('help', 'Help') Gui.SetFrame('icon', 2) "
+			+ "if typed == 'bye' then Gui.Close() end end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			CModPage page = windows.Pages[0];
+			windows.Collect(State(), page, Ger);
+			var canvas = new CRecordingNativeCanvas();
+			canvas.Ticked.Add("tick");
+			windows.Fill(page, Ger, canvas);
+			Assert.Equal(new[]
+			{
+				"SetText title GER GER", "SetText echo ", "SetChecked tick False", "SetColour swatch 255 0 0 255",
+				"SetColour swatch 0 128 0 64", "SetVisible extra False", "SetTooltip help Help", "SetFrame icon 2",
+			}, canvas.Calls);
+
+			// Typed into and pressed: each is answered once.
+			canvas.Calls.Clear();
+			canvas.Texts["amount"] = "bye";
+			canvas.EditedOnce.Add("amount");
+			canvas.PressedOnce.Add("apply");
+			windows.Fill(page, Ger, canvas);
+			Assert.Contains("SetText echo bye", canvas.Calls);
+			Assert.Contains("SetEnabled apply False", canvas.Calls);
+			Assert.Contains("SetRows list entry 3", canvas.Calls);
+			Assert.Contains("SetText list#2/name second", canvas.Calls);
+			Assert.Equal("Close", canvas.Calls[^1]);
+			Assert.Empty(canvas.PressedOnce);
+			Assert.Empty(_reports);
+		}
+	}
+
+	[Fact]
+	public void ANativePageThatFailsIsReportedOnceAndNotFilledUntilItGathersAgain()
+	{
+		Page("bad", "local Gui = OpenHOI3.Gui local fills = 0 return { window = 'w', "
+			+ "Fill = function() fills = fills + 1 Gui.SetText('count', tostring(fills)) if fills == 1 then error('broke', 0) end end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			CModPage page = windows.Pages[0];
+			var canvas = new CRecordingNativeCanvas();
+			windows.Fill(page, Ger, canvas);
+			windows.Fill(page, Ger, canvas);
+			Assert.Equal(new[] { "SetText count 1" }, canvas.Calls);
+			Assert.Single(_reports, report => report.Contains("broke"));
+
+			windows.Collect(State(), page, Ger);
+			windows.Fill(page, Ger, canvas);
+			Assert.Equal(new[] { "SetText count 1", "SetText count 2" }, canvas.Calls);
+		}
+	}
+
+	[Fact]
 	public void APageThatAsksTheGameWhileItDrawsFailsAndOneThatEndsWhatItDidNotBeginIsToldSo()
 	{
 		Page("asks", "return { Draw = function() local date = CCurrentGameState.GetCurrentDate() end }");

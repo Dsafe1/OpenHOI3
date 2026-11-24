@@ -955,6 +955,13 @@ public partial class CSession : Node
 			layer.MoveChild(_menuBackground, 2);
 			_modeButtons = messageLog;
 			messageLog.ModeButtonPressed += ChooseMapMode;
+			// An enhanced game's native pages of the mod's: windows of the interface files its Lua fills (nativepages.md).
+			if (_enhancedGame && Player is not null)
+			{
+				_nativePages = new CNativePages();
+				_nativePages.Setup(gui, _simulation, ModWindows, () => GameBusy, HostScreenOpen, Player.Tag);
+				layer.AddChild(_nativePages);
+			}
 			// An enhanced game's custom map modes: a right click on a mode's button lists what it may shade by.
 			if (_enhancedGame)
 			{
@@ -1951,6 +1958,23 @@ public partial class CSession : Node
 	}
 
 	private CCustomMapModes? _customMapModes;
+	private CNativePages? _nativePages;
+
+	/// <summary>Whether the country screen a native page names as its host is open, by the name the page gives it.</summary>
+	private bool HostScreenOpen(string host)
+	{
+		CCountryView? view = host.ToLowerInvariant() switch
+		{
+			"production" => _production,
+			"technology" => _technology,
+			"diplomacy" => _diplomacy,
+			"politics" => _politics,
+			"intelligence" => _espionage,
+			"theatres" => _theatres,
+			_ => null,
+		};
+		return view is { IsOpen: true };
+	}
 
 	/// <summary>A map mode button pressed: its mode set, as the game has it - a custom source goes.</summary>
 	private void ChooseMapMode(int button)
@@ -2998,6 +3022,15 @@ public partial class CSession : Node
 			{
 				// The same with a page open on it, by its file's name: --screen=modwindows:flags.
 				_modWindowsView?.Show(argument["--screen=modwindows:".Length..]);
+			}
+			else if (argument.StartsWith("--screen=native:", System.StringComparison.Ordinal))
+			{
+				// A native page's window by the page's name, as its opener opens it: --screen=native:country_info/prodsliders.
+				string wantedPage = argument["--screen=native:".Length..];
+				if (_nativePages?.Toggle(wantedPage) != true)
+				{
+					GD.PrintErr($"--screen=native: no native page is named '{wantedPage}'");
+				}
 			}
 			else if (argument.StartsWith("--custommap=", System.StringComparison.Ordinal))
 			{

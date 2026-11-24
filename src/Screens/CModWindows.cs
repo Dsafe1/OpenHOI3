@@ -288,7 +288,7 @@ public sealed partial class CModWindows : Node
 	{
 		if (_groups is null && _pages() is { } pages)
 		{
-			_groups = CModPageGroup.Of(pages.Pages);
+			_groups = CModPageGroup.Of(pages.Pages.Where(page => !page.IsNative));
 		}
 		return _groups;
 	}
