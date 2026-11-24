@@ -70,7 +70,7 @@ public sealed class CGuiTypes
 
 	private static readonly string[] EditBoxKeys =
 	{
-		"position", "font", "size", "text", "orientation", "bordersize", "texturefile", "cursor",
+		"position", "font", "size", "text", "orientation", "bordersize", "texturefile", "cursor", "built_in_caret",
 	};
 
 	private static readonly string[] PositionKeys = { "position" };
@@ -339,6 +339,7 @@ public sealed class CGuiTypes
 					TextureFile = node.GetString("textureFile"),
 					Format = EGuiTextFormat.Left,
 					IsEdit = true,
+					BuiltInCaret = node.GetBool("built_in_caret"),
 				};
 
 			case "positiontype":

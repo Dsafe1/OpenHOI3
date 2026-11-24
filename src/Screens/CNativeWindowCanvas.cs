@@ -83,6 +83,8 @@ public sealed class CNativeWindowCanvas : INativeWindowCanvas
 		if (box.Editor is null)
 		{
 			box.MakeEditable();
+			// A page's box gives the keyboard up to a press anywhere else, and the caret goes with it.
+			box.GivesUpKeyboard = true;
 		}
 		if (box.Editor is not null && (!_watchedBoxes.TryGetValue(name, out CGuiTextBox? watched) || watched != box))
 		{

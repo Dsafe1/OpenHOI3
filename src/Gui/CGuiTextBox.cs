@@ -188,6 +188,13 @@ public partial class CGuiTextBox : CGuiObject
 	/// </summary>
 	public override void _Input(InputEvent @event)
 	{
+		// A press elsewhere, seen before whatever it lands on: the keyboard is given up and the press goes on.
+		if (GivesUpKeyboard && HasKeyboard && @event is InputEventMouseButton { Pressed: true } press
+			&& !GetGlobalRect().HasPoint(press.Position) && _context is not null)
+		{
+			_context.KeyboardFocus = null;
+			QueueRedraw();
+		}
 		if (!HasKeyboard || @event is not InputEventKey { Pressed: true } key || _context?.TypingElsewhere?.Invoke() == true)
 		{
 			return;
@@ -258,8 +265,25 @@ public partial class CGuiTextBox : CGuiObject
 		QueueRedraw();
 	}
 
+	/// <summary>The colour of a caret the engine draws itself (<see cref="CGuiTextBoxType.BuiltInCaret"/>).</summary>
+	private static readonly Color BuiltInCaretColour = new(0.1f, 0.08f, 0.05f);
+
+	/// <summary>
+	/// Whether a press of the mouse anywhere but on the box takes the keyboard from it. The original's boxes keep it;
+	/// a mod's native page's give it up (<c>docs/mechanics/nativepages.md</c>, section 4).
+	/// </summary>
+	public bool GivesUpKeyboard { get; set; }
+
+	private bool _hadKeyboard;
+
 	public override void _Process(double delta)
 	{
+		// The keyboard come or gone - another box took it - the caret is drawn or taken away.
+		if (HasKeyboard != _hadKeyboard)
+		{
+			_hadKeyboard = HasKeyboard;
+			QueueRedraw();
+		}
 		if (HasKeyboard)
 		{
 			bool shown = Editor!.CaretShown;
@@ -495,7 +519,13 @@ public partial class CGuiTextBox : CGuiObject
 				// brigade's name of BlackICE's, `§RBenito Mussolini§W`, red on the brigade card (section 8).
 				string shown = Editor.ShownLine;
 				DrawLine(this, CColouredText.Parse(shown), left, top);
-				if (HasKeyboard && Editor.CaretShown && _context?.Sprites.Find("cursor") is { } sprite
+				if (HasKeyboard && Editor.CaretShown && type.BuiltInCaret)
+				{
+					// An enhanced game's own: a line at the end of what stands before the caret, the text's line tall.
+					float at = left + LineWidth(CColouredText.Parse(shown[..Editor.CaretColumn])) + 1f;
+					DrawRect(new Rect2(at, top + 1f, 1f, _font.LineHeight - 2f), BuiltInCaretColour);
+				}
+				else if (HasKeyboard && Editor.CaretShown && _context?.Sprites.Find("cursor") is { } sprite
 					&& _context.Textures.Load(sprite) is { } caret)
 				{
 					float across = type.BorderSize.X + LineWidth(CColouredText.Parse(shown[..Editor.CaretColumn])) + 3f;

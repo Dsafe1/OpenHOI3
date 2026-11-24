@@ -74,6 +74,10 @@ answers false or an empty text, and is reported once.** Outside a `Fill` every f
 | `SetRows(list, entry, count)` | a list given so many rows of an entry window, at most 2000; the rows are kept where the count and the entry are the same, and made afresh where not |
 | `Close()` | the window shut |
 
+**A page's edit box gives the keyboard up to a press of the mouse anywhere else**, and its caret goes with it - the
+original's boxes keep the keyboard until another takes it, and those are left so. A box's caret is drawn only while
+it has the keyboard, and taken away as another box takes it (until 2026-11-24 the old box kept its last drawing).
+
 **An edit box takes typing from the first time the page names it** (`interface.md`, section 8), and a button's press
 and a box's typing are remembered from the first time they are asked for - so a page asks every frame, as it would of
 the drawing library.
@@ -92,5 +96,8 @@ own is a `field` button whose words the page sets to `X` - BlackICE's `script/op
 `script/openhoi/windows/country_info/prodsliders.lua` and `lssliders.lua`, over `interface/openhoi/sliders.gui`:
 **Prod. Sliders AI** behind a button on the production screen and **LS Sliders AI** behind one on the technology
 screen, each the form the mod's own window had - Enable, Apply, Reload, the country, what became of the last Apply -
-with the mod's own data functions behind it unchanged. Tried with `--click` on 2026-11-24: opened from their
+with the mod's own data functions behind it unchanged. **A production category's priority is moved by two arrows**,
+the production queue's own, a step at a time between one and the number of categories, the category that had the
+number taking the one left - so no two share one - where the mod's own window had a box to type it into; asked for
+on 2026-11-24. Tried with `--click` on 2026-11-24: opened from their
 buttons, a box typed into, a tick and a mode turned, Apply answered "Applied". Not reviewed in play.

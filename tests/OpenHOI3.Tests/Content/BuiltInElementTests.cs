@@ -69,6 +69,19 @@ public class BuiltInElementTests
 	}
 
 	[Fact]
+	public void AnEditBoxMayAskForTheCaretTheEngineDraws()
+	{
+		var problems = new List<string>();
+		CGuiTypes types = Read(
+			"editBoxType = { name = \"own\" size = { x = 64 y = 20 } built_in_caret = yes } "
+			+ "editBoxType = { name = \"games\" size = { x = 64 y = 20 } }", problems);
+
+		var window = (CGuiWindowType)types.Find("w")!;
+		Assert.Equal(new[] { true, false }, window.Children.OfType<CGuiTextBoxType>().Select(box => box.BuiltInCaret));
+		Assert.Empty(problems);
+	}
+
+	[Fact]
 	public void AModsFileChangesAStyleKeyByKeyAndAddsItsOwn()
 	{
 		var problems = new List<string>();

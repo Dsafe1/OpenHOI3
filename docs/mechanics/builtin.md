@@ -108,3 +108,14 @@ scaled as any picture is, its border with it. A page gives each element its size
 `--window=<name>` puts up a window the interface files declare, as it is, with nothing behind its elements - for
 looking at a layout while it is written. BlackICE's `interface/openhoi/builtin_sample.gui` declares
 `openhoi_builtin_sample`, every style on one window.
+
+## 7. An edit box's caret
+
+`built_in_caret = yes` on an `editBoxType`: the caret is **a line the engine draws**, one pixel wide, a pixel after
+what stands before it and as tall as the text's line less a pixel at each end. Without it the caret is the game's
+`cursor` picture (`interface.md`, section 8), which is drawn for the original's boxes - 32 high, their text four
+below their border - and in a low box stands some four pixels under its text and as many to its right. Asked for
+by the user on 2026-11-24, of a 20 pixel field: "The text cursor is misaligned to the text box."
+
+With a `field` 20 high under it, an edit box of the same size put **one pixel above the field's corner** with
+`borderSize = { x = 4 y = 2 }` has its line in the field's middle.
