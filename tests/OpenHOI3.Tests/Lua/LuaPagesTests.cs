@@ -612,6 +612,42 @@ public sealed class LuaPagesTests : IDisposable
 	}
 
 	[Fact]
+	public void APageReadsTheStatisticsRecordAndAsksForItWrittenOut()
+	{
+		Page("stats", "local ImGui = OpenHOI3.ImGui return { "
+			+ "Collect = function(player) local series = OpenHOI3.Statistics.Series(player, 'prod__TotalIc') "
+			+ "return { on = OpenHOI3.Statistics.Collecting(), names = #OpenHOI3.Statistics.Names(), "
+			+ "countries = table.concat(OpenHOI3.Statistics.Countries(), ','), "
+			+ "first = series and series.first_day, values = series and table.concat(series.values, ' '), "
+			+ "none = tostring(OpenHOI3.Statistics.Series('XXX', 'prod__TotalIc')) .. tostring(OpenHOI3.Statistics.Series(player, 'nothing')) } end, "
+			+ "Draw = function(data) ImGui.Text(tostring(data.on) .. ' ' .. data.countries .. ' ' .. tostring(data.first) .. ' ' "
+			+ ".. tostring(data.values) .. ' ' .. data.none .. ' ' .. tostring(data.names > 40)) end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			CGameState state = State();
+			state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+			CCountry germany = state.Country(Ger)!;
+			var kept = new OpenHOI3.Sim.Statistics.CCountryStatistics { FirstDayNumber = state.Date.DayNumber, Year = state.Date.Year };
+			OpenHOI3.Sim.Statistics.CStatisticSeries series = state.Statistics.Series(state);
+			kept.Rows = Enumerable.Range(0, series.Count).Select(_ => new long[OpenHOI3.Sim.Statistics.CStatistics.DaysInYear]).ToArray();
+			int day = state.Date.DayNumber - new CDate(state.Date.Year, 1, 1).DayNumber;
+			// Kept in hundredths: 258 and 258.5 IC.
+			kept.Rows[series.IndexOf("prod__TotalIc")][day] = 25800;
+			kept.Rows[series.IndexOf("prod__TotalIc")][day + 1] = 25850;
+			kept.EndDay = day + 2;
+			state.Statistics.Countries[germany.Tag] = kept;
+
+			CModPage page = windows.Pages[0];
+			windows.Collect(state, page, Ger);
+			var canvas = new CRecordingCanvas();
+			windows.Draw(page, Ger, canvas);
+			Assert.Equal($"Text true GER {state.Date.DayNumber} 258 258.5 nilnil true", canvas.Calls[0]);
+			Assert.Empty(_reports);
+		}
+	}
+
+	[Fact]
 	public void APageThatNamesAWindowIsANativeOneWithItsHostAndOpenerAndNeedsAFillFunction()
 	{
 		Page("sliders", "return { title = 'T', window = 'my_window', host = 'production', opener = 'my_opener', Fill = function() end }");

@@ -94,6 +94,10 @@ is `blackice.md`.
   the water is drawn from the provinces' colours, and gives each sea province its terrain's colour as it gives the land
   (`mechanics/mapmodes.md`, section 6). Display only.
 - **BlackICE's working copy holds the file since 2026-11-21**, naming nothing it goes without.
+- **The statistics record, 2026-11-24** (`mechanics/statisticsrecord.md`): every country's 73 figures kept each
+  day in the game and its save, a packed block a country's year - about half a MiB a game year of BlackICE - with
+  the collection a rule of the lobby, `OpenHOI3.Statistics` for a page and the record written out as files when
+  asked. Display only.
 - **Native pages, 2026-11-24** (`mechanics/nativepages.md`): a mod's Lua fills a window of the game's own interface -
   `OpenHOI3.Gui`, a page that names a `window`, a `host` screen and an `opener` - the user's choice over moving a
   mod's logic into the engine. BlackICE's two slider AI pages are the first, behind buttons on the production and

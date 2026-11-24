@@ -96,7 +96,9 @@ public class MultiplayerJoinTests
 	[Fact]
 	public void AGameIsSentWholeInPiecesAndComesAsItWas()
 	{
-		byte[] game = Enumerable.Range(0, 130_000).Select(i => (byte)(i * 31)).ToArray();
+		// Bytes with nothing to pack in them, so that what is sent is as long as the game.
+		byte[] game = new byte[130_000];
+		new Random(7).NextBytes(game);
 		(CGameSender sender, CGameReceiver receiver, List<string> toClient) = Pair(game, _ => null);
 
 		sender.Offer();
@@ -110,6 +112,22 @@ public class MultiplayerJoinTests
 		Assert.False(sender.Loaded);
 		receiver.SayLoaded();
 		Assert.True(sender.Loaded);
+	}
+
+	[Fact]
+	public void AGameIsDeflatedBeforeItIsCutIntoPieces()
+	{
+		byte[] game = System.Text.Encoding.ASCII.GetBytes(string.Concat(Enumerable.Repeat("province = { owner = GER controller = GER }", 4000)));
+		byte[] packed = CGameSender.Pack(game);
+		Assert.True(packed.Length < game.Length / 20);
+		Assert.Equal(game, CGameSender.Unpack(packed));
+		Assert.Null(CGameSender.Unpack(new byte[] { 255, 255, 255, 255 }));
+
+		(CGameSender sender, CGameReceiver receiver, List<string> toClient) = Pair(game, _ => null);
+		sender.Offer();
+		Assert.Equal(game, receiver.Game);
+		// Offered, one piece and the end, where the bytes as they are would be four pieces.
+		Assert.Equal(3, toClient.Count);
 	}
 
 	[Fact]
@@ -152,14 +170,17 @@ public class MultiplayerJoinTests
 	public void AGameComingSaysHowMuchOfItIsHere()
 	{
 		byte[] game = { 1, 2, 3, 4, 5, 6, 7, 8 };
+		// What comes is the game deflated, and it is counted in those bytes.
+		byte[] packed = CGameSender.Pack(game);
+		int half = packed.Length / 2;
 		var receiver = new CGameReceiver(_ => { }, _ => null);
 		Assert.Equal(0, receiver.Percent);
-		receiver.Receive(CWire.Line(CWire.GameOffered, CGameSender.Hash(game) + " 8"));
-		Assert.Equal(8, receiver.Total);
+		receiver.Receive(CWire.Line(CWire.GameOffered, CGameSender.Hash(game) + " " + packed.Length));
+		Assert.Equal(packed.Length, receiver.Total);
 		Assert.Equal(0, receiver.Percent);
-		receiver.Receive(CWire.Line(CWire.GamePiece, Convert.ToBase64String(game, 0, 2)));
-		Assert.Equal(25, receiver.Percent);
-		receiver.Receive(CWire.Line(CWire.GamePiece, Convert.ToBase64String(game, 2, 6)));
+		receiver.Receive(CWire.Line(CWire.GamePiece, Convert.ToBase64String(packed, 0, half)));
+		Assert.Equal(100 * half / packed.Length, receiver.Percent);
+		receiver.Receive(CWire.Line(CWire.GamePiece, Convert.ToBase64String(packed, half, packed.Length - half)));
 		Assert.Equal(100, receiver.Percent);
 		receiver.Receive(CWire.Line(CWire.GameSent));
 		Assert.Equal(100, receiver.Percent);

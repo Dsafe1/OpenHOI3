@@ -38,6 +38,8 @@ public static class CTick
 		if (now != before)
 		{
 			RunDailyPass(state);
+			// The day's figures, as its pass leaves them: read by nothing in the game (statisticsrecord.md).
+			state.Statistics.RunDaily(state);
 		}
 		if (now.Month != before.Month || now.Year != before.Year)
 		{

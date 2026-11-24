@@ -124,6 +124,19 @@ public sealed class CLuaWindows : IModPages
 		"list[#list + 1] = { ended = p[1], kind = p[2], result = p[3], role = p[4], against = p[5], enemy_losses = tonumber(p[6]), " +
 		"enemy_men = tonumber(p[7]), own_losses = tonumber(p[8]), own_men = tonumber(p[9]), province = tonumber(p[10]) } end " +
 		"return list end " +
+		// An enhanced game's statistics record (statisticsrecord.md, section 7): whether it is kept, its series and
+		// countries, one series of one country as numbers a day, and the whole of it written out as files.
+		"local st_on, st_names, st_countries, st_series, st_export = __ohoi_w_st_on, __ohoi_w_st_names, __ohoi_w_st_countries, __ohoi_w_st_series, __ohoi_w_st_export " +
+		"__ohoi_w_st_on, __ohoi_w_st_names, __ohoi_w_st_countries, __ohoi_w_st_series, __ohoi_w_st_export = nil, nil, nil, nil, nil " +
+		"OpenHOI3.Statistics = { " +
+		"Collecting = function() return st_on() end, " +
+		"Names = function() return lines(st_names()) end, " +
+		"Countries = function() return lines(st_countries()) end, " +
+		"Series = function(tag, name) local first, joined = st_series(tostring(tag), tostring(name)) " +
+		"if first == nil then return nil end local values = {} " +
+		"for value in string.gmatch(joined, '%S+') do values[#values + 1] = tonumber(value) end " +
+		"return { first_day = first, values = values } end, " +
+		"Export = function() return st_export() end } " +
 		"function __ohoi_window_register(name, page) " +
 		"if type(page) ~= 'table' then error('the page ' .. name .. ' does not return a table', 0) end " +
 		// A page that names a window is a native one and fills it; any other draws itself.
@@ -167,6 +180,14 @@ public sealed class CLuaWindows : IModPages
 		lua.SetGlobal("__ohoi_w_countrymodifiers", (CLuaFunction)CountryModifiers);
 		lua.SetGlobal("__ohoi_w_refresh", (CLuaFunction)(call => { _refresh = true; return 0; }));
 		lua.SetGlobal("__ohoi_w_leader", (CLuaFunction)LeaderDetails);
+		lua.SetGlobal("__ohoi_w_st_on", (CLuaFunction)(call => call.Return(_state is { } game && game.Statistics.IsCollecting(game))));
+		lua.SetGlobal("__ohoi_w_st_names", (CLuaFunction)(call => call.Return(_state is { } game
+			? string.Join("\n", game.Statistics.Series(game).Names) : "")));
+		lua.SetGlobal("__ohoi_w_st_countries", (CLuaFunction)(call => call.Return(_state is { } game
+			? string.Join("\n", game.Statistics.Countries.Keys.Select(tag => tag.Value).OrderBy(tag => tag, StringComparer.Ordinal)) : "")));
+		lua.SetGlobal("__ohoi_w_st_series", (CLuaFunction)StatisticsSeries);
+		lua.SetGlobal("__ohoi_w_st_export", (CLuaFunction)StatisticsExport);
+		_userFolder = directories.UserFolder;
 		lua.SetGlobal("__ohoi_w_offmapic", (CLuaFunction)(call => Country(call) is { } country ? call.Return((double)country.OffmapIc) : 0));
 		lua.SetGlobal("__ohoi_w_trickleback", (CLuaFunction)(call => Country(call) is { } country
 			? call.Return(Number(Sim.Combat.CCombatDamage.TricklebackOf(country))) : 0));
@@ -318,6 +339,47 @@ public sealed class CLuaWindows : IModPages
 		finally
 		{
 			_gui.Canvas = null;
+		}
+	}
+
+	private string _userFolder = "";
+
+	/// <summary>
+	/// One series of one country: the number of its first day and its values, a number a day in the series' own units,
+	/// joined by spaces - a game's worth is more than a call hands back one by one. Nothing where it is not kept.
+	/// </summary>
+	private int StatisticsSeries(CLuaCall call)
+	{
+		if (_state is not { } state || state.Statistics.Read(state, new CCountryTag(call.String(1).ToUpperInvariant()), call.String(2)) is not { } kept)
+		{
+			return 0;
+		}
+		var text = new StringBuilder(kept.Values.Length * 6);
+		foreach (long value in kept.Values)
+		{
+			text.Append(Content.Statistics.CStatisticsExport.Value(value)).Append(' ');
+		}
+		return call.ReturnMany((double)kept.FirstDayNumber, text.ToString());
+	}
+
+	/// <summary>
+	/// The record written out as files under the player's folder, in the layout the mod's plotting tool reads: answers
+	/// the folder and how many files, or nothing and why.
+	/// </summary>
+	private int StatisticsExport(CLuaCall call)
+	{
+		if (_state is not { } state || state.Statistics.Countries.Count == 0)
+		{
+			return call.ReturnMany(null, "nothing is kept");
+		}
+		string folder = Content.Statistics.CStatisticsExport.FolderFor(_userFolder, state);
+		try
+		{
+			return call.ReturnMany(folder, (double)Content.Statistics.CStatisticsExport.Write(state, folder));
+		}
+		catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+		{
+			return call.ReturnMany(null, e.Message);
 		}
 	}
 

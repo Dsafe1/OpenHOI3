@@ -81,9 +81,10 @@ public sealed class CGameReceiver
 			case CWire.GameSent:
 				if (_pieces is not null)
 				{
-					byte[] game = _pieces.ToArray();
+					// The pieces are the game deflated (CGameSender.Pack); the hash is the game's own.
+					byte[]? game = CGameSender.Unpack(_pieces.ToArray());
 					_pieces = null;
-					if (CGameSender.Hash(game) == _hash)
+					if (game is not null && CGameSender.Hash(game) == _hash)
 					{
 						Game = game;
 					}

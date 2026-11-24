@@ -20,6 +20,13 @@ public partial class CLobbyOptions : Control
 	private CGuiContext _context = null!;
 	private CGuiWindow? _window;
 
+	/// <summary>The window of an enhanced game's own rules, where the mod's files declare one, and what is in it.</summary>
+	public const string RulesWindowName = "openhoi_lobby_rules";
+	public const string StatisticsButton = "statistics";
+	public const string StatisticsLabel = "OPENHOI_RULE_STATISTICS";
+
+	private CGuiWindow? _rules;
+
 	/// <summary>A choice changed: the line the lobby's chat is to say.</summary>
 	public event Action<string>? Changed;
 
@@ -62,6 +69,22 @@ public partial class CLobbyOptions : Control
 			Bind(element + "_prev", () => StepArea(label, area, -1));
 			Bind(element + "_next", () => StepArea(label, area, 1));
 		}
+		// An enhanced game's own rules, in a window of the mod's beside the original's (statisticsrecord.md, section 6).
+		_rules = _context.Types.FindWindow(RulesWindowName) is null ? null : CGuiWindow.Create(_context, RulesWindowName);
+		if (_rules is not null)
+		{
+			AddChild(_rules);
+			if (_rules.TryFindButton(StatisticsButton) is { } statistics)
+			{
+				statistics.Pressed += () =>
+				{
+					play.CollectStatistics = !play.CollectStatistics;
+					Refresh();
+					Changed?.Invoke(CLobbyOptionsText.Changed(Localise, StatisticsLabel,
+						Localise(play.CollectStatistics ? "YES" : "NO")));
+				};
+			}
+		}
 		Refresh();
 
 		void StepDifficulty(int step)
@@ -93,6 +116,10 @@ public partial class CLobbyOptions : Control
 		set
 		{
 			_readOnly = value;
+			if (_rules?.TryFindButton(StatisticsButton) is { } statistics)
+			{
+				statistics.Disabled = value;
+			}
 			if (_window is null)
 			{
 				return;
@@ -127,6 +154,8 @@ public partial class CLobbyOptions : Control
 		{
 			values.Add(CLobbyOptionsText.Value(automation, area));
 		}
+		// An enhanced game's rule, after the original's seven: whether statistics are kept.
+		values.Add(play.CollectStatistics ? 1 : 0);
 		return values;
 	}
 
@@ -147,6 +176,10 @@ public partial class CLobbyOptions : Control
 				CLobbyOptionsText.Set(automation, area, values[2 + i]);
 			}
 		}
+		if (values.Count > 2 + CLobbyOptionsText.Areas.Count)
+		{
+			play.CollectStatistics = values[2 + CLobbyOptionsText.Areas.Count] != 0;
+		}
 	}
 
 	/// <summary>Every box written again from the front end's choices.</summary>
@@ -155,6 +188,12 @@ public partial class CLobbyOptions : Control
 		if (_window is null)
 		{
 			return;
+		}
+		if (_rules?.TryFindButton(StatisticsButton) is { } statistics)
+		{
+			// A tick with no picture of its own: a field that shows an X while it is on.
+			statistics.SetText(_frontEnd.ChosenPlay.CollectStatistics ? "X" : "");
+			statistics.Disabled = _readOnly;
 		}
 		Set("difficulty_box", CLobbyOptionsText.Text(Localise, CLobbyOptionsText.Difficulties, _frontEnd.ChosenPlay.Difficulty));
 		Set("arcade_box", CLobbyOptionsText.Text(Localise, CLobbyOptionsText.GameModes, _frontEnd.ChosenPlay.GameMode));

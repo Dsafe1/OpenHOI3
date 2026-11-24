@@ -88,6 +88,8 @@ internal static class CHeadlessTrial
 		state.ScriptReport = new CScriptReport();
 		// inturn: the AI's passes that run their countries side by side run them in turn, which should come out the same.
 		state.AiInTurn = args.Contains("inturn");
+		// statistics: every country's figures kept each day, and the record's size told at the end.
+		state.Statistics.Forced = args.Contains("statistics");
 		// seed=N: another game of the same start. watch=TAG,TAG: those countries' hold on their land each midnight.
 		if (args.FirstOrDefault(a => a.StartsWith("seed=", StringComparison.Ordinal)) is { } seedArgument)
 		{
@@ -264,6 +266,10 @@ internal static class CHeadlessTrial
 			return 1;
 		}
 		Report(state, scripts, luaReports, fired, taken, messages, below, yearTimes, happenings, clock);
+		if (state.Statistics.Forced)
+		{
+			CStatisticsSize.Report(state);
+		}
 		return 0;
 	}
 

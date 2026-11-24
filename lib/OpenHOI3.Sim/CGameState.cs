@@ -634,6 +634,12 @@ public sealed class CGameState
 	/// </summary>
 	public CCombatReports CombatReports { get; } = new();
 
+	/// <summary>
+	/// An enhanced game's record of every country's figures, a value a day. See
+	/// <c>docs/mechanics/statisticsrecord.md</c>.
+	/// </summary>
+	public Statistics.CStatistics Statistics { get; } = new();
+
 	/// <summary>Every ship that has left the game, in the order they went. See <see cref="CSunkShips"/>.</summary>
 	public List<CSunkShip> SunkShips { get; } = new();
 

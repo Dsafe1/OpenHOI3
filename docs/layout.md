@@ -37,6 +37,8 @@ lib/OpenHOI3.Sim/       our own data model and the simulation: the game state, t
                         influence, alignment - what each does and how each ends
     Plans/              a battle plan as data, which nothing simulated reads
     StrategicWarfare/   the played country's records of each war, their rings and what writes them
+    Statistics/         ours: an enhanced game's record of every country's figures a day, its series and a
+                        year packed (docs/mechanics/statisticsrecord.md)
     Politics/           the parties and their drift, the cabinet, elections, national unity
                         and strategic warfare, the pool of ministers and the filling of
                         posts, a law changed, and the AI's politics
@@ -143,6 +145,7 @@ lib/OpenHOI3.Content/   reading an install: finding and layering it, localisatio
     Saves/              the original's .hoi3 saves: the loader, a save's values, its ids, units, orders, leaders and lines, wars, pacts and convoys, battles, what a load left unread, the writer and its layout
     Settings/           the player's settings.txt, from the original's folder under Documents, and an
                         enhanced game's own openhoi_settings.txt beside it
+    Statistics/         ours: the statistics record written out as files
     Windows/            ours: the windows a mod defines, as a screen asks for them - a page, who answers for
                         the pages, and the widgets a page draws with (docs/mechanics/modwindows.md); the mod's
                         Lua answers, in OpenHOI3.Lua, and Dear ImGui draws, in the client and addons/imgui-godot

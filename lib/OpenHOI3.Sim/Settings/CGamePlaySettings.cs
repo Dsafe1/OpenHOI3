@@ -18,10 +18,17 @@ public sealed class CGamePlaySettings
 	/// <summary>0 Normal, 1 Arcade - which only supply reads, and Arcade's supply is not built.</summary>
 	public int GameMode { get; set; }
 
+	/// <summary>
+	/// An enhanced game's rule, the lobby's choice: whether every country's figures are kept each day
+	/// (<c>docs/mechanics/statisticsrecord.md</c>). On unless it is turned off; a faithful game keeps none either way.
+	/// </summary>
+	public bool CollectStatistics { get; set; } = true;
+
 	/// <summary>Both set to another's.</summary>
 	public void CopyFrom(CGamePlaySettings other)
 	{
 		Difficulty = other.Difficulty;
 		GameMode = other.GameMode;
+		CollectStatistics = other.CollectStatistics;
 	}
 }

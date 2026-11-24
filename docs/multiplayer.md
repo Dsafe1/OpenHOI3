@@ -197,7 +197,11 @@ All on 2026-11-20.
   2026-11-20): the host listens on one socket for both families, and an address typed to join is a name or an
   IPv4 address, which may end in a colon and a port, or an IPv6 address - bare, or in square brackets with a
   colon and a port after them (`CNetAddress`).
-- **A game is sent whole, compressed, with the game paused until every machine has it** - the save every machine
+- **A game is sent whole, compressed, with the game paused until every machine has it** (**deflated before it is cut
+  into pieces** since 2026-11-24, `CGameSender.Pack`: the connection's own stream deflates every line, but a piece is
+  base64, in which the same text three bytes on is other letters, and a save of 14.0 MB went as 3.2 MB so and goes
+  as about 2.5 now, by a measurement outside the game; the offer names the packed length, which the progress counts)
+  - the save every machine
   then loads (section 2). **A client that already holds the same save, by its hash, is sent nothing.** And **every
   machine makes its Lua states afresh at that load, the host too**, so that the scripts' own random and memory begin
   alike everywhere (section 3).

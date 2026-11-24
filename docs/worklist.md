@@ -80,7 +80,10 @@ button opens, each kind on the button it belongs to by the user's choice (`mecha
 `--click` and not reviewed in play; **the custom sliders** - built 2026-11-24 as the first native pages, windows of
 the game's own interface a mod's Lua fills (`mechanics/nativepages.md`), BlackICE's Prod. Sliders AI on the
 production screen and LS Sliders AI on the technology screen, and **Trade AI** the same way behind a button in the
-production screen, under the sliders' one, tried with `--click` and not reviewed in play; and
+production screen, under the sliders' one, tried with `--click` and not reviewed in play; and **the statistics**,
+built the same day as a record of the engine's own in the game and its save
+(`mechanics/statisticsrecord.md`), every country a value a day, with the lobby's rule and BlackICE's page over it -
+a plot, the export and a save and load on screen not reviewed in play, and a year of war not measured for size; and
 what was set down for after the
 port (below). **Before those, 2026-11-24, built-in elements** (`mechanics/builtin.md`): an icon or a button says
 `built_in = { style = .. size = .. color = .. }` in a file of `interface/openhoi/` and the engine paints it, in one of
