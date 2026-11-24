@@ -44,10 +44,16 @@ public static class CWire
 	/// <summary>Client to host: its hash of this hour is not the host's.</summary>
 	public const char Parted = 'x';
 
-	/// <summary>Client to host, first of all: its play checksum, then its player's name.</summary>
+	/// <summary>
+	/// Client to host, first of all: its play checksum - with its base after a slash (<see cref="CPlayToken"/>) - then its
+	/// player's name.
+	/// </summary>
 	public const char Join = 'j';
 
-	/// <summary>Host to client: it is let in.</summary>
+	/// <summary>
+	/// Host to client: it is let in - with <see cref="OtherFiles"/> after it where its play checksum is not the host's
+	/// and the host's rule lets it in all the same.
+	/// </summary>
 	public const char Accepted = 'y';
 
 	/// <summary>Host to client: it is not let in, and why - the host's play checksum where the two differ.</summary>
@@ -123,6 +129,15 @@ public static class CWire
 	/// the difficulty, the game mode, then the five areas in the panel's order.
 	/// </summary>
 	public const char Options = 'O';
+
+	/// <summary>What follows <see cref="Accepted"/> for a machine let in with other files than the host's.</summary>
+	public const string OtherFiles = "files";
+
+	/// <summary>
+	/// Host to client, before its answer to a machine whose play checksum is not its own: a piece of the host's list of
+	/// the files its checksum is made of (<see cref="CFileListWire"/>), so that the machine can say which differ.
+	/// </summary>
+	public const char Files = 'f';
 
 	public static string Line(char kind, string rest = "") => kind + " " + rest;
 

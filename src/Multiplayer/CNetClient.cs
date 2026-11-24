@@ -26,9 +26,11 @@ public sealed class CNetClient : CNetGame
 	/// <summary>Whether a game has been offered and is not yet here whole.</summary>
 	private bool _taking;
 
-	public CNetClient(CLineLink link, string checksum, string name, CCountryTag? wanted)
+	/// <param name="files">This machine's list of the files its checksum is made of, set beside the host's where the two differ.</param>
+	public CNetClient(CLineLink link, string checksum, string name, CCountryTag? wanted, IReadOnlyList<string>? files = null)
 	{
 		_link = link;
+		_files = files;
 		_name = name;
 		_receiver = new CGameReceiver(link.Send, OwnGame);
 		link.Send(CClientSession.JoinLine(checksum, name));
@@ -106,6 +108,32 @@ public sealed class CNetClient : CNetGame
 
 	/// <summary>How many midnights of the game now played this machine's hash has been the host's.</summary>
 	public int HashesAlike => _session?.HashesAlike ?? 0;
+
+	private readonly IReadOnlyList<string>? _files;
+
+	/// <summary>The pieces of the host's list of files, as they came before its answer.</summary>
+	private readonly List<string> _hostFiles = new();
+
+	/// <summary>
+	/// Where this machine's files are not the host's, once the host has answered a play checksum that is not its own:
+	/// refused, or let in by the host's rule (docs/multiplayer.md, section 15). Null while they are the same or unknown.
+	/// </summary>
+	public CFileListDifference? OtherFiles { get; private set; }
+
+	/// <summary>Told once, as <see cref="OtherFiles"/> is made.</summary>
+	public System.Action<CFileListDifference>? FilesDiffered { get; set; }
+
+	/// <summary>The host's list set beside this machine's, where both are here.</summary>
+	private void CompareFiles()
+	{
+		if (_files is null || _hostFiles.Count == 0 || CFileListWire.Read(_hostFiles) is not { } host)
+		{
+			return;
+		}
+		OtherFiles = CFileListDifference.Compare(_files, host);
+		_hostFiles.Clear();
+		FilesDiffered?.Invoke(OtherFiles);
+	}
 
 	/// <summary>Whether the host has let this machine in.</summary>
 	public bool Admitted { get; private set; }
@@ -252,8 +280,18 @@ public sealed class CNetClient : CNetGame
 		string rest = line.Length > 2 ? line[2..] : "";
 		switch (line[0])
 		{
+			case CWire.Files:
+				_hostFiles.Add(rest);
+				return;
 			case CWire.Accepted:
 				Admitted = true;
+				if (rest.Trim() == CWire.OtherFiles)
+				{
+					// Let in by the host's rule though the files differ: said in this machine's chat.
+					CompareFiles();
+					_chat.Add(new CLobbyChatLine(null, CNetHost.EngineName, "This machine's files are not the host's"
+						+ (OtherFiles is { } other ? " - " + other.Summary(4) : "") + "."));
+				}
 				return;
 			case CWire.Refused:
 				EndedKey = rest == "country" ? "HOTJOIN_DECLINED" : rest == "kicked" ? "YOUKICKED" : rest == "banned" ? "BANNED" : "BAD_VERSION";
@@ -261,6 +299,14 @@ public sealed class CNetClient : CNetGame
 					: rest == "kicked" ? "The host has thrown this machine out of the lobby."
 					: rest == "banned" ? "The host has banned this machine from its game."
 					: "The host plays other files than this machine: its play checksum differs.";
+				if (EndedKey == "BAD_VERSION")
+				{
+					CompareFiles();
+					if (OtherFiles is { } other)
+					{
+						Ended += " " + char.ToUpperInvariant(other.Summary(4)[0]) + other.Summary(4)[1..] + ".";
+					}
+				}
 				return;
 			case CWire.View:
 				// The game next offered is to be looked at in the lobby, not played; a save the host chose comes with

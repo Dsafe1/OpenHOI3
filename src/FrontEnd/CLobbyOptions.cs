@@ -26,6 +26,9 @@ public partial class CLobbyOptions : Control
 	public const string StatisticsLabel = "OPENHOI_RULE_STATISTICS";
 	public const string StatisticsTip = "OPENHOI_RULE_STATISTICS_TIP";
 
+	/// <summary>The host's rule of any game, on other files (docs/multiplayer.md, section 15).</summary>
+	public const string OtherFilesButton = "other_files";
+
 	private CGuiWindow? _rules;
 
 	/// <summary>A choice changed: the line the lobby's chat is to say.</summary>
@@ -71,7 +74,10 @@ public partial class CLobbyOptions : Control
 			Bind(element + "_next", () => StepArea(label, area, 1));
 		}
 		// An enhanced game's own rules, in a window of the mod's beside the original's (statisticsrecord.md, section 6).
-		_rules = _context.Types.FindWindow(RulesWindowName) is null ? null : CGuiWindow.Create(_context, RulesWindowName);
+		// Where the files played declare none - the base game's - the engine puts its own up, with the one rule of any game.
+		_rules = _context.Types.FindWindow(RulesWindowName) is not null ? CGuiWindow.Create(_context, RulesWindowName)
+			: Content.Gui.CGuiTypes.Parse(CLobbyRulesText.FallbackWindow, null, CLobbyRulesText.FallbackFile)
+				.FindWindow(RulesWindowName) is { } own ? CGuiWindow.Create(_context, own) : null;
 		if (_rules is not null)
 		{
 			AddChild(_rules);
@@ -84,6 +90,32 @@ public partial class CLobbyOptions : Control
 					Changed?.Invoke(CLobbyOptionsText.Changed(Localise, StatisticsLabel,
 						Localise(play.CollectStatistics ? "YES" : "NO")));
 				};
+			}
+			if (_rules.TryFindButton(OtherFilesButton) is { } otherFiles)
+			{
+				otherFiles.Pressed += () =>
+				{
+					play.AllowOtherFiles = !play.AllowOtherFiles;
+					Refresh();
+					Changed?.Invoke(CLobbyOptionsText.Changed(
+						key => key == CLobbyRulesText.OtherFilesKey
+							? CLobbyRulesText.Text(Localise, key, CLobbyRulesText.OtherFiles) : Localise(key),
+						CLobbyRulesText.OtherFilesKey, Localise(play.AllowOtherFiles ? "YES" : "NO")));
+				};
+			}
+			if (_rules.TryFindButton(OtherFilesButton + "_help") is { } otherHelp)
+			{
+				string otherTip = CLobbyRulesText.Text(Localise, CLobbyRulesText.OtherFilesTipKey, CLobbyRulesText.OtherFilesTip);
+				otherHelp.Tooltip = () => new Interface.Tooltips.CTooltip { Text = otherTip };
+			}
+			// The window's own words where no table has their keys.
+			if (_rules.TryFindElement("title") is CGuiTextBox title)
+			{
+				title.Text = CLobbyRulesText.Text(Localise, CLobbyRulesText.TitleKey, CLobbyRulesText.Title);
+			}
+			if (_rules.TryFindElement(OtherFilesButton + "_label") is CGuiTextBox otherLabel)
+			{
+				otherLabel.Text = CLobbyRulesText.Text(Localise, CLobbyRulesText.OtherFilesKey, CLobbyRulesText.OtherFiles);
 			}
 			// What the rule keeps, said under the mouse on the `?` beside it and nowhere else: figures of the game, in
 			// the save - a player may take "collect statistics" for his own being gathered.
@@ -128,6 +160,10 @@ public partial class CLobbyOptions : Control
 			{
 				statistics.Disabled = value;
 			}
+			if (_rules?.TryFindButton(OtherFilesButton) is { } otherFiles)
+			{
+				otherFiles.Disabled = value;
+			}
 			if (_window is null)
 			{
 				return;
@@ -164,6 +200,8 @@ public partial class CLobbyOptions : Control
 		}
 		// An enhanced game's rule, after the original's seven: whether statistics are kept.
 		values.Add(play.CollectStatistics ? 1 : 0);
+		// And the host's rule on other files, which the others are shown.
+		values.Add(play.AllowOtherFiles ? 1 : 0);
 		return values;
 	}
 
@@ -188,6 +226,10 @@ public partial class CLobbyOptions : Control
 		{
 			play.CollectStatistics = values[2 + CLobbyOptionsText.Areas.Count] != 0;
 		}
+		if (values.Count > 3 + CLobbyOptionsText.Areas.Count)
+		{
+			play.AllowOtherFiles = values[3 + CLobbyOptionsText.Areas.Count] != 0;
+		}
 	}
 
 	/// <summary>Every box written again from the front end's choices.</summary>
@@ -202,6 +244,11 @@ public partial class CLobbyOptions : Control
 			// A tick with no picture of its own: a field that shows an X while it is on.
 			statistics.SetText(_frontEnd.ChosenPlay.CollectStatistics ? "X" : "");
 			statistics.Disabled = _readOnly;
+		}
+		if (_rules?.TryFindButton(OtherFilesButton) is { } otherFiles)
+		{
+			otherFiles.SetText(_frontEnd.ChosenPlay.AllowOtherFiles ? "X" : "");
+			otherFiles.Disabled = _readOnly;
 		}
 		Set("difficulty_box", CLobbyOptionsText.Text(Localise, CLobbyOptionsText.Difficulties, _frontEnd.ChosenPlay.Difficulty));
 		Set("arcade_box", CLobbyOptionsText.Text(Localise, CLobbyOptionsText.GameModes, _frontEnd.ChosenPlay.GameMode));

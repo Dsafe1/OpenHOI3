@@ -594,7 +594,10 @@ public partial class CFrontEnd : Node
 	/// </summary>
 	private void ShowOptions()
 	{
+		// The rule on other files is the host's session's and in no save: it stays as it was chosen.
+		bool otherFiles = ChosenPlay.AllowOtherFiles;
 		ChosenPlay.CopyFrom(World.GamePlay);
+		ChosenPlay.AllowOtherFiles = otherFiles;
 		ChosenAutomation.CopyFrom(World.Automation);
 		if (_lobbyOptions is not null)
 		{

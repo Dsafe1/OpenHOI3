@@ -24,11 +24,19 @@ public sealed class CGamePlaySettings
 	/// </summary>
 	public bool CollectStatistics { get; set; } = true;
 
+	/// <summary>
+	/// A host's rule, the lobby's choice, of any game: whether a machine whose play checksum is not the host's is let in
+	/// all the same, where its engine, its rules and the original's file checksum are the host's
+	/// (<c>docs/multiplayer.md</c>, section 15). Off unless it is turned on, and in no save: it is the session's.
+	/// </summary>
+	public bool AllowOtherFiles { get; set; }
+
 	/// <summary>Both set to another's.</summary>
 	public void CopyFrom(CGamePlaySettings other)
 	{
 		Difficulty = other.Difficulty;
 		GameMode = other.GameMode;
 		CollectStatistics = other.CollectStatistics;
+		AllowOtherFiles = other.AllowOtherFiles;
 	}
 }

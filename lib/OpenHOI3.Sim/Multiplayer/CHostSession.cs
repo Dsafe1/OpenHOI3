@@ -51,21 +51,46 @@ public sealed class CHostSession
 	/// </summary>
 	public static string? Admit(string line, string hostChecksum, Action<string> send)
 	{
+		return Admit(line, hostChecksum, send, allowOtherFiles: false, hostFiles: null).Name;
+	}
+
+	/// <summary>
+	/// The same with the host's rule on other files (<c>docs/multiplayer.md</c>, section 15). A machine whose play
+	/// checksum is not the host's is first sent the host's list of files, where one is given, so that it can say which
+	/// differ; then, with <paramref name="allowOtherFiles"/> and where its base is the host's - the same engine, rules
+	/// and original checksum - it is let in and told so; otherwise refused as before.
+	/// </summary>
+	public static CAdmission Admit(string line, string hostChecksum, Action<string> send, bool allowOtherFiles,
+		IReadOnlyList<string>? hostFiles)
+	{
 		if (line.Length < 2 || line[0] != CWire.Join)
 		{
-			return null;
+			return new CAdmission(null, false);
 		}
 		string rest = line[2..];
 		int space = rest.IndexOf(' ');
 		string checksum = space < 0 ? rest : rest[..space];
 		string name = space < 0 ? "" : rest[(space + 1)..];
-		if (checksum != hostChecksum)
+		if (CPlayToken.Play(checksum) == CPlayToken.Play(hostChecksum))
 		{
-			send(CWire.Line(CWire.Refused, hostChecksum));
-			return null;
+			send(CWire.Line(CWire.Accepted));
+			return new CAdmission(name, false);
 		}
-		send(CWire.Line(CWire.Accepted));
-		return name;
+		if (hostFiles is not null)
+		{
+			foreach (string piece in CFileListWire.Lines(hostFiles))
+			{
+				send(piece);
+			}
+		}
+		string hostBase = CPlayToken.Base(hostChecksum);
+		if (allowOtherFiles && hostBase.Length > 0 && CPlayToken.Base(checksum) == hostBase)
+		{
+			send(CWire.Line(CWire.Accepted, CWire.OtherFiles));
+			return new CAdmission(name, true);
+		}
+		send(CWire.Line(CWire.Refused, hostChecksum));
+		return new CAdmission(null, false);
 	}
 
 	/// <summary>

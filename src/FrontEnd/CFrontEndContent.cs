@@ -106,7 +106,7 @@ public sealed class CFrontEndContent
 	private static (string Root, int Checksum)? _checksum;
 
 	/// <summary>The original's file checksum of the install, worked out at the first front end and kept for the rest.</summary>
-	private static int WorkOutChecksum(CDirectorySettings directories)
+	internal static int WorkOutChecksum(CDirectorySettings directories)
 	{
 		if (_checksum is { } kept && kept.Root == directories.GameRoot)
 		{

@@ -107,6 +107,21 @@ public static class CPlayChecksum
 		return (whole, files);
 	}
 
+	/// <summary>
+	/// What two machines may share while their play checksums differ, and have to for a host's rule to let one in
+	/// (<c>docs/multiplayer.md</c>, section 15): a hash of the engine's version, the rules and the original's file
+	/// checksum, in hexadecimal.
+	/// </summary>
+	public static string Base(string engineVersion, string rules, int fileChecksum)
+	{
+		using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+		AppendText(hash, "OpenHOI3 play base 1");
+		AppendText(hash, engineVersion);
+		AppendText(hash, rules);
+		AppendText(hash, fileChecksum.ToString(System.Globalization.CultureInfo.InvariantCulture));
+		return Convert.ToHexString(hash.GetHashAndReset(), 0, 8);
+	}
+
 	/// <summary>The first eight hexadecimal digits of the checksum in fours, which is what a player is shown: <c>3F9A-01C7</c>.</summary>
 	public static string Label(byte[] hash)
 	{

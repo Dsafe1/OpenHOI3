@@ -25,10 +25,13 @@ public sealed class CNetHost : CNetGame
 	/// <param name="checksum">The host's play checksum, which a machine has to share to be let in.</param>
 	/// <param name="country">The country the host's own player plays.</param>
 	/// <param name="banned">The addresses of the machines banned, kept by the caller across the games it hosts.</param>
-	public CNetHost(int port, string checksum, CCountryTag? country, HashSet<string>? banned = null)
+	/// <param name="files">The list of the files the checksum is made of, sent to a machine whose checksum is another.</param>
+	public CNetHost(int port, string checksum, CCountryTag? country, HashSet<string>? banned = null,
+		IReadOnlyList<string>? files = null)
 	{
 		_listener = new CLineListener(port);
 		_checksum = checksum;
+		_files = files;
 		_banned = banned ?? new HashSet<string>();
 		Country = country;
 	}
@@ -38,6 +41,14 @@ public sealed class CNetHost : CNetGame
 	/// before it is asked anything, in the lobby and in a game that runs (docs/multiplayer.md, section 13).
 	/// </summary>
 	private readonly HashSet<string> _banned;
+
+	private readonly IReadOnlyList<string>? _files;
+
+	/// <summary>
+	/// The host's rule on other files, asked as each machine asks to be let in: whether one whose play checksum is not
+	/// the host's is let in where its engine, rules and original checksum are (docs/multiplayer.md, section 15).
+	/// </summary>
+	public System.Func<bool>? AllowOtherFiles { get; set; }
 
 	/// <summary>The Options panel's line as it stands, sent to every machine in the lobby that has not been sent it; null outside the lobby.</summary>
 	private string? _options;
@@ -238,11 +249,22 @@ public sealed class CNetHost : CNetGame
 				// Its first line: let in by its play checksum, or told the host's and let go.
 				if (peer.Link.TryReceive(out string first))
 				{
-					peer.Name = CHostSession.Admit(first, _checksum, peer.Link.Send);
+					CAdmission admission = CHostSession.Admit(first, _checksum, peer.Link.Send,
+						AllowOtherFiles?.Invoke() == true, _files);
+					peer.Name = admission.Name;
 					if (peer.Name is null)
 					{
 						Remove(peer);
 						continue;
+					}
+					if (admission.OtherFiles)
+					{
+						// Said on every machine of the lobby, and in the host's log: a game with such a player may part.
+						Godot.GD.Print($"Multiplayer: {peer.Name} is let in with other files than the host's, by the host's rule.");
+						if (_lobby is not null)
+						{
+							Tell(new CLobbyChatLine(null, EngineName, $"{peer.Name} plays with other files than the host's."));
+						}
 					}
 					// In the lobby every machine's chat says a player has joined.
 					if (_lobby is not null)
@@ -703,6 +725,9 @@ public sealed class CNetHost : CNetGame
 	{
 		Tell(new CLobbyChatLine(key, name, ""));
 	}
+
+	/// <summary>Who says what the engine itself says in a chat.</summary>
+	public const string EngineName = "OpenHOI3";
 
 	private void Tell(CLobbyChatLine line)
 	{

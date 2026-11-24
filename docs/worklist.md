@@ -2214,6 +2214,10 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 
 ## Loose ends
 
+- **The host's rule on other files is not reviewed in play** (2026-11-25, `multiplayer.md`, section 15): built and
+  tried by two processes and by `--click` in the lobby; a lobby between two machines with the rule turned there,
+  its tooltip, and a game of differing files run to a midnight wait. In a game that runs, nothing in the chat says
+  that a player was let in with other files - the host's log alone does.
 - **Two of the three notices over a game are not built** (2026-11-25, `loadingscreen.md`, section 6): `AUTOSAVING`
   is; `SCREENSHOT_TAKEN` and `MAP_SAVED`, 15 frames each in the original, wait for a screenshot key and a saving of
   the map, neither of which is here. `AUTOSAVING` itself is not reviewed in play.

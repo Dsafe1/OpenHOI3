@@ -2961,7 +2961,8 @@ public partial class CSession : Node
 	/// and w2 waits two seconds of real time, which is
 	/// what a tooltip's second half waits on - once everything else is done,
 	/// <c>--run</c> starts the clock at the top speed instead of paused,
-	/// <c>--host</c> or <c>--host=port</c> hosts the game for other machines and <c>--join=address[:port]</c> joins one,
+	/// <c>--host</c> or <c>--host=port</c> hosts the game for other machines - with <c>--otherfiles</c>, letting in a
+	/// machine whose files are not the host's (docs/multiplayer.md, section 15) - and <c>--join=address[:port]</c> joins one,
 	/// asking for the country of <c>--country=</c> under the name of <c>--name=</c>, with <c>--netlog</c> writing each new
 	/// day to the log and <c>--netpart=1936.3.10</c> on a client putting its game out of step from that day (docs/multiplayer.md, section 6),
 	/// <c>--say=text|text</c> typing those lines into the chat in play once, three days in (docs/mechanics/chat.md),

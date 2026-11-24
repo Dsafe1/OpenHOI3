@@ -122,6 +122,11 @@ sets two machines' files beside each other and prints the files only one has and
 counts. **Under `map` only the folder `terrain` is entered now** (`CPlayChecksum.MapSubfolder`), the one there a
 game reads; with that the one machine's figure is the other's, `CE28-F00E`, 11,872 files.
 
+**Two machines whose figures differ no longer need the tool** (2026-11-25, `docs/multiplayer.md`, section 15): the
+host sends its list as it answers, the machine says which files differ and writes them to
+`openhoi3_checksum_diff.txt`, and a host's rule may let it in all the same where the engine, the rules and the
+original's checksum are the host's.
+
 Each text goes in with its length in front. So a file moved, two files exchanged and an empty file added each change
 it, and the AI's Lua is part of it - the things the original's figure lets by (section 7).
 

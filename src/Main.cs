@@ -491,7 +491,7 @@ public partial class Main : Control
 		Multiplayer.CNetHost net;
 		try
 		{
-			net = new Multiplayer.CNetHost(port, checksum, country: null, _banned);
+			net = new Multiplayer.CNetHost(port, checksum, country: null, _banned, _playFiles) { AllowOtherFiles = () => AllowOtherFiles };
 		}
 		catch (System.Net.Sockets.SocketException failed)
 		{
@@ -511,7 +511,7 @@ public partial class Main : Control
 	private async Task Host(CLoadingScreen screen, CCountryTag country, int port)
 	{
 		string checksum = await screen.Work("", PlayChecksum);
-		var net = new Multiplayer.CNetHost(port, checksum, country, _banned);
+		var net = new Multiplayer.CNetHost(port, checksum, country, _banned, _playFiles) { AllowOtherFiles = () => AllowOtherFiles };
 		net.GameToLoad += (game, played) => Guarded(LoadNetGame(game, played));
 		_net = net;
 		GD.Print($"Multiplayer: hosting on port {net.Port}, play checksum {checksum[..8]}.");
@@ -560,7 +560,7 @@ public partial class Main : Control
 			menu.Log("GAME_NOT_FOUND");
 			return;
 		}
-		var net = new Multiplayer.CNetClient(link, checksum, player, wanted: null);
+		var net = new Multiplayer.CNetClient(link, checksum, player, wanted: null, _playFiles) { FilesDiffered = WriteOtherFiles };
 		bool came = false;
 		bool admitted = false;
 		net.GameToLoad += (game, played) =>
@@ -598,6 +598,11 @@ public partial class Main : Control
 				else
 				{
 					menu.Log(key);
+					// Refused for its files: which differ, in a line; the whole list is beside the logs.
+					if (net.OtherFiles is { } other)
+					{
+						menu.Log(other.Summary(3));
+					}
 				}
 				LeaveNet();
 				return;
@@ -637,10 +642,41 @@ public partial class Main : Control
 	/// <summary>This machine's play checksum, in hexadecimal (docs/mechanics/checksum.md, section 8). Takes some seconds.</summary>
 	private string PlayChecksum()
 	{
+		string engine = Content.Launch.CEngineFile.VersionBeside(OS.GetExecutablePath());
+		string rules = Content.Rules.CRulesReader.Read(_directories, _ => { }).Text;
+		var listed = new List<string>();
 		(byte[] hash, _) = Content.Checksum.CPlayChecksum.Compute(Content.Checksum.CChecksumSearchPath.ForPlay(_directories),
-			Content.Launch.CEngineFile.VersionBeside(OS.GetExecutablePath()),
-			Content.Rules.CRulesReader.Read(_directories, _ => { }).Text);
-		return System.Convert.ToHexString(hash);
+			engine, rules, listed);
+		_playFiles = listed;
+		// With it, after a slash, what two machines may share while their files differ - the engine, the rules and the
+		// original's file checksum - which a host's rule may let a machine in by (docs/multiplayer.md, section 15).
+		return Sim.Multiplayer.CPlayToken.Of(System.Convert.ToHexString(hash),
+			Content.Checksum.CPlayChecksum.Base(engine, rules, FrontEnd.CFrontEndContent.WorkOutChecksum(_directories)));
+	}
+
+	/// <summary>The files the play checksum last worked out was made of, a line each (checksum.md, section 8).</summary>
+	private IReadOnlyList<string>? _playFiles;
+
+	/// <summary>The host's rule on other files, as it stands now: the game's that runs, else the lobby's choice.</summary>
+	private bool AllowOtherFiles => CSession.UserArguments().Contains("--otherfiles")
+		|| (_session?.State.GamePlay ?? _frontEnd?.ChosenPlay)?.AllowOtherFiles == true;
+
+	/// <summary>
+	/// A machine told its files are not the host's: which, written whole beside the logs and said in a line there.
+	/// </summary>
+	private void WriteOtherFiles(Sim.Multiplayer.CFileListDifference other)
+	{
+		GD.Print("Multiplayer: this machine's files are not the host's - " + other.Summary(8) + ".");
+		try
+		{
+			string folder = Content.Logs.CLogFiles.Folder(_directories);
+			System.IO.Directory.CreateDirectory(folder);
+			System.IO.File.WriteAllLines(System.IO.Path.Combine(folder, "openhoi3_checksum_diff.txt"), other.Report());
+		}
+		catch (System.Exception failed) when (failed is System.IO.IOException or System.UnauthorizedAccessException)
+		{
+			// Said in the log all the same.
+		}
 	}
 
 	/// <summary>
@@ -656,7 +692,7 @@ public partial class Main : Control
 		string name = CSession.Argument("--name=") ?? System.Environment.UserName;
 		var wanted = new CCountryTag(CSession.PlayerArgument() ?? CSwitchedGame.DefaultPlayer);
 		Sim.Multiplayer.CLineLink link = await screen.Work("", () => Sim.Multiplayer.CLineLink.Connect(address, port));
-		var net = new Multiplayer.CNetClient(link, checksum, name, wanted);
+		var net = new Multiplayer.CNetClient(link, checksum, name, wanted, _playFiles) { FilesDiffered = WriteOtherFiles };
 		bool came = false;
 		net.GameToLoad += (game, played) =>
 		{
