@@ -27,6 +27,7 @@ public sealed class CLuaImGui
 		Tree,
 		Id,
 		Disabled,
+		Tooltip,
 	}
 
 	/// <summary>The functions, as <c>OpenHOI3.ImGui</c> names them.</summary>
@@ -37,7 +38,7 @@ public sealed class CLuaImGui
 		"Combo", "CollapsingHeader", "IsItemHovered", "SetTooltip", "BeginTable", "BeginPanes", "TableSetupColumn", "TableHeadersRow",
 		"IsItemActive", "IsItemDeactivatedAfterEdit", "WindowSetting", "SetWindowSetting", "ProgressBar", "PlotLines", "PlotMany", "InputFloat", "IsWindowFocused", "IsKeyPressed", "SetScrollHereY", "SetClipboardText", "ImageSize", "Image",
 		"TableNextRow", "TableNextColumn", "EndTable", "BeginTabBar", "EndTabBar", "BeginTabItem", "EndTabItem",
-		"BeginChild", "EndChild", "TreeNode", "TreePop", "PushID", "PopID", "BeginDisabled", "EndDisabled",
+		"BeginChild", "EndChild", "TreeNode", "TreePop", "PushID", "PopID", "BeginDisabled", "EndDisabled", "BeginTooltip", "EndTooltip",
 	};
 
 	private const string GlobalPrefix = "__ohoi_ig_";
@@ -124,6 +125,8 @@ public sealed class CLuaImGui
 			["PopID"] = call => End(call, EScope.Id),
 			["BeginDisabled"] = BeginDisabled,
 			["EndDisabled"] = call => End(call, EScope.Disabled),
+			["BeginTooltip"] = BeginTooltip,
+			["EndTooltip"] = call => End(call, EScope.Tooltip),
 		};
 		var glue = new StringBuilder("OpenHOI3.ImGui = { ");
 		foreach (string name in Names)
@@ -156,11 +159,13 @@ public sealed class CLuaImGui
 		glue.Append("local plot = OpenHOI3.ImGui.PlotLines OpenHOI3.ImGui.PlotLines = function(label, values, width, height, overlay) "
 			+ "return plot(label, table.concat(values or {}, ' '), width or 0, height or 0, overlay or '') end ");
 		// Several lines in one frame: each crosses as one text - its first step, its colour's four parts, its values.
-		glue.Append("local many = OpenHOI3.ImGui.PlotMany OpenHOI3.ImGui.PlotMany = function(id, series, height) "
+		glue.Append("local many = OpenHOI3.ImGui.PlotMany OpenHOI3.ImGui.PlotMany = function(id, series, height, axes) "
+			+ "axes = axes or {} "
 			+ "local texts = {} for index, one in ipairs(series or {}) do local colour = one.colour or {} "
 			+ "texts[index] = (tonumber(one.first) or 0) .. ' ' .. (colour[1] or 1) .. ' ' .. (colour[2] or 1) .. ' ' .. (colour[3] or 1) "
 			+ ".. ' ' .. (colour[4] or 1) .. ' ' .. table.concat(one.values or {}, ' ') end "
-			+ "return many(id, height or 0, unpack(texts)) end ");
+			+ "return many(id, height or 0, tostring(axes.x or ''), tostring(axes.y or ''), tostring(axes.from or ''), "
+			+ "tostring(axes.to or ''), unpack(texts)) end ");
 		glue.Append("local combo = OpenHOI3.ImGui.Combo OpenHOI3.ImGui.Combo = function(label, index, items) "
 			+ "return combo(label, index, unpack(items or {})) end");
 		lua.Run(Encoding.Latin1.GetBytes(glue.ToString()), "=OpenHOI3");
@@ -217,6 +222,9 @@ public sealed class CLuaImGui
 				break;
 			case EScope.Disabled:
 				canvas.EndDisabled();
+				break;
+			case EScope.Tooltip:
+				canvas.EndTooltip();
 				break;
 		}
 	}
@@ -296,6 +304,17 @@ public sealed class CLuaImGui
 		return 0;
 	}
 
+	/// <summary>A tooltip the page draws into; ended with the page's drawing where the page leaves it open.</summary>
+	private int BeginTooltip(CLuaCall call)
+	{
+		if (Canvas is { } canvas)
+		{
+			canvas.BeginTooltip();
+			_open.Add(EScope.Tooltip);
+		}
+		return 0;
+	}
+
 	/// <summary><c>InputFloat(label, value [, decimals])</c>, answering <c>changed, value</c>.</summary>
 	private int InputFloat(CLuaCall call)
 	{
@@ -323,15 +342,19 @@ public sealed class CLuaImGui
 		return 0;
 	}
 
-	/// <summary><c>PlotMany(id, series [, height])</c>: every series <c>{ first = , colour = { r, g, b, a }, values = { } }</c>.</summary>
+	/// <summary>
+	/// <c>PlotMany(id, series [, height, axes])</c>: every series <c>{ first = , colour = { r, g, b, a }, values = { } }</c>,
+	/// the axes <c>{ x = , y = , from = , to = }</c>. Answers the step under the mouse, or nil.
+	/// </summary>
 	private int PlotMany(CLuaCall call)
 	{
 		if (Canvas is not { } canvas)
 		{
-			return 0;
+			return call.Return(null);
 		}
 		var series = new List<CPlotSeries>();
-		for (int argument = 3; argument <= call.ArgumentCount; argument++)
+		var axes = new CPlotAxes(call.String(3), call.String(4), call.String(5), call.String(6));
+		for (int argument = 7; argument <= call.ArgumentCount; argument++)
 		{
 			var numbers = new List<float>();
 			foreach (string part in call.String(argument).Split(' ', StringSplitOptions.RemoveEmptyEntries))
@@ -346,8 +369,8 @@ public sealed class CLuaImGui
 				series.Add(new CPlotSeries((int)numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers.GetRange(5, numbers.Count - 5)));
 			}
 		}
-		canvas.PlotMany(call.String(1), series, (float)call.Number(2));
-		return 0;
+		int? step = canvas.PlotMany(call.String(1), series, (float)call.Number(2), axes);
+		return call.Return(step is { } hovered ? (double)hovered : null);
 	}
 
 	private int InputInt(CLuaCall call)

@@ -102,8 +102,8 @@ client that joins in 1948, about 2 in 1940.
 **Whether a game keeps the record is the lobby's choice**, on unless it is turned off: `CGamePlaySettings.
 CollectStatistics`. It is shown in a window of the mod's beside the lobby's own options, `openhoi_lobby_rules`,
 where the mod's `interface/openhoi` declares one: its button `statistics` turns the rule over and shows an `X` while
-it is on, and the chat says the change as it says an option's. **What the rule keeps is said under the mouse on the `?` beside it**,
-the button `statistics_help` and nowhere else - the text of
+it is on, and the chat says the change as it says an option's. **What the rule keeps is said under the mouse on the
+`?` beside it** - the button `statistics_help`, and nowhere else - in the text of
 `OPENHOI_RULE_STATISTICS_TIP`: figures of the game, in the save, nothing of the player and nothing sent anywhere. Asked
 for on 2026-11-24: "Players might think this is a user data collection." On a client the button is greyed and the host's
 choice shown; the choice travels with the original's seven, after them.
@@ -133,13 +133,17 @@ value - whole where it is whole, else to the places it has. Only when asked: not
 
 `script/openhoi/windows/stats/statistics.lua`: the countries and the statistics to tick, each list under a filter that only hides rows - a country ticked stays
 ticked out of sight - Plot, Clear and Export, and **One plot**, which draws every series read into one frame
-(`OpenHOI3.ImGui.PlotMany`, `modwindows.md`) with a line of the legend each, in place of a frame a series. Its
+(`OpenHOI3.ImGui.PlotMany`, `modwindows.md`) with a line of the legend each, in place of a frame a series.
+**Every frame has its axes**: across, the date, with the first and the last day's under the frame's ends; up, the
+statistic's name - or `mixed` where one frame holds more than one statistic - with the least and the most value
+beside the frame. **Under the mouse a frame says the day's date and every line's value on that day**, each behind
+its colour; a line that has no such day is left out. Its
 Setup page is gone - the rule is the lobby's and every country is kept - and the mod's own collector does nothing on
 this engine.
 
 Tried on 2026-11-24: ten days played, the page showing 80 countries and 73 statistics; the lobby's window shown and
 its tick turned with `--click`. The one frame was looked at with three series of that game through a page made for the look and taken away again.
-**Not reviewed in play**: the page's own plots, its filters, the export, and a game saved and loaded on
+The axes were looked at the same way, twenty days in. **Not reviewed in play**: the page's own plots, the values under the mouse - no scripted pointer reaches the page - its filters, the export, and a game saved and loaded on
 screen - the last is under test.
 
 `OpenHOI3.SaveCheck headless <install> <until> statistics` keeps the record in a game nobody plays and says how large

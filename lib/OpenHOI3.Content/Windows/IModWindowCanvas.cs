@@ -70,9 +70,16 @@ public interface IModWindowCanvas
 
 	/// <summary>
 	/// Several lines in one frame as wide as the room there is: across, from the earliest first step to the latest
-	/// last; up, from the least value among them to the most. Each line in its own colour.
+	/// last; up, from the least value among them to the most. Each line in its own colour. With axes, the least and
+	/// the most value stand left of the frame, what runs up over it, and under it the first and the last step's names
+	/// with what runs across between them. Answers the step under the mouse while the mouse is over the frame, where
+	/// it draws an upright line; else nothing.
 	/// </summary>
-	void PlotMany(string id, IReadOnlyList<CPlotSeries> series, float height);
+	int? PlotMany(string id, IReadOnlyList<CPlotSeries> series, float height, CPlotAxes axes);
+
+	/// <summary>A tooltip the page draws into until <see cref="EndTooltip"/>.</summary>
+	void BeginTooltip();
+	void EndTooltip();
 	void SetTooltip(string text);
 
 	/// <summary>

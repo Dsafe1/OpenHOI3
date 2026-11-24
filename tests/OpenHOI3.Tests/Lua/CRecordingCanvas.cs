@@ -135,9 +135,19 @@ public sealed class CRecordingCanvas : IModWindowCanvas
 	/// <summary>Whether an item answers let go of after an edit.</summary>
 	public bool Released { get; set; }
 
-	public void PlotMany(string id, IReadOnlyList<CPlotSeries> series, float height) =>
+	/// <summary>The step a plot of several lines answers as under the mouse.</summary>
+	public int? PlotStep { get; set; }
+
+	public int? PlotMany(string id, IReadOnlyList<CPlotSeries> series, float height, CPlotAxes axes)
+	{
 		Calls.Add($"PlotMany {id} {(int)height} " + string.Join(" | ", series.Select(one =>
-			$"{one.First}:{one.Red}/{one.Green}/{one.Blue}/{one.Alpha}:{string.Join(',', one.Values.Select(value => (int)value))}")));
+			$"{one.First}:{one.Red}/{one.Green}/{one.Blue}/{one.Alpha}:{string.Join(',', one.Values.Select(value => (int)value))}"))
+			+ (axes.IsEmpty ? "" : $" axes {axes.Across}/{axes.Up}/{axes.From}/{axes.To}"));
+		return PlotStep;
+	}
+
+	public void BeginTooltip() => Calls.Add("BeginTooltip");
+	public void EndTooltip() => Calls.Add("EndTooltip");
 
 	public void PlotLines(string label, IReadOnlyList<float> values, float width, float height, string overlay) =>
 		Calls.Add($"PlotLines {label} {string.Join(',', values.Select(value => (int)value))} {(int)height} {overlay}");

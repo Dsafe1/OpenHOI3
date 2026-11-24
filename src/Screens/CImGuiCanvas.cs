@@ -80,17 +80,13 @@ public sealed class CImGuiCanvas : IModWindowCanvas
 
 	/// <summary>
 	/// Several lines in one frame, drawn by hand on the window's own drawing list: the frame filled and outlined in the
-	/// look's own colours, each line a pixel and a half thick, two pixels kept clear at the top and the foot.
+	/// look's own colours, each line a pixel and a half thick, two pixels kept clear at the top and the foot. With axes,
+	/// what runs up stands over the frame, the most and the least value left of its top and foot, and a line under it
+	/// holds the first step's name at the left, the last's at the right and what runs across in the middle. The mouse
+	/// over the frame draws an upright line at the nearest step, which is the answer.
 	/// </summary>
-	public void PlotMany(string id, IReadOnlyList<CPlotSeries> series, float height)
+	public int? PlotMany(string id, IReadOnlyList<CPlotSeries> series, float height, CPlotAxes axes)
 	{
-		var size = new System.Numerics.Vector2(System.MathF.Max(1f, ImGui.GetContentRegionAvail().X), System.MathF.Max(1f, height));
-		System.Numerics.Vector2 corner = ImGui.GetCursorScreenPos();
-		// It takes its room as a button nothing presses, so that what follows stands under it.
-		ImGui.InvisibleButton(id, size);
-		ImDrawListPtr list = ImGui.GetWindowDrawList();
-		list.AddRectFilled(corner, corner + size, ImGui.GetColorU32(ImGuiCol.FrameBg));
-		list.AddRect(corner, corner + size, ImGui.GetColorU32(ImGuiCol.Border));
 		int first = int.MaxValue;
 		int last = int.MinValue;
 		float least = float.MaxValue;
@@ -109,10 +105,53 @@ public sealed class CImGuiCanvas : IModWindowCanvas
 				most = System.MathF.Max(most, value);
 			}
 		}
-		if (last <= first)
+		bool any = last >= first;
+		bool drawAxes = !axes.IsEmpty;
+		uint faint = ImGui.GetColorU32(ImGuiCol.TextDisabled);
+		ImDrawListPtr list = ImGui.GetWindowDrawList();
+
+		if (drawAxes && axes.Up.Length > 0)
 		{
-			return;
+			ImGui.TextDisabled(Plain(axes.Up));
 		}
+		// The room left of the frame is as wide as the wider of the two values written there.
+		string top = any ? PlotValue(most) : "";
+		string foot = any ? PlotValue(least) : "";
+		float gutter = 0f;
+		System.Numerics.Vector2 left = ImGui.GetCursorScreenPos();
+		if (drawAxes && any)
+		{
+			gutter = System.MathF.Max(ImGui.CalcTextSize(top).X, ImGui.CalcTextSize(foot).X) + 6f;
+			ImGui.Dummy(new System.Numerics.Vector2(gutter, System.MathF.Max(1f, height)));
+			ImGui.SameLine(0f, 0f);
+		}
+		var size = new System.Numerics.Vector2(System.MathF.Max(1f, ImGui.GetContentRegionAvail().X), System.MathF.Max(1f, height));
+		System.Numerics.Vector2 corner = ImGui.GetCursorScreenPos();
+		// It takes its room as a button nothing presses, so that what follows stands under it.
+		ImGui.InvisibleButton(id, size);
+		bool over = ImGui.IsItemHovered();
+		list.AddRectFilled(corner, corner + size, ImGui.GetColorU32(ImGuiCol.FrameBg));
+		list.AddRect(corner, corner + size, ImGui.GetColorU32(ImGuiCol.Border));
+		float line = ImGui.GetTextLineHeight();
+		if (gutter > 0f)
+		{
+			list.AddText(new System.Numerics.Vector2(left.X + gutter - 6f - ImGui.CalcTextSize(top).X, corner.Y), faint, top);
+			list.AddText(new System.Numerics.Vector2(left.X + gutter - 6f - ImGui.CalcTextSize(foot).X, corner.Y + size.Y - line), faint, foot);
+		}
+		if (drawAxes && (axes.Across.Length > 0 || axes.From.Length > 0 || axes.To.Length > 0))
+		{
+			// One line under the frame: the first step's name, what runs across, the last step's name.
+			System.Numerics.Vector2 under = ImGui.GetCursorScreenPos();
+			ImGui.Dummy(new System.Numerics.Vector2(1f, line));
+			list.AddText(new System.Numerics.Vector2(corner.X, under.Y), faint, axes.From);
+			list.AddText(new System.Numerics.Vector2(corner.X + size.X - ImGui.CalcTextSize(axes.To).X, under.Y), faint, axes.To);
+			list.AddText(new System.Numerics.Vector2(corner.X + (size.X - ImGui.CalcTextSize(axes.Across).X) / 2f, under.Y), faint, axes.Across);
+		}
+		if (!any)
+		{
+			return null;
+		}
+		int steps = last - first;
 		float span = most > least ? most - least : 1f;
 		const float Margin = 2f;
 		foreach (CPlotSeries one in series)
@@ -124,14 +163,32 @@ public sealed class CImGuiCanvas : IModWindowCanvas
 			var points = new System.Numerics.Vector2[one.Values.Count];
 			for (int index = 0; index < points.Length; index++)
 			{
-				float across = (float)(one.First + index - first) / (last - first);
+				float across = (float)(one.First + index - first) / steps;
 				float up = (one.Values[index] - least) / span;
 				points[index] = new System.Numerics.Vector2(corner.X + across * size.X, corner.Y + size.Y - Margin - up * (size.Y - 2f * Margin));
 			}
 			uint colour = ImGui.GetColorU32(new System.Numerics.Vector4(one.Red, one.Green, one.Blue, one.Alpha));
 			list.AddPolyline(ref points[0], points.Length, colour, ImDrawFlags.None, 1.5f);
 		}
+		if (!over)
+		{
+			return null;
+		}
+		// The step nearest the mouse, and an upright line at it.
+		float part = System.Math.Clamp((ImGui.GetMousePos().X - corner.X) / size.X, 0f, 1f);
+		int step = first + (int)System.MathF.Round(part * steps);
+		float x = corner.X + (steps > 0 ? (float)(step - first) / steps : 0.5f) * size.X;
+		list.AddLine(new System.Numerics.Vector2(x, corner.Y), new System.Numerics.Vector2(x, corner.Y + size.Y), ImGui.GetColorU32(ImGuiCol.Text, 0.5f));
+		return step;
 	}
+
+	/// <summary>A value beside a plot: whole where it is whole, else to two places.</summary>
+	private static string PlotValue(float value) =>
+		value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+
+	public void BeginTooltip() => ImGui.BeginTooltip();
+
+	public void EndTooltip() => ImGui.EndTooltip();
 
 	/// <summary>The window's own settings, answered and set by the screen that draws it.</summary>
 	public System.Func<string, string>? Setting { get; set; }

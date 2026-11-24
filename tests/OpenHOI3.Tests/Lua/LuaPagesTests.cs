@@ -630,6 +630,29 @@ public sealed class LuaPagesTests : IDisposable
 	}
 
 	[Fact]
+	public void APlotAnswersTheStepUnderTheMouseAndTakesItsAxesAndATooltipLeftOpenIsEnded()
+	{
+		Page("plots", "local ImGui = OpenHOI3.ImGui return { Draw = function() "
+			+ "local step = ImGui.PlotMany('##all', { { first = 10, values = { 1, 2, 3 } } }, 90, "
+			+ "{ x = 'Date', y = 'mixed', from = 'a', to = 'b' }) "
+			+ "ImGui.Text(tostring(step)) "
+			+ "if step ~= nil then ImGui.BeginTooltip() ImGui.Text('day ' .. step) end end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			var canvas = new CRecordingCanvas();
+			windows.Draw(windows.Pages[0], Ger, canvas);
+			// The mouse elsewhere: nil.
+			Assert.Equal(new[] { "PlotMany ##all 90 10:1/1/1/1:1,2,3 axes Date/mixed/a/b", "Text nil" }, canvas.Calls);
+			canvas.Calls.Clear();
+			canvas.PlotStep = 11;
+			windows.Draw(windows.Pages[0], Ger, canvas);
+			Assert.Equal(new[] { "PlotMany ##all 90 10:1/1/1/1:1,2,3 axes Date/mixed/a/b", "Text 11", "BeginTooltip",
+				"Text day 11", "EndTooltip" }, canvas.Calls);
+		}
+	}
+
+	[Fact]
 	public void APageReadsTheStatisticsRecordAndAsksForItWrittenOut()
 	{
 		Page("stats", "local ImGui = OpenHOI3.ImGui return { "
