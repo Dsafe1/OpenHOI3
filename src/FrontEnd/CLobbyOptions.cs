@@ -24,6 +24,7 @@ public partial class CLobbyOptions : Control
 	public const string RulesWindowName = "openhoi_lobby_rules";
 	public const string StatisticsButton = "statistics";
 	public const string StatisticsLabel = "OPENHOI_RULE_STATISTICS";
+	public const string StatisticsTip = "OPENHOI_RULE_STATISTICS_TIP";
 
 	private CGuiWindow? _rules;
 
@@ -83,6 +84,16 @@ public partial class CLobbyOptions : Control
 					Changed?.Invoke(CLobbyOptionsText.Changed(Localise, StatisticsLabel,
 						Localise(play.CollectStatistics ? "YES" : "NO")));
 				};
+			}
+			// What the rule keeps, said under the mouse on the tick, its words and the `?` beside them: figures of
+			// the game, in the save - a player may take "collect statistics" for his own being gathered.
+			string tip = Localise(StatisticsTip);
+			foreach (string name in new[] { StatisticsButton, StatisticsButton + "_label", StatisticsButton + "_help" })
+			{
+				if (_rules.TryFindElement(name) is { } element)
+				{
+					element.Tooltip = () => new Interface.Tooltips.CTooltip { Text = tip };
+				}
 			}
 		}
 		Refresh();

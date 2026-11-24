@@ -102,7 +102,10 @@ client that joins in 1948, about 2 in 1940.
 **Whether a game keeps the record is the lobby's choice**, on unless it is turned off: `CGamePlaySettings.
 CollectStatistics`. It is shown in a window of the mod's beside the lobby's own options, `openhoi_lobby_rules`,
 where the mod's `interface/openhoi` declares one: its button `statistics` turns the rule over and shows an `X` while
-it is on, and the chat says the change as it says an option's. On a client the button is greyed and the host's
+it is on, and the chat says the change as it says an option's. **What the rule keeps is said under the mouse** - on
+the tick, on its words `statistics_label` and on the `?` beside them, `statistics_help` - the text of
+`OPENHOI_RULE_STATISTICS_TIP`: figures of the game, in the save, nothing of the player and nothing sent anywhere. Asked
+for on 2026-11-24: "Players might think this is a user data collection." On a client the button is greyed and the host's
 choice shown; the choice travels with the original's seven, after them.
 
 A game with the rule off keeps nothing and writes `collect=no`. The rule is not changed in play.
