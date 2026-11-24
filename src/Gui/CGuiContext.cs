@@ -80,6 +80,7 @@ public sealed class CGuiContext
 			MessageTypes = CMessageTypes.Load(directories, messageTypesPath),
 			Effects = effects,
 		};
+		textures.BuiltInStyles = context.Types.BuiltInStyles;
 		// Which fonts are drawn from their own glyphs and which by a stand-in, into the run's log once (interface.md, section 6).
 		context.Fonts.Report();
 		return context;

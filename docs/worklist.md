@@ -76,6 +76,10 @@ be a utility.** **Next**, as the user placed the Inspector's other two on 2026-1
 opened from the ribbon over its brigades in an enhanced game (`mechanics/brigadecard.md`, section 7), tried with
 `--click` and not reviewed in play - and
 **the custom map mode** as a list a right click on a map mode's button opens; and what was set down for after the
+port (below). **Before those, 2026-11-24, built-in elements** (`mechanics/builtin.md`): an icon or a button says
+`built_in = { style = .. size = .. color = .. }` in a file of `interface/openhoi/` and the engine paints it, in one of
+eight styles a mod's `builtin_styles.txt` may change - so the pages to come need no texture and no sprite entry for
+each part. Tried with `--window=openhoi_builtin_sample` and `--click`; not reviewed in play. What was set down for after the
 port - the statistics from a record of the engine's own, the custom sliders and trade AI in the game's own
 screens. Also open: whether old battle reports are gathered or dropped; a way for
 a page to move the map. The two figures Country Modifiers lacked are built since, 2026-11-22: a country's off-map

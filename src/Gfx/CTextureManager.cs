@@ -42,6 +42,10 @@ public sealed class CTextureManager
 	/// </summary>
 	public bool Exists(string gameRelative)
 	{
+		if (OpenHOI3.Content.Gui.CBuiltInSprite.Is(gameRelative))
+		{
+			return true;
+		}
 		return _directories.ResolveTexture(gameRelative) is not null;
 	}
 
@@ -51,6 +55,10 @@ public sealed class CTextureManager
 	/// </summary>
 	public Texture2D? LoadFromGamePath(string gameRelative, string namedIn = "", int line = 0)
 	{
+		if (OpenHOI3.Content.Gui.CBuiltInSprite.FromName(gameRelative) is { } builtIn)
+		{
+			return Painted(gameRelative, builtIn);
+		}
 		string? absolute = _directories.ResolveTexture(gameRelative);
 		if (absolute is null)
 		{
@@ -58,6 +66,25 @@ public sealed class CTextureManager
 			return null;
 		}
 		return LoadFromFile(absolute);
+	}
+
+	/// <summary>The styles a built-in element's picture is painted in: the context's, once its declarations are read.</summary>
+	public OpenHOI3.Content.Gui.CBuiltInStyles BuiltInStyles { get; set; } = new();
+
+	/// <summary>A built-in element's picture, painted once for each name (docs/mechanics/builtin.md, section 4).</summary>
+	private Texture2D? Painted(string name, OpenHOI3.Content.Gui.CBuiltInSprite builtIn)
+	{
+		if (_cache.TryGetValue(name, out Texture2D? cached))
+		{
+			return cached;
+		}
+		OpenHOI3.Content.Gui.CBuiltInStyle style = BuiltInStyles.Find(builtIn.Style)
+			?? BuiltInStyles.Find(OpenHOI3.Content.Gui.CBuiltInStyles.Flat)!;
+		byte[] pixels = OpenHOI3.Content.Gui.CBuiltInPainter.Paint(style, builtIn.Width, builtIn.Height, builtIn.Colour);
+		Texture2D texture = ImageTexture.CreateFromImage(
+			Image.CreateFromData(builtIn.Width, builtIn.Height, false, Image.Format.Rgba8, pixels));
+		_cache[name] = texture;
+		return texture;
 	}
 
 	/// <summary>A texture from a file already found - one of the map's cache, which is not looked for through the layers.</summary>

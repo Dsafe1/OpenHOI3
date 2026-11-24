@@ -2967,6 +2967,20 @@ public partial class CSession : Node
 				// The same with a page open on it, by its file's name: --screen=modwindows:flags.
 				_modWindowsView?.Show(argument["--screen=modwindows:".Length..]);
 			}
+			else if (argument.StartsWith("--window=", System.StringComparison.Ordinal) && _gui is not null && _hud is not null)
+			{
+				// A window the interface files declare, by its name, put up as it is with nothing behind its elements:
+				// for looking at a layout while it is written (builtin.md, section 6).
+				string wanted = argument["--window=".Length..];
+				if (Gui.CGuiWindow.Create(_gui, wanted) is { } shown)
+				{
+					_hud.AddChild(shown);
+				}
+				else
+				{
+					GD.PrintErr($"--window: no window is declared as '{wanted}'");
+				}
+			}
 			else if (argument == "--screen=endgame")
 			{
 				ShowEndGame();

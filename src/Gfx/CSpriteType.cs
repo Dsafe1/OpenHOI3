@@ -89,6 +89,9 @@ public sealed class CSpriteType
 	/// A plain picture, a <c>spriteType</c>: a button drawn with one shows no words of its own, whatever its file or code
 	/// gives it (<c>docs/mechanics/interface.md</c>, section 2).
 	/// </summary>
+	/// <summary>Whether this is the picture of a built-in element, painted and no file's (docs/mechanics/builtin.md).</summary>
+	public bool IsBuiltIn => OpenHOI3.Content.Gui.CBuiltInSprite.Is(Name);
+
 	public bool IsPlain => Kind.Equals("spriteType", StringComparison.OrdinalIgnoreCase);
 
 	/// <summary>

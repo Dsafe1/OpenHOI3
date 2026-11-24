@@ -79,6 +79,16 @@ public sealed class CSpriteTypes
 		{
 			return null;
 		}
-		return _sprites.TryGetValue(name, out CSpriteType? sprite) ? sprite : null;
+		if (_sprites.TryGetValue(name, out CSpriteType? sprite))
+		{
+			return sprite;
+		}
+		// A built-in element's picture is no file's: a plain sprite whose texture is its own name, which the texture
+		// manager paints (docs/mechanics/builtin.md).
+		if (OpenHOI3.Content.Gui.CBuiltInSprite.FromName(name) is not null)
+		{
+			return _sprites[name] = new CSpriteType { Name = name, TextureFile = name };
+		}
+		return null;
 	}
 }

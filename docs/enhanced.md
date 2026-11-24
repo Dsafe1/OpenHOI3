@@ -94,6 +94,10 @@ is `blackice.md`.
   the water is drawn from the provinces' colours, and gives each sea province its terrain's colour as it gives the land
   (`mechanics/mapmodes.md`, section 6). Display only.
 - **BlackICE's working copy holds the file since 2026-11-21**, naming nothing it goes without.
+- **Built-in interface elements, 2026-11-24** (`mechanics/builtin.md`): `built_in = { style = .. size = .. color = .. }`
+  on an icon or a button of `interface/openhoi/` in place of a sprite, painted by the engine in a style of a small
+  library a mod's `interface/openhoi/builtin_styles.txt` may change. What the engine's own new screens are laid out
+  with, and a mod's.
 
 ## BiceLib's features, each one's place
 

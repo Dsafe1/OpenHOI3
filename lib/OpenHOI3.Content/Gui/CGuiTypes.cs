@@ -54,12 +54,12 @@ public sealed class CGuiTypes
 	{
 		"quadtexturesprite", "spritetype", "position", "tooltip", "tooltiptext", "delayedtooltiptext", "buttonfont", "buttontext",
 		"orientation", "shortcut", "clicksound", "parent", "rotation", "size", "scale", "format",
-		"oversound", "upsound", "downsound", "bordersize",
+		"oversound", "upsound", "downsound", "bordersize", CBuiltInSprite.Key,
 	};
 
 	private static readonly string[] IconKeys =
 	{
-		"position", "spritetype", "orientation", "rotation", "frame", "scale", "buttonmesh",
+		"position", "spritetype", "orientation", "rotation", "frame", "scale", "buttonmesh", CBuiltInSprite.Key,
 	};
 
 	private static readonly string[] TextBoxKeys =
@@ -114,10 +114,13 @@ public sealed class CGuiTypes
 	/// <summary>Names declared more than once at the top level. The later declaration is the one kept.</summary>
 	public List<string> Replaced { get; } = new();
 
+	/// <summary>The styles a <c>built_in</c> element may name: the engine's, and the mod's file over them.</summary>
+	public CBuiltInStyles BuiltInStyles { get; private set; } = new();
+
 	public static CGuiTypes Load(CDirectorySettings directories, Action<string>? warn = null)
 	{
 		warn ??= CDiagnostics.Problem;
-		var types = new CGuiTypes();
+		var types = new CGuiTypes { BuiltInStyles = CBuiltInStyles.Load(directories, warn) };
 		// An enhanced game's own declarations after the rest, from a folder of their own (EnhancedDirectory).
 		IEnumerable<string> files = directories.ListFiles(InterfaceDirectory, "*.gui");
 		if (Rules.CRulesReader.IsEnhanced(directories))
@@ -252,7 +255,7 @@ public sealed class CGuiTypes
 					Position = Point(node, "position"),
 					Orientation = Orientation(node),
 					// One field to the original, so the later of the two names stands (FINDINGS-guikeys.md, section 1).
-					Sprite = Later(node, "quadTextureSprite", "spriteType"),
+					Sprite = BuiltIn(node) ?? Later(node, "quadTextureSprite", "spriteType"),
 					Parent = node.GetString("parent"),
 					Text = node.GetString("buttonText"),
 					Font = node.GetString("buttonFont"),
@@ -277,7 +280,7 @@ public sealed class CGuiTypes
 					Position = Point(node, "position"),
 					Orientation = Orientation(node),
 					// buttonMesh is spriteType under another name to the original (FINDINGS-guikeys.md, section 4).
-					Sprite = Later(node, "spriteType", "buttonMesh"),
+					Sprite = BuiltIn(node) ?? Later(node, "spriteType", "buttonMesh"),
 					Frame = node.GetInt("frame"),
 					Scale = node.GetFloat("scale", 1f),
 					Rotation = node.GetFloat("rotation"),
@@ -483,6 +486,15 @@ public sealed class CGuiTypes
 	}
 
 	/// <summary>The later of two keys that are one field to the original, or an empty string.</summary>
+	/// <summary>
+	/// The sprite name of an element's <c>built_in</c> block, which stands before any <c>spriteType</c> beside it, or
+	/// none where it has no such block (<c>docs/mechanics/builtin.md</c>).
+	/// </summary>
+	private string? BuiltIn(ClausewitzNode node)
+	{
+		return node.Get(CBuiltInSprite.Key) is { IsBlock: true } block ? CBuiltInSprite.Read(block, BuiltInStyles, Complain).Name : null;
+	}
+
 	private static string Later(ClausewitzNode node, string first, string second)
 	{
 		string found = "";

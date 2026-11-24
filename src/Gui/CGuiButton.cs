@@ -198,7 +198,8 @@ public partial class CGuiButton : CGuiObject
 	public void SetText(string text)
 	{
 		_captionText = text;
-		if (_sprite is { IsPlain: true } || IsBlank)
+		// A built-in picture is plain and takes its words all the same: it has no text sprite to be (builtin.md, section 2).
+		if (_sprite is { IsPlain: true, IsBuiltIn: false } || IsBlank)
 		{
 			text = "";
 		}
