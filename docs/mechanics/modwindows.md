@@ -102,6 +102,7 @@ place and size, which the library remembers - is the engine's; a page draws what
 | greyed | `BeginDisabled(disabled)`, `EndDisabled` - what stands between is greyed and takes no press where `disabled` is true; ended whatever was given |
 | the item before | `IsItemHovered`, `IsItemActive` - held, or typed into - `IsItemDeactivatedAfterEdit` - let go of this frame, changed: a slider released - `SetTooltip(text)` |
 | a number and a bar | `InputFloat(label, value [, decimals])`, answering `changed, value` - a box with no buttons beside it; `ProgressBar(share [, width, text])` - filled to a share of its width, the text over it |
+| several lines | `PlotMany(id, series [, height])` - every series `{ first = , colour = { r, g, b, a }, values = { } }` in one frame as wide as the room there is: across from the earliest `first` to the latest last step, so that a series beginning later stands where it belongs; up from the least value among them all to the most; each line in its own colour, a pixel and a half thick. Built 2026-11-24 for the Statistics page's "One plot" |
 | a line | `PlotLines(label, values [, width, height, text])` - a line through a list of numbers, one after another at even steps across the width, between the lowest and the highest of them; the library's own, which says the value under the mouse. The list crosses into the engine as one text, a series being longer than a call takes arguments |
 
 **A text is a text**: a percent sign in what a page gives `TextDisabled`, `TextWrapped`, `TextColored` or

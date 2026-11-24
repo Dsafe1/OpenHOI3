@@ -78,6 +78,61 @@ public sealed class CImGuiCanvas : IModWindowCanvas
 			new System.Numerics.Vector2(width > 0f ? width : -1f, height));
 	}
 
+	/// <summary>
+	/// Several lines in one frame, drawn by hand on the window's own drawing list: the frame filled and outlined in the
+	/// look's own colours, each line a pixel and a half thick, two pixels kept clear at the top and the foot.
+	/// </summary>
+	public void PlotMany(string id, IReadOnlyList<CPlotSeries> series, float height)
+	{
+		var size = new System.Numerics.Vector2(System.MathF.Max(1f, ImGui.GetContentRegionAvail().X), System.MathF.Max(1f, height));
+		System.Numerics.Vector2 corner = ImGui.GetCursorScreenPos();
+		// It takes its room as a button nothing presses, so that what follows stands under it.
+		ImGui.InvisibleButton(id, size);
+		ImDrawListPtr list = ImGui.GetWindowDrawList();
+		list.AddRectFilled(corner, corner + size, ImGui.GetColorU32(ImGuiCol.FrameBg));
+		list.AddRect(corner, corner + size, ImGui.GetColorU32(ImGuiCol.Border));
+		int first = int.MaxValue;
+		int last = int.MinValue;
+		float least = float.MaxValue;
+		float most = float.MinValue;
+		foreach (CPlotSeries one in series)
+		{
+			if (one.Values.Count == 0)
+			{
+				continue;
+			}
+			first = System.Math.Min(first, one.First);
+			last = System.Math.Max(last, one.First + one.Values.Count - 1);
+			foreach (float value in one.Values)
+			{
+				least = System.MathF.Min(least, value);
+				most = System.MathF.Max(most, value);
+			}
+		}
+		if (last <= first)
+		{
+			return;
+		}
+		float span = most > least ? most - least : 1f;
+		const float Margin = 2f;
+		foreach (CPlotSeries one in series)
+		{
+			if (one.Values.Count < 2)
+			{
+				continue;
+			}
+			var points = new System.Numerics.Vector2[one.Values.Count];
+			for (int index = 0; index < points.Length; index++)
+			{
+				float across = (float)(one.First + index - first) / (last - first);
+				float up = (one.Values[index] - least) / span;
+				points[index] = new System.Numerics.Vector2(corner.X + across * size.X, corner.Y + size.Y - Margin - up * (size.Y - 2f * Margin));
+			}
+			uint colour = ImGui.GetColorU32(new System.Numerics.Vector4(one.Red, one.Green, one.Blue, one.Alpha));
+			list.AddPolyline(ref points[0], points.Length, colour, ImDrawFlags.None, 1.5f);
+		}
+	}
+
 	/// <summary>The window's own settings, answered and set by the screen that draws it.</summary>
 	public System.Func<string, string>? Setting { get; set; }
 

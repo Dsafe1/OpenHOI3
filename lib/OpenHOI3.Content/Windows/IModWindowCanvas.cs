@@ -67,6 +67,12 @@ public interface IModWindowCanvas
 	/// text over it. A width of nought is the room left, a height of nought a line's.
 	/// </summary>
 	void PlotLines(string label, IReadOnlyList<float> values, float width, float height, string overlay);
+
+	/// <summary>
+	/// Several lines in one frame as wide as the room there is: across, from the earliest first step to the latest
+	/// last; up, from the least value among them to the most. Each line in its own colour.
+	/// </summary>
+	void PlotMany(string id, IReadOnlyList<CPlotSeries> series, float height);
 	void SetTooltip(string text);
 
 	/// <summary>

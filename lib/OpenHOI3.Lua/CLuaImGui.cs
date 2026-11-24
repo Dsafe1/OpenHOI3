@@ -35,7 +35,7 @@ public sealed class CLuaImGui
 		"Text", "TextDisabled", "TextWrapped", "TextColored", "Separator", "SeparatorText", "SameLine", "Spacing", "NewLine",
 		"SetNextItemWidth", "Button", "SmallButton", "Selectable", "Checkbox", "InputText", "InputInt", "InputTextMultiline", "GetContentRegionAvail", "SliderInt", "SliderFloat",
 		"Combo", "CollapsingHeader", "IsItemHovered", "SetTooltip", "BeginTable", "BeginPanes", "TableSetupColumn", "TableHeadersRow",
-		"IsItemActive", "IsItemDeactivatedAfterEdit", "WindowSetting", "SetWindowSetting", "ProgressBar", "PlotLines", "InputFloat", "IsWindowFocused", "IsKeyPressed", "SetScrollHereY", "SetClipboardText", "ImageSize", "Image",
+		"IsItemActive", "IsItemDeactivatedAfterEdit", "WindowSetting", "SetWindowSetting", "ProgressBar", "PlotLines", "PlotMany", "InputFloat", "IsWindowFocused", "IsKeyPressed", "SetScrollHereY", "SetClipboardText", "ImageSize", "Image",
 		"TableNextRow", "TableNextColumn", "EndTable", "BeginTabBar", "EndTabBar", "BeginTabItem", "EndTabItem",
 		"BeginChild", "EndChild", "TreeNode", "TreePop", "PushID", "PopID", "BeginDisabled", "EndDisabled",
 	};
@@ -91,6 +91,7 @@ public sealed class CLuaImGui
 			["WindowSetting"] = call => call.Return(Canvas?.WindowSetting(call.String(1)) ?? ""),
 			["SetWindowSetting"] = call => Do(call, canvas => canvas.SetWindowSetting(call.String(1), call.String(2))),
 			["PlotLines"] = PlotLines,
+			["PlotMany"] = PlotMany,
 			["SetTooltip"] = call => Do(call, canvas => canvas.SetTooltip(call.String(1))),
 			["BeginTable"] = call => Begin(call, EScope.Table, canvas => canvas.BeginTable(call.String(1), call.Integer(2), false)),
 			// Columns side by side with a divider to drag; ended by EndTable, as a table is.
@@ -154,6 +155,12 @@ public sealed class CLuaImGui
 		// The values cross as one text: a series may be longer than a call takes arguments.
 		glue.Append("local plot = OpenHOI3.ImGui.PlotLines OpenHOI3.ImGui.PlotLines = function(label, values, width, height, overlay) "
 			+ "return plot(label, table.concat(values or {}, ' '), width or 0, height or 0, overlay or '') end ");
+		// Several lines in one frame: each crosses as one text - its first step, its colour's four parts, its values.
+		glue.Append("local many = OpenHOI3.ImGui.PlotMany OpenHOI3.ImGui.PlotMany = function(id, series, height) "
+			+ "local texts = {} for index, one in ipairs(series or {}) do local colour = one.colour or {} "
+			+ "texts[index] = (tonumber(one.first) or 0) .. ' ' .. (colour[1] or 1) .. ' ' .. (colour[2] or 1) .. ' ' .. (colour[3] or 1) "
+			+ ".. ' ' .. (colour[4] or 1) .. ' ' .. table.concat(one.values or {}, ' ') end "
+			+ "return many(id, height or 0, unpack(texts)) end ");
 		glue.Append("local combo = OpenHOI3.ImGui.Combo OpenHOI3.ImGui.Combo = function(label, index, items) "
 			+ "return combo(label, index, unpack(items or {})) end");
 		lua.Run(Encoding.Latin1.GetBytes(glue.ToString()), "=OpenHOI3");
@@ -313,6 +320,33 @@ public sealed class CLuaImGui
 			}
 			canvas.PlotLines(call.String(1), values, (float)call.Number(3), (float)call.Number(4), call.String(5));
 		}
+		return 0;
+	}
+
+	/// <summary><c>PlotMany(id, series [, height])</c>: every series <c>{ first = , colour = { r, g, b, a }, values = { } }</c>.</summary>
+	private int PlotMany(CLuaCall call)
+	{
+		if (Canvas is not { } canvas)
+		{
+			return 0;
+		}
+		var series = new List<CPlotSeries>();
+		for (int argument = 3; argument <= call.ArgumentCount; argument++)
+		{
+			var numbers = new List<float>();
+			foreach (string part in call.String(argument).Split(' ', StringSplitOptions.RemoveEmptyEntries))
+			{
+				if (float.TryParse(part, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float value))
+				{
+					numbers.Add(value);
+				}
+			}
+			if (numbers.Count > 5)
+			{
+				series.Add(new CPlotSeries((int)numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers.GetRange(5, numbers.Count - 5)));
+			}
+		}
+		canvas.PlotMany(call.String(1), series, (float)call.Number(2));
 		return 0;
 	}
 

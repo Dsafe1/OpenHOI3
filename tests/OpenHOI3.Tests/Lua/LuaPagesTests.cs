@@ -612,6 +612,24 @@ public sealed class LuaPagesTests : IDisposable
 	}
 
 	[Fact]
+	public void APageDrawsSeveralSeriesIntoOneFrameEachWithItsFirstStepAndColour()
+	{
+		Page("plots", "local ImGui = OpenHOI3.ImGui return { Draw = function() "
+			+ "ImGui.PlotMany('##all', { { first = 10, colour = { 1, 0, 0, 1 }, values = { 1, 2, 3 } }, "
+			+ "{ first = 12, values = { 7, 8 } }, { first = 1, values = {} } }, 260) "
+			+ "ImGui.PlotMany('##none', {}) end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			var canvas = new CRecordingCanvas();
+			windows.Draw(windows.Pages[0], Ger, canvas);
+			// A series with no colour is white; one with no values is left out.
+			Assert.Equal(new[] { "PlotMany ##all 260 10:1/0/0/1:1,2,3 | 12:1/1/1/1:7,8", "PlotMany ##none 0 " }, canvas.Calls);
+			Assert.Empty(_reports);
+		}
+	}
+
+	[Fact]
 	public void APageReadsTheStatisticsRecordAndAsksForItWrittenOut()
 	{
 		Page("stats", "local ImGui = OpenHOI3.ImGui return { "

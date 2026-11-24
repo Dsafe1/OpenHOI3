@@ -131,12 +131,15 @@ value - whole where it is whole, else to the places it has. Only when asked: not
 
 ## 9. BlackICE's page
 
-`script/openhoi/windows/stats/statistics.lua`: the countries and the statistics to tick, Plot, Clear and Export. Its
+`script/openhoi/windows/stats/statistics.lua`: the countries and the statistics to tick, each list under a filter that only hides rows - a country ticked stays
+ticked out of sight - Plot, Clear and Export, and **One plot**, which draws every series read into one frame
+(`OpenHOI3.ImGui.PlotMany`, `modwindows.md`) with a line of the legend each, in place of a frame a series. Its
 Setup page is gone - the rule is the lobby's and every country is kept - and the mod's own collector does nothing on
 this engine.
 
 Tried on 2026-11-24: ten days played, the page showing 80 countries and 73 statistics; the lobby's window shown and
-its tick turned with `--click`. **Not reviewed in play**: a plot drawn, the export, and a game saved and loaded on
+its tick turned with `--click`. The one frame was looked at with three series of that game through a page made for the look and taken away again.
+**Not reviewed in play**: the page's own plots, its filters, the export, and a game saved and loaded on
 screen - the last is under test.
 
 `OpenHOI3.SaveCheck headless <install> <until> statistics` keeps the record in a game nobody plays and says how large
