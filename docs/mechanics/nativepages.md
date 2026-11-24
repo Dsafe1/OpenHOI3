@@ -91,7 +91,7 @@ Anything a `.gui` file may hold. With **built-in elements** (`builtin.md`) it ne
 ground, a `header`, `row`s, `button`s, and a `field` under each `editBoxType`. A tick with no sprite sheet of its
 own is a `field` button whose words the page sets to `X` - BlackICE's `script/openhoi/nativeform.lua` does it so.
 
-## 6. BlackICE's two
+## 6. BlackICE's three
 
 `script/openhoi/windows/country_info/prodsliders.lua` and `lssliders.lua`, over `interface/openhoi/sliders.gui`:
 **Prod. Sliders AI** behind a button on the production screen and **LS Sliders AI** behind one on the technology
@@ -101,3 +101,8 @@ the production queue's own, a step at a time between one and the number of categ
 number taking the one left - so no two share one - where the mod's own window had a box to type it into; asked for
 on 2026-11-24. Tried with `--click` on 2026-11-24: opened from their
 buttons, a box typed into, a tick and a mode turned, Apply answered "Applied". Not reviewed in play.
+
+**Trade AI** is the third, since the same day: `tradeai.lua` over `interface/openhoi/tradeai.gui`, behind a button
+in the production screen's top strip - the largest daily deficit, and for each resource its daily surplus and, but
+for money, the stockpile it sells above and the one it stops buying above. Tried with `--click`: opened from its
+button, Apply answered "Applied". With it none of the mod's three AI settings pages is in its own windows' menu.
