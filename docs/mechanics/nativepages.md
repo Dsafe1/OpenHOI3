@@ -103,6 +103,6 @@ on 2026-11-24. Tried with `--click` on 2026-11-24: opened from their
 buttons, a box typed into, a tick and a mode turned, Apply answered "Applied". Not reviewed in play.
 
 **Trade AI** is the third, since the same day: `tradeai.lua` over `interface/openhoi/tradeai.gui`, behind a button
-in the production screen's top strip - the largest daily deficit, and for each resource its daily surplus and, but
+under the sliders' one on the production screen, the two together in the middle of the gap between that screen's pairs of buttons - the largest daily deficit, and for each resource its daily surplus and, but
 for money, the stockpile it sells above and the one it stops buying above. Tried with `--click`: opened from its
 button, Apply answered "Applied". With it none of the mod's three AI settings pages is in its own windows' menu.
