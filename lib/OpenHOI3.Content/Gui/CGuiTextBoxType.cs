@@ -33,9 +33,10 @@ public sealed class CGuiTextBoxType : CGuiType
 	public bool IsEdit { get; init; }
 
 	/// <summary>
-	/// An edit box of an enhanced game's that says <c>built_in_caret = yes</c>: its caret is a line the engine draws at
-	/// the end of what is typed, as tall as the text's line, where the original's is the <c>cursor</c> picture - made
-	/// for its own tall boxes, and off its place in a low one (<c>docs/mechanics/builtin.md</c>, section 7).
+	/// An edit box declared in a file of <c>interface/openhoi</c>, an enhanced game's own folder: its caret is a line
+	/// the engine draws at the end of what is typed, as tall as the text's line, where the original's is the
+	/// <c>cursor</c> picture - made for its own tall boxes, and off its place in a low one
+	/// (<c>docs/mechanics/builtin.md</c>, section 7).
 	/// </summary>
 	public bool BuiltInCaret { get; init; }
 }

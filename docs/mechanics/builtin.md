@@ -111,8 +111,11 @@ looking at a layout while it is written. BlackICE's `interface/openhoi/builtin_s
 
 ## 7. An edit box's caret
 
-`built_in_caret = yes` on an `editBoxType`: the caret is **a line the engine draws**, one pixel wide, a pixel after
-what stands before it and as tall as the text's line less a pixel at each end. Without it the caret is the game's
+**Every `editBoxType` declared in a file of `interface/openhoi/` has a caret the engine draws**: a line one pixel
+wide, a pixel after what stands before it and as tall as the text's line less a pixel at each end. No key asks for
+it - it was `built_in_caret = yes` for an hour on 2026-11-24, and the user's question, "In what situation would you
+not set it?", had one answer: in the original's own windows, which are not in that folder. Everywhere else the
+caret is the game's
 `cursor` picture (`interface.md`, section 8), which is drawn for the original's boxes - 32 high, their text four
 below their border - and in a low box stands some four pixels under its text and as many to its right. Asked for
 by the user on 2026-11-24, of a 20 pixel field: "The text cursor is misaligned to the text box."

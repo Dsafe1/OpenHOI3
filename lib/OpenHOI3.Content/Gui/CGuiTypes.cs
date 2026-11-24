@@ -70,7 +70,7 @@ public sealed class CGuiTypes
 
 	private static readonly string[] EditBoxKeys =
 	{
-		"position", "font", "size", "text", "orientation", "bordersize", "texturefile", "cursor", "built_in_caret",
+		"position", "font", "size", "text", "orientation", "bordersize", "texturefile", "cursor",
 	};
 
 	private static readonly string[] PositionKeys = { "position" };
@@ -146,10 +146,11 @@ public sealed class CGuiTypes
 	}
 
 	/// <summary>Reads one parsed file. For tests, which have no folder to list.</summary>
-	public static CGuiTypes Parse(string text, Action<string>? warn = null)
+	/// <param name="file">The name the text is read under, as a file's path would be.</param>
+	public static CGuiTypes Parse(string text, Action<string>? warn = null, string file = "text")
 	{
 		var types = new CGuiTypes();
-		types.AddFile(ClausewitzParser.Parse(text), "text");
+		types.AddFile(ClausewitzParser.Parse(text), file);
 		types.Report(warn ?? CDiagnostics.Problem);
 		return types;
 	}
@@ -173,6 +174,12 @@ public sealed class CGuiTypes
 	public CGuiScrollbarType? FindScrollbar(string name)
 	{
 		return Find(name) as CGuiScrollbarType;
+	}
+
+	/// <summary>Whether a file is one of <see cref="EnhancedDirectory"/>, by its path with either slash and in any case.</summary>
+	public static bool IsEnhancedFile(string file)
+	{
+		return ("/" + file.Replace('\\', '/')).Contains("/" + EnhancedDirectory + "/", StringComparison.OrdinalIgnoreCase);
 	}
 
 	private void AddFile(ClausewitzNode root, string file)
@@ -339,7 +346,8 @@ public sealed class CGuiTypes
 					TextureFile = node.GetString("textureFile"),
 					Format = EGuiTextFormat.Left,
 					IsEdit = true,
-					BuiltInCaret = node.GetBool("built_in_caret"),
+					// Ours where the file is one of an enhanced game's own folder, the original's everywhere else.
+					BuiltInCaret = IsEnhancedFile(_file),
 				};
 
 			case "positiontype":

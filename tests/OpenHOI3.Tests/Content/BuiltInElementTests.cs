@@ -69,16 +69,16 @@ public class BuiltInElementTests
 	}
 
 	[Fact]
-	public void AnEditBoxMayAskForTheCaretTheEngineDraws()
+	public void AnEditBoxOfTheEnhancedFolderHasTheCaretTheEngineDrawsAndAnyOtherTheGames()
 	{
-		var problems = new List<string>();
-		CGuiTypes types = Read(
-			"editBoxType = { name = \"own\" size = { x = 64 y = 20 } built_in_caret = yes } "
-			+ "editBoxType = { name = \"games\" size = { x = 64 y = 20 } }", problems);
+		const string Box = "guiTypes = { windowType = { name = \"w\" editBoxType = { name = \"box\" size = { x = 64 y = 20 } } } }";
+		static bool Drawn(string file) => ((CGuiWindowType)CGuiTypes.Parse(Box, _ => { }, file).Find("w")!)
+			.Children.OfType<CGuiTextBoxType>().Single().BuiltInCaret;
 
-		var window = (CGuiWindowType)types.Find("w")!;
-		Assert.Equal(new[] { true, false }, window.Children.OfType<CGuiTextBoxType>().Select(box => box.BuiltInCaret));
-		Assert.Empty(problems);
+		Assert.True(Drawn(@"C:\Game\tfh\mod\Mod\interface\openhoi\sliders.gui"));
+		Assert.True(Drawn("Interface/OpenHOI/sliders.gui"));
+		Assert.False(Drawn(@"C:\Game\tfh\interface\frontend.gui"));
+		Assert.False(Drawn("interface/openhoi_sliders.gui"));
 	}
 
 	[Fact]
