@@ -127,8 +127,9 @@ no table of the original's has any of the three, so each shows as its key.
   (`savegame.md`, section 11.1) show the same notice. Hours a script or `--days` runs with no frame between them
   write a held autosave at once, unshown.
 - **`SCREENSHOT_TAKEN`** [exe] for 15 frames from the frame a screenshot is taken, and **`MAP_SAVED`** [exe] for 15
-  from the frame the map is saved - by frames, so how long hangs on the frame rate. **Neither is built**: there is
-  no screenshot key here and no saving of the map.
+  from the frame the map is saved - by frames, so how long hangs on the frame rate. **Built 2026-11-25** with the
+  two keys that raise them, F11 and F12 (`screenshots.md`; `CPictureKeys`, `CNoticeFrames`), each a notice of its
+  own, so two at once lie over each other as the original's do.
 
 **Checked** by `LoadingScreenTests` - the holding - and looked at once on 2026-11-25, BlackICE run by `--click` to 30
 January 1936, the day of its pre-month autosave: the file written, and `AUTOSAVING` white in the middle of the

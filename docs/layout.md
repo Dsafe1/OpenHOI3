@@ -12,6 +12,7 @@ src/Debug/              ours: the debug menu of developer switches, on Shift and
 src/Multiplayer/        this machine's part in a game between machines: a host's or a client's connections,
                         kept across the sessions of it
 src/Loading/            the loading screen, and the steps of the front end's and a game's making it runs
+src/Screenshots/        F11 and F12, the screen's picture and the whole map's
 src/Audio/              the music and the sound effects, one player of each for the whole run
 src/FrontEnd/           the main menu and the lobby, with the world they offer, and the game Play
                         hands to a session
@@ -181,6 +182,7 @@ lib/OpenHOI3.Interface/ what the screens show, with no engine: sliders and place
     Music/              which song plays next, and how loud
     Sound/              how loud a sound effect plays, and which a button, a unit and a battle play
     Loading/            the loading screen's pictures and where its parts stand
+    Screenshots/        the two pictures a game saves: the map's colours, the names, the frames between and the file
 lib/OpenHOI3.Lua/       the install's Lua, run on the simulation: the state the original
                         makes, its searcher and autoexec, and what the game asks it
     Native/             the interpreter's C API, the trampoline, a state, a call, a class

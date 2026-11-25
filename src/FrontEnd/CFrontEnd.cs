@@ -310,6 +310,10 @@ public partial class CFrontEnd : Node
 		var tooltips = new CTooltips();
 		tooltips.Setup(_gui);
 		AddChild(tooltips);
+		// F11, the original front end's screenshot (docs/mechanics/screenshots.md); the map's picture is a game's.
+		var pictureKeys = new Screenshots.CPictureKeys { Name = "PictureKeys" };
+		pictureKeys.Setup(_directories, Localise);
+		AddChild(pictureKeys);
 		_brightness = new Gfx.CBrightnessLayer();
 		AddChild(_brightness);
 		_brightness.SetBrightness(CGameOptions.Brightness(Settings.Gamma));

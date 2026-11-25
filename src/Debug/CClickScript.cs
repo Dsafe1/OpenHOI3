@@ -117,10 +117,13 @@ public sealed class CClickScript
 			// esc the same with Escape, which opens the in-game menu.
 			bool withCtrl = entry.Length == 3 && entry[0] == 'c';
 			string keyEntry = withCtrl ? entry[1..] : entry;
-			if (entry == "esc" || keyEntry.Length == 2 && keyEntry[0] is 'k' or 'K' && char.IsLetterOrDigit(keyEntry[1]))
+			// f11 and f12 the same with those keys, the two pictures' - and F12 with Shift held, the players' map.
+			bool pictureKey = entry is "f11" or "f12" or "F12";
+			if (entry == "esc" || pictureKey || keyEntry.Length == 2 && keyEntry[0] is 'k' or 'K' && char.IsLetterOrDigit(keyEntry[1]))
 			{
-				Key key = entry == "esc" ? Key.Escape : (Key)char.ToUpperInvariant(keyEntry[1]);
-				bool shifted = keyEntry[0] == 'K';
+				Key key = entry == "esc" ? Key.Escape : entry == "f11" ? Key.F11 : pictureKey ? Key.F12
+					: (Key)char.ToUpperInvariant(keyEntry[1]);
+				bool shifted = keyEntry[0] == 'K' || entry == "F12";
 				await Frames(2);
 				_host.GetViewport().PushInput(new InputEventKey
 				{

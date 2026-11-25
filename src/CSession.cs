@@ -290,6 +290,13 @@ public partial class CSession : Node
 			Settings.RenderTrees || UserArguments().Contains("--trees"), Surfaces, _quadTiles);
 		AddChild(_mapView);
 
+		// F11 and F12, the original's two pictures (docs/mechanics/screenshots.md).
+		var pictureKeys = new Screenshots.CPictureKeys { Name = "PictureKeys" };
+		pictureKeys.Setup(_directories, _localisation.Localise, () => GameBusy, playersOnly => new Screenshots.CMapShot(
+			Interface.Screenshots.CScreenshotNames.MapStem(Player?.Tag.Value ?? "---", Net is not null, State.Date, State.Hour),
+			Map.Width, Map.Height, Interface.Screenshots.CMapPicture.Make(State, Map, playersOnly)));
+		AddChild(pictureKeys);
+
 		BuildHud(gui);
 		// The readout is of the province selected, not of the one under the mouse: it is
 		// long, and following the mouse it jumped about.

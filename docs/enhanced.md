@@ -555,6 +555,8 @@ What the enhanced engine's own save would have to hold, and what its load would 
 
 All of these are risk-free but for what the entry says.
 
+- **F12's picture of the map shows every province's true controller**, whatever the player knows and with the fog of war on, in a game between machines too - and with Shift every player's land. `screenshots.md`, 3. *Oversight.* Not risk-free between machines: a switch would be the host's.
+- **The two pictures' notices and the wait between two pictures are counted in frames**, fifteen and ten, so both hang on the frame rate. `screenshots.md`, 1. *Oversight.*
 - **A message's text on the map lives by frames, not time**: its time grows by the game's speed and one each drawn frame, paused or not, so it is shorter on a faster machine. `messages.md`, 6. *Oversight.*
 - **A bombing's end has no short account of its damage.** `DAMAGE_SHORT` is given the whole text `DAMAGE` has; the original makes a one-line copy for it and hands over the long one. `messages.md`, 9.2. *Bug.*
 - **A land battle's message says nothing of exhaustion.** `OUREXHAUSTION` and `ENEMYEXHAUSTION` are one constant text, a nought, whatever happened. `messages.md`, 9.1. *Dead rule.*

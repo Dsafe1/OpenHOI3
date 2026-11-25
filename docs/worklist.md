@@ -2218,14 +2218,12 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   tried by two processes and by `--click` in the lobby; a lobby between two machines with the rule turned there,
   its tooltip, and a game of differing files run to a midnight wait. In a game that runs, nothing in the chat says
   that a player was let in with other files - the host's log alone does.
-- **Two of the three notices over a game are not built** (2026-11-25, `loadingscreen.md`, section 6): `AUTOSAVING`
-  is; `SCREENSHOT_TAKEN` and `MAP_SAVED`, 15 frames each in the original, wait for a screenshot key and a saving of
-  the map, neither of which is here. `AUTOSAVING` itself is not reviewed in play.
-- **The original's two screenshots are not built, and neither is read** (2026-11-25): the ordinary screenshot, whose
-  notice is `SCREENSHOT_TAKEN`, and **the picture of the whole map** - by the user's account that day a key, F12 he
-  thinks, that saves a bitmap of the whole world in the political map mode, provinces by who controls them; `MAP_SAVED`
-  is very likely its notice, raised from the in-game screen's key handling. To read in the fact base before it is
-  built: the keys, what the picture is coloured by, its size and its file's name and folder.
+- **The notice `AUTOSAVING` is not reviewed in play** (2026-11-25, `loadingscreen.md`, section 6).
+- **The two picture keys, F11 and F12, are built and not reviewed in play** (2026-11-25, `screenshots.md`): the
+  screen as `Screenshots/HoI3_<n>.bmp` and the whole map by controller as `Screenshots/HoI3_MAP_<tag>_<date>_<n>.bmp`,
+  with Shift the players' land alone, each with its fifteen frames of notice. Read whole and tried with `--click`;
+  not set beside a picture the original saved, where a colour's part may be one off, and the original's row padding
+  and how it makes a colour's floats from the file were not read.
 - **The order of `slider_locks` and `mobilize` in a played country's block** (2026-11-21, `savegame.md`, section 15): the
   original writes them both ways - `slider_locks` first in `Germany1936_03_31_19` and `_09_02_21`, `mobilize` first in
   `Multiplayer_Germany1941_07_05_10` and `Multiplayer_Italy1936_01_04_21` - and ours writes `mobilize` first. What chooses

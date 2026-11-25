@@ -386,4 +386,4 @@ not read); and where the boxes' text stands across is the runtime's rule for a b
 ## Not built
 
 The tutorial list, the victory conditions window, the end-of-game screen, the title
-theme, F11's screenshot.
+theme. F11's screenshot is built since 2026-11-25 (`screenshots.md`).
