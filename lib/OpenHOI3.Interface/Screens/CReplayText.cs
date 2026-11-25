@@ -19,7 +19,8 @@ public static class CReplayText
 	public const string Watch = "Watch replay";
 
 	public const string WatchTip = "Plays back the game that led to this save, from its start, through every save and "
-		+ "load made on the way. You look on: nothing you press changes the game. It is made of $COUNT$ recordings.";
+		+ "load made on the way. You look on: nothing you press changes the game. Choose a country on the map first to look "
+		+ "on through it. It is made of $COUNT$ recordings.";
 
 	public const string OtherEngine = "This save's game was recorded with another engine or other rules ($MADE$) than "
 		+ "this one ($NOW$). It may not play back as it was played: where the game goes another way the replay stops.";

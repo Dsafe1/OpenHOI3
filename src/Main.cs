@@ -399,7 +399,7 @@ public partial class Main : Control
 		_frontEndShown = true;
 		frontEnd.PlayRequested += chosen => Guarded(Play(chosen));
 		frontEnd.MadeWith = MadeWith;
-		frontEnd.ReplayRequested += path => Guarded(WatchReplay(path));
+		frontEnd.ReplayRequested += (path, look) => Guarded(WatchReplay(path, look));
 		frontEnd.JoinRequested += (player, address) => Guarded(JoinFromMenu(frontEnd, player, address));
 		frontEnd.JoinCancelled += () =>
 		{
@@ -493,8 +493,9 @@ public partial class Main : Control
 	}
 
 	/// <summary>The lobby's Watch replay: the game that led to the save played back in the front end's place.</summary>
-	private async Task WatchReplay(string savePath)
+	private async Task WatchReplay(string savePath, CCountryTag? look)
 	{
+		_replayLook = look;
 		if (_frontEnd is not { } frontEnd)
 		{
 			return;
@@ -611,6 +612,9 @@ public partial class Main : Control
 	/// <summary>Whether the developer switches started the game, and whether the session made next runs them again.</summary>
 	private bool _switchedStart;
 	private bool _runSwitchesAgain;
+
+	/// <summary>The country a playback is looked on through, chosen in the lobby; null for the one that played (docs/replay.md, section 15).</summary>
+	private CCountryTag? _replayLook;
 
 	/// <summary>Whether the developer switches asked for the playback, and not the lobby's button.</summary>
 	private bool _replaySwitched;
@@ -854,6 +858,8 @@ public partial class Main : Control
 		// --replay= with a save: the game that led to it, played back through its saves and loads.
 		if (CSession.Argument("--replay=") is { } saved && saved.EndsWith(Content.Saves.CSaveFiles.Extension, System.StringComparison.OrdinalIgnoreCase))
 		{
+			// --country= with it: the country looked through.
+			_replayLook = CSession.PlayerArgument() is { } looked ? new CCountryTag(looked) : null;
 			if (!await PlaySaveRecording(screen, saved))
 			{
 				screen.QueueFree();
@@ -1104,6 +1110,7 @@ public partial class Main : Control
 		{
 			Name = "Session", Music = _music, PlaysClicks = switched, Surfaces = _surfaces, Net = _net,
 			SwitchesAgain = switched && _replayChain is not null && _replayAt > 0 || switchesAgain,
+			LookThrough = _replayChain is not null ? _replayLook : null,
 		};
 		session.Setup(_directories, game, carried, replayFile);
 		session.Resigned += () =>
@@ -1112,6 +1119,7 @@ public partial class Main : Control
 			_startSettings = session.Settings;
 			// A playback left is over: the next game is nobody's recording.
 			_replayChain = null;
+			_replayLook = null;
 			_music.LeaveGame();
 			// A game between machines is left with it: a host's leaving ends it for every machine.
 			LeaveNet();

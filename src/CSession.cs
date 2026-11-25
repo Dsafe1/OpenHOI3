@@ -237,6 +237,7 @@ public partial class CSession : Node
 		// Between several machines the game's played countries are every player's, and this machine's is the one the host
 		// gave it (docs/multiplayer.md, section 6).
 		Player = Net?.Country is { } given ? State.Country(given)
+			: LookThrough is { } look && State.Replay is { IsReplaying: true } && State.Country(look) is { } seen ? seen
 			: State.Played.Count > 0 ? State.Country(State.Played.First()) : null;
 		_enteredAs = _carried is { } carried ? carried.EnteredAs : Player?.Tag;
 		_mapCache = prepared.Cache;
@@ -351,6 +352,13 @@ public partial class CSession : Node
 	/// recording, whose days the switches ask for (docs/replay.md, section 10).
 	/// </summary>
 	public bool SwitchesAgain { get; init; }
+
+	/// <summary>
+	/// In a playback: the country whose screens and knowledge are shown, where it is another than the one that played.
+	/// The game's played countries stay the recording's - who plays changes how the game goes - and only the looker-on's
+	/// country is this one (docs/replay.md, section 15).
+	/// </summary>
+	public CCountryTag? LookThrough { get; init; }
 
 	/// <summary>
 	/// This machine's part in a game between several machines, which the boot scene keeps across the sessions of it; null

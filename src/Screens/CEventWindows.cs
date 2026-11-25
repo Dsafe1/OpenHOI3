@@ -56,7 +56,9 @@ public sealed partial class CEventWindows : Control
 	/// </summary>
 	private void Answered(OpenHOI3.Sim.Script.CEvent answered, OpenHOI3.Sim.Script.CEventScope scope, int option)
 	{
-		if (_simulation.TakesCommands || scope.Country != _player.Tag || answered.Options.Count == 0)
+		// Only a country a person played: the AI answers its own at once, and there are a great many.
+		if (_simulation.TakesCommands || scope.Country != _player.Tag || answered.Options.Count == 0
+			|| !_simulation.State.Played.Contains(_player.Tag))
 		{
 			return;
 		}

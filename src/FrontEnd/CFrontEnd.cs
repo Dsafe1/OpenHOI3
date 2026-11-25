@@ -571,13 +571,14 @@ public partial class CFrontEnd : Node
 	public Content.Replays.CReplayProbe? LoadedReplay { get; private set; }
 
 	/// <summary>The lobby's Watch replay: the game that led to that save is to be played back.</summary>
-	public event Action<string>? ReplayRequested;
+	public event Action<string, CCountryTag?>? ReplayRequested;
 
 	public void WatchReplay()
 	{
 		if (LoadedSavePath is { } path && LoadedReplay is not null)
 		{
-			ReplayRequested?.Invoke(path);
+			// Looked on through the country chosen on the lobby's map; with none chosen, through the one that played.
+			ReplayRequested?.Invoke(path, _lobby?.Chosen);
 		}
 	}
 

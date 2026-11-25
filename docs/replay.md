@@ -406,8 +406,8 @@ fits. *Not built*: any test of the mod's files, which a recording hangs on as mu
 
 ### 10.5 Not built
 
-- **A country to look through** other than the one that played (section 6's second piece), and a list of replays
-  apart from the list of saves (section 11).
+- **A country to look through chosen while a playback runs** (section 15 has the lobby's choice), and a list of
+  replays apart from the list of saves (section 11).
 - ~~A game between machines~~ - the host's is recorded since the same day (section 14).
 - **Moving through a recording**: a playback runs every hour from the start. A start kept at each crossing, or at
   intervals, would let one begin late.
@@ -541,6 +541,33 @@ for entry, and its save marks it.
 host's lobby and played on; a machine parted and sent the game again; a playback of such a game watched in the
 client, where the looker-on's country is the host's by the order the countries were taken up in; and a client's own
 recording, of which there is none - a player who was not the host has no replay.
+
+## 15. Looking on through another country
+
+Built 2026-11-25, the lobby's half of it: "do the lobby and after we think about how the in replay switch can be
+shown to the player".
+
+**Who plays is the game's, and who looks is the screen's.** A played country's ministers do not run, its events wait
+and its idle fleets start no battle, so a playback cannot make another country the one played: it would part at once.
+The game's played countries stay the recording's, and only the session's own country - whose screens, top bar, units
+and knowledge of the map are shown - is another (`CSession.LookThrough`), as between machines each machine's is its
+own while the game holds them all.
+
+- **In the lobby**, with a recorded save loaded: the country chosen on the map is the one looked through when Watch
+  replay is pressed; with none chosen, the one that played (`CFrontEnd.WatchReplay`, `Main._replayLook`). It is kept
+  across the loads a playback makes. By switch, `--country=` beside `--replay=<save>`.
+- **Everything is that country's**: its figures and screens, its units' panels, what it knows of each province and
+  the fog of war by it. Nothing can be pressed, as in any playback.
+- **No event window** comes up for a country nobody played (section 12): the AI answers its own at once, and there
+  are a great many. The message log is that country's.
+
+**Checked** on 2026-11-25: section 10.4's `two.hoi3` played back with `--country=ENG` and `--hash` - **11 of 11
+midnights those of the game played** as Germany, across its load, so looking on changes nothing; the screen at its
+end the United Kingdom's, flag, figures, outliner and map. **Not tried**: the choice made in the lobby by a click, a
+country that does not exist at the campaign's start, and a country's screens opened while looking on.
+
+**Not built**: changing the country while a playback runs - every screen made again around the same game, as the
+console's `tag` makes them (`mechanics/console.md`, section 3) - and how that is offered.
 
 ## Not established
 
