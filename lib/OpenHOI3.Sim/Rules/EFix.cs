@@ -50,4 +50,11 @@ public enum EFix
 	/// only 11, 12 and 13 (<c>docs/mechanics/builders.md</c>, section 8). Changes the names of units made.
 	/// </summary>
 	UnitOrdinals,
+
+	/// <summary>
+	/// With several air units selected the orders window offers the missions every one of them may fly, as it does
+	/// for several fleets; the original offers the first unit's and gives them to all
+	/// (<c>docs/mechanics/selection.md</c>, section 6). Changes which orders a player can give at once.
+	/// </summary>
+	AirOrdersForAll,
 }

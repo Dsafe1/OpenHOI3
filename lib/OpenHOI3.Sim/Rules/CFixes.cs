@@ -20,6 +20,7 @@ public static class CFixes
 		(EFix.TooltipsOnScreen, "tooltips_on_screen"),
 		(EFix.ShownFigures, "shown_figures"),
 		(EFix.UnitOrdinals, "unit_ordinals"),
+		(EFix.AirOrdersForAll, "air_orders_for_all"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

@@ -151,8 +151,11 @@ Begun 2026-11-21; as of 2026-11-25.
   - `unit_ordinals`: a new unit's number takes the ending of its last two digits, 111th and not 111st. Changes the
     names of units made, and so what a save holds.
   **Kept as the original's, by the same word**: a port or an airfield under a counter cannot be clicked, and the
-  zoom, the wheel and the timed texts go by the frame. *Open*: a right click with several fleets or air units,
-  which waits on which missions are offered - those every unit can fly, or those any can.
+  zoom, the wheel and the timed texts go by the frame. **And `air_orders_for_all`**, by the user's choice of the same day between the
+  missions every unit can fly and those any can - "only the missions every selected unit can do": with several air
+  units selected the orders window greys a mission any of them may not fly, as it has always done for several
+  fleets, where the original offers the first unit's and hands them to all. The click itself still brings the
+  window up, as for one unit.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -665,7 +668,7 @@ All of these are risk-free but for what the entry says.
 - **The victory alert names only the last faction.** `endgame.md`, 6. *Bug.*
 - **Closing the menu leaves the game paused** after opening any of its windows. **Mended by the fix `menu_resumes`, 2026-11-25.** `ingamemenu.md`, 2. *Bug.*
 - **Message settings half-work.** A click on a name does nothing, no tab starts ticked, and Reset leaves the rows. `ingamemenu.md`, 4. *Oversight.*
-- **A right click with several fleets or air units moves nobody.** `selection.md`, 8. *Oversight.*
+- **A right click with several fleets or air units moves nobody.** **The window it brings up offers several air units what every one may fly, by the fix `air_orders_for_all`, 2026-11-25; fleets were so already. The click still asks and moves nobody, as for one unit.** `selection.md`, 8. *Oversight.*
 - **Attrition is shown a hundred times too small,** and a terrain's own is left out. **The hundredfold mended by the fix `shown_figures`, 2026-11-25; a terrain's own attrition is still left out, and a technology's effects still write it without.** `builders.md`; `brigadecard.md`, 6. *Display.*
 - **The positioning penalty lacks its hundredfold.** **Mended by the fix `shown_figures`, 2026-11-25.** `reorganise.md`, 7. *Display.*
 - **Tooltips can leave the screen** at the left or top. **Mended by the fix `tooltips_on_screen`, 2026-11-25.** `tooltips.md`, oddity 2. *Oversight.*

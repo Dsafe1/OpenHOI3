@@ -100,12 +100,14 @@ public static class COrdersText
 	/// <summary>
 	/// The rows for the first of several selected fleets or land units, each greyed where any of the others may not take
 	/// it - one whose own list has no such row, or has it greyed (<c>selection.md</c>, section 6; <c>landorders.md</c>,
-	/// section 2). For an air unit, or one unit, the first unit's rows as they are.
+	/// section 2). For an air unit, or one unit, the first unit's rows as they are - the original's, where the order
+	/// then goes to every air unit selected, whether it may fly it or not.
 	/// </summary>
 	public static List<COrderRow> Rows(CGameState state, CCountry country, IReadOnlyList<CUnit> units, CProvince province)
 	{
 		List<COrderRow> rows = Rows(state, country, units[0], province, units.Count);
-		if (units[0].Kind == EUnitKind.Air)
+		// An enhanced game's fix greys an air unit's rows the same way: what is offered is what every one may fly.
+		if (units[0].Kind == EUnitKind.Air && !state.Rules.Has(OpenHOI3.Sim.Rules.EFix.AirOrdersForAll))
 		{
 			return rows;
 		}
