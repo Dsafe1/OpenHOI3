@@ -2953,7 +2953,10 @@ public partial class CSession : Node
 	/// <c>--record=path.gz</c> records the game played - the player's orders and the AI's - and <c>--replay=path.gz</c>
 	/// plays a recording back, played by whoever played it and taking no orders, the map alone shown where nobody did, the
 	/// clock stopping where the recording ends (<c>docs/replay.md</c>, sections 6 and 8; both read as the session loads,
-	/// not here), <c>--hash</c> prints the game's hash each midnight,
+	/// not here), <c>--replay=save.hoi3</c> plays back the game that led to a save through every save and load on the way,
+	/// <c>--recordreplay</c> records an enhanced game beside its saves as the lobby's rule does (both read by
+	/// <c>Main</c>; <c>docs/replay.md</c>, section 10) and <c>--save=name</c> saves the game now under that name,
+	/// <c>--hash</c> prints the game's hash each midnight,
 	/// <c>--trees</c> plants the map's trees whatever settings.txt's <c>renderTrees</c> says (read as the map is made, not here),
 	/// <c>--unitnames=no</c> or <c>--unitnames=yes</c> gives the counters that <c>show_unit_names</c> for the run, the file
 	/// left as it is (read as the map is made, not here),
