@@ -584,7 +584,8 @@ public partial class CFrontEnd : Node
 	}
 
 	/// <summary>The player's own folder of saves, below which replays are exported and imported.</summary>
-	public string SaveFolder => System.IO.Path.Combine(_directories.UserFolder, CSaveFiles.FolderFor(_directories));
+	public string SaveFolder => System.IO.Path.GetFullPath(
+		System.IO.Path.Combine(_directories.UserFolder, CSaveFiles.FolderFor(_directories)));
 
 	/// <summary>The file of the save loaded into the lobby, or null where its world is a new game's.</summary>
 	public string? LoadedSavePath => SaveLoaded ? _loadedSavePath : null;
