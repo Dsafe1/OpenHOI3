@@ -49,7 +49,9 @@ public static class CTooltipPlacement
 	/// The box's corner: at the point, or its height above it; then pulled back inside the
 	/// right and the bottom of the screen. Nothing keeps it off the left or the top.
 	/// </summary>
-	public static (int X, int Y) Place(CTooltip tooltip, int width, int height, int screenWidth, int screenHeight)
+	/// <param name="onScreen">An enhanced game's fix: the box is kept off the left and the top too, after the other two.</param>
+	public static (int X, int Y) Place(CTooltip tooltip, int width, int height, int screenWidth, int screenHeight,
+		bool onScreen = false)
 	{
 		int x = tooltip.X;
 		int y = tooltip.Below ? tooltip.Y : tooltip.Y - height;
@@ -60,6 +62,11 @@ public static class CTooltipPlacement
 		if (y + height > screenHeight)
 		{
 			y = screenHeight - height;
+		}
+		if (onScreen)
+		{
+			x = System.Math.Max(x, 0);
+			y = System.Math.Max(y, 0);
 		}
 		return (x, y);
 	}

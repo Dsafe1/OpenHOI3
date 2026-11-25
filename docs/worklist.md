@@ -2219,6 +2219,11 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   its tooltip, and a game of differing files run to a midnight wait. In a game that runs, nothing in the chat says
   that a player was let in with other files - the host's log alone does.
 - **The notice `AUTOSAVING` is not reviewed in play** (2026-11-25, `loadingscreen.md`, section 6).
+- **Five interface fixes of the enhanced mode are built and not reviewed in play** (2026-11-25, `enhanced.md`, *What is
+  built*): `fresh_screens`, `menu_resumes`, `tooltips_on_screen`, `shown_figures`, `unit_ordinals`. Tested where the
+  arm is a function of the library - the tooltip's place, the ordinal, the adjuster's line - and run once in the
+  client with no error; none was looked at on screen. Open beside them: a right click with several fleets or air
+  units, which waits on the user's choice of which missions are offered.
 - **The replay for players: recording and watching are built, and neither is reviewed in play** (2026-11-25, `replay.md`,
   sections 10 to 12). A playback pops no message up, shows no offer, and shows the player's events as they are
   answered, the choice marked, for five seconds. **A save written from a playback takes the game over** at that hour

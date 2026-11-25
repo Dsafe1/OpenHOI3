@@ -50,8 +50,12 @@ public sealed class CDiplomacyCountryEntry
 				Chosen?.Invoke(Country);
 			};
 		}
+		_player = player;
+		_name = window.FindTextBox("name");
+		_threat = window.FindTextBox("threat");
 		if (window.FindButton("country_icon") is { } flag)
 		{
+			_flag = flag;
 			flag.SetCountry(country);
 			flag.Pressed += () =>
 			{
@@ -94,6 +98,28 @@ public sealed class CDiplomacyCountryEntry
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, WindowName);
 		return window is null ? null : new CDiplomacyCountryEntry(window, context, country, player);
+	}
+
+	private readonly CCountry _player;
+	private readonly CGuiTextBox? _name;
+	private readonly CGuiTextBox? _threat;
+	private readonly CGuiButton? _flag;
+
+	/// <summary>
+	/// The threat, the name and the flag written again: set when the row is made and never again in the original, and
+	/// each hour of the game with an enhanced game's fix (diplomacyscreen.md, section 1).
+	/// </summary>
+	public void WriteAgain()
+	{
+		if (_name is not null)
+		{
+			_name.Text = Country.Name;
+		}
+		if (_threat is not null)
+		{
+			_threat.Text = CDiplomacyScreenText.RowThreat(_player, Country);
+		}
+		_flag?.SetCountry(Country);
 	}
 
 	/// <summary>Every frame while it can be seen: each icon white where its good is in surplus, else light red.</summary>

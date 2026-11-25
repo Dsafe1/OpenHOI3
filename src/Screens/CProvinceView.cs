@@ -152,6 +152,7 @@ public sealed partial class CProvinceView : Control
 		}
 		_viewer = viewer;
 		_province = province;
+		_writtenHour = State.TotalHours;
 		_selected = selected;
 		_window.Visible = true;
 		MakeBuildingRows();
@@ -177,10 +178,20 @@ public sealed partial class CProvinceView : Control
 		}
 	}
 
+	private long _writtenHour = long.MinValue;
+
 	public override void _Process(double delta)
 	{
 		if (IsOpen)
 		{
+			// What is written of a province as it is selected stays until it is selected again - the original's; with the
+			// fix it is written again each hour of the game, a change of hands with it (provinceview.md, section 1).
+			if (_province is { } province && _selected is { Count: 1 } && State.TotalHours != _writtenHour
+				&& State.Rules.Has(Sim.Rules.EFix.FreshScreens))
+			{
+				_writtenHour = State.TotalHours;
+				ShowOne(province);
+			}
 			UpdateFrame();
 		}
 	}

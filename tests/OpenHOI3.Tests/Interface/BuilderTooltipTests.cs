@@ -145,6 +145,10 @@ public class BuilderTooltipTests
 		Assert.Equal("Attrition §R+0.5%§W", CBuilderTooltips.Describe(Localise, new long[] { 0, 0, 0, 500 }));
 		Assert.Equal("Attrition §G-0.5%§W", CBuilderTooltips.Describe(Localise, new long[] { 0, 0, 0, -500 }));
 		Assert.Equal("", CBuilderTooltips.Describe(Localise, new long[] { 0, 0, 0, 0 }));
+		// An enhanced game's fix: attrition times a hundred as the other three are, and they as before.
+		Assert.Equal("Attrition §R+50.0%§W", CBuilderTooltips.Describe(Localise, new long[] { 0, 0, 0, 500 }, attritionHundred: true));
+		Assert.Equal("Attack §G+5.0%§W, Attrition §G-50.0%§W",
+			CBuilderTooltips.Describe(Localise, new long[] { 50, 0, 0, -500 }, attritionHundred: true));
 	}
 
 	private static CSubUnitStats Brigade(params (string Adjuster, string Kind, string Value)[] figures)

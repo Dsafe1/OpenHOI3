@@ -46,6 +46,9 @@ public sealed partial class CInGameMenu : Control
 	/// <summary>Whether the clock was stopped when the menu last opened; the original's starts out set.</summary>
 	private bool _pausedBefore = true;
 
+	/// <summary>Whether the menu is up, on its six buttons or one of its windows: from its first opening to its closing.</summary>
+	private bool _up;
+
 	/// <summary>Raised as the menu opens: the side menus and a country view are to shut and the selection go.</summary>
 	public event Action? Opening;
 
@@ -158,7 +161,14 @@ public sealed partial class CInGameMenu : Control
 			return;
 		}
 		// Not in a game between several players, where nothing pauses by itself (docs/multiplayer.md, section 2).
-		_pausedBefore = !_simulation.Pace.PauseByItself();
+		// Back from one of its windows to the six buttons the menu is opened again, and the clock, which the menu itself
+		// stopped, is noted as stopped: the original's, so closing then leaves the game paused. With the fix what was
+		// noted as the menu first came up is kept (docs/mechanics/ingamemenu.md, section 2).
+		if (!(_up && _simulation.State.Rules.Has(Sim.Rules.EFix.MenuResumes)))
+		{
+			_pausedBefore = !_simulation.Pace.PauseByItself();
+		}
+		_up = true;
 		_window.Visible = true;
 		SetBlocking(true);
 		HideWindows();
@@ -190,6 +200,7 @@ public sealed partial class CInGameMenu : Control
 		_options?.HideWindow();
 		_simulation.Pace.ResumeAfter(!_pausedBefore);
 		_pausedBefore = true;
+		_up = false;
 		_window.Visible = false;
 		SetBlocking(false);
 	}

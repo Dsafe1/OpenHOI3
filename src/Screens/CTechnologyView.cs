@@ -47,6 +47,7 @@ public partial class CTechnologyView : CCountryView
 
 	/// <summary>Whether a press has asked for the panel to be made again, which is the only time it is.</summary>
 	private bool _detailsAsked;
+	private long _detailsHour = long.MinValue;
 	private string _folder = "";
 	private string _treeFolder = "\0";
 
@@ -246,9 +247,13 @@ public partial class CTechnologyView : CCountryView
 		if (_details is not null)
 		{
 			_details.Visible = detailed;
-			if (_selected is not null && _detailsAsked)
+			// Made only when a technology is pressed - the original's, so a level finished leaves the old rows up; with
+			// the fix made again each hour of the game too (technologyscreen.md, section 7).
+			if (_selected is not null && (_detailsAsked
+				|| state.TotalHours != _detailsHour && state.Rules.Has(Sim.Rules.EFix.FreshScreens)))
 			{
 				_detailsAsked = false;
+				_detailsHour = state.TotalHours;
 				_details.Show(state, country, _selected);
 			}
 			else if (_selected is not null)

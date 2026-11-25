@@ -21,4 +21,33 @@ public enum EFix
 	/// (<c>docs/mechanics/ic.md</c>, section 3).
 	/// </summary>
 	OffmapIc,
+
+	/// <summary>
+	/// Screens that the original writes once and leaves are written again as the game moves: the province view, the
+	/// technology panel, a diplomacy row's threat, name and flag, the list of trades and a fleet's list of what it
+	/// carries (<c>docs/enhanced.md</c>, <i>Interface</i>). Display only.
+	/// </summary>
+	FreshScreens,
+
+	/// <summary>
+	/// Closing the in-game menu starts the clock again where the menu stopped it, whichever of its windows was opened
+	/// meanwhile (<c>docs/mechanics/ingamemenu.md</c>, section 2).
+	/// </summary>
+	MenuResumes,
+
+	/// <summary>A tooltip is kept off the left and the top of the screen too (<c>docs/mechanics/tooltips.md</c>, section 8). Display only.</summary>
+	TooltipsOnScreen,
+
+	/// <summary>
+	/// Figures the original shows a hundred times too small or too large are shown as they are: a circumstance's
+	/// attrition, a fleet's positioning penalty, a share with nothing needed, and a fleet's hourly regain of
+	/// organisation at sea (<c>docs/enhanced.md</c>, <i>Interface</i>). Display only.
+	/// </summary>
+	ShownFigures,
+
+	/// <summary>
+	/// A new unit's number takes the ending of its last two digits: 111th, 112th and 113th, where the original spares
+	/// only 11, 12 and 13 (<c>docs/mechanics/builders.md</c>, section 8). Changes the names of units made.
+	/// </summary>
+	UnitOrdinals,
 }

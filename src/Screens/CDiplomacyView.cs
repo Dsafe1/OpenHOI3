@@ -68,6 +68,7 @@ public sealed partial class CDiplomacyView : CCountryView
 
 	/// <summary>The hour the action list was last made for.</summary>
 	private long _actionsHour = long.MinValue;
+	private long _rowsHour = long.MinValue;
 
 	/// <summary>Frames left in which the action list is made again, after a request is closed.</summary>
 	private int _remakeFrames;
@@ -358,8 +359,14 @@ public sealed partial class CDiplomacyView : CCountryView
 			MakeRows(_countries);
 			MakeMarkers();
 		}
+		bool again = now != _rowsHour && State.Rules.Has(Sim.Rules.EFix.FreshScreens);
+		_rowsHour = now;
 		foreach (CDiplomacyCountryEntry row in _rows)
 		{
+			if (again)
+			{
+				row.WriteAgain();
+			}
 			if (row.Window.IsVisibleInTree())
 			{
 				row.Refresh();

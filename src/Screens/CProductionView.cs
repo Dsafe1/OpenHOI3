@@ -57,6 +57,7 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 	private CConvoyDialogs? _convoyDialogs;
 	private readonly List<CTradeListEntry> _trades = new();
 	private CCountryTag? _tradesOf;
+	private List<Sim.Trade.CTradeRoute> _tradeRoutes = new();
 	private CSliderPanel? _sliders;
 
 	/// <summary>The slider locks last sent to the country, so that one change is posted once.</summary>
@@ -437,9 +438,12 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 			return;
 		}
 		List<Sim.Trade.CTradeRoute> routes = CTradeListText.Routes(state, country.Tag);
-		if (_tradesOf != country.Tag || routes.Count != _trades.Count)
+		// With the fix also when the routes are others though as many: one ended as another began.
+		if (_tradesOf != country.Tag || routes.Count != _trades.Count
+			|| state.Rules.Has(Sim.Rules.EFix.FreshScreens) && !routes.SequenceEqual(_tradeRoutes))
 		{
 			_tradesOf = country.Tag;
+			_tradeRoutes = routes;
 			_tradeList.Clear();
 			_trades.Clear();
 			foreach (Sim.Trade.CTradeRoute route in routes)

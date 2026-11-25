@@ -110,6 +110,9 @@ public static class CBrigadeCardText
 		CCountry owner, CSubUnit subUnit)
 	{
 		var rows = new List<(string Label, string Value)> { (localise("UNIT_STATS"), "") };
+		// Attrition is written as it is where the other three are times a hundred - the original's; times a hundred too
+		// with the fix.
+		int attritionScale = state.Rules.Has(OpenHOI3.Sim.Rules.EFix.ShownFigures) ? 100 : 1;
 		CSubUnitStats stats = subUnit.Stats;
 		bool isLand = subUnit.Type.Branch == EUnitBranch.Land;
 		string Fig(string statistic, int places) => CNumberText.Format(stats[statistic], places);
@@ -160,11 +163,11 @@ public static class CBrigadeCardText
 		rows.Add(("", ""));
 		foreach ((string adjuster, string label) in Circumstances)
 		{
-			AddAdjuster(localise, rows, localise(label), stats, adjuster);
+			AddAdjuster(localise, rows, localise(label), stats, adjuster, attritionScale);
 		}
 		foreach (OpenHOI3.Sim.Provinces.CTerrain terrain in state.Terrains)
 		{
-			AddAdjuster(localise, rows, localise(terrain.Name), stats, terrain.Name);
+			AddAdjuster(localise, rows, localise(terrain.Name), stats, terrain.Name, attritionScale);
 		}
 
 		rows.Add(("", ""));
@@ -180,13 +183,14 @@ public static class CBrigadeCardText
 	}
 
 	/// <summary>Up to four rows of a circumstance. Attrition is the figure itself where the other three are a hundred times it.</summary>
-	private static void AddAdjuster(Func<string, string> localise, List<(string Label, string Value)> rows, string name, CSubUnitStats stats, string adjuster)
+	private static void AddAdjuster(Func<string, string> localise, List<(string Label, string Value)> rows, string name, CSubUnitStats stats, string adjuster,
+		int attritionScale)
 	{
 		if (!stats.Adjusters.TryGetValue(adjuster, out CModifier? figures))
 		{
 			return;
 		}
-		foreach ((string kind, string word, int scale) in new[] { ("attack", "UA_ATTACK", 100), ("defence", "UA_DEFENCE", 100), ("movement", "UA_MOVEMENT", 100), ("attrition", "UA_ATTRITION", 1) })
+		foreach ((string kind, string word, int scale) in new[] { ("attack", "UA_ATTACK", 100), ("defence", "UA_DEFENCE", 100), ("movement", "UA_MOVEMENT", 100), ("attrition", "UA_ATTRITION", attritionScale) })
 		{
 			long raw = figures[kind].Raw;
 			if (raw != 0)

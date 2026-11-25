@@ -72,10 +72,10 @@ public static class CShareTooltips
 		return category switch
 		{
 			EProductionCategory.ConsumerGoods => ConsumerGoods(localise, state, country, share),
-			EProductionCategory.Production => Production(localise, country, share),
+			EProductionCategory.Production => Production(localise, country, share, Whole(state)),
 			EProductionCategory.Supplies => Supplies(localise, state, country, share),
-			EProductionCategory.Reinforcement => Reinforcement(localise, country, share),
-			EProductionCategory.Upgrades => Upgrades(localise, country, share),
+			EProductionCategory.Reinforcement => Reinforcement(localise, country, share, Whole(state)),
+			EProductionCategory.Upgrades => Upgrades(localise, country, share, Whole(state)),
 			_ => "",                                         // lend-lease says nothing
 		};
 	}
@@ -153,20 +153,26 @@ public static class CShareTooltips
 	}
 
 	/// <summary>How much of the build queue the share pays for, what it needs and what it spent.</summary>
-	private static string Production(Func<string, string> localise, CCountry country, CFixed15 share)
+	private static string Production(Func<string, string> localise, CCountry country, CFixed15 share, bool whole)
 	{
 		CFixed15 needed = CFixed15.FromThousandths(country.ProductionCost);
 		return CTextTemplate.Fill(localise("DCG_PRODUCTION"),
-			("VAL", Rounded(Covered(country, share, needed) * Hundred, 2)),
+			("VAL", Rounded(Covered(country, share, needed, whole) * Hundred, 2)),
 			("USE", Rounded(CFixed15.FromThousandths(country.ProductionSpent), 2)),
 			("NEED", Rounded(needed, 2)));
 	}
 
-	/// <summary>The share's IC over what is needed - or the IC itself where nothing is.</summary>
-	private static CFixed15 Covered(CCountry country, CFixed15 share, CFixed15 needed)
+	/// <summary>Whether a share with nothing needed is written as covering the whole: an enhanced game's fix.</summary>
+	private static bool Whole(CGameState state) => state.Rules.Has(OpenHOI3.Sim.Rules.EFix.ShownFigures);
+
+	/// <summary>
+	/// The share's IC over what is needed - or the IC itself where nothing is, which the sentence then writes as a
+	/// hundred times it in percent; with <paramref name="whole"/>, one: all of nothing is covered.
+	/// </summary>
+	private static CFixed15 Covered(CCountry country, CFixed15 share, CFixed15 needed, bool whole)
 	{
 		CFixed15 ic = CFixed15.FromInt(country.TotalIc) * share;
-		return needed.Raw > 0 ? new CFixed15((ic.Raw << CFixed15.Places) / needed.Raw) : ic;
+		return needed.Raw > 0 ? new CFixed15((ic.Raw << CFixed15.Places) / needed.Raw) : whole ? CFixed15.FromInt(1) : ic;
 	}
 
 	/// <summary>The supplies the share makes, the share itself, the sources of the supply modifier and what technology adds.</summary>
@@ -190,10 +196,10 @@ public static class CShareTooltips
 	}
 
 	/// <summary>How much of what reinforcing needs the share pays for, and the bonus a mobilisation gives.</summary>
-	private static string Reinforcement(Func<string, string> localise, CCountry country, CFixed15 share)
+	private static string Reinforcement(Func<string, string> localise, CCountry country, CFixed15 share, bool whole)
 	{
 		CFixed15 cost = country.ReinforcementCost.Raw > 0 ? CFixed15.FromThousandths(country.ReinforcementCost) : CFixed15.Zero;
-		string text = CTextTemplate.Fill(localise("DCG_REINFORCE"), ("VAL", Rounded(Covered(country, share, cost) * Hundred, 2)));
+		string text = CTextTemplate.Fill(localise("DCG_REINFORCE"), ("VAL", Rounded(Covered(country, share, cost, whole) * Hundred, 2)));
 		CFixedPoint bonus = CFixedPoint.One + country.Modifier[ReinforcementBonus];
 		if (bonus > CFixedPoint.One)
 		{
@@ -203,7 +209,7 @@ public static class CShareTooltips
 	}
 
 	/// <summary>What upgrading needs, and whether the share covers it.</summary>
-	private static string Upgrades(Func<string, string> localise, CCountry country, CFixed15 share)
+	private static string Upgrades(Func<string, string> localise, CCountry country, CFixed15 share, bool whole)
 	{
 		string text = CTextTemplate.Fill(localise("DCG_UPGRADE"),
 			("UNITS", country.SubUnitsUpgrading.ToString(CultureInfo.InvariantCulture)),
@@ -216,7 +222,7 @@ public static class CShareTooltips
 			return text + localise("DCG_UPGRADE_OK");
 		}
 		CFixed15 cost = country.UpgradeCost.Raw > 0 ? CFixed15.FromThousandths(country.UpgradeCost) : CFixed15.Zero;
-		return text + CTextTemplate.Fill(localise("DCG_UPGRADE_BAD"), ("VAL", Rounded(Covered(country, share, cost) * Hundred, 2)));
+		return text + CTextTemplate.Fill(localise("DCG_UPGRADE_BAD"), ("VAL", Rounded(Covered(country, share, cost, whole) * Hundred, 2)));
 	}
 
 	private static string Rounded(CFixed15 value, int decimals)

@@ -209,8 +209,9 @@ public static class CBuilderTooltips
 	/// has something to say. Each is the brigades' own adjuster averaged, with a terrain's own
 	/// attack and defence, or the define's penalty to the attack, counted once in the average.
 	/// </summary>
+	/// <param name="attritionHundred">An enhanced game's fix: attrition times a hundred, as the other three are.</param>
 	public static string TerrainSummary(Func<string, string> localise, CDefines defines, IReadOnlyList<CTerrain> terrains,
-		IReadOnlyList<CSubUnitStats> brigades)
+		IReadOnlyList<CSubUnitStats> brigades, bool attritionHundred = false)
 	{
 		if (brigades.Count == 0)
 		{
@@ -222,13 +223,13 @@ public static class CBuilderTooltips
 			long[] sum = Sum(brigades, terrain.Name);
 			sum[0] += terrain.Attack.Raw * brigades.Count;
 			sum[1] += terrain.Defence.Raw * brigades.Count;
-			Line(text, localise(terrain.Name), Describe(localise, Averaged(sum, brigades.Count)));
+			Line(text, localise(terrain.Name), Describe(localise, Averaged(sum, brigades.Count), attritionHundred));
 		}
 		foreach ((string adjuster, string penalty, string label) in Circumstances)
 		{
 			long[] sum = Sum(brigades, adjuster);
 			sum[0] += defines[CManpower.MilitarySection, penalty].Raw * brigades.Count;
-			Line(text, localise(label), Describe(localise, Averaged(sum, brigades.Count)));
+			Line(text, localise(label), Describe(localise, Averaged(sum, brigades.Count), attritionHundred));
 		}
 		return text.ToString();
 	}
@@ -276,13 +277,14 @@ public static class CBuilderTooltips
 	/// An adjuster's four figures in one line: attack, defence and movement times a hundred,
 	/// and attrition as it is, each left out at nothing.
 	/// </summary>
-	public static string Describe(Func<string, string> localise, IReadOnlyList<long> figures)
+	public static string Describe(Func<string, string> localise, IReadOnlyList<long> figures, bool attritionHundred = false)
 	{
 		var text = new StringBuilder();
 		for (int index = 0; index < Figures.Length; index++)
 		{
 			(string _, string label, bool hundred, bool turned) = Figures[index];
-			long value = hundred ? figures[index] * 100 : figures[index];
+			// `turned` marks attrition, the one figure the original leaves without its hundred.
+			long value = hundred || (turned && attritionHundred) ? figures[index] * 100 : figures[index];
 			if (value == 0)
 			{
 				continue;

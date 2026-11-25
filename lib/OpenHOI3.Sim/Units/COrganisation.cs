@@ -224,7 +224,9 @@ public static class COrganisation
 		owner = state.Country(unit.FiguresOwner) ?? owner;
 		long factor = unit.SuppliesReceived.Raw;
 		CProvince province = state.Province(unit.Location);
-		if (province.Id != 0)
+		// The roads count wherever the unit stands, at sea too - the original's, which shows a fleet at sea a hundredth of
+		// what it regains; with the fix on land alone, as the hour counts them.
+		if (province.Id != 0 && !(province.IsSea && state.Rules.Has(Rules.EFix.ShownFigures)))
 		{
 			factor = Roads(province) * factor / CFixedPoint.Scale;
 		}

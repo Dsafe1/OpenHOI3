@@ -325,6 +325,10 @@ public class BuilderTests
 			new[] { 1, 2, 3, 4, 10, 11, 12, 13, 21, 22, 23 }.Select(Of));
 		// The original's slip: 111 is not 11.
 		Assert.Equal("111st", Of(111));
+		// An enhanced game's fix goes by the last two digits.
+		string Mended(int number) => number + CUnitNames.Ordinal(texts, number, byLastTwo: true);
+		Assert.Equal(new[] { "1st", "11th", "21st", "111th", "112th", "113th", "121st", "1012th", "1022nd" },
+			new[] { 1, 11, 21, 111, 112, 113, 121, 1012, 1022 }.Select(Mended));
 	}
 
 	[Fact]

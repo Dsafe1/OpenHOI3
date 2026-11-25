@@ -139,7 +139,8 @@ public partial class CDivisionDesignerView : CBuilderWindow
 	{
 		CGameState state = Simulation.State;
 		var brigades = _design.Select(type => CBuilderLists.AsBuiltToday(Player, type, out long _).Stats).ToList();
-		return CBuilderTooltips.TerrainSummary(Context.Localisation.Localise, state.Defines, state.Terrains, brigades);
+		return CBuilderTooltips.TerrainSummary(Context.Localisation.Localise, state.Defines, state.Terrains, brigades,
+			state.Rules.Has(Sim.Rules.EFix.ShownFigures));
 	}
 
 	protected override void Opened()

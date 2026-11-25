@@ -117,7 +117,7 @@ public static class CRebelArmies
 		string text = CRebelFactions.Render(state, faction, faction.Type.ArmyText);
 		for (int number = 1; ; number++)
 		{
-			string name = number.ToString(CultureInfo.InvariantCulture) + CUnitNames.Ordinal(state.NameTexts, number) + " " + text;
+			string name = number.ToString(CultureInfo.InvariantCulture) + CUnitNames.Ordinal(state.NameTexts, number, state.Rules.Has(Rules.EFix.UnitOrdinals)) + " " + text;
 			if (!IsTaken(state, faction, name))
 			{
 				return name;

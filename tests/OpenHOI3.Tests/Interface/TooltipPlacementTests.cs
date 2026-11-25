@@ -89,5 +89,9 @@ public class TooltipPlacementTests
 	public void NothingKeepsItOffTheLeftOrTheTop()
 	{
 		Assert.Equal((-40, -30), CTooltipPlacement.Place(new CTooltip { X = -40, Y = 20, Below = false }, 300, 50, Width, Height));
+		// An enhanced game's fix keeps it on the screen at those two edges too, and leaves the other two as they were.
+		Assert.Equal((0, 0), CTooltipPlacement.Place(new CTooltip { X = -40, Y = 20, Below = false }, 300, 50, Width, Height, onScreen: true));
+		Assert.Equal((1620, 1030), CTooltipPlacement.Place(new CTooltip { X = 1800, Y = 1060 }, 300, 50, Width, Height, onScreen: true));
+		Assert.Equal((100, 200), CTooltipPlacement.Place(new CTooltip { X = 100, Y = 200 }, 300, 50, Width, Height, onScreen: true));
 	}
 }

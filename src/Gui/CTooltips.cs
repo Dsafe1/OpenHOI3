@@ -33,6 +33,9 @@ public partial class CTooltips : CanvasLayer
 	/// <summary>The minimap's upper left corner on the screen, which a province's tooltip stands over; null where there is none.</summary>
 	public Func<Vector2?>? MapTooltipAnchor { get; set; }
 
+	/// <summary>Whether the box is kept off the left and the top of the screen too: an enhanced game's fix.</summary>
+	public System.Func<bool>? KeepOnScreen { get; set; }
+
 	public void Setup(CGuiContext context)
 	{
 		Name = "Tooltips";
@@ -77,7 +80,8 @@ public partial class CTooltips : CanvasLayer
 		{
 			return;
 		}
-		(int x, int y) = CTooltipPlacement.Place(tooltip, (int)_box.Size.X, (int)_box.Size.Y, (int)screen.X, (int)screen.Y);
+		(int x, int y) = CTooltipPlacement.Place(tooltip, (int)_box.Size.X, (int)_box.Size.Y, (int)screen.X, (int)screen.Y,
+			KeepOnScreen?.Invoke() == true);
 		_box.Position = new Vector2(x, y);
 	}
 

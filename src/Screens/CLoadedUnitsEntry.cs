@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using OpenHOI3.Gui;
@@ -32,6 +33,7 @@ public sealed class CLoadedUnitsEntry : CUnitPanelEntry
 	private readonly int _label;
 	private readonly int _fileHeight;
 	private int _count;
+	private List<CUnit> _listed = new();
 
 	/// <summary>Raised with the unit of a row that was clicked.</summary>
 	public event Action<CUnit>? Selected;
@@ -83,7 +85,10 @@ public sealed class CLoadedUnitsEntry : CUnitPanelEntry
 	{
 		Resized = false;
 		// Only an air unit's list is made again, when its count changes.
-		if (_carrier.Kind == EUnitKind.Air && _carrier.Passengers.Count != _count)
+		// A fleet's stays as it was made, a unit put ashore with it - the original's; with the fix it is made again
+		// whenever what is aboard is another list (transport.md, "What looks wrong", 2).
+		if (_carrier.Kind == EUnitKind.Air && _carrier.Passengers.Count != _count
+			|| _state.Rules.Has(Sim.Rules.EFix.FreshScreens) && !_carrier.Passengers.SequenceEqual(_listed))
 		{
 			Fill();
 		}
@@ -115,6 +120,7 @@ public sealed class CLoadedUnitsEntry : CUnitPanelEntry
 	private void Fill()
 	{
 		_count = _carrier.Passengers.Count;
+		_listed = _carrier.Passengers.ToList();
 		Set(_header, CTransportText.Header(_context.Localisation.Localise, _carrier));
 		_list?.Clear();
 		_rows.Clear();

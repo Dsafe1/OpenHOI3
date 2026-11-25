@@ -136,6 +136,23 @@ Begun 2026-11-21; as of 2026-11-25.
   changed on a bar while it runs; a save written from a playback taking the game over at that hour; a host's game
   between machines recorded too; and a replay exported as one file with its save and imported. Nothing of it
   changes play - but a recorded new game is saved and loaded once as it begins.
+- **Five fixes of the interface, 2026-11-25**, chosen by the user from the list below - "1, 2, 6 and 7" of seven
+  put to him - each a name a mod may go without:
+  - `fresh_screens`: the province view and the technology panel written again each hour of the game, a diplomacy
+    row's threat, name and flag too, the list of trades made again when its routes are others, and a fleet's list
+    of what it carries when that changes. Display only.
+  - `menu_resumes`: closing the in-game menu starts the clock again where the menu stopped it, whichever of its
+    windows was opened meanwhile.
+  - `tooltips_on_screen`: a tooltip is kept off the left and the top of the screen too. Display only.
+  - `shown_figures`: a circumstance's attrition times a hundred as its other three figures are, on the brigade card
+    and the designer's terrain summary; a fleet's positioning penalty in the reorganise window with its
+    hundredfold; a production, reinforcement or upgrade share with nothing needed written as covering 100%; and a
+    fleet's hourly regain of organisation at sea without the roads. Display only.
+  - `unit_ordinals`: a new unit's number takes the ending of its last two digits, 111th and not 111st. Changes the
+    names of units made, and so what a save holds.
+  **Kept as the original's, by the same word**: a port or an airfield under a counter cannot be clicked, and the
+  zoom, the wheel and the timed texts go by the frame. *Open*: a right click with several fleets or air units,
+  which waits on which missions are offered - those every unit can fly, or those any can.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -617,9 +634,9 @@ All of these are risk-free but for what the entry says.
 
 - **A bombing's row names its goods under each other's words.** The goods whose stockpile the mission bombs are written after "Production of" and those whose production it bombs after "Stockpiles of", so a logistical strike reads "Production of Supplies and Fuel." `combatview.md`, 12. *Bug.*
 
-- **A port or an airfield under a counter cannot be clicked.** A click takes the highest score, and a counter's (at least 1.1) always beats a building picture's (1.0), so an air unit at its base or a fleet in port whose base's picture lies under a land stack is reached only from the air map mode, or by moving the map. The enhanced engine could offer the building where the click falls on its badge outside the counter, or a list of what lies under the click. `mapunits.md`, 9; `reversing/findings/FINDINGS-seaair.md`, 6. *Oversight.*
+- **A port or an airfield under a counter cannot be clicked.** **Kept, by the user's word of 2026-11-25.** A click takes the highest score, and a counter's (at least 1.1) always beats a building picture's (1.0), so an air unit at its base or a fleet in port whose base's picture lies under a land stack is reached only from the air map mode, or by moving the map. The enhanced engine could offer the building where the click falls on its badge outside the counter, or a list of what lies under the click. `mapunits.md`, 9; `reversing/findings/FINDINGS-seaair.md`, 6. *Oversight.*
 
-- **The map's zoom eases by the frame, not by the second.** Height and look point close 0.197 of the gap each frame, so the zoom is quicker the faster the game draws. A per-second ease of `1 − 0.803^(60·dt)` would feel the same at every frame rate. `mapunits.md`, 7; `reversing/findings/FINDINGS-camerazoom.md`. *Oversight.*
+- **The map's zoom eases by the frame, not by the second.** **Kept, by the user's word of 2026-11-25, with the wheel's one notch and the texts timed by frames.** Height and look point close 0.197 of the gap each frame, so the zoom is quicker the faster the game draws. A per-second ease of `1 − 0.803^(60·dt)` would feel the same at every frame rate. `mapunits.md`, 7; `reversing/findings/FINDINGS-camerazoom.md`. *Oversight.*
 - **Only the wheel's sign counts, one notch a frame.** A quick turn is one notch. `reversing/findings/FINDINGS-camerazoom.md`, 1. *Oversight.*
 
 - **Influence's colour never reaches the screen.** `topbar.md`, 7. *Bug.*
@@ -627,11 +644,11 @@ All of these are risk-free but for what the entry says.
 - **What governments in exile hand over has no line in a resource's tooltip.** The change at its head counts their supplies and fuel, and no line under it says where they came from, so the lines do not add up to the change. `topbar.md`, 14. *Display.*
 - **The top bar's and the country screens' pictures are set once, as the game is entered**, so a played country changed in play - the console's `tag` - keeps the first one's: the bar's `topbar_TAG` and the six screens' `country_bg_TAG` over another country's name and figures. Built so since 2026-11-15 (`CSessionCarry.EnteredAs`). The enhanced engine would give them again with the country. `topbar.md`, 1; `console.md`, 3. *Oversight.*
 - **The technology screen's sliders take the production screen's locks:** it reads the first four entries of the production screen's mirror for its own four - research locked where upgrades were - and never writes it, so its own locks last only while the screen stands. `sliders.md`, 3. *Bug.*
-- **The technology panel goes stale.** Its name, year, difficulty and rows of what the level does are made only when a technology is pressed, so a level finished or a law changed leaves the old ones up; and a one-level technology is described at level 1 for ever, a many-level one a level past its last. `technologyscreen.md`, 7. *Display.*
+- **The technology panel goes stale.** **Mended by the fix `fresh_screens`, 2026-11-25.** Its name, year, difficulty and rows of what the level does are made only when a technology is pressed, so a level finished or a law changed leaves the old ones up; and a one-level technology is described at level 1 for ever, a many-level one a level past its last. `technologyscreen.md`, 7. *Display.*
 - **Money repaid on a debt counts as coming in.** The top bar's colour, the ledger tooltip's change and the Lua's daily balance take `repaid away` away from what goes out, though it is held above nought, so a repayment turns money green. `topbar.md`, 2. *Bug.*
-- **Ordinals past 110 go wrong:** "111st", "112nd", "113rd" - only 11, 12 and 13 are sent to "th". `builders.md`, 8; `units.md`, 3. *Bug.*
+- **Ordinals past 110 go wrong:** **Mended by the fix `unit_ordinals`, 2026-11-25.** "111st", "112nd", "113rd" - only 11, 12 and 13 are sent to "th". `builders.md`, 8; `units.md`, 3. *Bug.*
 - **An unnamed air group and its wing can be numbered apart:** the wing is named as the file is read and the group after it, so a name later in the file takes a group's number but never a wing's. `units.md`, 3. *Oversight.*
-- **Diplomacy rows go stale:** threat, name and flag. `diplomacyscreen.md`, 8. *Display.*
+- **Diplomacy rows go stale:** threat, name and flag. **Mended by the fix `fresh_screens`, 2026-11-25.** `diplomacyscreen.md`, 8. *Display.*
 - **A zero balance reads "surplus"** on a red icon. `diplomacyscreen.md`, 8. *Display.*
 - **The highest-threat tooltip describes the wrong thing.** `diplomacyscreen.md`, 8. *Display.*
 - **The relation breakdown hides the largest cause,** the +2000 of an overlord and a puppet. `diplomacyscreen.md`, 8. *Display.*
@@ -640,30 +657,30 @@ All of these are risk-free but for what the entry says.
 - **Estimates repeat by month,** every target sharing a month's draws. `espionagescreen.md`. *Bug.*
 - **IC is exact though called an estimate,** and the pie and ministers show everything. `espionagescreen.md`. *Display.* Fixing it reveals less.
 - **The spies' tooltip says ten whatever the define.** `espionagescreen.md`. *Display.*
-- **The province view goes stale** until reselected. `provinceview.md`. *Display.*
+- **The province view goes stale** until reselected. **Mended by the fix `fresh_screens`, 2026-11-25.** `provinceview.md`. *Display.*
 - **The claims box shows cores,** the owner's among them. `provinceview.md`. *Display.*
 - **Intelligence keys are one out:** `INTEL_2` is "Intel lvl 3". `provinceview.md`. *Display.*
 - **The port tooltip misstates the rule.** `provinceview.md`. *Display.*
 - **The statistics graph section is dead.** `statistics.md`, 2. *Unfinished.* The nation size's yearly history it would draw is kept and saved since 2026-11-14, so a graph of it has its data from the game's first year; income and inflation are never sampled (`statistics.md`, 5).
 - **The victory alert names only the last faction.** `endgame.md`, 6. *Bug.*
-- **Closing the menu leaves the game paused** after opening any of its windows. `ingamemenu.md`, 2. *Bug.*
+- **Closing the menu leaves the game paused** after opening any of its windows. **Mended by the fix `menu_resumes`, 2026-11-25.** `ingamemenu.md`, 2. *Bug.*
 - **Message settings half-work.** A click on a name does nothing, no tab starts ticked, and Reset leaves the rows. `ingamemenu.md`, 4. *Oversight.*
 - **A right click with several fleets or air units moves nobody.** `selection.md`, 8. *Oversight.*
-- **Attrition is shown a hundred times too small,** and a terrain's own is left out. `builders.md`; `brigadecard.md`, 6. *Display.*
-- **The positioning penalty lacks its hundredfold.** `reorganise.md`, 7. *Display.*
-- **Tooltips can leave the screen** at the left or top. `tooltips.md`, oddity 2. *Oversight.*
+- **Attrition is shown a hundred times too small,** and a terrain's own is left out. **The hundredfold mended by the fix `shown_figures`, 2026-11-25; a terrain's own attrition is still left out, and a technology's effects still write it without.** `builders.md`; `brigadecard.md`, 6. *Display.*
+- **The positioning penalty lacks its hundredfold.** **Mended by the fix `shown_figures`, 2026-11-25.** `reorganise.md`, 7. *Display.*
+- **Tooltips can leave the screen** at the left or top. **Mended by the fix `tooltips_on_screen`, 2026-11-25.** `tooltips.md`, oddity 2. *Oversight.*
 - **The air map misses updates,** and a count of 128 battles hides the icon. `airmap.md`, oddities 1 and 2. *Bug.*
 - **The second-target hint is backwards.** `fleetsandair.md`, "The air window". *Display.*
 - **Script text errors.** REMOVE_SPIES_EFFECT says "Add", SPIES_INFILTRATED says "Grk", about fifty keys show as their names. `scripttext.md`, 5. *Display.* Mods may ship their own.
-- **A fleet's passenger list goes stale.** `transport.md`, "What looks wrong", 2. *Display.*
+- **A fleet's passenger list goes stale.** **Mended by the fix `fresh_screens`, 2026-11-25.** `transport.md`, "What looks wrong", 2. *Display.*
 - **An air unit's `select_land` may be pressed and does nothing**: the panel enables it where paratroopers are aboard, and the click asks first whether the carrier is a fleet. `transport.md`, "What looks wrong", 21. *Bug.*
 - **Effects of nothing are red,** and more encirclement bonus is red. `leaders.md`, oddity 27. *Display.*
 - **The elections line says `YEARS` though it counts months.** `politics.md`, 11. *Display.*
-- **Sliders with nothing needed show a hundred times the IC.** `sliders.md`. *Display.*
+- **Sliders with nothing needed show a hundred times the IC.** **Mended by the fix `shown_figures`, 2026-11-25.** `sliders.md`. *Display.*
 - **Revolt tooltip mismatches, and its alert is never shown.** `revolt.md`, 7. *Unfinished.*
 - **Offers past the tenth are invisible,** and still decline themselves after a week. `agreements.md`, oddity 11. *Oversight.*
-- **The trade list goes stale** when one route ends as another starts. `trade.md`, 15. *Oversight.*
-- **The organisation bar's hourly regain is not the hour's.** It counts the roads at sea too, so a fleet at sea is shown a hundredth of what it regains, and shows a unit given no supplies regaining nothing where the hour takes organisation away. `unitpanel.md`, 10.1; `organisation.md`, 3. *Display.*
+- **The trade list goes stale** when one route ends as another starts. **Mended by the fix `fresh_screens`, 2026-11-25.** `trade.md`, 15. *Oversight.*
+- **The organisation bar's hourly regain is not the hour's.** **The roads at sea mended by the fix `shown_figures`, 2026-11-25; a unit given no supplies is still shown regaining nothing.** It counts the roads at sea too, so a fleet at sea is shown a hundredth of what it regains, and shows a unit given no supplies regaining nothing where the hour takes organisation away. `unitpanel.md`, 10.1; `organisation.md`, 3. *Display.*
 - **A base with nothing based there is shown doing a quarter of its work**, where the hour's crowding counts it whole. `unitpanel.md`, 10.2. *Display.*
 - **A model out of a file that leaves a technology out is marked `+*` wherever it shows**, being matched exactly by nothing, though it is the model the brigade was raised as. `units.md`, 5. *Display.*
 - **The Quick Start panel promises each start its own share of the work and gives all four the same.** FE_QS_USA_INFO says "full control over the production, research, politics and intelligence", FE_QS_SOV_INFO "full control over both your military forces and your production", FE_QS_GER_INFO that the AI handles all but warfare; every button's body hands Diplomacy, Production, Technology, Politics and Intelligence to the AI alike, the tech minister on sliders and research. Built as read. `bookmarks.md`, 4; `reversing/findings/FINDINGS-bookmarks.md`, section 1.5. *Oversight.* Risk: none.

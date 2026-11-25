@@ -61,8 +61,11 @@ public static class CReorgText
 		long penalty = CNavalBattle.StackingPenalty(state, new[] { unit });
 		// Green below one thousandth: only at nought.
 		string colour = penalty < 1 ? "§G" : "§R";
-		return CTextTemplate.Fill(localise("POSITIONING_PENALTY"),
-			("VAL", colour + CNumberText.Format(new CFixedPoint(penalty), 3) + "%§!"));
+		// With the fix the hundredfold of a percentage, to one place, as a battle's window writes the same figure.
+		string figure = state.Rules.Has(OpenHOI3.Sim.Rules.EFix.ShownFigures)
+			? CNumberText.Format(new CFixedPoint(penalty * 100), 1)
+			: CNumberText.Format(new CFixedPoint(penalty), 3);
+		return CTextTemplate.Fill(localise("POSITIONING_PENALTY"), ("VAL", colour + figure + "%§!"));
 	}
 
 	/// <summary>

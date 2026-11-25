@@ -68,7 +68,7 @@ public static class CUnitNames
 		{
 			string name = pattern
 				.Replace(Number, number.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
-				.Replace(Order, Ordinal(state.NameTexts, number), StringComparison.Ordinal);
+				.Replace(Order, Ordinal(state.NameTexts, number, state.Rules.Has(Rules.EFix.UnitOrdinals)), StringComparison.Ordinal);
 			if (!country.UnitNamesInUse.Contains(name))
 			{
 				return name;
@@ -101,7 +101,7 @@ public static class CUnitNames
 		{
 			string name = pattern
 				.Replace(Number, number.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
-				.Replace(Order, Ordinal(state.NameTexts, number), StringComparison.Ordinal)
+				.Replace(Order, Ordinal(state.NameTexts, number, state.Rules.Has(Rules.EFix.UnitOrdinals)), StringComparison.Ordinal)
 				.Replace(Type, shortName, StringComparison.Ordinal);
 			if (!country.UnitNamesInUse.Contains(name))
 			{
@@ -126,10 +126,11 @@ public static class CUnitNames
 	/// The ending a number takes, as the original picks it: by its last digit, with 11,
 	/// 12 and 13 - and only those - sent to the first. So 111 comes out as a first.
 	/// </summary>
-	public static string Ordinal(CUnitNameTexts texts, int number)
+	/// <param name="byLastTwo">An enhanced game's fix: every number ending in 11, 12 or 13 is sent to the first, 111 and 1012 with them.</param>
+	public static string Ordinal(CUnitNameTexts texts, int number, bool byLastTwo = false)
 	{
 		int digit = number % 10;
-		if (number is >= 11 and <= 13)
+		if (number is >= 11 and <= 13 || byLastTwo && number % 100 is >= 11 and <= 13)
 		{
 			digit = 0;
 		}
@@ -179,7 +180,7 @@ public static class CUnitNames
 		{
 			string name = pattern
 				.Replace(Number, number.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
-				.Replace(Order, Ordinal(state.NameTexts, number), StringComparison.Ordinal)
+				.Replace(Order, Ordinal(state.NameTexts, number, state.Rules.Has(Rules.EFix.UnitOrdinals)), StringComparison.Ordinal)
 				.Replace(Type, shortName, StringComparison.Ordinal);
 			if (!country.UnitNamesInUse.Contains(name))
 			{
