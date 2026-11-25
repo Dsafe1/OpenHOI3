@@ -71,7 +71,10 @@ public partial class CCustomMapModes : Control
 	/// </summary>
 	public void ToggleList(CMapView.MapMode host, Rect2 button)
 	{
-		bool same = _list is not null && _listHost == host;
+		// A second right click on the same button shuts the list - which that click's press has shut already, as a
+		// click anywhere outside it does.
+		bool same = _list is not null && _listHost == host
+			|| _shutHost == host && Time.GetTicksMsec() - _shutAt < 500;
 		CloseList();
 		if (same || KindOf(host) is not { } kind || CGuiWindow.Create(_context, ListWindowName) is not { } window)
 		{
@@ -123,6 +126,27 @@ public partial class CCustomMapModes : Control
 		list.Add(entry);
 	}
 
+	private CMapView.MapMode? _shutHost;
+	private ulong _shutAt;
+
+	/// <summary>Whether one of the main screens is up: the list goes when one opens.</summary>
+	public Func<bool>? ScreenOpen { get; set; }
+
+	/// <summary>
+	/// A press of the left or right button anywhere but on the list shuts it, and is left to whatever it was meant for.
+	/// </summary>
+	public override void _Input(InputEvent @event)
+	{
+		if (_list is null || @event is not InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left or MouseButton.Right } press
+			|| _list.GetGlobalRect().HasPoint(press.Position))
+		{
+			return;
+		}
+		_shutHost = _listHost;
+		_shutAt = Time.GetTicksMsec();
+		CloseList();
+	}
+
 	public void CloseList()
 	{
 		_list?.QueueFree();
@@ -132,6 +156,10 @@ public partial class CCustomMapModes : Control
 	/// <summary>The legend as the map stands: made when a source comes on, written again when its scale or the palette changes, and gone with the source.</summary>
 	public override void _Process(double delta)
 	{
+		if (_list is not null && ScreenOpen?.Invoke() == true)
+		{
+			CloseList();
+		}
 		// What the map shows is read between the game's hours only.
 		if (_busy())
 		{

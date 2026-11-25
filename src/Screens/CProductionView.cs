@@ -68,6 +68,22 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 	private CBrigadeBuilderView _brigades = null!;
 	private readonly List<CBuilderWindow> _builders = new();
 
+	/// <summary>Whether one of the windows a unit is ordered from is up over the screen.</summary>
+	public bool BuilderOpen
+	{
+		get
+		{
+			foreach (CBuilderWindow builder in _builders)
+			{
+				if (builder.IsOpen)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+
 	protected override string WindowName => "country_production";
 	protected override string TopColourName => "topcolor_production";
 

@@ -106,3 +106,5 @@ buttons, a box typed into, a tick and a mode turned, Apply answered "Applied". N
 under the sliders' one on the production screen, the two together in the middle of the gap between that screen's pairs of buttons - the largest daily deficit, and for each resource its daily surplus and, but
 for money, the stockpile it sells above and the one it stops buying above. Tried with `--click`: opened from its
 button, Apply answered "Applied". With it none of the mod's three AI settings pages is in its own windows' menu.
+
+**A window a unit is ordered from counts as the production screen shut** (2026-11-25): while one of the builder windows is up, a page hosted on the production screen has its opener and its window taken down, as when the screen is closed (`CProductionView.BuilderOpen`, `CSession.HostScreenOpen`). The opener comes back with the screen; the window stays shut until it is opened again.

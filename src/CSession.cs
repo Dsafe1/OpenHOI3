@@ -1051,6 +1051,8 @@ public partial class CSession : Node
 				customModes.Setup(gui, _simulation, _mapView, EnhancedSettings.MapPalette, () => GameBusy);
 				layer.AddChild(customModes);
 				_customMapModes = customModes;
+				customModes.ScreenOpen = () => _production?.IsOpen == true || _technology?.IsOpen == true || _diplomacy?.IsOpen == true
+					|| _politics?.IsOpen == true || _espionage?.IsOpen == true || _theatres?.IsOpen == true || _statistics?.IsOpen == true;
 				customModes.PaletteChanged += palette =>
 				{
 					EnhancedSettings = EnhancedSettings with { MapPalette = palette };
@@ -2103,7 +2105,9 @@ public partial class CSession : Node
 			"theatres" => _theatres,
 			_ => null,
 		};
-		return view is { IsOpen: true };
+		// A window a unit is ordered from stands over the production screen: what a page put on that screen goes
+		// with it, as if the screen were shut.
+		return view is { IsOpen: true } && !(view == _production && _production?.BuilderOpen == true);
 	}
 
 	/// <summary>A map mode button pressed: its mode set, as the game has it - a custom source goes.</summary>

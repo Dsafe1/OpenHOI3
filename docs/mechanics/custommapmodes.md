@@ -143,3 +143,5 @@ province at 1 or more - the goods' own test. The DLL adds the same two.
 
 Tried with `--click` on 2026-11-24 - the list from a right click, a row chosen, the legend - and not reviewed in
 play.
+
+**The list goes at a click elsewhere and when a main screen opens** (2026-11-25): a press of the left or right button anywhere but on the list shuts it and is left to whatever it was meant for, and so does a country screen or the Statistics coming up (`CCustomMapModes._Input`, `ScreenOpen`). A second right click on the list's own button still shuts it and does not open it again.
