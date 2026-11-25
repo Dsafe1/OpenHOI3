@@ -406,8 +406,7 @@ fits. *Not built*: any test of the mod's files, which a recording hangs on as mu
 
 ### 10.5 Not built
 
-- **A country to look through chosen while a playback runs** (section 15 has the lobby's choice), and a list of
-  replays apart from the list of saves (section 11).
+- **A list of replays** apart from the list of saves (section 11).
 - ~~A game between machines~~ - the host's is recorded since the same day (section 14).
 - **Moving through a recording**: a playback runs every hour from the start. A start kept at each crossing, or at
   intervals, would let one begin late.
@@ -566,8 +565,37 @@ midnights those of the game played** as Germany, across its load, so looking on 
 end the United Kingdom's, flag, figures, outliner and map. **Not tried**: the choice made in the lobby by a click, a
 country that does not exist at the campaign's start, and a country's screens opened while looking on.
 
-**Not built**: changing the country while a playback runs - every screen made again around the same game, as the
-console's `tag` makes them (`mechanics/console.md`, section 3) - and how that is offered.
+Changing the country while a playback runs is section 16's.
+
+## 16. The replay bar
+
+Built 2026-11-25, chosen that day of three ways to offer a change of country while a playback runs: "go with the
+replay bar".
+
+Over every playback of a game on its own - not a client's following - **a bar of the mod's**, `openhoi_replay_bar`
+(BlackICE's `interface/openhoi/replaybar.gui`, top centre under the top bar; `CReplayBar`, `CReplayBarText`): the text
+`title` (`OPENHOI_REPLAY_BAR`), the text `country` - the flag and the name of the country looked through - and the
+button `choose` (`OPENHOI_REPLAY_BAR_CHOOSE`, its tooltip `_TIP`). With no such window declared there is no bar.
+
+**The button opens the list** `openhoi_replay_countries` under the bar, a row (`openhoi_replay_country_entry`, its
+button `pick`) for every country owning land: those a person played first, marked with an asterisk, then the rest by
+name. A second press shuts it.
+
+**A row chosen makes every screen again around the same game** for that country (`CSession.LookThroughAnother`), as
+the console's `tag` makes them - the top bar's pictures the new country's too - the camera, the pause and the speed
+kept. Two things differ from `tag`, and have to:
+
+- **the game's played countries are not touched** (section 15);
+- **the session made again goes on with the same simulation** (`CSessionCarry.Simulation`,
+  `CSimulation.ForgetListeners`). A simulation made anew enters the game again - its first frame's AI pass, and a
+  loaded game's second - and loses what waits in its queue and how often it was drained, which a recording counts
+  by. The first build did that, and the playback after a change of country was another game by the next midnight.
+
+**Checked** on 2026-11-25 with `--click`, BlackICE: the bar and the list looked at; Belgium chosen while section
+10.4's playback ran - the screens Belgium's - and **the five midnights after it, across the playback's load, those
+of the game played**. `--hash` stops writing at a change of country, a tool's listener being let go of with the
+screens', and writes again after the next load. **Not reviewed in play**; not tried: the list's scrolling, a change
+at the playback's end, and several changes one after another.
 
 ## Not established
 

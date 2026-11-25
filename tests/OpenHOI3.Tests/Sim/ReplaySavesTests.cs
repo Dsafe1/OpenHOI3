@@ -123,6 +123,32 @@ public class ReplaySavesTests
 	}
 
 	[Fact]
+	public void TheReplayBarListsTheCountriesOwningLandThePlayedFirstThenByName()
+	{
+		CCountry Country(string tag, string name, int index) => new() { Tag = new CCountryTag(tag), Name = name, DefinitionFile = "" };
+		var provinces = new[]
+		{
+			new CProvince(0, "", isSea: false), new CProvince(1, "a", isSea: false), new CProvince(2, "b", isSea: false),
+			new CProvince(3, "c", isSea: false),
+		};
+		CCountry germany = Country("GER", "Germany", 0);
+		CCountry belgium = Country("BEL", "Belgium", 1);
+		CCountry austria = Country("AUS", "austria", 2);
+		CCountry landless = Country("TIB", "Tibet", 3);
+		var state = new CGameState(new CDate(1936, 1, 1), provinces, new[] { germany, belgium, austria, landless });
+		provinces[1].Owner = germany.Tag;
+		provinces[2].Owner = belgium.Tag;
+		provinces[3].Owner = austria.Tag;
+		state.Played.Add(germany.Tag);
+
+		Assert.Equal(new[] { "Germany", "austria", "Belgium" },
+			OpenHOI3.Interface.Screens.CReplayBarText.Countries(state).Select(country => country.Name));
+		Assert.Equal("Germany *", OpenHOI3.Interface.Screens.CReplayBarText.Row(germany, played: true));
+		Assert.Equal("Belgium", OpenHOI3.Interface.Screens.CReplayBarText.Row(belgium, played: false));
+		Assert.Equal("@BEL Belgium", OpenHOI3.Interface.Screens.CReplayBarText.Country(belgium));
+	}
+
+	[Fact]
 	public void ASaveMarksItsPlaceInARecordingThatHasAName()
 	{
 		CGameState state = State();

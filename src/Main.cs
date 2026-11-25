@@ -1110,9 +1110,10 @@ public partial class Main : Control
 		{
 			Name = "Session", Music = _music, PlaysClicks = switched, Surfaces = _surfaces, Net = _net,
 			SwitchesAgain = switched && _replayChain is not null && _replayAt > 0 || switchesAgain,
-			LookThrough = _replayChain is not null ? _replayLook : null,
+			LookThrough = _replayLook,
 		};
 		session.Setup(_directories, game, carried, replayFile);
+		session.LookChosen += tag => _replayLook = tag;
 		session.Resigned += () =>
 		{
 			// Left without the end-of-game screen, which plays its own track: the music stopped, as on every road out.

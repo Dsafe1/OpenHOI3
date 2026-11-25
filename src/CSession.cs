@@ -209,7 +209,9 @@ public partial class CSession : Node
 		State = prepared.State;
 		// Which engine runs the game, which an enhanced save records (docs/launcher.md, section 8).
 		State.EngineVersion = Content.Launch.CEngineFile.VersionBeside(OS.GetExecutablePath());
-		_simulation = new CSimulation(State);
+		// A session made again around a playback goes on with its simulation: a new one would enter the game again and
+		// lose what waits in its queue, and the playback would no longer be the game recorded.
+		_simulation = _carried?.Simulation ?? new CSimulation(State);
 		// From here on screens look at the game between its commands, and a look keeps nothing in it: who stands where and
 		// the supply network are made by a running command alone (docs/multiplayer.md, section 3).
 		State.ScreensLook = true;
@@ -359,6 +361,20 @@ public partial class CSession : Node
 	/// country is this one (docs/replay.md, section 15).
 	/// </summary>
 	public CCountryTag? LookThrough { get; init; }
+
+	/// <summary>Another country chosen to look through, on the playback's bar: whoever makes the next session gives it that one.</summary>
+	public event System.Action<CCountryTag>? LookChosen;
+
+	/// <summary>Every screen made again around the same game, for another country to look through - its pictures with it.</summary>
+	private bool _keepSimulation;
+
+	private void LookThroughAnother(CCountryTag tag)
+	{
+		_enteredAs = tag;
+		_keepSimulation = true;
+		LookChosen?.Invoke(tag);
+		CallDeferred(MethodName.HandOver);
+	}
 
 	/// <summary>
 	/// This machine's part in a game between several machines, which the boot scene keeps across the sessions of it; null
@@ -625,7 +641,11 @@ public partial class CSession : Node
 		(Vector2 centre, float zoom) = _mapView.View;
 		var carried = new Debug.CSessionCarry(_console?.Lines.ToList() ?? new List<string>(), _console?.History.ToList() ?? new List<string>(),
 			_console?.IsOpen == true, centre, zoom, _mapView.RenderLayers, _simulation.Clock.Paused, _simulation.Clock.Speed, _replayFile, _wireframe,
-			_enteredAs);
+			_enteredAs, _keepSimulation ? _simulation : null);
+		if (_keepSimulation)
+		{
+			_simulation.ForgetListeners();
+		}
 		Replaced?.Invoke(new FrontEnd.CPreparedGame(State, Map, _localisation, gui, _aiScripts, _mapCache, _quadTiles), carried);
 	}
 
@@ -1009,6 +1029,15 @@ public partial class CSession : Node
 				_nativePages = new CNativePages();
 				_nativePages.Setup(gui, _simulation, ModWindows, () => GameBusy, HostScreenOpen, Player.Tag);
 				layer.AddChild(_nativePages);
+			}
+			// A playback's bar: that it is one, the country looked through, and the choice of another (docs/replay.md,
+			// section 16).
+			if (State.Replay is { IsReplaying: true } && Net is null)
+			{
+				var replayBar = new CReplayBar();
+				replayBar.Setup(gui, _simulation, Player);
+				replayBar.Chosen += LookThroughAnother;
+				layer.AddChild(replayBar);
 			}
 			// An enhanced game's custom map modes: a right click on a mode's button lists what it may shade by.
 			if (_enhancedGame)

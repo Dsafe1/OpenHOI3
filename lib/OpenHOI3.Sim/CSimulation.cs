@@ -390,6 +390,20 @@ public sealed class CSimulation
 		}
 	}
 
+	/// <summary>
+	/// Everything that listens to the simulation let go of, for screens made again around it: the clock's events, the
+	/// gate on an hour and the way to a host. The game, its queue and how often it was drained stay.
+	/// </summary>
+	public void ForgetListeners()
+	{
+		HourPassed = null;
+		DayPassed = null;
+		MonthPassed = null;
+		YearPassed = null;
+		HourGate = null;
+		ToHost = null;
+	}
+
 	/// <summary>A recorded player's command, posted where it was: for <see cref="Replay.CReplay"/> alone.</summary>
 	internal void PostReplayed(CCommand command)
 	{
