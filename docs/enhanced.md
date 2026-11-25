@@ -24,7 +24,7 @@ Add to it whenever a spec records something of the original's that looks like a 
   only matters to a mod made for both.
 - **A headquarters' supply tooltip could show its subordinates' use.** The unit panel's supply and fuel tooltips give only the unit's own use. For a headquarters it should show its own consumption and, separately, that of all the units under it. `unitpanel.md`, 10. *Unfinished.* Risk: none.
 - **A save could hold the AI's generator.** The original keeps two generators, the game's and the AI's, and a save holds where the game's stands (`seed`, `count`) and nothing of the AI's, which a load seeds afresh. Here a load restores the game's (`compatibility.md`, entry 15) and seeds the AI's from the save's `seed` at its first draw, so a save loaded twice plays the same, but the AI's rolls after a load are not those the saved game would have made. Writing its draws beside `count` would mend that; the decision of 2026-11-12 is to keep the save's keys the original's. `savegame.md`, 4; `landcombat.md`, 8. *Oversight.* Risk: none to a check; one key more in every save.
-- **A replay of a whole game, for the player to enjoy** - **its recording built 2026-11-25** another way than this entry foresaw: the playback makes each load the player made, so nothing has to be added to the save (`replay.md`, section 10); the list below is still what a load loses, and each entry mended makes a crossing's step smaller. Wished for on 2026-11-12: a game recorded from its start to its end and played back to watch, through every save and load the player made on the way. The replay built today (`replay.md`) is **for development only**: it records from one starting point - a new game, or one save loaded - and plays back from that same point, so it never has to cross a load. A whole game's recording does, and that is the headache: **after a load the game must go on exactly as it would have without one**, or the recording's next command finds a different game. Today it does not: a save in the original's keys does not hold everything later play depends on, and entering a loaded game works some of it out again. The next section lists what. So this needs a save of the enhanced engine's own, holding all of it, and a load that does not enter the game afresh - or a recording that carries what a load loses. Every addition is to be checked against it (`CLAUDE.md`, *Always*; `OpenHOI3.SaveCheck reload`), and what it finds is listed there. *Unfinished.* Risk: none to the normal engine; the enhanced save's keys differ from the original's.
+- **A replay of a whole game, for the player to enjoy** - **built 2026-11-25**, recording, watching and sharing (`replay.md`, sections 10 to 17), another way than this entry foresaw: the playback makes each load the player made, so nothing has to be added to the save; the list below is still what a load loses, and each entry mended makes a crossing's step smaller. *Still open*: moving to a date without playing everything before it, clearing recordings no save leads to, and a recording that outlives its engine. Wished for on 2026-11-12: a game recorded from its start to its end and played back to watch, through every save and load the player made on the way. The replay built today (`replay.md`) is **for development only**: it records from one starting point - a new game, or one save loaded - and plays back from that same point, so it never has to cross a load. A whole game's recording does, and that is the headache: **after a load the game must go on exactly as it would have without one**, or the recording's next command finds a different game. Today it does not: a save in the original's keys does not hold everything later play depends on, and entering a loaded game works some of it out again. The next section lists what. So this needs a save of the enhanced engine's own, holding all of it, and a load that does not enter the game afresh - or a recording that carries what a load loses. Every addition is to be checked against it (`CLAUDE.md`, *Always*; `OpenHOI3.SaveCheck reload`), and what it finds is listed there. *Unfinished.* Risk: none to the normal engine; the enhanced save's keys differ from the original's.
 
 ## The shape, decided 2026-11-20
 
@@ -63,7 +63,9 @@ is `blackice.md`.
   condition the original drops is a condition absent - an `and` of it alone holds - so script that leans on a new
   condition needs a gate the original answers false.
 
-### What is built, 2026-11-21
+### What is built
+
+Begun 2026-11-21; as of 2026-11-25.
 
 - **The file is `common/openhoi_enhanced.txt`** (`CRulesReader`), in any layer; its being there makes every game made
   from those folders an enhanced one. The name carries the prefix everything of this engine's in a mod carries, or
@@ -110,6 +112,33 @@ is `blackice.md`.
   on an icon or a button of `interface/openhoi/` in place of a sprite, painted by the engine in a style of a small
   library a mod's `interface/openhoi/builtin_styles.txt` may change. What the engine's own new screens are laid out
   with, and a mod's.
+- **Game options of the engine's own, 2026-11-21** (`mechanics/gameoptions.md`, section 5): two more rotating
+  autosaves - one some days before each month's end, one by time played (`mechanics/savegame.md`, section 11.1) -
+  scrolling at the screen's edge, and where an event's window comes up; kept in `openhoi_settings.txt`.
+- **A country's own conversions, 2026-11-22** (`mechanics/ic.md`, section 4.1): energy into crude oil and crude oil
+  into fuel set by the player - how much a day, how much of the source to keep, the level to stop at - by a command,
+  in the save and the hash. Changes play, for the country that sets it.
+- **A mod's windows, 2026-11-22** (`mechanics/modwindows.md`): pages a mod's Lua draws with Dear ImGui, reading the
+  game through `OpenHOI3` and ordering through commands - BlackICE's utility, its Trade AI and statistics pages
+  among them. Display, but for the orders a page gives.
+- **The brigade card for a whole unit, 2026-11-22** (`mechanics/brigadecard.md`, section 7): the ribbon over a
+  unit's brigades opens it with the unit's summed figures - the DLL's unit inspector. Display only.
+- **The record of finished battles, 2026-11-22, packed 2026-11-25** (`mechanics/combatreports.md`): a report a
+  battle - both sides, their losses and men, who won - kept for the whole game and in the save, a packed block a
+  year with every figure exact: 853 KiB for the 72,621 battles of a BlackICE game to 1943, where a line a battle
+  came to 4.75 MiB. Read by a page; nothing in play reads it.
+- **The host's rule on other files, 2026-11-25** (`multiplayer.md`, section 15): a machine whose play checksum is
+  not the host's is let in where its engine, rules and the original's checksum are, and is told which files
+  differ. The lobby's choice, between machines only.
+- **The replay, 2026-11-25** (`replay.md`, sections 10 to 17): a game recorded beside its saves by the lobby's
+  rule, each save naming its place; played back from its start through every save and load the player made, the
+  playback making each load itself, so the save needed nothing added; watched from the lobby through any country,
+  changed on a bar while it runs; a save written from a playback taking the game over at that hour; a host's game
+  between machines recorded too; and a replay exported as one file with its save and imported. Nothing of it
+  changes play - but a recorded new game is saved and loaded once as it begins.
+
+**Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
+which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
 
 ## BiceLib's features, each one's place
 
@@ -187,16 +216,17 @@ names of keys and defines are proposals.
   whole list:
   - **The custom sliders and the trade AI as part of the game's own interface** - "the custome slider and trade ai
     could be incorporated as a native game GUI": what the Prod. Sliders AI, LS Sliders AI and Trade AI pages set
-    belongs beside the production, technology and trade screens it steers, and not in a utility window. *Not
-    designed*: where on those screens, and whether their settings stay country variables the mod's AI Lua reads
-    or become settings of the country's own with a command, as the conversion of resources did.
+    belongs beside the production, technology and trade screens it steers, and not in a utility window. **Built
+    2026-11-24** as native pages (`mechanics/nativepages.md`): windows of the game's own interface the mod's Lua
+    fills, behind buttons on the production and technology screens; their settings stay the country's variables
+    the mod's AI Lua reads.
   - **Statistics from a source of the engine's own** - "the stat collection should then also be made use a built-in
     data source, not the CSV-via-LUA approach": the mod's collection writes a text file a statistic a country a
     day from the ministers' Lua, its folders made by the shell, and **it does not work on this engine** (the
     user's, the same day; set aside by his word). The engine already keeps series for its own Statistics screen
     and strategic warfare charts; the collection is to be a record the engine keeps and a page reads, and no
-    file written by a script. *Not designed*: which figures, for whom, how long, and whether in the save.
-  Until then the ported pages stay as they are, the Statistics page with nothing to read.
+    file written by a script. **Built 2026-11-24** (`mechanics/statisticsrecord.md`): 72 figures a country a
+    day, for the whole game, in the save, the collection a rule of the lobby.
 - **The Inspector's last three, each given its place by the user on 2026-11-22**, the first two not as pages of the
   utility at all:
   - **The unit inspector in the game's own interface** - "this one we should do in the native GUI directly, so skip
@@ -209,13 +239,14 @@ names of keys and defines are proposals.
     think we could just make the Map-Mode buttons right click-able to open a small list (like the unit upgrade
     selection)." A right click on a map mode's button by the minimap opens a short list to choose from, as a
     brigade's upgrade list opens; what a mod declares for it is the line above this list, *A map mode a mod
-    declares in data*. *Not designed*: what the list offers for each button, and the file a mod declares it in.
+    declares in data*. **Built 2026-11-24** for three buttons - Infrastructure, Resources and Supply - with what
+    the engine offers for each (`mechanics/custommapmodes.md`); *not built*: a mode a mod declares.
   - **Combat reports stay in the utility**, as a page - "This one should stay in the utility, but as you said needs
     the engine to keep records": the engine keeps a record of every finished battle and a page reads it.
     **Built 2026-11-22** (`mechanics/combatreports.md`): a report a battle, with both sides named, their losses and
     men and who won; kept for the whole game, in the game's state and in an enhanced save, so that a save loaded has
     its own record - in the place of the DLL's files, campaigns and sessions. Not in the hash: nothing reads it but
-    a page. *Not decided*: whether old reports are gathered or dropped (*Save bloat*, below).
+    a page. **Packed since 2026-11-25**, every figure exact (*Save bloat*, below).
 
 **What mods build on**
 
@@ -681,12 +712,12 @@ All of these are risk-free but for what the entry says.
 
 What the original's save writes that later play does not need, and that grows with the game. Begun on 2026-11-20. The normal engine writes all of it, since its save keeps the original's keys (`savegame.md`, 7 to 10); an enhanced engine's own save could leave it out or write it shorter. Unlike the replay's list above, these are about what a save holds *beyond* what play needs, not what it lacks.
 
-- **An enhanced game's record of finished battles grows for the whole game** - *ours*, and so ours to trim
-  (`mechanics/combatreports.md`): a line of ten figures for every battle that has ended, the air's and the
-  bombings' the most, and none ever taken off, because a page may ask what a war cost over any stretch. A long war
-  has tens of thousands. Gathering reports older than a year or two into a month's sums for each pair of countries
-  and kind would keep every figure the page shows over a long period and lose only the old battles one by one,
-  which the page lists sixteen of. *Not decided.* Risk: none to play - nothing in the game reads the record.
+- ~~**An enhanced game's record of finished battles grows for the whole game**~~ - **packed since 2026-11-25**
+  (`mechanics/combatreports.md`, section 3), by the user's word of that day: "we could save the combat reports as
+  blobs as well, monthly or yearly, to reduce the filesize", and "keep them exact". A block a year, about 12
+  bytes a battle and 18% of what a line a battle came to; a war year of BlackICE is some 20,000 battles and a
+  quarter of a MiB. Nothing is gathered into sums and nothing dropped, so the record still grows with the game,
+  a fifth as fast. *Not decided*: whether old reports are ever to be gathered or dropped.
 
 - **Every sunk ship keeps its whole technology list.** `sunk_ships` holds every ship that has left the game - sunk at sea, finished by bombs, taken out with its fleet, or taken off by `remove_brigade` - and nothing is ever taken off it. Each is written as a ship still in a fleet is: its figures and a `<technology>={level progress}` line for every technology its type has. So the list grows with every loss for the whole game, and a late game with hundreds of sunk ships carries hundreds of technology lists nobody reads. What the game actually reads of a sunk ship is its id, owner, name, type and `sunk_by`: `total_of_ours_sunk` counts owners, `total_sunk_by_us` follows `sunk_by`, and a battle's `sunk_ship`, a ship's list of victims and the ledger page find ships by id and show their names and types. Only a brigade card left open on a ship that has gone shows its technology levels, under "Unit models". Keeping those five keys - and the card saying nothing under "Unit models" for a lost ship - would make each entry a few lines. The cost per ship depends on how many technologies its type has (`units/*.txt`, `technologies/*.txt`), so a mod with many ship technologies pays more. The game keeps the whole ship in memory too (`CSunkShips`), which the same change could trim. `savegame.md`, 7 and 10; `brigadecard.md`. *Oversight.* Risk: none to play; the save is no longer the original's, and a save written so is not known to load in the original.
 
