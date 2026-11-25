@@ -244,6 +244,10 @@ three attempts are made first; **then** a row CONNECTING is added to `info_list`
 GAME_NOT_FOUND where no attempt came through, BAD_VERSION for a host of another version, BANNED, CONNECTION_FAILED;
 later NAME_TAKEN where a player of that name is in the game, or HOTJOIN_ACCEPTED / HOTJOIN_DECLINED. A row is a
 `connection_log_text` whose `text` is the line. **Nothing clears the list**, so the lines of earlier tries stay.
+*Ours*, 2026-11-25: a text too wide for the row's box - BAD_VERSION's "The host has another version of the game!" is,
+at 200 wide - **takes a row for each of its lines** (`CMultiplayerMenu.Log`), where a row of one line's height let
+its second line run into the row under it; seen once a line of ours followed it, the files that differ
+(`docs/multiplayer.md`, section 15).
 `back` shows the menu again and drops a connection under way.
 
 **Built so, with these of ours** (entry 31): no scan finds anything, so `join` stays greyed and `scan` only changes

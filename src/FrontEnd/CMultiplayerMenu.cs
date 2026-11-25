@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 using OpenHOI3.Gui;
 
@@ -142,18 +143,32 @@ public sealed class CMultiplayerMenu
 		}
 	}
 
-	/// <summary>A line added at the end of the connect log, by its key. Nothing ever clears the log.</summary>
+	/// <summary>
+	/// A line added at the end of the connect log, by its key. Nothing ever clears the log. *Ours*: a text too wide for
+	/// the row's box takes a row for each of its lines - "The host has another version of the game!" is two - where the
+	/// original's one row of one line's height lets the second line run into the row under it (frontend.md, section 8).
+	/// </summary>
 	public void Log(string key)
 	{
-		if (_connect?.FindListBox("info_list") is not { } list || CGuiWindow.CreateEntry(_context, "connection_log_text") is not { } row)
+		if (_connect?.FindListBox("info_list") is not { } list)
 		{
 			return;
 		}
-		if (row.FindTextBox("text") is { } text)
+		List<string>? lines = null;
+		for (int index = 0; lines is null || index < lines.Count; index++)
 		{
-			text.Text = Localise(key);
+			if (CGuiWindow.CreateEntry(_context, "connection_log_text") is not { } row)
+			{
+				return;
+			}
+			if (row.FindTextBox("text") is { } text)
+			{
+				lines ??= text.Broken(Localise(key));
+				text.Text = index < lines.Count ? lines[index] : "";
+			}
+			lines ??= new List<string> { "" };
+			list.Add(row);
 		}
-		list.Add(row);
 		list.ShowLast();
 	}
 

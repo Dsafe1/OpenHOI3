@@ -314,6 +314,15 @@ public partial class CGuiTextBox : CGuiObject
 		}
 	}
 
+	/// <summary>
+	/// A text as this box would break it into lines, each carrying on the colour the one before ended in: for a caller
+	/// that gives a line a row of its own, as the connect log does.
+	/// </summary>
+	public List<string> Broken(string text)
+	{
+		return new List<string>(CColouredText.CarryColour(Lines(text), _font is null ? null : _font.ChangesColour));
+	}
+
 	/// <summary>The text laid out again, and what its lines are drawn on sized to it.</summary>
 	private void Relayout()
 	{
