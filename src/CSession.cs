@@ -247,7 +247,7 @@ public partial class CSession : Node
 		if (Net is not null)
 		{
 			// As the host writes the game it sends: a client in step makes the same bytes and is sent nothing.
-			Net.SaveNow = () => System.Text.Encoding.Latin1.GetBytes(Content.Saves.CSaveWriter.Write(State, _localisation.Localise));
+			Net.SaveNow = NetGameBytes;
 		}
 		Net?.Bind(_simulation);
 		// The game's hours are started after each frame is drawn, and run beside the next (StartHours).
@@ -368,6 +368,25 @@ public partial class CSession : Node
 	private string _netStatusNow = "";
 	private ulong _netStatusSince;
 
+	/// <summary>
+	/// The game written to go between machines: as a save, but without its place in the host's recording, which only
+	/// the host's game holds - a client in step writes the same bytes and is sent nothing (docs/multiplayer.md,
+	/// section 14; docs/replay.md, section 14).
+	/// </summary>
+	private byte[] NetGameBytes()
+	{
+		CReplayLink? place = State.ReplayLink;
+		State.ReplayLink = null;
+		try
+		{
+			return System.Text.Encoding.Latin1.GetBytes(Content.Saves.CSaveWriter.Write(State, _localisation.Localise));
+		}
+		finally
+		{
+			State.ReplayLink = place;
+		}
+	}
+
 	private readonly bool _netLog = UserArguments().Contains("--netlog");
 	private CDate? _netLogged;
 	private string _netStands = "";
@@ -394,14 +413,20 @@ public partial class CSession : Node
 		// and handed over, the playing going on (docs/multiplayer.md, section 11).
 		if (net is Multiplayer.CNetHost { ViewWanted: true } shows)
 		{
-			shows.SetView(System.Text.Encoding.Latin1.GetBytes(Content.Saves.CSaveWriter.Write(State, _localisation.Localise)));
+			shows.SetView(NetGameBytes());
 		}
 		if (net is Multiplayer.CNetHost { ResendWanted: true } host)
 		{
 			// Every order given runs first, so that the save holds it.
 			_simulation.Pump();
-			if (host.SendGame(State, () => System.Text.Encoding.Latin1.GetBytes(
-				Content.Saves.CSaveWriter.Write(State, _localisation.Localise))))
+			if (host.SendGame(State, () =>
+			{
+				// A recorded game marks the place, which the recording of the game loaded from these bytes names as its
+				// parent (docs/replay.md, section 14).
+				_simulation.MarkSaved();
+				host.ReplayParent = State.ReplayLink;
+				return NetGameBytes();
+			}))
 			{
 				return -1;
 			}

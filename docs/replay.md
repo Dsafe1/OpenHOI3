@@ -339,7 +339,8 @@ lines keep.
 
 **The lobby's rule `record_replay`** (`CGamePlaySettings.RecordReplay`; the tick is in the mod's window
 `openhoi_lobby_rules`, its texts `OPENHOI_RULE_RECORD_REPLAY` and `_TIP`), an enhanced game's alone, off unless ticked,
-and in no save: a loaded save shows it ticked where it names a recording. Not between machines yet.
+and in no save: a loaded save shows it ticked where it names a recording. Between machines it is the host's
+(section 14).
 
 On Play (`Main.BeginRecording`):
 
@@ -407,7 +408,7 @@ fits. *Not built*: any test of the mod's files, which a recording hangs on as mu
 
 - **A country to look through** other than the one that played (section 6's second piece), and a list of replays
   apart from the list of saves (section 11).
-- **A game between machines.** The host's recording is its wire already (section 8); nothing keeps it beside the saves.
+- ~~A game between machines~~ - the host's is recorded since the same day (section 14).
 - **Moving through a recording**: a playback runs every hour from the start. A start kept at each crossing, or at
   intervals, would let one begin late.
 - **Clearing recordings no save leads to**, and telling the player how much they hold: about 320 KB a month of 1936 in
@@ -502,6 +503,44 @@ the base game, saves on 10 and 20 January 1936, taken over on the 15th - in the 
 **24 of 24 days through three recordings**; BlackICE as Germany, saves on 6 and 12 January, taken over on the 9th, **18 of 18**; and `ReplaySavesTests`: the place a save
 from a playback is given, a playback to it ending there before the order that came after, and the chain behind a
 recording begun from it. **In the client**, BlackICE as Germany: a playback of section 10.4's `two.hoi3` saved after 72 hours by the script's `save:taken`, that save loaded with `--recordreplay`, three days played and saved, and that save played back with `--hash` - **6 of 6 midnights**, the first three the campaign's and the next three the game's that was played on. **Not tried by hand**: the menu's Save Game in a playback, and Watch replay on such a save in the lobby.
+
+## 14. A game between machines, recorded by its host
+
+Begun 2026-11-25, on the word of that day to start on it once a single player's was committed.
+
+**It fits what was there.** What a host sends its clients is its game's recording, entry by entry (section 8), and
+every game a host plays with others it has loaded from the bytes every machine was sent - at the start, when a machine
+joins, when one has parted (`multiplayer.md`, sections 6 and 14). So **each of those loads begins a recording**, kept
+beside the host's saves as a single player's are, and the chain, the marks and the playback are section 10's.
+
+- **Only the host records**, with the lobby's rule ticked (`CNetHost.RecordWanted`, set at Play; `--recordreplay`
+  with `--host`). The entries go to the file as they go to the clients (`CHostSession`'s `keep`), and the recording
+  has a name, so the host's saves and autosaves mark it and name their place as ever.
+- **The first game is sent once more, to the host too**: a recording begins at a game loaded, and a host's own first
+  game is made, not loaded. A game owed a recording counts as one to send again (`CNetHost.RecordingOwed`), at its
+  first frame; alone, the host loads it once more, and with machines waiting in its lobby it is the sending they
+  were owed anyway.
+- **Each game sent is a place in the recording**: as it is written the place is marked (`CSimulation.MarkSaved` in
+  the session's sending) and kept on the host (`CNetHost.ReplayParent`), and the recording of the game then loaded
+  names it as its parent (`Main.BeginNetRecording`). With no parent - a new game, or a save of no recording - the
+  bytes sent are kept as the recording's start.
+- **The bytes that go between machines do not hold the place** (`CSession.NetGameBytes`): only the host's game has
+  one, and a client in step has to write the same bytes as the host to be sent nothing (`multiplayer.md`, section 14).
+- **The header says so**: `net`, and every country played, the host's first. A playback loads such a recording's
+  game with all of them taken up, as every machine did (`Main.PlayRecording`), and looks on through the host's.
+  The lobby's choices are in the first recording's header and given to the game played back.
+
+**Checked by two processes**, 2026-11-25, BlackICE, Germany hosting with `--recordreplay` and `--netlog` - which now
+has the host print each midnight's hash - and Britain joining: once before the first hour and once on 26 January at
+16h, a game that ran. Each time the host's autosave of 1 February was played back with `OpenHOI3.SaveCheck
+replaysave ... hash`: two recordings, the second on from the first's mark, **31 of 31 midnights the host's**; the
+client's log, in the first, 31 midnights the host's too. `ReplaySavesTests`: what a host keeps is what it sends, entry
+for entry, and its save marks it.
+
+**Not tried**: a game hosted from the lobby with the rule ticked - only `--host`; a save of a recording chosen in a
+host's lobby and played on; a machine parted and sent the game again; a playback of such a game watched in the
+client, where the looker-on's country is the host's by the order the countries were taken up in; and a client's own
+recording, of which there is none - a player who was not the host has no replay.
 
 ## Not established
 

@@ -23,18 +23,28 @@ public sealed class CHostSession
 	private int _toldSpeed = -1;
 	private string _toldWaiting = "";
 
-	public CHostSession(CSimulation simulation, int window = DefaultWindow)
+	/// <param name="keep">Given every entry of the recording as well: a file beside the host's saves (docs/replay.md, section 14).</param>
+	/// <param name="segment">That recording's name, which the host's saves then name; null where it is kept nowhere.</param>
+	public CHostSession(CSimulation simulation, int window = DefaultWindow, Action<CReplayEntry>? keep = null, string? segment = null)
 	{
 		_simulation = simulation;
 		Window = window;
 		simulation.Pace.Multiplayer = true;
 		simulation.Pace.IsHost = true;
-		simulation.State.Replay = CReplay.Recording(entry => Broadcast(CWire.Line(CWire.Entry, CReplayFile.ToLine(entry))));
+		void Sink(CReplayEntry entry)
+		{
+			Broadcast(CWire.Line(CWire.Entry, CReplayFile.ToLine(entry)));
+			keep?.Invoke(entry);
+		}
+		simulation.State.Replay = segment is null ? CReplay.Recording(Sink) : CReplay.Recording(Sink, segment);
 		simulation.HourGate = () => WaitingFor().Count == 0;
 		simulation.HourPassed += TellHash;
 	}
 
 	public int Window { get; }
+
+	/// <summary>Each midnight's date and hash as the host's game reaches it, on the thread the hours run on: for a log.</summary>
+	public Action<CDate, ulong>? Midnight { get; set; }
 
 	public IReadOnlyList<CHostPeer> Peers => _peers;
 
@@ -254,6 +264,7 @@ public sealed class CHostSession
 		{
 			ulong[] parts = CStateHash.Of(state);
 			ulong hash = CStateHash.Whole(parts);
+			Midnight?.Invoke(state.Date, hash);
 			Broadcast(CWire.Line(CWire.Hash, hour + " " + hash.ToString(CultureInfo.InvariantCulture)));
 			// Kept for the last few midnights, with every figure's own hash: where a client says its game has parted, what
 			// differs can then be named (docs/multiplayer.md, section 9). Only while a client follows.

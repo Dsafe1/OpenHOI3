@@ -8,7 +8,9 @@ namespace OpenHOI3.Sim.Replay;
 /// does, and the game's seed. See <c>docs/replay.md</c>, section 8. And for a recording of a game kept beside its saves
 /// (section 10): its own name, the save it was begun from - none for a new game's - and what made the game, the engine
 /// and files a playback has to be run with; and the lobby's choices the game was entered with, as the numbers they
-/// travel between machines as, which a playback gives the save it loads as the player's Play gave them.
+/// travel between machines as, which a playback gives the save it loads as the player's Play gave them. And whether
+/// it is a host's recording of a game between machines (section 14): its game is the save every machine was sent,
+/// loaded with all the countries played - the host's first.
 /// </summary>
 public sealed record CReplayHeader(IReadOnlyList<CCountryTag> Played, uint Seed, string? Segment = null,
-	CReplayLink? Parent = null, string Made = "", IReadOnlyList<int>? Options = null);
+	CReplayLink? Parent = null, string Made = "", IReadOnlyList<int>? Options = null, bool Net = false);

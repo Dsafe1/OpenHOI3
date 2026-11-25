@@ -667,6 +667,9 @@ saved games both times, the two processes sharing one folder, **so a save kept a
 a test gives a link twelve megabytes at once, closes it, and finds every line arrived in order. The host's
 percentage was not seen, a sending between processes of one machine taking no time.
 
+**Since 2026-11-25 the bytes sent hold no place in the host's recording** (`CSession.NetGameBytes`; `replay.md`,
+section 14): a recorded game's save names one, which a client's game does not have.
+
 ## 15. Other files: the host's rule, and which files differ - built 2026-11-25
 
 Asked for on 2026-11-24 - "Multiplayer enhanced checksum bypass (still check original checksum)", "maybe also show

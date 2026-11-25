@@ -55,7 +55,7 @@ internal static class CReplaySaveCheck
 			for (int index = 0; index < chain.Count; index++)
 			{
 				CReplaySegment segment = chain[index];
-				bool first = segment.Header.Parent is null;
+				bool first = segment.Header.Parent is null || segment.Header.Net;
 				using var scripts = new CAiScripts(directories, _ => { });
 				CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 				CCountryTag? player = segment.Header.Played.Count > 0 ? segment.Header.Played[0] : null;
@@ -63,6 +63,14 @@ internal static class CReplaySaveCheck
 				// the lobby's Play does. The lobby's choices are left as the save has them: a look, not the client.
 				CGameState state = CSaveLoader.Load(directories, map, localisation, countries, crossing, first ? player : null, scripts,
 					_ => { }).State;
+				// A game between machines: the others of its countries taken up, as every machine takes them.
+				foreach (CCountryTag other in first ? segment.Header.Played.Skip(1) : Enumerable.Empty<CCountryTag>())
+				{
+					if (!state.Played.Contains(other) && state.Country(other) is { } country)
+					{
+						OpenHOI3.Sim.Commands.CSetPlayedCommand.Take(state, country);
+					}
+				}
 				if (!first && player is { } chosen)
 				{
 					bool automated = state.Played.Any(played => state.AutomateTrade.Remove(played));

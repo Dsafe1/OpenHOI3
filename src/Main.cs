@@ -481,6 +481,13 @@ public partial class Main : Control
 			{
 				await Host(screen, game.State.Played.First(), SettingsPort);
 			}
+			// The lobby's rule to record: the host's game is sent again at its first frame, to the host too, and recorded
+			// from the game loaded then (docs/replay.md, section 14).
+			if (_net is Multiplayer.CNetHost hosted && game.State.Rules.Enhanced && game.State.GamePlay.RecordReplay)
+			{
+				hosted.RecordWanted = true;
+				hosted.ReplayOptions = FrontEnd.CLobbyOptions.Values(game.State.GamePlay, game.State.Automation);
+			}
 		}
 		await StartSession(screen, game, replayFile: recording);
 	}
@@ -550,6 +557,36 @@ public partial class Main : Control
 		return (game with { State = state, AiScripts = scripts }, file);
 	}
 
+	/// <summary>
+	/// A host's recording of the game it has just loaded - the bytes every machine was sent (docs/replay.md, section 14):
+	/// on from the place those bytes were saved at where that is in a recording still there, else with the bytes as
+	/// its start. The host's session records to it as it binds. Touches no engine object.
+	/// </summary>
+	private CReplayFile? BeginNetRecording(Multiplayer.CNetHost host, Sim.CGameState state, byte[] bytes, IReadOnlyList<CCountryTag> played)
+	{
+		if (!state.Rules.Enhanced)
+		{
+			host.RecordWanted = false;
+			return null;
+		}
+		string store = ReplayStore;
+		CReplayLink? parent = host.ReplayParent is { } link
+			&& System.IO.File.Exists(Content.Replays.CReplayStore.PathOf(store, link.Segment)) ? link : null;
+		string name = Content.Replays.CReplayStore.NewName();
+		if (parent is null)
+		{
+			Content.Replays.CReplayStore.WriteStart(store, name, bytes);
+		}
+		(CReplayFile file, _) = Content.Replays.CReplayStore.Begin(store,
+			new CReplayHeader(played.ToList(), state.Seed, name, parent, MadeWith(), host.ReplayOptions, Net: true));
+		host.ReplayOptions = null;
+		host.Record = (file.Write, name);
+		state.ReplayLink = parent;
+		GD.Print($"Replay: recording {name} of the game hosted, {string.Join(", ", played)} played" +
+			(parent is null ? ", from a start of its own." : $", on from {parent.Text}."));
+		return file;
+	}
+
 	/// <summary>A save's bytes loaded as a game, played by <paramref name="played"/> or else by the save's own player.</summary>
 	private Sim.CGameState LoadRecorded(byte[] save, CCountryTag? played, CLocalisation localisation, Content.Map.CMap map,
 		OpenHOI3.Lua.CAiScripts scripts)
@@ -570,6 +607,10 @@ public partial class Main : Control
 	/// <summary>The recordings a playback of a save goes through, and which of them is being played.</summary>
 	private List<Content.Replays.CReplaySegment>? _replayChain;
 	private int _replayAt;
+
+	/// <summary>Whether the developer switches started the game, and whether the session made next runs them again.</summary>
+	private bool _switchedStart;
+	private bool _runSwitchesAgain;
 
 	/// <summary>Whether the developer switches asked for the playback, and not the lobby's button.</summary>
 	private bool _replaySwitched;
@@ -610,7 +651,9 @@ public partial class Main : Control
 	private async Task PlayRecording(CLoadingScreen? screen, byte[] save)
 	{
 		Content.Replays.CReplaySegment segment = _replayChain![_replayAt];
-		bool first = segment.Header.Parent is null;
+		// A recording with a start of its own, and every recording of a game between machines, is of a game loaded with
+		// the countries its header names; a single player's played on from a save is that save's game taken up.
+		bool first = segment.Header.Parent is null || segment.Header.Net;
 		CLocalisation? texts = _session?.Localisation ?? screen?.Localisation;
 		await LoadNetGame(save, segment.Header.Played, screen, over: _replayAt == 0 ? null : Interface.Screens.CReplayText.Text(
 			key => texts?.Localise(key) ?? key, Interface.Screens.CReplayText.LoadingKey,
@@ -623,6 +666,12 @@ public partial class Main : Control
 			if (!first && segment.Header.Played.Count > 0)
 			{
 				FrontEnd.CFrontEnd.TakeUpLoaded(state, segment.Header.Played[0]);
+			}
+			else if (segment.Header.Net && segment.Header.Options is not null)
+			{
+				// The lobby's choices change who does a country's work and what it is played at.
+				Sim.Settings.CAutomation.SetMinisters(state);
+				Sim.Modifiers.CCountryModifiers.Rebuild(state);
 			}
 			CReplayFile file = CReplayFile.Open(segment.Path, state);
 			state.Replay = CReplay.Replaying(file, segment.Until);
@@ -812,6 +861,7 @@ public partial class Main : Control
 			}
 			return;
 		}
+		_switchedStart = true;
 		CSwitchedGame made = await screen.Work(CLoadingSteps.History, () => CSwitchedGame.Make(_directories, localisation), steps: 2);
 		Gui.CGuiContext gui = null!;
 		await screen.OnMain(CLoadingSteps.GuiDefinitions, () => gui = Gui.CGuiContext.Load(_directories, made.Localisation));
@@ -825,6 +875,11 @@ public partial class Main : Control
 		var prepared = new FrontEnd.CPreparedGame(made.State, made.Map, made.Localisation, gui, made.AiScripts);
 		CReplayFile? file = made.ReplayFile;
 		// --recordreplay: the game recorded beside its saves, as the lobby's rule has it (docs/replay.md, section 10).
+		if (_net is Multiplayer.CNetHost switchedHost && CSession.UserArguments().Contains("--recordreplay") && made.State.Rules.Enhanced)
+		{
+			// Hosted by --host: recorded as the lobby's rule has a hosted game recorded.
+			switchedHost.RecordWanted = true;
+		}
 		if (file is null && _net is null && CSession.UserArguments().Contains("--recordreplay") && made.State.Played.Count > 0)
 		{
 			if (made.State.Rules.Enhanced)
@@ -968,6 +1023,13 @@ public partial class Main : Control
 			? $"Multiplayer: loading the game sent, {bytes.Length / 1024} KiB, played by {string.Join(", ", played)}."
 			: $"Replay: loading the game to play back, {bytes.Length / 1024} KiB, played by {string.Join(", ", played)}.");
 		CReplayFile? takenFile = null;
+		// A host whose game is to be recorded begins a recording with each game it loads (docs/replay.md, section 14).
+		if (taken is null && _net is Multiplayer.CNetHost recordingHost && recordingHost.RecordWanted)
+		{
+			taken = state => BeginNetRecording(recordingHost, state, bytes, played);
+			// Each of them, where the switches started the game: a machine may join before the first has run them.
+			_runSwitchesAgain = _switchedStart;
+		}
 		// The frame that said so ends first: it may be the old session's own.
 		await screen.Drawn();
 		if (frontEnd is not null)
@@ -1035,10 +1097,13 @@ public partial class Main : Control
 		// game's screens are built from are given the sounds.
 		_sounds.Enabled = false;
 		game.Gui.Sounds = _sounds;
+		// A game the switches started and hosted, loaded again at once to be recorded: the switches are that game's.
+		bool switchesAgain = _runSwitchesAgain;
+		_runSwitchesAgain = false;
 		var session = new CSession
 		{
 			Name = "Session", Music = _music, PlaysClicks = switched, Surfaces = _surfaces, Net = _net,
-			SwitchesAgain = switched && _replayChain is not null && _replayAt > 0,
+			SwitchesAgain = switched && _replayChain is not null && _replayAt > 0 || switchesAgain,
 		};
 		session.Setup(_directories, game, carried, replayFile);
 		session.Resigned += () =>

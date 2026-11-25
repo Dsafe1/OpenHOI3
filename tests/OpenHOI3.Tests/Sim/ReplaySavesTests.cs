@@ -76,6 +76,53 @@ public class ReplaySavesTests
 	}
 
 	[Fact]
+	public void AHostsRecordingIsKeptAsWellAsSentAndItsSavesMarkIt()
+	{
+		string folder = Folder();
+		string store = CReplayStore.Folder(folder);
+		try
+		{
+			// The header says it is a game between machines, with every country played.
+			var played = new[] { new CCountryTag("GER"), new CCountryTag("ENG") };
+			(CReplayFile file, _) = CReplayStore.Begin(store, new CReplayHeader(played, State().Seed, "net", null, "engine", null, Net: true));
+			CGameState hosted = State();
+			var run = new CSimulation(hosted);
+			var session = new OpenHOI3.Sim.Multiplayer.CHostSession(run, keep: file.Write, segment: "net");
+			var sent = new List<string>();
+			session.Add("Ann", sent.Add);
+			run.RunHours(2);
+			run.MarkSaved();
+			Assert.Equal(new CReplayLink("net", 1), hosted.ReplayLink);
+			file.Dispose();
+			CReplayHeader header = CReplayFile.ReadHeader(CReplayStore.PathOf(store, "net"));
+			Assert.True(header.Net);
+			Assert.Equal(played, header.Played);
+			CReplayStore.Begin(store, new CReplayHeader(played, 5, "plain")).File.Dispose();
+			Assert.False(CReplayFile.ReadHeader(CReplayStore.PathOf(store, "plain")).Net);
+
+			// What was kept is what was sent: the client's lines of the recording and the file's are the same entries.
+			var kept = new List<string>();
+			CGameState read = State();
+			read.Played.Add(played[0]);
+			read.Played.Add(played[1]);
+			using (CReplayFile back = CReplayFile.Open(CReplayStore.PathOf(store, "net"), read))
+			{
+				while (back.Read() is { } entry)
+				{
+					kept.Add(CReplayFile.ToLine(entry));
+				}
+			}
+			List<string> wire = sent.Where(line => line.Length > 2 && line[0] == OpenHOI3.Sim.Multiplayer.CWire.Entry).Select(line => line[2..]).ToList();
+			Assert.Equal(wire, kept);
+			Assert.Contains(kept, line => line.Contains("\"k\":\"v\""));
+		}
+		finally
+		{
+			Directory.Delete(folder, recursive: true);
+		}
+	}
+
+	[Fact]
 	public void ASaveMarksItsPlaceInARecordingThatHasAName()
 	{
 		CGameState state = State();

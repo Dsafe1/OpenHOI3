@@ -50,6 +50,23 @@ public sealed class CNetHost : CNetGame
 	/// </summary>
 	public System.Func<bool>? AllowOtherFiles { get; set; }
 
+	/// <summary>Whether the game hosted is to be recorded beside the host's saves: the lobby's rule (docs/replay.md, section 14).</summary>
+	public bool RecordWanted { get; set; }
+
+	/// <summary>Whether the game now played is being recorded so. One that is to be and is not is sent again, to the host too: a recording begins at a game loaded.</summary>
+	public bool Recorded { get; private set; }
+
+	/// <summary>Where in its recording the game last sent was saved: what the recording of the game loaded from it names as its parent.</summary>
+	public Sim.Replay.CReplayLink? ReplayParent { get; set; }
+
+	/// <summary>The lobby's choices the first game was entered with, for its recording's header; null after it.</summary>
+	public IReadOnlyList<int>? ReplayOptions { get; set; }
+
+	/// <summary>The file the next game bound is recorded to, and its name: set as that game is loaded, taken by <see cref="Bind"/>.</summary>
+	public (System.Action<Sim.Replay.CReplayEntry> Keep, string Segment)? Record { get; set; }
+
+	private bool RecordingOwed => RecordWanted && !Recorded;
+
 	/// <summary>The Options panel's line as it stands, sent to every machine in the lobby that has not been sent it; null outside the lobby.</summary>
 	private string? _options;
 
@@ -227,7 +244,7 @@ public sealed class CNetHost : CNetGame
 	/// sending is under way, which is let end first.
 	/// </summary>
 	public bool ResendWanted => _session is not null && !_peers.Any(peer => peer.Loading)
-		&& (_parted || _peers.Any(peer => peer.WaitsToJoin));
+		&& (_parted || RecordingOwed || _peers.Any(peer => peer.WaitsToJoin));
 
 	public override void Pump()
 	{
@@ -375,7 +392,14 @@ public sealed class CNetHost : CNetGame
 		// A game begins or is loaded again: what was shown in the lobby is of the lobby, and a machine that joins from
 		// here on is shown the game as it then stands.
 		SetView(null);
-		var session = new CHostSession(simulation) { HostCountry = Country };
+		var session = new CHostSession(simulation, keep: Record?.Keep, segment: Record?.Segment) { HostCountry = Country };
+		Recorded = Record is not null;
+		// --netlog: each midnight's hash in the log, as --hash writes a game's, for setting beside a playback's.
+		if (OpenHOI3.CSession.UserArguments().Contains("--netlog"))
+		{
+			session.Midnight = (date, hash) => Godot.GD.Print($"{date} hash {hash:x16}");
+		}
+		Record = null;
 		session.Parted += peer =>
 		{
 			_parted = true;
@@ -494,7 +518,7 @@ public sealed class CNetHost : CNetGame
 			joined = true;
 		}
 		played = played.Distinct().ToList();
-		if (!joined && !_parted)
+		if (!joined && !_parted && !RecordingOwed)
 		{
 			return false;
 		}
