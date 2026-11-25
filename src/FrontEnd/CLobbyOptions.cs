@@ -26,7 +26,7 @@ public partial class CLobbyOptions : Control
 	public const string StatisticsLabel = "OPENHOI_RULE_STATISTICS";
 	public const string StatisticsTip = "OPENHOI_RULE_STATISTICS_TIP";
 
-	/// <summary>The host's rule of any game, on other files (docs/multiplayer.md, section 15).</summary>
+	/// <summary>An enhanced game's host's rule on other files (docs/multiplayer.md, section 15).</summary>
 	public const string OtherFilesButton = "other_files";
 
 	private CGuiWindow? _rules;
@@ -74,10 +74,7 @@ public partial class CLobbyOptions : Control
 			Bind(element + "_next", () => StepArea(label, area, 1));
 		}
 		// An enhanced game's own rules, in a window of the mod's beside the original's (statisticsrecord.md, section 6).
-		// Where the files played declare none - the base game's - the engine puts its own up, with the one rule of any game.
-		_rules = _context.Types.FindWindow(RulesWindowName) is not null ? CGuiWindow.Create(_context, RulesWindowName)
-			: Content.Gui.CGuiTypes.Parse(CLobbyRulesText.FallbackWindow, null, CLobbyRulesText.FallbackFile)
-				.FindWindow(RulesWindowName) is { } own ? CGuiWindow.Create(_context, own) : null;
+		_rules = _context.Types.FindWindow(RulesWindowName) is null ? null : CGuiWindow.Create(_context, RulesWindowName);
 		if (_rules is not null)
 		{
 			AddChild(_rules);

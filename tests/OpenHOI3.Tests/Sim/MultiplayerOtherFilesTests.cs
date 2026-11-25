@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using OpenHOI3.Content.Checksum;
-using OpenHOI3.Content.Gui;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim.Multiplayer;
 using OpenHOI3.Sim.Settings;
@@ -134,16 +133,8 @@ public class MultiplayerOtherFilesTests
 	}
 
 	[Fact]
-	public void TheEnginesOwnRulesWindowHasTheOneRuleAndWordsWhereNoTableHasItsKeys()
+	public void TheRulesWordsStandInWhereNoTableHasItsKeys()
 	{
-		var problems = new List<string>();
-		CGuiWindowType? window = CGuiTypes.Parse(CLobbyRulesText.FallbackWindow, problems.Add, CLobbyRulesText.FallbackFile)
-			.FindWindow("openhoi_lobby_rules");
-		Assert.NotNull(window);
-		Assert.Empty(problems);
-		Assert.Equal(new[] { "background", "title_bar", "title", "other_files", "other_files_label", "other_files_help" },
-			window!.Children.Select(child => child.Name));
-
 		// A table that has the key says it; one that has not gives the key back, and the words stand in.
 		Assert.Equal("Allow other files", CLobbyRulesText.Text(key => key, CLobbyRulesText.OtherFilesKey, CLobbyRulesText.OtherFiles));
 		Assert.Equal("Andere Dateien", CLobbyRulesText.Text(_ => "Andere Dateien", CLobbyRulesText.OtherFilesKey, CLobbyRulesText.OtherFiles));

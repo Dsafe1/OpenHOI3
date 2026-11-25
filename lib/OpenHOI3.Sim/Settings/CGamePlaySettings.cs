@@ -25,9 +25,10 @@ public sealed class CGamePlaySettings
 	public bool CollectStatistics { get; set; } = true;
 
 	/// <summary>
-	/// A host's rule, the lobby's choice, of any game: whether a machine whose play checksum is not the host's is let in
+	/// An enhanced game's host's rule, the lobby's choice: whether a machine whose play checksum is not the host's is let in
 	/// all the same, where its engine, its rules and the original's file checksum are the host's
-	/// (<c>docs/multiplayer.md</c>, section 15). Off unless it is turned on, and in no save: it is the session's.
+	/// (<c>docs/multiplayer.md</c>, section 15). Off unless it is turned on, and in no save: it is the session's. A
+	/// faithful game's host lets nobody in by it, which is the host's to see to and not this figure's.
 	/// </summary>
 	public bool AllowOtherFiles { get; set; }
 

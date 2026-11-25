@@ -39,12 +39,6 @@ public partial class CGuiWindow : CGuiObject
 			CDiagnostics.Problem($"interface: no file declares a window named '{name}'");
 			return null;
 		}
-		return Create(context, type);
-	}
-
-	/// <summary>A window of a type that is in no file's list: one the engine declares itself.</summary>
-	public static CGuiWindow Create(CGuiContext context, CGuiWindowType type)
-	{
 		var window = new CGuiWindow();
 		window.Initialise(type, context);
 		return window;

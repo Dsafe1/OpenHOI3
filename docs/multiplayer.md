@@ -670,8 +670,8 @@ percentage was not seen, a sending between processes of one machine taking no ti
 ## 15. Other files: the host's rule, and which files differ - built 2026-11-25
 
 Asked for on 2026-11-24 - "Multiplayer enhanced checksum bypass (still check original checksum)", "maybe also show
-which files differed?" - and decided the next day: "lobby rule tick, any game". All of it *ours*; nothing of the
-original's stands behind it.
+which files differed?" - and decided the next day: a tick among the lobby's rules, and "the checksumbypass should be an
+enhanced feature". All of it *ours*; nothing of the original's stands behind it.
 
 **What a machine names its files by** is a token of two figures, `<play checksum>/<base>` (`CPlayToken`): the play
 checksum as before (`mechanics/checksum.md`, section 8), and a **base** - a hash of the engine's version, the rules'
@@ -679,16 +679,18 @@ line and **the original's file checksum** (`CPlayChecksum.Base`). Two machines o
 the same rules on files the original's own figure cannot tell apart; what may still differ between them is what the
 play checksum counts and the original's does not - the AI's Lua first of all.
 
-**The rule** is `CGamePlaySettings.AllowOtherFiles`, the host's, off unless it is turned on, of any game, faithful or
-enhanced. It is the session's: in no save, so that a faithful game's save stays the original's, and a save chosen in
-the lobby leaves it as it was chosen. It is turned by the button `other_files` of the lobby's window of rules,
+**The rule** is `CGamePlaySettings.AllowOtherFiles`, the host's, off unless it is turned on, **of an enhanced game
+alone**: a faithful game's host lets nobody in by it, whatever is chosen (`Main.AllowOtherFiles`). It is the
+session's: in no save, and a save chosen in the lobby leaves it as it was chosen. It is turned by the button `other_files` of the lobby's window of rules,
 `openhoi_lobby_rules`, which shows an `X` while it is on; `other_files_help` beside it says what it does under the
-mouse and `other_files_label` names it. **Where the files played declare no such window - the base game's - the
-engine puts up its own** (`CLobbyRulesText.FallbackWindow`), every picture a built-in element (`mechanics/builtin.md`),
-with this one rule. Its texts are the keys `OPENHOI_RULES_TITLE`, `OPENHOI_RULE_OTHER_FILES` and
+mouse and `other_files_label` names it. **The window and its elements are the mod's**, declared in a file of its
+`interface/openhoi` as the statistics rule's are (`mechanics/statisticsrecord.md`, section 6) - BlackICE's
+`interface/openhoi/lobbyrules.gui` - and where no file declares the button there is no rule to turn; the engine
+declares no window of its own, as it was first built to for a day. Its texts are the keys `OPENHOI_RULES_TITLE`, `OPENHOI_RULE_OTHER_FILES` and
 `OPENHOI_RULE_OTHER_FILES_TIP`, with English words in their place where no table has them. The chat says the change
 as it says an option's; on a client the button is greyed and the host's choice shown, the choice travelling after the
-statistics rule's. A host started by switch takes the rule from `--otherfiles`.
+statistics rule's. A host started by switch takes the rule from `--otherfiles`. **Which files differ is said in any
+game**, a faithful one too: only the letting in is an enhanced game's.
 
 **As a machine asks to be let in** (`CHostSession.Admit`):
 
@@ -710,9 +712,10 @@ own chat where it was let in; and writes all of them to `openhoi3_checksum_diff.
 the game goes, the machines' hashes part at a midnight and the game is sent again (section 4) - each midnight, for as
 long as they do.
 
-**Checked** by `MultiplayerOtherFilesTests`, and on 2026-11-25 by two processes on the base game, the client's install
-with one line added to `script/ai_license.lua`: with the rule off the client was refused and said "1 differing:
-script/ai_license.lua"; with `--otherfiles` it was let in, loaded the game sent and played, and the host's log said
-so. The lobby's window was looked at with `--click` in the base game - the engine's own - and in BlackICE, the tick
-turned and the chat's line read. **Not reviewed in play**: a lobby between two machines with the rule turned there,
+**Checked** by `MultiplayerOtherFilesTests`, and on 2026-11-25 by two processes, the client's install with one line
+added to a script: on the base game the client was refused, with `--otherfiles` too, and said "1 differing:
+script/ai_license.lua"; on BlackICE, an enhanced game, the client's copy of the mod with one line added to its
+`script/ai_license.lua`, it was refused with the rule off and said the file, and with `--otherfiles` let in, the
+host's log saying so, and loaded the game sent. The lobby's window was looked at with `--click`
+in BlackICE, the tick turned and the chat's line read. **Not reviewed in play**: a lobby between two machines with the rule turned there,
 the tooltip, and a game of differing files run to a midnight.

@@ -657,9 +657,13 @@ public partial class Main : Control
 	/// <summary>The files the play checksum last worked out was made of, a line each (checksum.md, section 8).</summary>
 	private IReadOnlyList<string>? _playFiles;
 
-	/// <summary>The host's rule on other files, as it stands now: the game's that runs, else the lobby's choice.</summary>
-	private bool AllowOtherFiles => CSession.UserArguments().Contains("--otherfiles")
-		|| (_session?.State.GamePlay ?? _frontEnd?.ChosenPlay)?.AllowOtherFiles == true;
+	/// <summary>
+	/// The host's rule on other files, as it stands now: the game's that runs, else the lobby's choice - and an
+	/// enhanced game's alone, a faithful game letting nobody in by it whatever is chosen.
+	/// </summary>
+	private bool AllowOtherFiles => Content.Rules.CRulesReader.IsEnhanced(_directories)
+		&& (CSession.UserArguments().Contains("--otherfiles")
+			|| (_session?.State.GamePlay ?? _frontEnd?.ChosenPlay)?.AllowOtherFiles == true);
 
 	/// <summary>
 	/// A machine told its files are not the host's: which, written whole beside the logs and said in a line there.
