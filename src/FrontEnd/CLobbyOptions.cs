@@ -288,6 +288,69 @@ public partial class CLobbyOptions : Control
 		}
 	}
 
+	/// <summary>Whether the lobby is one of a game between machines: a host's, or a machine's that joined one.</summary>
+	private bool BetweenMachines => _readOnly || _frontEnd.HostAs is not null || _frontEnd.LobbyNet is not null;
+
+	/// <summary>Which kind of lobby the rules' rows were last laid out for; null before the first.</summary>
+	private bool? _laidOutFor;
+	private readonly System.Collections.Generic.Dictionary<Control, Vector2> _home = new();
+
+	/// <summary>
+	/// The rules a lobby does not have are taken out of the mod's window: the host's rule on other files in a game of one
+	/// (and Watch replay between machines, by <see cref="Refresh"/>). The rows under a row taken out move up by its
+	/// height, and the window's background is as much shorter. Looked at each frame, the lobby becoming a host's or a
+	/// client's without this being told.
+	/// </summary>
+	public override void _Process(double delta)
+	{
+		if (_rules is null || !Visible || _laidOutFor == BetweenMachines)
+		{
+			return;
+		}
+		bool between = BetweenMachines;
+		_laidOutFor = between;
+		Control?[] other = { _rules.TryFindButton(OtherFilesButton), _rules.TryFindElement(OtherFilesButton + "_label"),
+			_rules.TryFindButton(OtherFilesButton + "_help") };
+		Control?[] below = { _rules.TryFindButton(ReplayButton), _rules.TryFindElement(ReplayButton + "_label"),
+			_rules.TryFindButton(ReplayButton + "_help") };
+		Control? background = _rules.TryFindElement("background");
+		foreach (Control? element in other)
+		{
+			if (element is not null)
+			{
+				element.Visible = between;
+			}
+		}
+		// How far the rows below move: from their own row to the one taken out.
+		float step = other[0] is { } first && below[0] is { } next ? Home(next).Y - Home(first).Y : 0f;
+		foreach (Control? element in below)
+		{
+			if (element is not null)
+			{
+				element.Position = Home(element) - new Vector2(0, between ? 0f : step);
+			}
+		}
+		if (background is not null)
+		{
+			if (!_home.ContainsKey(background))
+			{
+				_home[background] = background.Size;
+			}
+			background.Size = _home[background] - new Vector2(0, between ? 0f : step);
+		}
+		Refresh();
+	}
+
+	/// <summary>Where an element stood as the window was made.</summary>
+	private Vector2 Home(Control element)
+	{
+		if (!_home.TryGetValue(element, out Vector2 home))
+		{
+			_home[element] = home = element.Position;
+		}
+		return home;
+	}
+
 	/// <summary>Every box written again from the front end's choices.</summary>
 	public void Refresh()
 	{
@@ -314,7 +377,7 @@ public partial class CLobbyOptions : Control
 		if (_replay is not null)
 		{
 			// Shown for a loaded save whose game can be played back, and not between machines.
-			Content.Replays.CReplayProbe? probe = _readOnly ? null : _frontEnd.LoadedReplay;
+			Content.Replays.CReplayProbe? probe = BetweenMachines ? null : _frontEnd.LoadedReplay;
 			_replay.Visible = probe is not null;
 			if (_replay.TryFindButton(WatchButton) is { } watch)
 			{

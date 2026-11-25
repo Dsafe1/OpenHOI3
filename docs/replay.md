@@ -444,6 +444,8 @@ pressed with `--run`: the playback ran to 7 January, loaded, and ran on to its e
 notice was looked at in the playback by switch. **Not reviewed in play**; not tried: a recording of another engine in
 the lobby, Resign out of a playback, and a playback begun a second time in one run of the program.
 
+**The lobby shows each rule only where it applies** (2026-11-25, CLobbyOptions._Process): the host's rule on other files only in a lobby between machines - in a game of one its row is taken out, the rows under it moved up and the window's background made as much shorter - and Watch replay only in a game of one.
+
 ## 12. What a playback shows of the player's game
 
 Decided 2026-11-25: "the normal message popups should not appear at all, and the event should disappear within 5
