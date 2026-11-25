@@ -708,6 +708,13 @@ has and those the host alone has, and the engine's version and the rules where t
 how many of each and the first few paths - in the refusal (the connect log's second line from the menu), or in its
 own chat where it was let in; and writes all of them to `openhoi3_checksum_diff.txt` beside the logs.
 
+**The figure shown is the figure used** (2026-11-25). The main menu's play checksum is worked out once, as the menu
+comes up; a machine's token is worked out from the files as they stand when it hosts a lobby or joins a host. A file
+changed in between made the two differ: a host started before a change and a client started after it showed two
+figures, sent the same one, and were let play together whatever the rule - seen that day with two games of one
+install. The menu's label is now written again with each token worked out (`CFrontEnd.ShowPlayChecksum`). The
+original's letters beside it are still the start's, as the original's own are.
+
 **What the rule costs** is the host's to weigh, and the button's tooltip says it: where the differing files change how
 the game goes, the machines' hashes part at a midnight and the game is sent again (section 4) - each midnight, for as
 long as they do.

@@ -148,6 +148,22 @@ public partial class CFrontEnd : Node
 	}
 
 	/// <summary>
+	/// The play checksum worked out again, as a lobby is hosted or a host is joined, written in the menu's place of the
+	/// one worked out at the start: a file changed since then is in the figure machines are let in by, and what is
+	/// shown has to be that figure (docs/multiplayer.md, section 15).
+	/// </summary>
+	public void ShowPlayChecksum(string token)
+	{
+		string digits = Sim.Multiplayer.CPlayToken.Play(token);
+		if (digits.Length < 8)
+		{
+			return;
+		}
+		_playChecksum = digits[..4] + "-" + digits[4..8];
+		_menu.ShowVersion(VersionLabel);
+	}
+
+	/// <summary>
 	/// The world and its map made, its surface's meshes with it, before the front end enters the tree: a step of the loading
 	/// screen of its own, so that the window draws a frame between it and the rest (<c>loadingscreen.md</c>, section 3).
 	/// Done by entering where it was not called.

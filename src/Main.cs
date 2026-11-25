@@ -487,6 +487,8 @@ public partial class Main : Control
 		{
 			return;
 		}
+		// The files as they are now, which may be other than at the start: the menu shows the figure machines are let in by.
+		frontEnd.ShowPlayChecksum(checksum);
 		int port = frontEnd.Settings.Port;
 		Multiplayer.CNetHost net;
 		try
@@ -554,6 +556,7 @@ public partial class Main : Control
 			link?.Dispose();
 			return;
 		}
+		frontEnd.ShowPlayChecksum(checksum);
 		menu.Log("CONNECTING");
 		if (link is null)
 		{
