@@ -401,6 +401,15 @@ public sealed class CSimulation
 	/// hour, so that each runs after the drains it ran after. More drains than that already means the recording does not
 	/// fit.
 	/// </summary>
+	/// <summary>
+	/// The queue drained once: what a replay does where its recording holds, between two hours, a step the game called -
+	/// it was called in the drain that came next, which this is (<see cref="Replay.CReplay.BeforeHour"/>).
+	/// </summary>
+	internal void DrainOnce()
+	{
+		PumpCore();
+	}
+
 	internal void DrainUntil(int turn)
 	{
 		if (_turn > turn)

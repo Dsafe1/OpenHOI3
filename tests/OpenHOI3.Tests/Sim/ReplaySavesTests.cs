@@ -28,6 +28,53 @@ public class ReplaySavesTests
 
 	private static string Folder() => Path.Combine(Path.GetTempPath(), $"openhoi3-replays-{Guid.NewGuid():N}");
 
+	/// <summary>A command that, as it runs, has the game call a decision of the AI's - as a province changing hands has its agents told.</summary>
+	private sealed class CCalls : CCommand
+	{
+		public override void Execute(CGameState state)
+		{
+			state.Replay!.RunCalledStep(state, "told #1", game => game.Outbox.Add(new CFogOfWarCommand(false)));
+		}
+	}
+
+	[Fact]
+	public void AStepTheGameCalledInADrainBetweenTwoHoursIsPlayedBackInThatDrain()
+	{
+		// A game played with frames between its hours: an order runs in a drain of the queue that has no hour, and the
+		// game calls a decision of the AI's as it runs. A playback has to make that drain to be given the step - until
+		// 2026-11-25 it found the step where it looked for an hour and stopped, as a played game's did on the day
+		// provinces changed hands.
+		CGameState recorded = State();
+		recorded.FogOfWar = true;
+		var recordedRun = new CSimulation(recorded);
+		CReplay recording = CReplay.Recording();
+		recorded.Replay = recording;
+		recordedRun.RunHours(1);
+		recordedRun.Post(new CCalls());
+		recordedRun.Pump();
+		recordedRun.Pump();
+		recordedRun.RunHours(1);
+		Assert.False(recorded.FogOfWar);
+		// The step lies between the two hours, before the entry of the drain it was called in.
+		List<string> kinds = recording.Entries.Select(entry => entry.GetType().Name).ToList();
+		Assert.True(kinds.IndexOf(nameof(CReplayStep)) < kinds.LastIndexOf(nameof(CReplayDrain)));
+		Assert.True(kinds.IndexOf(nameof(CReplayStep)) < kinds.LastIndexOf(nameof(CReplayTick)));
+
+		CGameState replayed = State();
+		replayed.FogOfWar = true;
+		var replayedRun = new CSimulation(replayed);
+		replayed.Replay = CReplay.Replaying(recording.Entries);
+		replayedRun.RunHours(2);
+		Assert.False(replayed.FogOfWar);
+		Assert.Equal(recorded.TotalHours, replayed.TotalHours);
+
+		// A step between two hours that nothing in the game calls: the game is another, and the playback says so.
+		CGameState other = State();
+		var otherRun = new CSimulation(other);
+		other.Replay = CReplay.Replaying(recording.Entries.Where(entry => entry is not CReplayPost).ToList());
+		Assert.Throws<CReplayOutOfStepException>(() => otherRun.RunHours(2));
+	}
+
 	[Fact]
 	public void ASaveMarksItsPlaceInARecordingThatHasAName()
 	{

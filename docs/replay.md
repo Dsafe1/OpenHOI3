@@ -388,6 +388,21 @@ fits. *Not built*: any test of the mod's files, which a recording hangs on as mu
   being written read to its last mark, a place's text and a name's letters, the header's choices, the start's file, and
   the save's key both ways.
 
+- **A game played by hand found what the checks could not** (2026-11-25): a campaign played as Germany, saved on 9
+  February, run to the 22nd, the save of the 9th loaded and run to the 13th - and both playbacks stopped on 1 February
+  at 15h. A game played with frames between its hours runs what an hour's AI posted in a drain of the queue that has
+  no hour; that day those orders changed provinces' hands, each change had its country's agents told - a step the
+  game calls (section 3) - and the recording held ten such steps between two hours, before the drain's own entry.
+  A playback looked for an hour there and stopped. **It now drains the queue once more wherever a step is next
+  between two hours** (`CReplay.DrainForCalledStep`), and the command that called the step calls it again. The
+  checks run their hours back to back, with no drain between, which is why none met it; `ReplaySavesTests` has it
+  since.
+- `OpenHOI3.SaveCheck replaysave <install> <save.hoi3> [hash]` plays the game that led to a player's save back with
+  no screen - the chain beside the save, from its start, a save written and loaded at each place the player loaded -
+  and says how far each recording played or where it stopped fitting. On those two saves after the mending: the
+  22nd's one recording to 22 February 12h, the 13th's two to 9 February 11h and 13 February 17h, the hours the
+  saves are named for, 37 s each.
+
 ### 10.5 Not built
 
 - **A country to look through** other than the one that played (section 6's second piece), and a list of replays

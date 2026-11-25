@@ -348,6 +348,12 @@ if (args.Length > 0 && args[0] == "replayload")
 	return CReplayLoadCheck.Run(args);
 }
 
+// The game that led to a player's save played back with no screen (docs/replay.md, section 10).
+if (args.Length > 0 && args[0] == "replaysave")
+{
+	return CReplaySaveCheck.Run(args);
+}
+
 // A host's game and a client's with nothing between them but the lines two machines would send (docs/multiplayer.md).
 if (args.Length > 0 && args[0] == "twomachines")
 {

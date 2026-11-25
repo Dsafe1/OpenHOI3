@@ -333,6 +333,10 @@ public sealed class CReplay
 					LastMark = saved.Mark;
 					any = true;
 					break;
+				case CReplayStep:
+					DrainForCalledStep(simulation);
+					any = true;
+					break;
 				default:
 					return any;
 			}
@@ -352,6 +356,11 @@ public sealed class CReplay
 		CGameState state = simulation.State;
 		while (true)
 		{
+			if (Peek() is CReplayStep)
+			{
+				DrainForCalledStep(simulation);
+				continue;
+			}
 			switch (Take(state))
 			{
 				case CReplayPost post:
@@ -372,6 +381,27 @@ public sealed class CReplay
 					throw new CReplayOutOfStepException(
 						$"the recording does not begin an hour at {state.Date} {state.Hour}h: it was made with other rules or another game");
 			}
+		}
+	}
+
+	/// <summary>
+	/// Between two hours the recording holds a step next: one the game called as a command ran in a drain of the queue
+	/// that had no hour - a game played with frames between its hours runs what an hour's AI posted in such a drain, and
+	/// a province that changes hands there has its country's agents told (docs/replay.md, section 3). The recording
+	/// wrote the step as the drain ran and the drain's own entry after it; so the queue is drained once more here, and
+	/// the command that called the step calls it again and is given it. A drain that takes nothing of the recording
+	/// means the game is no longer the one recorded.
+	/// </summary>
+	private void DrainForCalledStep(CSimulation simulation)
+	{
+		int played = _next;
+		simulation.DrainOnce();
+		if (_next == played)
+		{
+			CGameState state = simulation.State;
+			throw new CReplayOutOfStepException(
+				$"the recording holds a step between two hours at {state.Date} {state.Hour}h that no command of the game calls: " +
+				"it was made with other rules or another game");
 		}
 	}
 
