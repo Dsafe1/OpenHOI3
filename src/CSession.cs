@@ -372,6 +372,11 @@ public partial class CSession : Node
 	{
 		_enteredAs = tag;
 		_keepSimulation = true;
+		// The map goes to the country's capital, at the height it stands at; the next session takes the view over.
+		if (State.Country(tag)?.ActingCapital is > 0 and var capital)
+		{
+			_mapView.CentreOn(capital);
+		}
 		LookChosen?.Invoke(tag);
 		CallDeferred(MethodName.HandOver);
 	}

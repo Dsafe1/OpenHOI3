@@ -582,7 +582,7 @@ button `pick`) for every country owning land: those a person played first, marke
 name. A second press shuts it.
 
 **A row chosen makes every screen again around the same game** for that country (`CSession.LookThroughAnother`), as
-the console's `tag` makes them - the top bar's pictures the new country's too - the camera, the pause and the speed
+the console's `tag` makes them - the top bar's pictures the new country's too - the map moved to that country's capital at the height it stood at, the pause and the speed
 kept. Two things differ from `tag`, and have to:
 
 - **the game's played countries are not touched** (section 15);
