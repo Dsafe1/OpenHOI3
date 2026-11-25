@@ -77,7 +77,7 @@ both ways:
 | all | 72,621 | 4.75 MiB | 853 KiB |
 
 So a year of the war is some 20,000 battles and a quarter of a MiB packed, where it was a MiB and a half; twelve
-bytes a battle, 18% of the text. The run's seven years took 68 minutes, with no error of the Lua's.
+bytes a battle, 18% of the text. The run's seven years took 80 minutes, 1942 alone 27, with no error of the Lua's.
 *Not decided*: whether old reports are ever to be gathered into sums or dropped; packed, the question is less
 pressing.
 
