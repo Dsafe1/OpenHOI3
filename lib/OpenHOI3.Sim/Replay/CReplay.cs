@@ -78,22 +78,52 @@ public sealed class CReplay
 	/// </summary>
 	public static CReplay Replaying(CReplayFile file, int untilMark)
 	{
+		return Replaying(file, new CReplayLink(file.Header.Segment ?? "", untilMark));
+	}
+
+	/// <summary>
+	/// A playback of a recording on disk as far as a place in it and no further - a save's mark, or so many entries
+	/// played, where the place is that of a save written from a game being played back (section 13).
+	/// </summary>
+	public static CReplay Replaying(CReplayFile file, CReplayLink until)
+	{
 		bool reached = false;
-		return new CReplay(null, _ =>
+		return new CReplay(null, index =>
 		{
-			if (reached)
+			if (reached || until.ByEntries && index >= until.Entries)
 			{
 				return null;
 			}
 			CReplayEntry? entry = file.Read();
-			reached = entry is CReplaySaved saved && saved.Mark == untilMark;
+			reached = !until.ByEntries && entry is CReplaySaved saved && saved.Mark == until.Mark;
 			return entry;
-		});
+		})
+		{
+			Segment = file.Header.Segment,
+		};
+	}
+
+	/// <summary>Replaying: the entries of the recording played so far.</summary>
+	public int Played => _next;
+
+	/// <summary>Replaying: whether the playback stands at that place of its recording, having played to it and no further.</summary>
+	public bool StandsAt(CReplayLink place)
+	{
+		return place.ByEntries ? _next == place.Entries : LastMark == place.Mark;
+	}
+
+	/// <summary>
+	/// Replaying a recording that has a name, between two hours: where the playback stands in it, for a save written from
+	/// the game played back to name - null where the recording has no name.
+	/// </summary>
+	public CReplayLink? Place()
+	{
+		return IsReplaying && Segment is not null ? new CReplayLink(Segment, LastMark, _next) : null;
 	}
 
 	public bool IsReplaying => _source is not null;
 
-	/// <summary>Recording, beside the game's saves: this recording's name, which a save written from the game names.</summary>
+	/// <summary>Beside the game's saves: this recording's name, which a save written from the game names - recording or played back.</summary>
 	public string? Segment { get; init; }
 
 	/// <summary>Recording: the saves marked so far.</summary>
@@ -360,10 +390,11 @@ public sealed class CReplay
 
 	private CReplayEntry Take(CGameState state)
 	{
-		CReplayEntry? next = Peek();
+		// At the end nothing is taken: the count of entries played stays what it was.
+		CReplayEntry next = Peek() ?? throw new CReplayEndedException($"the recording ends before {state.Date} {state.Hour}h");
 		_peeked = null;
 		_next++;
-		return next ?? throw new CReplayEndedException($"the recording ends before {state.Date} {state.Hour}h");
+		return next;
 	}
 
 	/// <summary>The next entry without taking it, or null where the recording has ended.</summary>

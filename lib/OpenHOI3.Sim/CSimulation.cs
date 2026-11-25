@@ -382,6 +382,12 @@ public sealed class CSimulation
 		{
 			State.ReplayLink = recording.Saved(_turn);
 		}
+		else if (State.Replay is { IsReplaying: true, Segment: not null } playback)
+		{
+			// A save of a game being played back names where the playback stands, so that the game played on from it
+			// is still the game that was recorded, gone another way from there (docs/replay.md, section 13).
+			State.ReplayLink = playback.Place();
+		}
 	}
 
 	/// <summary>A recorded player's command, posted where it was: for <see cref="Replay.CReplay"/> alone.</summary>

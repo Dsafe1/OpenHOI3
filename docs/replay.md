@@ -456,6 +456,38 @@ at its thirtieth hour, saved (the script's `save:name`, which saves at its place
 no popup on the way, the messages in the log, and the event up after hour 30 with `No focus` plain and the seven
 others faint. **Not reviewed in play**; not tried: the five seconds' end and the pause, and a playback that parts.
 
+## 13. A save written from a playback: taking a game over
+
+Asked for on 2026-11-25: "it would be cool to be able to move to a specific point in the campaign, then save and
+continue from the new save". The menu's Save Game is as ever in a playback, and the save it writes is a game to be
+played on - of the country that played, at the hour the playback stood at.
+
+**The save names its place in the recording all the same** - not a save's mark, there being none there, but **how
+many of the recording's entries had been played** (`CReplay.Place`, `CReplayLink.Entries`; `CSimulation.MarkSaved`):
+
+    openhoi_replay="fefc3888f1484bbb8e0876a24a7c8bf3:0:1836"
+
+the recording's name, the last mark passed, and the entries played. A playback to such a place ends when it has played
+that many (`CReplay.Replaying` with a place; `StandsAt`), and stands where the save was written: a save is written
+between two hours, when everything up to the last hour's steps has been played and nothing of the next hour's.
+
+So **the game played on from it is still the campaign's**: with the lobby's rule ticked, its recording names that place
+as its parent, and a playback of any of its saves runs from the campaign's start, through the loads the first player
+made, to the place the game was taken over at, loads there, and goes on into the new game. The save itself offers Watch
+replay, up to where it was written. And a save from a playback written over one of the campaign's own of the same hour
+does no harm: it names the same place by other words.
+
+**A game played back is saved as it stands**: the orders its last hour's AI posted and no drain has run yet are not in
+it, as they are in no save written without a drain first - the menu's own, in a game being played, comes after the
+frame's drain.
+
+**Checked**: `OpenHOI3.SaveCheck replayload ... takeover=DATE` plays the chain back to that date, saves from the
+playback, plays on from that save for ten days recorded, and plays the new line back from the start. On 2026-11-25:
+the base game, saves on 10 and 20 January 1936, taken over on the 15th - in the second recording, after one load -
+**24 of 24 days through three recordings**; BlackICE as Germany, saves on 6 and 12 January, taken over on the 9th, **18 of 18**; and `ReplaySavesTests`: the place a save
+from a playback is given, a playback to it ending there before the order that came after, and the chain behind a
+recording begun from it. **In the client**, BlackICE as Germany: a playback of section 10.4's `two.hoi3` saved after 72 hours by the script's `save:taken`, that save loaded with `--recordreplay`, three days played and saved, and that save played back with `--hash` - **6 of 6 midnights**, the first three the campaign's and the next three the game's that was played on. **Not tried by hand**: the menu's Save Game in a playback, and Watch replay on such a save in the lobby.
+
 ## Not established
 
 - **What else of the AI writes the game directly** in what the checks so far have not reached; the hash names it the day it

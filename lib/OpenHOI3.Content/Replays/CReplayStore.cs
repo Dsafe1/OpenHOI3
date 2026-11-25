@@ -120,7 +120,7 @@ public static class CReplayStore
 				warn?.Invoke($"the recording {path} cannot be read: {failed.Message}");
 				return null;
 			}
-			chain.Add(new CReplaySegment(path, header, link.Mark));
+			chain.Add(new CReplaySegment(path, header, link));
 			link = header.Parent;
 		}
 		chain.Reverse();

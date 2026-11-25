@@ -26,7 +26,7 @@ internal static class CReplayLoadCheck
 	{
 		if (args.Length < 2)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck replayload <install folder> [save date ...] [player=TAG] [folder=FOLDER]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck replayload <install folder> [save date ...] [player=TAG] [folder=FOLDER] [takeover=DATE]");
 			return 2;
 		}
 		string[] rest = args.Skip(2).ToArray();
@@ -114,64 +114,130 @@ internal static class CReplayLoadCheck
 			return 1;
 		}
 		Console.WriteLine($"{chain.Count} recordings lead to it, {recorded / 1024} KiB");
-		var replayClock = Stopwatch.StartNew();
-		int at = 0;
-		int same = 0;
-		bool told = false;
-		string? crossing = null;
-		foreach (CReplaySegment segment in chain)
+
+		// Plays a chain back beside the hashes of the game played; with a date, stops at that midnight and hands the game over.
+		(int Same, int At, CGameState? Stopped, CSimulation? StoppedRun) PlayBack(List<CReplaySegment> through,
+			List<(CDate Date, ulong[] Hash)> expected, CDate? stopAt)
 		{
-			CGameState state = Make(crossing);
-			using CReplayFile file = CReplayFile.Open(segment.Path, state);
-			state.Replay = CReplay.Replaying(file, segment.UntilMark);
-			var run = new CSimulation(state);
-			try
+			int at = 0;
+			int same = 0;
+			bool told = false;
+			string? crossing = null;
+			foreach (CReplaySegment segment in through)
 			{
-				while (true)
+				CGameState state = Make(crossing);
+				using CReplayFile file = CReplayFile.Open(segment.Path, state);
+				state.Replay = CReplay.Replaying(file, segment.Until);
+				var run = new CSimulation(state);
+				try
 				{
-					CDate before = state.Date;
-					run.RunHours(1);
-					if (state.Date == before)
+					while (true)
 					{
-						continue;
-					}
-					if (at >= hashes.Count)
-					{
-						Console.WriteLine($"  the playback runs on past the game played, at {state.Date}");
-						return 1;
-					}
-					(CDate date, ulong[] hash) = hashes[at++];
-					ulong[] now = CStateHash.Of(state);
-					if (date == state.Date && now.SequenceEqual(hash))
-					{
-						same++;
-					}
-					else if (!told)
-					{
-						told = true;
-						Console.WriteLine($"  first differs on {state.Date} (the game played: {date}) in " +
-							string.Join(", ", CStateHash.Parts.Where((_, i) => now[i] != hash[i])));
+						CDate before = state.Date;
+						run.RunHours(1);
+						if (state.Date == before)
+						{
+							continue;
+						}
+						if (at >= expected.Count)
+						{
+							Console.WriteLine($"  the playback runs on past the game played, at {state.Date}");
+							return (same, at + 1, null, null);
+						}
+						(CDate date, ulong[] hash) = expected[at++];
+						ulong[] now = CStateHash.Of(state);
+						if (date == state.Date && now.SequenceEqual(hash))
+						{
+							same++;
+						}
+						else if (!told)
+						{
+							told = true;
+							Console.WriteLine($"  first differs on {state.Date} (the game played: {date}) in " +
+								string.Join(", ", CStateHash.Parts.Where((_, i) => now[i] != hash[i])));
+						}
+						if (stopAt is { } stop && state.Date >= stop)
+						{
+							return (same, at, state, run);
+						}
 					}
 				}
+				catch (CReplayEndedException)
+				{
+					// The save's place: the playback stands where the game was saved.
+				}
+				if (!state.Replay.StandsAt(segment.Until))
+				{
+					Console.WriteLine($"  the recording {Path.GetFileName(segment.Path)} ended at {state.Date} before its place {segment.Until.Text}");
+					return (same, at, null, null);
+				}
+				crossing = Path.Combine(folder, "crossing.hoi3");
+				CSaveFiles.Write(state, localisation.Localise, crossing);
 			}
-			catch (CReplayEndedException)
-			{
-				// The save's mark: the playback stands where the game was saved.
-			}
-			if (state.Replay.LastMark != segment.UntilMark)
-			{
-				Console.WriteLine($"  the recording {Path.GetFileName(segment.Path)} ended at {state.Date} before its mark {segment.UntilMark}");
-				return 1;
-			}
-			crossing = Path.Combine(folder, "crossing.hoi3");
-			CSaveFiles.Write(state, localisation.Localise, crossing);
+			return (same, at, null, null);
 		}
-		replayClock.Stop();
 
+		var replayClock = Stopwatch.StartNew();
+		(int same, int at, _, _) = PlayBack(chain, hashes, null);
+		replayClock.Stop();
 		Console.WriteLine($"{same} of {hashes.Count} days the same, {at} played back, across {chain.Count - 1} loads; played in " +
 			$"{recordClock.ElapsedMilliseconds / 1000.0:0.0} s, played back in {replayClock.ElapsedMilliseconds / 1000.0:0.0} s" +
 			(keyKept ? "" : "; A LOADED SAVE DID NOT GIVE BACK ITS PLACE IN THE RECORDING"));
+		bool good = same == hashes.Count && at == hashes.Count && keyKept;
+
+		// takeover=DATE: the game saved from its playback at that date, played on from that save and recorded, and the
+		// new line played back from the start (docs/replay.md, section 13).
+		string? takeoverText = rest.FirstOrDefault(a => a.StartsWith("takeover=", StringComparison.Ordinal))?["takeover=".Length..];
+		if (takeoverText is not null && CDate.TryParse(takeoverText, out CDate takeover))
+		{
+			(_, int before, CGameState? stopped, CSimulation? stoppedRun) = PlayBack(chain, hashes, takeover);
+			if (stopped is null || stoppedRun is null)
+			{
+				Console.WriteLine($"the playback did not reach {takeover}");
+				return 1;
+			}
+			stoppedRun.MarkSaved();
+			CReplayLink? place = stopped.ReplayLink;
+			string takenPath = Path.Combine(folder, "takeover.hoi3");
+			CSaveFiles.Write(stopped, localisation.Localise, takenPath);
+			Console.WriteLine($"saved from the playback on {stopped.Date}, the save at {place?.Text}");
+			if (place is null)
+			{
+				return 1;
+			}
+
+			CGameState taken = Make(takenPath);
+			(CReplayFile takenFile, CReplay takenRecording) = CReplayStore.Begin(store,
+				new CReplayHeader(taken.Played.ToList(), taken.Seed, CReplayStore.NewName(), place, "replayload"));
+			taken.Replay = takenRecording;
+			var takenRun = new CSimulation(taken);
+			var expected = hashes.Take(before).ToList();
+			CDate until = CDate.FromDayNumber(taken.Date.DayNumber + 10);
+			while (taken.Date < until)
+			{
+				CDate day = taken.Date;
+				takenRun.RunHours(1);
+				if (taken.Date != day)
+				{
+					expected.Add((taken.Date, CStateHash.Of(taken)));
+				}
+			}
+			takenRun.Pump();
+			takenRun.MarkSaved();
+			CReplayLink? end = taken.ReplayLink;
+			takenFile.Dispose();
+			List<CReplaySegment>? line = end is null ? null : CReplayStore.Chain(store, end, Console.WriteLine);
+			if (line is null)
+			{
+				Console.WriteLine("no chain of recordings leads to the game played on");
+				return 1;
+			}
+			(int sameOn, int atOn, _, _) = PlayBack(line, expected, null);
+			Console.WriteLine($"played on for ten days and played back from the start through {line.Count} recordings: " +
+				$"{sameOn} of {expected.Count} days the same, {atOn} played back");
+			good &= sameOn == expected.Count && atOn == expected.Count;
+		}
 		scripts.ForEach(one => one.Dispose());
-		return same == hashes.Count && at == hashes.Count && keyKept ? 0 : 1;
+		return good ? 0 : 1;
 	}
 }

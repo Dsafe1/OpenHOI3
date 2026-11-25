@@ -3623,13 +3623,13 @@ public partial class CSession : Node
 	/// <summary>Saves the game now under that name in the folder of saves, as the menu's Save Game does: <c>--save=</c>'s.</summary>
 	private void SaveBySwitch(string name)
 	{
-		if (State.Replay is { IsReplaying: true })
-		{
-			return;
-		}
 		string path = System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderFor(_directories),
 			Content.Saves.CSaveFiles.FileName(name) ?? "switch.hoi3");
-		_simulation.Pump();
+		// A game played back drains its queue only as its recording did: it is saved as it stands (docs/replay.md, section 13).
+		if (State.Replay is not { IsReplaying: true })
+		{
+			_simulation.Pump();
+		}
 		_simulation.MarkSaved();
 		Content.Saves.CSaveFiles.Write(State, _localisation.Localise, path);
 		GD.Print($"--save: {path}" + (State.ReplayLink is { } link ? $", at {link.Text} of its recording." : "."));

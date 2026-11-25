@@ -1005,6 +1005,8 @@ whose letters are no block.
 
     openhoi_replay="3e67d13d39bb4145bdb6e510303a6e0f:2"
 
-the recording's name, a colon, and the number of this save's mark in it. A game not recorded writes none. Read into
+the recording's name, a colon, and the number of this save's mark in it - or, in a save written from a game being
+played back, the last mark passed and after another colon how many of the recording's entries had been played
+(`replay.md`, section 13). A game not recorded writes none. Read into
 `CGameState.ReplayLink`, which nothing in play reads: it is what the lobby shows the rule by, and what a recording
 begun from the save names as its parent. A text that is no such place is reported and left out.

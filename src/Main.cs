@@ -625,7 +625,7 @@ public partial class Main : Control
 				FrontEnd.CFrontEnd.TakeUpLoaded(state, segment.Header.Played[0]);
 			}
 			CReplayFile file = CReplayFile.Open(segment.Path, state);
-			state.Replay = CReplay.Replaying(file, segment.UntilMark);
+			state.Replay = CReplay.Replaying(file, segment.Until);
 			return file;
 		}, switched: _replaySwitched, asSaved: !first);
 	}
@@ -637,7 +637,7 @@ public partial class Main : Control
 	private bool CrossToNextRecording()
 	{
 		if (_replayChain is null || _session is not { } session || _replayAt + 1 >= _replayChain.Count
-			|| session.State.Replay?.LastMark != _replayChain[_replayAt].UntilMark)
+			|| session.State.Replay?.StandsAt(_replayChain[_replayAt].Until) != true)
 		{
 			return false;
 		}

@@ -2221,7 +2221,8 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 - **The notice `AUTOSAVING` is not reviewed in play** (2026-11-25, `loadingscreen.md`, section 6).
 - **The replay for players: recording and watching are built, and neither is reviewed in play** (2026-11-25, `replay.md`,
   sections 10 to 12). A playback pops no message up, shows no offer, and shows the player's events as they are
-  answered, the choice marked, for five seconds. A loaded save whose game was recorded shows **Watch replay** in the lobby, in a window of the
+  answered, the choice marked, for five seconds. **A save written from a playback takes the game over** at that hour
+  and still names its place in the recording (section 13). A loaded save whose game was recorded shows **Watch replay** in the lobby, in a window of the
   mod's; the playback loads at each save the player loaded and says so, and says when it has ended. An
   enhanced game the lobby's rule says to record is recorded beside its saves, each save naming its place, and
   `--replay=<save>` plays the game that led to a save back through every save and load, the playback making each load

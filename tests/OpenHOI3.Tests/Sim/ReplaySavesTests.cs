@@ -92,6 +92,68 @@ public class ReplaySavesTests
 	}
 
 	[Fact]
+	public void ASaveWrittenFromAPlaybackNamesHowFarItHadPlayedAndAPlaybackToThatPlaceStandsWhereItStood()
+	{
+		string folder = Folder();
+		string store = CReplayStore.Folder(folder);
+		try
+		{
+			CGameState recorded = State();
+			var recordedRun = new CSimulation(recorded);
+			(CReplayFile file, CReplay recording) = CReplayStore.Begin(store,
+				new CReplayHeader(Array.Empty<CCountryTag>(), recorded.Seed, "first"));
+			recorded.Replay = recording;
+			recorded.FogOfWar = true;
+			recordedRun.RunHours(3);
+			recordedRun.Post(new CFogOfWarCommand(false));
+			recordedRun.RunHours(4);
+			recordedRun.MarkSaved();
+			file.Dispose();
+
+			// Played back three hours and saved there: the place is the entries played, and no mark.
+			CGameState watched = State();
+			watched.FogOfWar = true;
+			var watchedRun = new CSimulation(watched);
+			CReplayLink? place;
+			using (CReplayFile read = CReplayFile.Open(CReplayStore.PathOf(store, "first"), watched))
+			{
+				watched.Replay = CReplay.Replaying(read, new CReplayLink("first", 1));
+				watchedRun.RunHours(3);
+				watchedRun.MarkSaved();
+				place = watched.ReplayLink;
+			}
+			Assert.NotNull(place);
+			Assert.True(place!.ByEntries);
+			Assert.Equal("first", place.Segment);
+			Assert.Equal(watched.Replay!.Played, place.Entries);
+			Assert.True(watched.FogOfWar);
+
+			// A playback to that place ends there - before the order given after it - and stands at it.
+			CGameState again = State();
+			again.FogOfWar = true;
+			var againRun = new CSimulation(again);
+			using (CReplayFile read = CReplayFile.Open(CReplayStore.PathOf(store, "first"), again))
+			{
+				again.Replay = CReplay.Replaying(read, place);
+				Assert.Throws<CReplayEndedException>(() => againRun.RunHours(7));
+				Assert.True(again.Replay.StandsAt(place));
+				Assert.Equal(place.Entries, again.Replay.Played);
+			}
+			Assert.Equal(watched.TotalHours, again.TotalHours);
+			Assert.True(again.FogOfWar);
+
+			// And a recording begun from it is found behind it in the chain.
+			CReplayStore.Begin(store, new CReplayHeader(Array.Empty<CCountryTag>(), recorded.Seed, "on", place)).File.Dispose();
+			List<CReplaySegment>? chain = CReplayStore.Chain(store, new CReplayLink("on", 1));
+			Assert.Equal(new[] { place, new CReplayLink("on", 1) }, chain!.Select(segment => segment.Until));
+		}
+		finally
+		{
+			Directory.Delete(folder, recursive: true);
+		}
+	}
+
+	[Fact]
 	public void TheRecordingsThatLeadToASaveAreFoundByTheirParentsTheNewGamesFirst()
 	{
 		string folder = Folder();
@@ -235,6 +297,14 @@ public class ReplaySavesTests
 		Assert.Null(CReplayLink.Parse("0f3a9c:"));
 		Assert.Null(CReplayLink.Parse("0f3a9c:-1"));
 		Assert.Null(CReplayLink.Parse(":3"));
+		// A place by the entries played, of a save written from a playback.
+		var played = new CReplayLink("0f3a9c", 2, 1836);
+		Assert.Equal("0f3a9c:2:1836", played.Text);
+		Assert.Equal(played, CReplayLink.Parse(played.Text));
+		Assert.True(played.ByEntries);
+		Assert.False(link.ByEntries);
+		Assert.Null(CReplayLink.Parse("0f3a9c:2:x"));
+		Assert.Null(CReplayLink.Parse("0f3a9c:2:3:4"));
 		// A name is a file's name: nothing that could lead out of the folder.
 		Assert.Null(CReplayLink.Parse("../other:3"));
 		Assert.Null(CReplayLink.Parse("a\\b:3"));
