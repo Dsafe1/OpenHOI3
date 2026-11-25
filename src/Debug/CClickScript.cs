@@ -13,12 +13,15 @@ public sealed class CClickScript
 {
 	private readonly Node _host;
 	private readonly System.Func<bool> _runHour;
+	private readonly System.Action<string>? _save;
 
 	/// <param name="runHour">Runs one hour, answering whether the game may go on; null where there is no game.</param>
-	public CClickScript(Node host, System.Func<bool>? runHour = null)
+	/// <param name="save">Saves the game under a name; null where there is no game.</param>
+	public CClickScript(Node host, System.Func<bool>? runHour = null, System.Action<string>? save = null)
 	{
 		_host = host;
 		_runHour = runHour ?? (() => false);
+		_save = save;
 	}
 
 	/// <summary>
@@ -34,6 +37,14 @@ public sealed class CClickScript
 			if (!_host.IsInsideTree())
 			{
 				return;
+			}
+			// save:name is not a click either: it saves the game under that name, as --save= does, at this place in
+			// the script - after what the clicks before it did.
+			if (entry.StartsWith("save:", System.StringComparison.Ordinal))
+			{
+				_save?.Invoke(entry["save:".Length..]);
+				await Frames(2);
+				continue;
 			}
 			// h48 is not a click: it lets that many hours go by, so that what a click set
 			// going can be seen further on.

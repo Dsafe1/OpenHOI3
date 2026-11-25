@@ -88,6 +88,11 @@ public sealed partial class CDiploOffers : Control
 	/// <summary>An offer made to the player: a new icon at the end of the bar.</summary>
 	private void Asked(COffer offer, long shownAt)
 	{
+		// A playback shows none: nobody is there to answer one (docs/replay.md, section 12).
+		if (!_simulation.TakesCommands)
+		{
+			return;
+		}
 		if (_bar is null || offer.Recipient != _player || COfferAskText.Kind(offer) == 0
 			|| CGuiWindow.CreateEntry(_context, IconWindowName) is not { } window)
 		{

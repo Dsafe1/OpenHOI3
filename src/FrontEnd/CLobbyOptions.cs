@@ -318,7 +318,7 @@ public partial class CLobbyOptions : Control
 			_replay.Visible = probe is not null;
 			if (_replay.TryFindButton(WatchButton) is { } watch)
 			{
-				watch.Disabled = probe is not { Fits: true };
+				watch.Disabled = probe is null;
 			}
 		}
 		Set("difficulty_box", CLobbyOptionsText.Text(Localise, CLobbyOptionsText.Difficulties, _frontEnd.ChosenPlay.Difficulty));

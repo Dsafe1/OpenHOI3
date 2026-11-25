@@ -22,10 +22,13 @@ public static class CReplayText
 		+ "load made on the way. You look on: nothing you press changes the game. It is made of $COUNT$ recordings.";
 
 	public const string OtherEngine = "This save's game was recorded with another engine or other rules ($MADE$) than "
-		+ "this one ($NOW$). A recording plays back only on what it was made with.";
+		+ "this one ($NOW$). It may not play back as it was played: where the game goes another way the replay stops.";
 
 	public const string Loading = "Replay: the game was saved and loaded here...";
 	public const string Ended = "The replay has ended";
+
+	public const string PartedKey = "OPENHOI_REPLAY_PARTED";
+	public const string Parted = "The replay no longer fits this engine and stops here";
 
 	/// <summary>A key's text, or the words given where no table has the key.</summary>
 	public static string Text(Func<string, string> localise, string key, string words)
@@ -34,7 +37,7 @@ public static class CReplayText
 		return text.Length == 0 || text == key ? words : text;
 	}
 
-	/// <summary>The button's tooltip: what it does where the recording fits this engine, and why it cannot be pressed where not.</summary>
+	/// <summary>The button's tooltip: what it does where the recording fits this engine, and the warning where it was made with another.</summary>
 	public static string Tooltip(Func<string, string> localise, int recordings, string? otherMade, string madeNow)
 	{
 		return otherMade is null

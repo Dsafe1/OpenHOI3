@@ -49,6 +49,22 @@ public sealed partial class CEventWindowView : Control
 	/// <summary>Where the window comes up across the screen, an enhanced game's option (gameoptions.md, section 5).</summary>
 	public OpenHOI3.Content.Settings.EEventWindowPlace Place { get; set; }
 
+	/// <summary>How long a window of an answered event stands in a playback, in seconds of real time the clock is not paused for.</summary>
+	public const double ShownSeconds = 5.0;
+
+	/// <summary>What the options not taken are drawn at, beside the one taken.</summary>
+	private static readonly Color NotTaken = new(1f, 1f, 1f, 0.35f);
+
+	/// <summary>
+	/// In a playback: the option the player took, the event being shown as it was answered (docs/replay.md, section 12).
+	/// The option is marked - the others faint - and the window goes by itself after <see cref="ShownSeconds"/>, or at a
+	/// click on any option. Null in a game, where the window waits for an answer.
+	/// </summary>
+	public int? Chosen { get; init; }
+
+	private ulong _lastSeen;
+	private double _stood;
+
 	/// <summary>Whether its option has been chosen here, before the answer has run.</summary>
 	public bool Answered => _answered;
 
@@ -137,6 +153,10 @@ public sealed partial class CEventWindowView : Control
 			CEventOption shownOption = options[i];
 			button.Tooltip = () => new CTooltip { Text = CEffectText.For(Words(), shownOption.Effects, TooltipScope()) };
 			button.Disabled = true;
+			if (Chosen is { } taken && taken != i)
+			{
+				button.Modulate = NotTaken;
+			}
 			int chosen = i;
 			button.Pressed += () => Choose(chosen);
 			_options.Add(button);
@@ -160,6 +180,22 @@ public sealed partial class CEventWindowView : Control
 
 	public override void _Process(double delta)
 	{
+		if (Chosen is not null)
+		{
+			// By the engine's clock and not by frames counted, which pass this window by while hours run; a paused
+			// playback's time does not count, so that a window can be read.
+			ulong now = Time.GetTicksUsec();
+			if (_lastSeen != 0 && !_simulation.Clock.Paused)
+			{
+				_stood += (now - _lastSeen) / 1_000_000.0;
+			}
+			_lastSeen = now;
+			if (_stood >= ShownSeconds)
+			{
+				QueueFree();
+				return;
+			}
+		}
 		double open = (Time.GetTicksUsec() - _openedAt) / 1_000_000.0;
 		if (open >= Lockout && !_answered)
 		{
@@ -180,6 +216,12 @@ public sealed partial class CEventWindowView : Control
 		foreach (CGuiButton button in _options)
 		{
 			button.Disabled = true;
+		}
+		if (Chosen is not null)
+		{
+			// A playback's window: a click puts it away, and answers nothing.
+			QueueFree();
+			return;
 		}
 		_simulation.Post(new CSelectEventOptionCommand(Open.Event, Open.Scope, option));
 		Visible = false;

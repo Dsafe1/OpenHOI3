@@ -410,9 +410,10 @@ Built 2026-11-25, on the word of that day to begin the interface too. Ours throu
   mod's, `openhoi_lobby_replay`, is shown with the button `watch_replay`** (`CLobbyOptions`; BlackICE's
   `interface/openhoi/lobbyreplay.gui`, under its window of rules). Not shown between machines.
 - **The button** says `OPENHOI_WATCH_REPLAY`; its tooltip is `OPENHOI_WATCH_REPLAY_TIP` with `$COUNT$` the number
-  of recordings - or, where one of them was made with another engine or other rules, the button is greyed and the
-  tooltip is `OPENHOI_WATCH_REPLAY_OTHER_ENGINE` with `$MADE$` and `$NOW$` (`CReplayText`, which has words of its own
-  where a table has no key). So a recording that will not fit is said before it is tried; `--replay=` still tries it.
+  of recordings - or, where one of them was made with another engine or other rules, the warning
+  `OPENHOI_WATCH_REPLAY_OTHER_ENGINE` with `$MADE$` and `$NOW$` (`CReplayText`, which has words of its own where a
+  table has no key). **It may be watched all the same** (greyed for some hours of 2026-11-25, until the engine's
+  version was seen to change with every build): what does not fit stops where it parts (section 12).
 - **Pressed**, the front end gives way to the playback under the loading screen (`Main.WatchReplay`), as to a game.
   The game comes up **paused, as every game does**, looked on through the country that played (section 6); pause and
   speed are the top bar's.
@@ -427,6 +428,33 @@ section 10.4's trial chosen - the window and its tooltip looked at, "Record a re
 pressed with `--run`: the playback ran to 7 January, loaded, and ran on to its end on the 12th by itself. The end's
 notice was looked at in the playback by switch. **Not reviewed in play**; not tried: a recording of another engine in
 the lobby, Resign out of a playback, and a playback begun a second time in one run of the program.
+
+## 12. What a playback shows of the player's game
+
+Decided 2026-11-25: "the normal message popups should not appear at all, and the event should disappear within 5
+seconds and also should highlight the choice taken by the player" - and, of two ways to show an event, at its answer.
+
+- **No message pops up and none pauses the game.** They are for whoever has to act. The message log keeps every one,
+  and a message written on the map is written (`CSession`'s `Show`).
+- **No offer comes to the bar** (`CDiploOffers`): nobody is there to answer one.
+- **An event of the country that played is shown as it is answered**, not as it fires (`CEventWindows.Answered`,
+  on the state's `EventAnswered`): only then is the choice known. The window comes up as in play, **the option taken
+  as it is and the others faint**, stands **five seconds of real time** - which a paused playback does not count, so
+  that one can be read - and goes; a click on any option puts it away at once and answers nothing
+  (`CEventWindowView.Chosen`, `ShownSeconds`). An event that answered itself at its deadline is shown so too.
+  **An event the player never answered is never shown.** Several answered close together stand over each other, the
+  newest on top.
+- The alerts, the outliner and the country's screens are as in play: they say how the country stands and ask nothing.
+
+**A playback that no longer fits** - its recording holding another step than the game asks for next, as happens on
+another engine or with other files - **ends there** (`CReplayOutOfStepException`, an end of its own kind): the clock
+stops, nothing is loaded after it, and `OPENHOI_REPLAY_PARTED` stands where the end's notice would. A game that has
+merely gone another way without the steps' order changing is not noticed: the recorded orders then fit less and less.
+
+**Tried on 2026-11-25** with `--click`, BlackICE as Germany: a game recorded in which `Choose your Focus` was answered
+at its thirtieth hour, saved (the script's `save:name`, which saves at its place among the clicks) and played back -
+no popup on the way, the messages in the log, and the event up after hour 30 with `No focus` plain and the seven
+others faint. **Not reviewed in play**; not tried: the five seconds' end and the pause, and a playback that parts.
 
 ## Not established
 

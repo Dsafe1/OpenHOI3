@@ -136,7 +136,7 @@ public sealed class CReplay
 			if (next is not CReplayStep kept || kept.Hour != state.TotalHours || kept.Step != name)
 			{
 				string found = next is CReplayStep other ? $"hour {other.Hour}'s {other.Step}" : next.GetType().Name;
-				throw new InvalidOperationException($"the recording does not have hour {state.TotalHours}'s {name} next but " +
+				throw new CReplayOutOfStepException($"the recording does not have hour {state.TotalHours}'s {name} next but " +
 					$"{found}: it was made with other rules or another game");
 			}
 			PlayBack(state, kept);
@@ -339,7 +339,7 @@ public sealed class CReplay
 					simulation.DrainUntil(tick.Turn);
 					return;
 				default:
-					throw new InvalidOperationException(
+					throw new CReplayOutOfStepException(
 						$"the recording does not begin an hour at {state.Date} {state.Hour}h: it was made with other rules or another game");
 			}
 		}

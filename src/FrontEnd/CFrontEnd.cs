@@ -575,7 +575,7 @@ public partial class CFrontEnd : Node
 
 	public void WatchReplay()
 	{
-		if (LoadedSavePath is { } path && LoadedReplay is { Fits: true })
+		if (LoadedSavePath is { } path && LoadedReplay is not null)
 		{
 			ReplayRequested?.Invoke(path);
 		}

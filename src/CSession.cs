@@ -1058,7 +1058,7 @@ public partial class CSession : Node
 				{
 					return;
 				}
-				_simulation.OnMain(() => Show(message), mayStopTheClock: message.Type.PausePopup);
+				_simulation.OnMain(() => Show(message), mayStopTheClock: message.Type.PausePopup && _simulation.TakesCommands);
 			}
 			_mapView.MapTextSpeed = () => _simulation.Pace.Speed;
 			void Show(CMessage message)
@@ -1067,7 +1067,10 @@ public partial class CSession : Node
 				{
 					messageLog.Add(message);
 				}
-				if (message.Type.PopsUp)
+				// A game looked on at - a playback - pops no message up and is not paused by one: they are for whoever has to
+				// act, and the log keeps them (docs/replay.md, section 12).
+				bool looksOn = !_simulation.TakesCommands;
+				if (message.Type.PopsUp && !looksOn)
 				{
 					popups.Open(message);
 				}
@@ -1081,7 +1084,7 @@ public partial class CSession : Node
 					_mapView.ShowMessageText(province, CMessageText.Text(gui.Localisation.Localise, message, "_MAP"));
 				}
 				// The original stops the clock of a game of one player, and of no other.
-				if (message.Type.PausePopup)
+				if (message.Type.PausePopup && !looksOn)
 				{
 					_simulation.Pace.PauseByItself();
 				}
@@ -2698,7 +2701,8 @@ public partial class CSession : Node
 	{
 		_replayEnded = true;
 		// Whoever answers yes has begun loading the next in this session's place, which gives way once the frame has ended.
-		if (NextRecording?.Invoke() == true)
+		bool parted = ended is CReplayOutOfStepException;
+		if (!parted && NextRecording?.Invoke() == true)
 		{
 			_crossing = true;
 			return;
@@ -2708,8 +2712,11 @@ public partial class CSession : Node
 		// Said on the screen too, and left there: the game stands at its last hour to be looked at.
 		var said = new Loading.CScreenNotice { Name = "ReplayEnded", Band = 0.3f };
 		said.Setup(_directories);
-		said.Line = Interface.Screens.CReplayText.Text(_localisation.Localise, Interface.Screens.CReplayText.EndedKey,
-			Interface.Screens.CReplayText.Ended);
+		said.Line = parted
+			? Interface.Screens.CReplayText.Text(_localisation.Localise, Interface.Screens.CReplayText.PartedKey,
+				Interface.Screens.CReplayText.Parted)
+			: Interface.Screens.CReplayText.Text(_localisation.Localise, Interface.Screens.CReplayText.EndedKey,
+				Interface.Screens.CReplayText.Ended);
 		AddChild(said);
 	}
 
@@ -3243,15 +3250,9 @@ public partial class CSession : Node
 				// Hours run with no frame between them: an autosave they decided on is written at once.
 				WriteHeldAutosaves(whetherShownOrNot: true);
 			}
-			else if (argument.StartsWith("--save=") && State.Replay is not { IsReplaying: true })
+			else if (argument.StartsWith("--save="))
 			{
-				// Saves the game now under that name in the folder of saves, as the menu's Save Game does.
-				string path = System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderFor(_directories),
-					Content.Saves.CSaveFiles.FileName(argument["--save=".Length..]) ?? "switch.hoi3");
-				_simulation.Pump();
-				_simulation.MarkSaved();
-				Content.Saves.CSaveFiles.Write(State, _localisation.Localise, path);
-				GD.Print($"--save: {path}" + (State.ReplayLink is { } link ? $", at {link.Text} of its recording." : "."));
+				SaveBySwitch(argument["--save=".Length..]);
 			}
 			else if (argument.StartsWith("--lock=")
 				&& System.Enum.TryParse(argument["--lock=".Length..], ignoreCase: true, out EProductionCategory locked))
@@ -3616,7 +3617,22 @@ public partial class CSession : Node
 		{
 			WriteHeldAutosaves(whetherShownOrNot: true);
 			return UnlessTheReplayEnds(() => _simulation.RunHours(1));
-		}).Run(points);
+		}, SaveBySwitch).Run(points);
+	}
+
+	/// <summary>Saves the game now under that name in the folder of saves, as the menu's Save Game does: <c>--save=</c>'s.</summary>
+	private void SaveBySwitch(string name)
+	{
+		if (State.Replay is { IsReplaying: true })
+		{
+			return;
+		}
+		string path = System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderFor(_directories),
+			Content.Saves.CSaveFiles.FileName(name) ?? "switch.hoi3");
+		_simulation.Pump();
+		_simulation.MarkSaved();
+		Content.Saves.CSaveFiles.Write(State, _localisation.Localise, path);
+		GD.Print($"--save: {path}" + (State.ReplayLink is { } link ? $", at {link.Text} of its recording." : "."));
 	}
 
 	/// <summary>What the console's commands ask of the running game.</summary>

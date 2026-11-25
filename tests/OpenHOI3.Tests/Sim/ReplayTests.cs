@@ -196,7 +196,8 @@ public class ReplayTests
 		CGameState replayed = State();
 		CReplay playback = CReplay.Replaying(recording.Entries);
 
-		Assert.Throws<InvalidOperationException>(() => playback.RunStep(replayed, "trade", _ => { }));
+		// Its own kind of end, which whoever shows the playback tells apart from the recording's end: nothing follows it.
+		Assert.Throws<CReplayOutOfStepException>(() => playback.RunStep(replayed, "trade", _ => { }));
 	}
 
 	[Fact]
