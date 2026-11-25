@@ -347,6 +347,9 @@ public partial class CLobby : Control
 	}
 
 	/// <summary>The saved games' tab: its list made again, newest first, nothing ticked and nothing loaded.</summary>
+	/// <summary>The Saved Games list shown, read again from the folders: after replays were taken in.</summary>
+	public void ShowSavedGames() => ShowSavesTab();
+
 	private void ShowSavesTab()
 	{
 		_savesShown = true;

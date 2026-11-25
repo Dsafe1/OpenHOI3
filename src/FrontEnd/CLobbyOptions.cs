@@ -38,6 +38,12 @@ public partial class CLobbyOptions : Control
 	/// </summary>
 	public const string ReplayWindowName = "openhoi_lobby_replay";
 	public const string WatchButton = "watch_replay";
+	public const string ExportButton = "export_replay";
+	public const string ImportButton = "import_replay";
+
+	/// <summary>How many replay files wait in the import folder, looked for once a second while the lobby is up.</summary>
+	private int _waiting;
+	private ulong _lookedAt;
 
 	private CGuiWindow? _replay;
 
@@ -93,12 +99,36 @@ public partial class CLobbyOptions : Control
 			{
 				watch.SetText(CReplayText.Text(Localise, CReplayText.WatchKey, CReplayText.Watch));
 				watch.Pressed += () => _frontEnd.WatchReplay();
-				watch.Tooltip = () => _frontEnd.LoadedReplay is { } probe
-					? new Interface.Tooltips.CTooltip
-					{
-						Text = CReplayText.Tooltip(Localise, probe.Recordings, probe.OtherMade, _frontEnd.MadeWith?.Invoke() ?? ""),
-					}
-					: null;
+				string nothing = CReplayText.Text(Localise, CReplayText.NothingKey, CReplayText.Nothing);
+				watch.Tooltip = () => new Interface.Tooltips.CTooltip
+				{
+					Text = _frontEnd.LoadedReplay is { } probe
+						? CReplayText.Tooltip(Localise, probe.Recordings, probe.OtherMade, _frontEnd.MadeWith?.Invoke() ?? "")
+						: nothing,
+				};
+			}
+			if (_replay.TryFindButton(ExportButton) is { } export)
+			{
+				export.SetText(CReplayText.Text(Localise, CReplayText.ExportKey, CReplayText.Export));
+				export.Pressed += ExportReplay;
+				export.Tooltip = () => new Interface.Tooltips.CTooltip
+				{
+					Text = _frontEnd.LoadedReplay is null
+						? CReplayText.Text(Localise, CReplayText.NothingKey, CReplayText.Nothing)
+						: CReplayText.Text(Localise, CReplayText.ExportTipKey, CReplayText.ExportTip)
+							.Replace("$FOLDER$", Content.Replays.CReplayArchive.ExportFolder(_frontEnd.SaveFolder)),
+				};
+			}
+			if (_replay.TryFindButton(ImportButton) is { } import)
+			{
+				import.SetText(CReplayText.Text(Localise, CReplayText.ImportKey, CReplayText.Import));
+				import.Pressed += ImportReplays;
+				import.Tooltip = () => new Interface.Tooltips.CTooltip
+				{
+					Text = CReplayText.Text(Localise, CReplayText.ImportTipKey, CReplayText.ImportTip)
+						.Replace("$FOLDER$", Content.Replays.CReplayArchive.ImportFolder(_frontEnd.SaveFolder))
+						.Replace("$COUNT$", _waiting.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+				};
 			}
 		}
 		// An enhanced game's own rules, in a window of the mod's beside the original's (statisticsrecord.md, section 6).
@@ -303,6 +333,17 @@ public partial class CLobbyOptions : Control
 	/// </summary>
 	public override void _Process(double delta)
 	{
+		// The import folder is looked into once a second: a file put there while the lobby is up lights the button.
+		if (Visible && _replay is not null && Time.GetTicksMsec() - _lookedAt >= 1000)
+		{
+			_lookedAt = Time.GetTicksMsec();
+			int waiting = Content.Replays.CReplayArchive.Waiting(_frontEnd.SaveFolder).Count;
+			if (waiting != _waiting)
+			{
+				_waiting = waiting;
+				Refresh();
+			}
+		}
 		if (_rules is null || !Visible || _laidOutFor == BetweenMachines)
 		{
 			return;
@@ -346,6 +387,44 @@ public partial class CLobbyOptions : Control
 		Refresh();
 	}
 
+	/// <summary>The loaded save and its replay written as one file, and where said in the lobby's chat.</summary>
+	private void ExportReplay()
+	{
+		if (_frontEnd.LoadedSavePath is not { } save || _frontEnd.LoadedReplay is null)
+		{
+			return;
+		}
+		try
+		{
+			if (Content.Replays.CReplayArchive.Export(save, _frontEnd.SaveFolder) is { } written)
+			{
+				Changed?.Invoke(CReplayText.Text(Localise, CReplayText.ExportedKey, CReplayText.Exported).Replace("$FILE$", written));
+			}
+		}
+		catch (Exception failed) when (failed is System.IO.IOException or UnauthorizedAccessException)
+		{
+			Changed?.Invoke(failed.Message);
+		}
+	}
+
+	/// <summary>Every replay file waiting taken in, each said in the lobby's chat, and the list of saves shown again.</summary>
+	private void ImportReplays()
+	{
+		foreach (string archive in Content.Replays.CReplayArchive.Waiting(_frontEnd.SaveFolder))
+		{
+			string? saved = Content.Replays.CReplayArchive.Import(archive, _frontEnd.SaveFolder);
+			Changed?.Invoke(saved is null
+				? CReplayText.Text(Localise, CReplayText.ImportFailedKey, CReplayText.ImportFailed)
+					.Replace("$FILE$", System.IO.Path.GetFileName(archive))
+				: CReplayText.Text(Localise, CReplayText.ImportedKey, CReplayText.Imported).Replace("$FILE$", saved));
+		}
+		_lookedAt = 0;
+		Imported?.Invoke();
+	}
+
+	/// <summary>Replays were taken in: the list of saves has new ones.</summary>
+	public event Action? Imported;
+
 	/// <summary>Where an element stood as the window was made.</summary>
 	private Vector2 Home(Control element)
 	{
@@ -381,12 +460,21 @@ public partial class CLobbyOptions : Control
 		}
 		if (_replay is not null)
 		{
-			// Shown for a loaded save whose game can be played back, and not between machines.
-			Content.Replays.CReplayProbe? probe = BetweenMachines ? null : _frontEnd.LoadedReplay;
-			_replay.Visible = probe is not null;
+			// Always there in a game of one and never between machines: Watch and Export greyed without a loaded save
+			// whose game can be played back, Import without a replay file waiting (docs/replay.md, section 17).
+			Content.Replays.CReplayProbe? probe = _frontEnd.LoadedReplay;
+			_replay.Visible = !BetweenMachines;
 			if (_replay.TryFindButton(WatchButton) is { } watch)
 			{
 				watch.Disabled = probe is null;
+			}
+			if (_replay.TryFindButton(ExportButton) is { } export)
+			{
+				export.Disabled = probe is null;
+			}
+			if (_replay.TryFindButton(ImportButton) is { } import)
+			{
+				import.Disabled = _waiting == 0;
 			}
 		}
 		Set("difficulty_box", CLobbyOptionsText.Text(Localise, CLobbyOptionsText.Difficulties, _frontEnd.ChosenPlay.Difficulty));

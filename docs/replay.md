@@ -599,6 +599,38 @@ of the game played**. `--hash` stops writing at a change of country, a tool's li
 screens', and writes again after the next load. **Not reviewed in play**; not tried: the list's scrolling, a change
 at the playback's end, and several changes one after another.
 
+## 17. A replay given to somebody else: export and import
+
+Built 2026-11-25, as asked for that day: "an export which includes the save and replay files together, as a single
+file. Then an import button which loads both from an /import folder", the two buttons under Watch replay, and all
+three "always shown (except for in MP) ... but greyed out depending on what is available".
+
+- **The lobby's replay window has three buttons** (`openhoi_lobby_replay`: `watch_replay`, `export_replay`,
+  `import_replay`; `CLobbyOptions`), there whenever the lobby is a game of one and never between machines. **Watch
+  and Export are greyed** until a save is loaded whose game can be played back, and say so under the mouse
+  (`OPENHOI_REPLAY_NOTHING`); **Import is greyed** until a replay file waits, which is looked for once a second.
+- **Export** (`CReplayArchive.Export`) writes `<save's name>.hoi3replay` into `save games/openhoi/export`: a zip of the
+  save and, under `replays/`, the recordings that lead to it and the first one's start - not the others in the
+  folder. The lobby's chat says where (`OPENHOI_EXPORT_REPLAY_DONE`).
+- **Import** (`CReplayArchive.Import`) takes every `.hoi3replay` in `save games/openhoi/import`: the save is written
+  among the saves - under its name with a number where another file has the name and is not the same - the
+  recordings beside them, one already there left alone, and the file moved into `import/imported`, so that it does
+  not wait again. The chat names each save (`OPENHOI_IMPORT_REPLAY_DONE`, or `_FAILED` for a file that is none), and
+  the Saved Games list is shown again. The save is then a save as any other: loaded, watched, taken over.
+- **Only what an export writes is taken out of a file**: a save's plain name at the top, and under `replays/` names
+  of letters and digits with the two extensions. Nothing is written outside the two folders, whatever a file holds.
+
+**What the receiver needs is section 1's**: the engine and the files the game was recorded with. Another engine is
+said by Watch replay's tooltip before it is tried (section 11); other mod files are not, and the playback stops
+where it parts (section 12). *Not built*: the play checksum kept in a recording's header and set beside the
+receiver's.
+
+**Checked** on 2026-11-25 with `--click`, BlackICE: the lobby with no save loaded, three buttons greyed; a recorded
+save loaded and exported, 5 MB for a save of 30 MB and its recordings; that file put in the import folder with the
+save deleted, Import pressed - the chat's line, the save back in the list, the file in `import/imported`.
+`ReplaySavesTests` has the round between two folders, a name already taken, a file that is no archive and one that
+names paths outside. **Not tried**: the imported save's replay watched, and a file from another machine.
+
 ## Not established
 
 - **What else of the AI writes the game directly** in what the checks so far have not reached; the hash names it the day it

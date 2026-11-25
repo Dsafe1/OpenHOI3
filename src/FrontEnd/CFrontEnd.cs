@@ -218,6 +218,7 @@ public partial class CFrontEnd : Node
 		_lobbyOptions.Setup(this);
 		layer.AddChild(_lobbyOptions);
 		_lobbyOptions.Changed += line => _lobby.Say(line);
+		_lobbyOptions.Imported += () => _lobby.ShowSavedGames();
 		_options = new CGameOptionsWindow();
 		_options.Setup(_gui, () => Settings, settings => Settings = settings, CGameOptionsWindow.DisplayModes(Settings),
 			new[] { 2, 4, 8 }, (Settings.Width, Settings.Height, Settings.RefreshRate), CGameOptionsWindow.FrontEndWindowName);
@@ -581,6 +582,9 @@ public partial class CFrontEnd : Node
 			ReplayRequested?.Invoke(path, _lobby?.Chosen);
 		}
 	}
+
+	/// <summary>The player's own folder of saves, below which replays are exported and imported.</summary>
+	public string SaveFolder => System.IO.Path.Combine(_directories.UserFolder, CSaveFiles.FolderFor(_directories));
 
 	/// <summary>The file of the save loaded into the lobby, or null where its world is a new game's.</summary>
 	public string? LoadedSavePath => SaveLoaded ? _loadedSavePath : null;

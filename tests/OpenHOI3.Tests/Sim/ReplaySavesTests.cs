@@ -340,6 +340,74 @@ public class ReplaySavesTests
 	}
 
 	[Fact]
+	public void AReplayExportedAsOneFileIsTakenInElsewhereWithItsSaveAndItsRecordings()
+	{
+		string mine = Folder();
+		string theirs = Folder();
+		try
+		{
+			// A save at b:2, of two recordings, with a third recording beside them that does not lead to it.
+			var nobody = Array.Empty<CCountryTag>();
+			string store = CReplayStore.Folder(mine);
+			CReplayStore.Begin(store, new CReplayHeader(nobody, 5, "a", null, "engine")).File.Dispose();
+			CReplayStore.WriteStart(store, "a", new byte[] { 1, 2, 3 });
+			CReplayStore.Begin(store, new CReplayHeader(nobody, 5, "b", new CReplayLink("a", 1), "engine")).File.Dispose();
+			CReplayStore.Begin(store, new CReplayHeader(nobody, 5, "other", null, "engine")).File.Dispose();
+			string save = Path.Combine(mine, "Germany1936.hoi3");
+			File.WriteAllText(save, "date=\"1936.2.1.0\"\nopenhoi_replay=\"b:2\"\nplayer=\"GER\"\n");
+			// A save that names no recording is not exported.
+			string plain = Path.Combine(mine, "Plain.hoi3");
+			File.WriteAllText(plain, "date=\"1936.2.1.0\"\n");
+			Assert.Null(CReplayArchive.Export(plain, mine));
+
+			string? exported = CReplayArchive.Export(save, mine);
+			Assert.Equal(Path.Combine(CReplayArchive.ExportFolder(mine), "Germany1936" + CReplayArchive.Extension), exported);
+
+			// Taken in elsewhere: nothing waits until the file is put in the import folder.
+			Assert.Empty(CReplayArchive.Waiting(theirs));
+			Directory.CreateDirectory(CReplayArchive.ImportFolder(theirs));
+			string dropped = Path.Combine(CReplayArchive.ImportFolder(theirs), "Germany1936" + CReplayArchive.Extension);
+			File.Copy(exported!, dropped);
+			File.WriteAllText(Path.Combine(CReplayArchive.ImportFolder(theirs), "notes.txt"), "not one");
+			Assert.Equal(new[] { dropped }, CReplayArchive.Waiting(theirs));
+			// A save of that name is there already and is another: the import's is put beside it.
+			File.WriteAllText(Path.Combine(theirs, "Germany1936.hoi3"), "another game");
+
+			Assert.Equal("Germany1936_2.hoi3", CReplayArchive.Import(dropped, theirs));
+			Assert.Equal(File.ReadAllBytes(save), File.ReadAllBytes(Path.Combine(theirs, "Germany1936_2.hoi3")));
+			Assert.Equal("another game", File.ReadAllText(Path.Combine(theirs, "Germany1936.hoi3")));
+			string theirStore = CReplayStore.Folder(theirs);
+			Assert.Equal(new CReplayProbe(2, null), CReplayStore.Probe(theirStore, new CReplayLink("b", 2), "engine"));
+			Assert.False(File.Exists(CReplayStore.PathOf(theirStore, "other")));
+			// The file is put away, and no longer waits.
+			Assert.Empty(CReplayArchive.Waiting(theirs));
+			Assert.True(File.Exists(Path.Combine(CReplayArchive.ImportFolder(theirs), CReplayArchive.DoneFolderName, "Germany1936" + CReplayArchive.Extension)));
+
+			// A file that is no archive is left where it is; and nothing of an archive is written outside the two folders.
+			string broken = Path.Combine(CReplayArchive.ImportFolder(theirs), "broken" + CReplayArchive.Extension);
+			File.WriteAllText(broken, "not a zip");
+			Assert.Null(CReplayArchive.Import(broken, theirs));
+			Assert.True(File.Exists(broken));
+			string sly = Path.Combine(CReplayArchive.ImportFolder(theirs), "sly" + CReplayArchive.Extension);
+			using (var zip = System.IO.Compression.ZipFile.Open(sly, System.IO.Compression.ZipArchiveMode.Create))
+			{
+				using (var writer = new StreamWriter(zip.CreateEntry("../outside.hoi3").Open())) { writer.Write("x"); }
+				using (var writer = new StreamWriter(zip.CreateEntry("replays/../../outside.replay").Open())) { writer.Write("x"); }
+				using (var writer = new StreamWriter(zip.CreateEntry("replays/evil.exe").Open())) { writer.Write("x"); }
+			}
+			Assert.Null(CReplayArchive.Import(sly, theirs));
+			Assert.False(File.Exists(Path.Combine(Path.GetDirectoryName(theirs)!, "outside.hoi3")));
+			Assert.False(File.Exists(Path.Combine(theirs, "outside.replay")));
+			Assert.False(File.Exists(Path.Combine(theirStore, "evil.exe")));
+		}
+		finally
+		{
+			Directory.Delete(mine, recursive: true);
+			Directory.Delete(theirs, recursive: true);
+		}
+	}
+
+	[Fact]
 	public void WhetherASavesGameCanBePlayedBackIsFoundBeforeAnythingIsPlayed()
 	{
 		string folder = Folder();

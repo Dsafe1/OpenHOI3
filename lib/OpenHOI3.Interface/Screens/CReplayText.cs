@@ -28,6 +28,25 @@ public static class CReplayText
 	public const string Loading = "Replay: the game was saved and loaded here...";
 	public const string Ended = "The replay has ended";
 
+	public const string ExportKey = "OPENHOI_EXPORT_REPLAY";
+	public const string ExportTipKey = "OPENHOI_EXPORT_REPLAY_TIP";
+	public const string ExportedKey = "OPENHOI_EXPORT_REPLAY_DONE";
+	public const string ImportKey = "OPENHOI_IMPORT_REPLAY";
+	public const string ImportTipKey = "OPENHOI_IMPORT_REPLAY_TIP";
+	public const string ImportedKey = "OPENHOI_IMPORT_REPLAY_DONE";
+	public const string ImportFailedKey = "OPENHOI_IMPORT_REPLAY_FAILED";
+	public const string NothingKey = "OPENHOI_REPLAY_NOTHING";
+
+	public const string Export = "Export replay";
+	public const string ExportTip = "Writes this save and its replay as one file into $FOLDER$, to give to somebody else.";
+	public const string Exported = "Replay exported: $FILE$";
+	public const string Import = "Import replay";
+	public const string ImportTip = "Takes in the replay files waiting in $FOLDER$ ($COUNT$): each one's save is put among "
+		+ "your saved games, where it can be loaded and watched.";
+	public const string Imported = "Replay imported: $FILE$ is among the saved games";
+	public const string ImportFailed = "$FILE$ is no replay file and was left where it is";
+	public const string Nothing = "Load a saved game that was recorded to use this.";
+
 	public const string PartedKey = "OPENHOI_REPLAY_PARTED";
 	public const string Parted = "The replay no longer fits this engine and stops here";
 
