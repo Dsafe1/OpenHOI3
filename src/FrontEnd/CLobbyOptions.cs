@@ -338,6 +338,11 @@ public partial class CLobbyOptions : Control
 			}
 			background.Size = _home[background] - new Vector2(0, between ? 0f : step);
 		}
+		// The window under the rules follows their foot up.
+		if (_replay is not null)
+		{
+			_replay.Position = Home(_replay) - new Vector2(0, between ? 0f : step);
+		}
 		Refresh();
 	}
 
