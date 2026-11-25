@@ -78,7 +78,10 @@ Piece by piece:
 - **The four modifiers add, and the sum scales the yield once**: the province's of the good
   (`local_metal`, `local_energy`, `local_rare_materials`, `local_crude_oil`), the holder's of
   the good (`global_metal` and so on), `LOCAL_RESOURCES` and `GLOBAL_RESOURCES`, one plus their
-  sum never below nothing. `confirmed` [exe]. So an occupied province at `non_core`'s -0.5
+  sum never below nothing. `confirmed` [exe]. **For fuel the holder's is `global_money` and
+  for money `global_fuel`**, the original's table having the two the wrong way round
+  (`reversing/findings/FINDINGS-supplyconvoys.md`, section 8) - kept, and each given its own by
+  an enhanced game's fix `yield_modifiers`, 2026-11-25 (`docs/enhanced.md`). So an occupied province at `non_core`'s -0.5
   under laws worth +10% yields 0.6 of itself, not 0.55, and one at `non_core`'s and a
   collaboration government's -1.25 together yields nothing whatever the laws. (measured,
   `firstdays` and `write ... new`, 2026-11-15: every country's metal, energy, rare materials and
