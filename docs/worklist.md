@@ -2221,6 +2221,11 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 - **Two of the three notices over a game are not built** (2026-11-25, `loadingscreen.md`, section 6): `AUTOSAVING`
   is; `SCREENSHOT_TAKEN` and `MAP_SAVED`, 15 frames each in the original, wait for a screenshot key and a saving of
   the map, neither of which is here. `AUTOSAVING` itself is not reviewed in play.
+- **The original's two screenshots are not built, and neither is read** (2026-11-25): the ordinary screenshot, whose
+  notice is `SCREENSHOT_TAKEN`, and **the picture of the whole map** - by the user's account that day a key, F12 he
+  thinks, that saves a bitmap of the whole world in the political map mode, provinces by who controls them; `MAP_SAVED`
+  is very likely its notice, raised from the in-game screen's key handling. To read in the fact base before it is
+  built: the keys, what the picture is coloured by, its size and its file's name and folder.
 - **The order of `slider_locks` and `mobilize` in a played country's block** (2026-11-21, `savegame.md`, section 15): the
   original writes them both ways - `slider_locks` first in `Germany1936_03_31_19` and `_09_02_21`, `mobilize` first in
   `Multiplayer_Germany1941_07_05_10` and `Multiplayer_Italy1936_01_04_21` - and ours writes `mobilize` first. What chooses
