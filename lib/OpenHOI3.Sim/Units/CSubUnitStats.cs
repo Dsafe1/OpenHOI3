@@ -126,6 +126,12 @@ public sealed class CSubUnitStats
 		Adjusters.CopyOf(other.Adjusters);
 	}
 
+	/// <summary>
+	/// Whether these figures, a technology's for a unit type, give their repair cost multiplier when they are added:
+	/// an enhanced game's fix <c>tech_repair_cost</c>, set as the technology is read.
+	/// </summary>
+	public bool AddsRepairCost { get; set; }
+
 	private static readonly CModifierKey RepairCostMultiplierKey = CModifierKey.Of(RepairCostMultiplier);
 	private static readonly CModifierKey ToughnessKey = CModifierKey.Of(Toughness);
 	private static readonly CModifierKey BuildCostIcKey = CModifierKey.Of(BuildCostIc);
@@ -145,7 +151,7 @@ public sealed class CSubUnitStats
 		for (int i = 0; i < figures.Count; i++)
 		{
 			CModifierKey statistic = figures.KeyAt(i);
-			if (statistic == RepairCostMultiplierKey)
+			if (statistic == RepairCostMultiplierKey && !other.AddsRepairCost)
 			{
 				continue;
 			}

@@ -36,11 +36,16 @@ public sealed class CRadarIntel
 	private readonly List<CCountry> _listening = new();
 	private readonly long _range;
 	private readonly long _radio;
+	private readonly bool _efficiency;
+
+	/// <summary>A country's sum of the technologies' effect, which the original reads nowhere.</summary>
+	public const string RadarEfficiency = "radar_efficiency";
 
 	public CRadarIntel(CGameState state, List<int>[] lists)
 	{
 		_state = state;
 		_lists = lists;
+		_efficiency = state.Rules.Has(Rules.EFix.RadarEfficiency);
 		_range = state.Defines.Has(CManpower.MilitarySection, RadarRange) ? state.Defines[CManpower.MilitarySection, RadarRange].Raw : 0;
 		_radio = state.Defines.Has(CManpower.MilitarySection, BaseRadioStrength)
 			? state.Defines[CManpower.MilitarySection, BaseRadioStrength].Raw
@@ -88,6 +93,11 @@ public sealed class CRadarIntel
 					continue;
 				}
 				long reach = level * (_range * visibility / 1000) / 1000;
+				if (_efficiency)
+				{
+					// An enhanced game's fix: the reach longer by the country's radar efficiency.
+					reach = reach * Math.Max(0, 1000 + country.Technology[RadarEfficiency].Raw) / 1000;
+				}
 				long radius = NearRing * reach / 1000 / 1000;
 				if (CMapDistance.Squared(province, radar, _state.MapWidth) < radius * radius)
 				{

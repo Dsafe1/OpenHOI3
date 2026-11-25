@@ -237,7 +237,9 @@ public static class CConvoyRaid
 			CNavalBattle.RunHour(state, combat);
 		}
 		// Nothing here counts the hours the raider's leader banked: the original takes the
-		// battle off by hand and never ends it, so they wait for his next battle.
+		// battle off by hand and never ends it, so they wait for his next battle. An enhanced
+		// game's fix counts them here, against this battle.
+		CountBankedHours(state, combat);
 		foreach (CCombatSide side in new[] { combat.Attacker, combat.Defender })
 		{
 			foreach (CUnit fleet in side.Units)
@@ -281,6 +283,7 @@ public static class CConvoyRaid
 			CBombing.RunHour(state, combat);
 		}
 		raider.Combats.Remove(combat);
+		CountBankedHours(state, combat);
 		foreach (CCombatSide side in new[] { combat.Attacker, combat.Defender })
 		{
 			side.Units.Clear();
@@ -288,6 +291,15 @@ public static class CConvoyRaid
 		state.CombatHistory.Record(combat, state.TotalHours);
 		state.CombatReports.Record(state, combat);
 		return combat;
+	}
+
+	/// <summary>The fix <c>raid_trait_hours</c>: the raider's leader's banked hours counted towards the traits the raid may earn him.</summary>
+	private static void CountBankedHours(CGameState state, CCombat combat)
+	{
+		if (state.Rules.Has(Rules.EFix.RaidTraitHours))
+		{
+			CTraitGain.Count(state, combat, combat.Attacker);
+		}
 	}
 
 	/// <summary>A unit taken onto a side as the original's combatant takes it: on the list, its country with it, and every sub unit's target forgotten.</summary>

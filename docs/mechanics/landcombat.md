@@ -772,6 +772,11 @@ remainder by the whole. A side for which nothing weighs anything has no tactic.
   for each level it has. `confirmed` on the running game: the weights the original stored for
   the war-start battle at 2213 were ours to the thousandth, every tactic of both sides
   (`reversing/findings/FINDINGS-liveread.md`, section 96).
+- **Ours, an enhanced game's fix `trait_surprise_chance`** (2026-11-26, the user's rule): the side that picks second -
+  the defender, where the skills are equal - first rolls a thousand against what its leader's unit has of
+  `surprise_chance`, the trait the original reads and throws away. Under it, and where the tactic that counters the
+  other side's weighs anything for it, it takes that tactic outright; otherwise it picks as above. A side with no
+  chance makes no roll, so a game without the trait rolls as the original does.
 - **A side's leader** is the one of highest rank among its units' leaders - the first of
   equals, and none of rank 0; with none, its skill is nothing. `confirmed`
 - **The leader's aggressiveness** comes from the stance of an active plan on a headquarters

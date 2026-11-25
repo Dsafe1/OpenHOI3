@@ -103,6 +103,10 @@ public static class CCombatModifiers
 			{
 				Assault(state, province, unit);
 			}
+			else if (state.Rules.Has(Rules.EFix.TraitFortDefence))
+			{
+				FortDefence(state, province, combat, unit);
+			}
 
 			if (shore != 0)
 			{
@@ -338,6 +342,28 @@ public static class CCombatModifiers
 	}
 
 	/// <summary>
+	/// An enhanced game's fix <c>trait_fort_defence</c>: a defender behind a fort - a whole level of the land fort, or
+	/// of the coastal fort where an attacker comes from the sea - has its leaders' <c>fort_defence</c> on its attack and
+	/// its defence, under the fort's own name. The original reaches the trait only for an attacker, where it does nothing.
+	/// </summary>
+	private static void FortDefence(CGameState state, CProvince province, CCombat combat, CUnit unit)
+	{
+		bool behind = province.Modifier[FortLevel].Raw >= CFixedPoint.Scale;
+		if (!behind && province.Modifier[CoastalFortLevel].Raw >= CFixedPoint.Scale)
+		{
+			foreach (CUnit attacker in combat.Attacker.Units)
+			{
+				behind |= state.Province(attacker.Location).IsSea;
+			}
+		}
+		long trait = behind ? Trait(state, unit, ETraitEffect.FortDefence) : 0;
+		if (trait != 0)
+		{
+			Add(unit, ECombatModifier.Fort, trait);
+		}
+	}
+
+	/// <summary>
 	/// What the unit's leader adds, to its attack and its defence alike: his skill times
 	/// <c>COMBAT_LEADER_IMPACT</c>, and the traits that come down to the unit for the side
 	/// it fights on - the offensive one and the one for the province's ground when it
@@ -385,6 +411,18 @@ public static class CCombatModifiers
 	public static long Trait(CGameState state, CUnit unit, ETraitEffect kind)
 	{
 		return CCommandReach.Effect(state, unit, kind);
+	}
+
+	/// <summary>
+	/// What dissent costs a unit at sea, in the air or under bombs: the figure as it is, the original reading a
+	/// leader's <c>dissent_impact</c> on land alone - and scaled by it with an enhanced game's fix
+	/// <c>trait_dissent_impact</c>.
+	/// </summary>
+	public static long DissentOffLand(CGameState state, CUnit unit, long impact)
+	{
+		return state.Rules.Has(Rules.EFix.TraitDissentImpact)
+			? Scaled(impact, Trait(state, unit, ETraitEffect.DissentImpact))
+			: impact;
 	}
 
 	/// <summary>A figure made more or less by a trait: figure x (1 + trait).</summary>

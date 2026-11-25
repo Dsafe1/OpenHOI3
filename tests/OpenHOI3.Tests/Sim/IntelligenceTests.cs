@@ -161,6 +161,16 @@ public class IntelligenceTests
 		Assert.Contains(Posen, C(state, Ger).RadarProvinces);
 		Assert.Equal(1000, CRadarIntel.Visibility(state, state.Province(Wilds), 10000));
 
+		// The country's radar efficiency is read by nothing - and with an enhanced game's fix scales the reach.
+		C(state, Ger).Technology.Add(CRadarIntel.RadarEfficiency, CFixedPoint.FromInt(-1));
+		CProvinceIntel.Rebuild(state);
+		Assert.Equal(2, Known(state, Wilds, Ger));
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		CProvinceIntel.Rebuild(state);
+		Assert.Equal(0, Known(state, Wilds, Ger));
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules());
+		C(state, Ger).Technology.Add(CRadarIntel.RadarEfficiency, CFixedPoint.FromInt(1));
+
 		// A station that is not on the list sees nothing, whatever its level.
 		C(state, Ger).RadarProvinces.Clear();
 		CProvinceIntel.Rebuild(state);

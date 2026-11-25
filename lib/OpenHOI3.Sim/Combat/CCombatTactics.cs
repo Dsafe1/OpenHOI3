@@ -80,20 +80,65 @@ public static class CCombatTactics
 			if (defence < attack)
 			{
 				PickFor(state, combat, combat.Defender, 0, 0, 0);
-				PickFor(state, combat, combat.Attacker, aggressiveness, combat.Defender.Tactic?.CounteredByNumber ?? 0, attack - defence);
+				PickSecond(state, combat, combat.Attacker, aggressiveness, combat.Defender.Tactic?.CounteredByNumber ?? 0, attack - defence,
+					SurpriseChance(state, combat.Attacker));
 			}
 			else if (attack < defence)
 			{
 				PickFor(state, combat, combat.Attacker, aggressiveness, 0, 0);
-				PickFor(state, combat, combat.Defender, 0, combat.Attacker.Tactic?.CounteredByNumber ?? 0, defence - attack);
+				PickSecond(state, combat, combat.Defender, 0, combat.Attacker.Tactic?.CounteredByNumber ?? 0, defence - attack,
+					SurpriseChance(state, combat.Defender));
 			}
 			else
 			{
 				PickFor(state, combat, combat.Attacker, aggressiveness, 0, 0);
-				PickFor(state, combat, combat.Defender, 0, 0, 0);
+				// With equal skill the defender favours nothing, and may still surprise.
+				PickSecond(state, combat, combat.Defender, 0, 0, 0, SurpriseChance(state, combat.Defender),
+					combat.Attacker.Tactic?.CounteredByNumber ?? 0);
 			}
 		}
 		SumEffects(combat);
+	}
+
+	/// <summary>
+	/// An enhanced game's fix <c>trait_surprise_chance</c>: what the side's highest ranked leader's unit has of
+	/// <c>surprise_chance</c>, in thousandths, and nothing without the fix - the original reads the trait and throws it away.
+	/// </summary>
+	public static long SurpriseChance(CGameState state, CCombatSide side)
+	{
+		if (!state.Rules.Has(Rules.EFix.TraitSurpriseChance) || CCombatLeaders.HighestRanked(side)?.Unit is not { } unit)
+		{
+			return 0;
+		}
+		return Leaders.CCommandReach.Effect(state, unit, Leaders.ETraitEffect.SurpriseChance);
+	}
+
+	/// <summary>
+	/// The pick of the side that picks second. With a chance of surprise it first rolls a thousand: under the chance,
+	/// and where the tactic that counters the other side's may be picked by it at all, it takes that tactic outright.
+	/// Otherwise, and always with no chance, it picks as any side does - so a side with no chance makes no roll more
+	/// than the original's.
+	/// </summary>
+	public static void PickSecond(CGameState state, CCombat combat, CCombatSide side, long aggressiveness,
+		int favoured, int skillDifference, long surprise, int counter = -1)
+	{
+		if (counter < 0)
+		{
+			counter = favoured;
+		}
+		if (surprise > 0 && counter > 0 && state.Random.Next(1000) < surprise)
+		{
+			foreach (CCombatTactic tactic in state.Tactics)
+			{
+				if (tactic.Number == counter && Weight(state, combat, side, tactic, 0, 0, 0) > 0)
+				{
+					state.CombatTrace?.Invoke($"TACTIC prov {combat.Province} {(side.IsAttacker ? "A" : "D")} surprise {surprise} takes {tactic.Name}");
+					side.Tactic = tactic;
+					return;
+				}
+			}
+		}
+		PickFor(state, combat, side, aggressiveness, favoured, skillDifference);
 	}
 
 	/// <summary>

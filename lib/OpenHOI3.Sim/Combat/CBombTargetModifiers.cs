@@ -119,6 +119,7 @@ public static class CBombTargetModifiers
 				{
 					long dissent = owner.Dissent.Raw * 10 / CFixedPoint.Scale;
 					long impact = defines[military, CCombatModifiers.DissentImpact].Raw * dissent / CFixedPoint.Scale;
+					impact = CCombatModifiers.DissentOffLand(state, unit, impact);
 					CBomberModifiers.Add(subUnit, ECombatModifier.Dissent, -impact, -impact);
 				}
 				if (crowding > 0)

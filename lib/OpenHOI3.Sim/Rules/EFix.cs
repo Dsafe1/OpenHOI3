@@ -77,4 +77,41 @@ public enum EFix
 	/// which the original has the wrong way round (<c>docs/mechanics/resources.md</c>, section 3).
 	/// </summary>
 	YieldModifiers,
+
+	/// <summary>
+	/// A technology's <c>repair_cost_multiplier</c> for a unit type is added with its other figures, where the
+	/// original leaves it out of the sum (<c>docs/mechanics/units.md</c>, section 2). Asked of the folders as the
+	/// technologies are read.
+	/// </summary>
+	TechRepairCost,
+
+	/// <summary>
+	/// A leader's <c>dissent_impact</c> scales what dissent costs his unit at sea, in the air and under bombs as it
+	/// does on land (<c>docs/mechanics/leaders.md</c>, section 10).
+	/// </summary>
+	TraitDissentImpact,
+
+	/// <summary>
+	/// A raid on a convoy counts the hours its raider's leader banked in it towards his traits, as the end of any
+	/// battle does (<c>docs/mechanics/leaders.md</c>, section 11).
+	/// </summary>
+	RaidTraitHours,
+
+	/// <summary>
+	/// A leader's <c>fort_defence</c> counts for a unit defending a province with a fort, where the original reaches
+	/// it only for an attacker (<c>docs/mechanics/landcombat.md</c>, section 4).
+	/// </summary>
+	TraitFortDefence,
+
+	/// <summary>
+	/// A country's <c>radar_efficiency</c> lengthens the reach of its radar stations, where the original reads it
+	/// nowhere (<c>docs/mechanics/intelligence.md</c>, section 4).
+	/// </summary>
+	RadarEfficiency,
+
+	/// <summary>
+	/// A leader's <c>surprise_chance</c> is his side's chance, where it picks its tactic second, of taking the one
+	/// that counters the other's outright (<c>docs/mechanics/landcombat.md</c>, section 11).
+	/// </summary>
+	TraitSurpriseChance,
 }

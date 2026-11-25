@@ -85,7 +85,8 @@ Three things about the adding, each of which looks like a slip in the original a
 reproduced: `confirmed`
 
 - **`toughness` is added twice.** A level of a technology worth 0.4 toughness is worth 0.8.
-- **`repair_cost_multiplier` is never added.** A technology cannot change it.
+- **`repair_cost_multiplier` is never added.** A technology cannot change it - but in an enhanced game, by the fix
+  `tech_repair_cost` (2026-11-26), asked of the folders' rules as the technologies are read.
 - After each technology is added, `build_cost_ic` and `build_cost_manpower` are raised to
   0.1 if they are under it, and `build_time` to 1. That is what stops technologies
   discounting a unit to nothing. It is done once per technology, at whatever level -

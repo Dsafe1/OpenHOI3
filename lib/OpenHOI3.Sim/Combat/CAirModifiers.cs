@@ -129,6 +129,7 @@ public static class CAirModifiers
 				{
 					long dissent = owner.Dissent.Raw * 10 / CFixedPoint.Scale;
 					long impact = defines[CManpower.MilitarySection, CCombatModifiers.DissentImpact].Raw * dissent / CFixedPoint.Scale;
+					impact = CCombatModifiers.DissentOffLand(state, unit, impact);
 					Add(wing, ECombatModifier.Dissent, -impact, -impact);
 				}
 

@@ -299,7 +299,10 @@ public static class CTechnologyReader
 				}
 				if (!technology.UnitEffects.TryGetValue(type.Key, out CSubUnitStats? stats))
 				{
-					technology.UnitEffects[type.Key] = stats = new CSubUnitStats();
+					technology.UnitEffects[type.Key] = stats = new CSubUnitStats
+					{
+						AddsRepairCost = Rules.CRulesReader.Has(directories, Sim.Rules.EFix.TechRepairCost),
+					};
 					type.Technologies.Add(technology);
 				}
 				CSubUnitStatsReader.Read(entry, stats, CSubUnitTypeReader.Statistics.Contains, adjusters.Contains,

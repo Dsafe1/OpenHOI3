@@ -100,6 +100,7 @@ Where C knows P at near or more already it is skipped. Otherwise for each of C's
 `radar_level` above nought:
 
     reach = radar_level x (RADAR_RANGE (0.18) x visibility(P) / 1000) / 1000
+    enhanced, the fix radar_efficiency (ours, 2026-11-26):  reach x (1 + C's radar_efficiency), never below nothing
     R     = 250000 x reach / 1000 / 1000                         truncated twice
     P is seen where 16 x (dx^2 + dy^2) < R^2                     the centres, dx the short way round the map
 

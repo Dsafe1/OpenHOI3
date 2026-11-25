@@ -247,6 +247,28 @@ public class CombatTacticTests
 	}
 
 	[Fact]
+	public void A_surprise_takes_the_counter_tactic_outright_where_the_side_may_pick_it()
+	{
+		CCombatTactic assault = Tactic(1, "tactic_assault", attacker: true, counteredBy: "tactic_counterattack");
+		CCombatTactic counter = Tactic(2, "tactic_counterattack", attacker: false, basis: "0.001");
+		CCombatTactic delay = Tactic(3, "tactic_delay", attacker: false, basis: "1000");
+		CGameState state = State(out CCountry germany, out CCountry poland, assault, counter, delay);
+		CCombat combat = Battle(state, germany, poland);
+
+		// A certain surprise: the counter, whatever it weighs.
+		CCombatTactics.PickSecond(state, combat, combat.Defender, 0, counter.Number, 0, surprise: 1000);
+		Assert.Same(counter, combat.Defender.Tactic);
+
+		// A tactic the side may not pick is no surprise, and the pick is the plain one.
+		CCombatTactics.PickSecond(state, combat, combat.Defender, 0, 0, 0, surprise: 1000, counter: assault.Number);
+		Assert.NotSame(assault, combat.Defender.Tactic);
+		Assert.NotNull(combat.Defender.Tactic);
+
+		// Without the fix nobody has a chance of one.
+		Assert.Equal(0, CCombatTactics.SurpriseChance(state, combat.Defender));
+	}
+
+	[Fact]
 	public void Two_tactics_that_do_not_counter_each_other_both_count()
 	{
 		CCombatTactic shock = Tactic(1, "tactic_shock", attacker: true, defence: "-0.25");

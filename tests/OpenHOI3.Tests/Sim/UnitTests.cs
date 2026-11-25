@@ -151,6 +151,12 @@ public class UnitTests
 
 		Assert.Equal(CFixedPoint.Parse("4.6"), stats["toughness"]);
 		Assert.Equal(CFixedPoint.Parse("0.05"), stats["repair_cost_multiplier"]);
+
+		// An enhanced game's fix marks a technology's figures as giving theirs.
+		CSubUnitStats effect = Stats(("repair_cost_multiplier", "0.01"));
+		effect.AddsRepairCost = true;
+		stats.Add(effect, times: 2);
+		Assert.Equal(CFixedPoint.Parse("0.07"), stats["repair_cost_multiplier"]);
 	}
 
 	[Fact]

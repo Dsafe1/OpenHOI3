@@ -131,6 +131,7 @@ public static class CNavalModifiers
 				{
 					long dissent = owner.Dissent.Raw * 10 / CFixedPoint.Scale;
 					long impact = defines[CManpower.MilitarySection, CCombatModifiers.DissentImpact].Raw * dissent / CFixedPoint.Scale;
+					impact = CCombatModifiers.DissentOffLand(state, fleet, impact);
 					Add(ship, ECombatModifier.Dissent, -impact, -impact);
 				}
 

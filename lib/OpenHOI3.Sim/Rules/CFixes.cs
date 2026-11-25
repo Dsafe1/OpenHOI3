@@ -24,6 +24,12 @@ public static class CFixes
 		(EFix.KeyWithoutEquals, "key_without_equals"),
 		(EFix.UnitFigureDecimals, "unit_figure_decimals"),
 		(EFix.YieldModifiers, "yield_modifiers"),
+		(EFix.TechRepairCost, "tech_repair_cost"),
+		(EFix.TraitDissentImpact, "trait_dissent_impact"),
+		(EFix.RaidTraitHours, "raid_trait_hours"),
+		(EFix.TraitFortDefence, "trait_fort_defence"),
+		(EFix.RadarEfficiency, "radar_efficiency"),
+		(EFix.TraitSurpriseChance, "trait_surprise_chance"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

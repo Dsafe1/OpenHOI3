@@ -147,6 +147,7 @@ public static class CBomberModifiers
 				{
 					long dissent = owner.Dissent.Raw * 10 / CFixedPoint.Scale;
 					long impact = defines[military, CCombatModifiers.DissentImpact].Raw * dissent / CFixedPoint.Scale;
+					impact = CCombatModifiers.DissentOffLand(state, unit, impact);
 					Add(wing, ECombatModifier.Dissent, -impact, -impact);
 				}
 				if (crowding < 0)

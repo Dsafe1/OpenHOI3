@@ -167,6 +167,25 @@ Begun 2026-11-21; as of 2026-11-25.
   **And for every game**, a minister's second, different type for a post is reported; the first still stands.
   Each fix's arm is tested; BlackICE's files hold none of the faulty lines today, so the mod plays the same with
   them.
+- **Six fixes that give a dead value its meaning, 2026-11-26**, the second batch, each put to the user first and each
+  a name a mod may go without. What a value was meant to do is nowhere in the original, so each rule is ours:
+  - `tech_repair_cost`: a technology's `repair_cost_multiplier` for a unit type is added with its other figures.
+    Set as the technologies are read, so by the folders' rules and not a loaded save's.
+  - `trait_dissent_impact`: a leader's `dissent_impact` scales what dissent costs his unit at sea, in the air and
+    under bombs, as it does on land.
+  - `raid_trait_hours`: a raid on a convoy, by sea or from the air, counts the hours its raider's leader banked in
+    it, so `seawolf` can be earned by raiding.
+  - `trait_fort_defence`: a defender behind a whole level of fort - the coastal fort where an attacker comes from
+    the sea - has its leaders' `fort_defence` on its attack and defence, shown as the fort's modifier.
+  - `radar_efficiency`: a radar station's reach is longer by its country's `radar_efficiency` - "radar reach sounds
+    good".
+  - `trait_surprise_chance`: the side that picks its tactic second rolls its highest ranked leader's
+    `surprise_chance` and under it takes the tactic that counters the other's outright, where it may pick that
+    tactic at all - the user's rule, "a small % chance that the leader picks the counter-tactic". One roll more,
+    and only for a side with a chance.
+  **Kept dead, by the same word**: `call_ally` in a `war` effect - "a leftover from EU3" - and the casus belli the
+  two effects make, which neither the base game nor BlackICE uses. Each fix's arm is tested but the raid's, the
+  fort's and the dissent's, which were only run; a game of 45 days on BlackICE went through.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -377,8 +396,8 @@ What the enhanced engine's own save would have to hold, and what its load would 
 ## Land combat
 
 - **Toughness counted twice.** A technology's toughness is added twice, and a unit's is double the sum of its brigades'. `units.md`, 2; `landcombat.md`, 2; `mapunits.md`, 4. *Bug.* Risk: large; mods are tuned to it.
-- **Technology cannot change repair cost.** `repair_cost_multiplier` is never added when technologies are summed. `units.md`, 2. *Dead.* Risk: only files that set it.
-- **Two traits do nothing in a land battle.** `fort_defence` is reached only for an attacker, and `surprise_chance` is read and thrown away. `landcombat.md`; `leaders.md`, oddity 12. *Dead.* Risk: moderate.
+- **Technology cannot change repair cost.** **Mended by the fix `tech_repair_cost`, 2026-11-26.** `repair_cost_multiplier` is never added when technologies are summed. `units.md`, 2. *Dead.* Risk: only files that set it.
+- **Two traits do nothing in a land battle.** **Given a meaning by the fixes `trait_fort_defence` and `trait_surprise_chance`, 2026-11-26.** `fort_defence` is reached only for an attacker, and `surprise_chance` is read and thrown away. `landcombat.md`; `leaders.md`, oddity 12. *Dead.* Risk: moderate.
 - **Support attack counts its hours twice,** in its own hour as well as the battle's. `landorders.md`, 10. *Bug.* Risk: small.
 - **AI support attack dropped.** The way into a province with no battle goes with the order, so a support attack where nobody fights yet is lost. `landorders.md`, 10. *Oversight.* Risk: AI attacks.
 - **Strategic redeployment restarts its attack delay** every hour on the way, drawing on the generator each time. `landorders.md`, 10. *Oversight.* Risk: small; rolls move.
@@ -399,7 +418,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 ## Sea
 
 - **An area's harbours keep their order after a bombing.** The original sorts an area's ports by the naval base's working level only when the area's provinces change or a province gets its first naval base level, so a port bombed since - or repaired - keeps its old place, and which harbour a convoy starts from or a tie goes to follows a stale order. The normal engine sorts by the working level whenever the areas are made (ours, `supply.md`, 9). `bombing.md`, 7. *Oversight.* Risk: small.
-- **A technology's `radar_efficiency` does nothing.** It is loaded, summed for the country and shown in the technology's tooltip, and nothing in the simulation reads it: the radar takes the station's level and `radio_strength`, not this (`reversing/findings/FINDINGS-fleetbasehour.md`, section 4, a static search with a positive control). Their Finest Hour gives it once, BlackICE five times. Making it scale a radar's reach would make the effect mean what it says. `intelligence.md`, 4. *Dead.* Risk: small - what countries with it see.
+- **A technology's `radar_efficiency` does nothing.** **Made to lengthen a radar's reach by the fix `radar_efficiency`, 2026-11-26.** It is loaded, summed for the country and shown in the technology's tooltip, and nothing in the simulation reads it: the radar takes the station's level and `radio_strength`, not this (`reversing/findings/FINDINGS-fleetbasehour.md`, section 4, a static search with a positive control). Their Finest Hour gives it once, BlackICE five times. Making it scale a radar's reach would make the effect mean what it says. `intelligence.md`, 4. *Dead.* Risk: small - what countries with it see.
 - **An interceptor goes out once,** then lies in port under its order. On the "may be bugs" list. `navalmissions.md`, 5 and 12. *Bug.* Risk: moderate.
 - **A sortie from away from base stalls,** given a path that does not begin where the fleet is. `navalmissions.md`, 6 and 12. *Bug.* Risk: small.
 - **Friendly fire always ends on the last ship.** The walk that picks a friend does not stop at its roll; a raider's fleet of nine lost about a tenth of its strength in a month. `navalcombat.md`, 4; `navalmissions.md`, 12. *Bug.* Risk: moderate.
@@ -454,8 +473,8 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - **Command reach falls off a cliff,** from half to nothing at exactly twice the radius. `leaders.md`, 8 and oddity 9. *Bug.* Risk: moderate.
 - **An under-ranked leader loses his chain's bonus,** offence, defence and ground traits, while other traits still reach the unit. `leaders.md`, oddity 11. *Oversight.* Risk: moderate.
 - **A tactic's `trait` condition ignores the chain.** `leaders.md`, oddity 13. *Oversight.* Risk: small.
-- **`dissent_impact` works on land only.** `leaders.md`, 10 and oddity 15. *Dead.* Risk: small.
-- **`seawolf` cannot be earned by raiding** (*inferred*). `leaders.md`, 11 and oddity 16. *Bug.* Risk: small.
+- **`dissent_impact` works on land only.** **Mended by the fix `trait_dissent_impact`, 2026-11-26.** `leaders.md`, 10 and oddity 15. *Dead.* Risk: small.
+- **`seawolf` cannot be earned by raiding** (*inferred*). **Mended by the fix `raid_trait_hours`, 2026-11-26.** `leaders.md`, 11 and oddity 16. *Bug.* Risk: small.
 - **`has_combined_arms = no` holds where `= yes` does.** `leaders.md`, oddity 17. *Bug.* Risk: conditions change.
 - **`is_winner` holds for both sides** of a battle broken off. `leaders.md`, oddity 18. *Oversight.* Risk: small.
 - **The portrait bypasses the greyed button** (*inferred*), so a leader can be changed in a battle by clicking his picture. `leaders.md`, 12 and oddity 20. *Bug.* Risk: none.
@@ -469,9 +488,9 @@ What the enhanced engine's own save would have to hold, and what its load would 
 ## Diplomacy and war
 
 - **Land in no area is handed over unevenly.** An owned province of one level of infrastructure or none goes to the enemy around it every hour with no unit near: beside an area to the last enemy neighbour, a neutral beside it passed over; with no area beside it, a neutral holding the first neighbour keeps it where it is. `war.md`, 11 and oddity 29. *Oversight.* Risk: small; fronts in the desert, the Arctic and on islands.
-- **Casus belli made in play do nothing.** Each is of the null type, and the condition answers by the types' `is_valid`. `war.md`, 9 and oddity 6. *Dead.* Risk: war goals.
+- **Casus belli made in play do nothing.** **Kept, by the user's word of 2026-11-26: the two effects take a tag and no type, and no file of the base game or BlackICE uses them.** Each is of the null type, and the condition answers by the types' `is_valid`. `war.md`, 9 and oddity 6. *Dead.* Risk: war goals.
 - **Casus belli fields unused:** `months`, `truce_months`, `peace_cost_factor`, `penalty_factor`, `prerequisites`, `is_valid_join`, `mutual`, `war_name` and others. `war.md`, 2. *Dead.* Risk: only if brought to life.
-- **`call_ally` is read and does nothing.** `war.md`, 9. *Dead.* Risk: small.
+- **`call_ally` is read and does nothing.** **Kept, by the user's word of 2026-11-26 - "a leftover from EU3".** `war.md`, 9. *Dead.* Risk: small.
 - **A widened war is second-class:** no threat, name or limited flag, while the relation hit and influence are still paid. `war.md`, oddity 1. *Oversight.* Risk: small.
 - **Guarantors cannot be asked as allies.** `war.md`, oddity 2. *Oversight.* Risk: small.
 - **A call with `value` unset is accepted for the player** without asking. `war.md`, oddity 4. *Bug.* Risk: none.

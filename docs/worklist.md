@@ -2228,6 +2228,11 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   built*): `key_without_equals`, `unit_figure_decimals`, `yield_modifiers`. Each arm is tested; BlackICE's files hold
   none of the faulty lines today and no province yields fuel or money, so no run shows them. The first two are read
   with the files, by the folders' rules: a save of a faithful game loaded under an enhanced folder gets them.
+- **Six fixes of dead values are built and not reviewed in play** (2026-11-26, `enhanced.md`, *What is built*):
+  `tech_repair_cost`, `trait_dissent_impact`, `raid_trait_hours`, `trait_fort_defence`, `radar_efficiency`,
+  `trait_surprise_chance`. The repair cost, the radar's reach and the surprise pick are tested; the other three were
+  only run, in 45 days of a BlackICE game. Each rule is ours, the original having none, so each wants a look in play -
+  the surprise's rate above all, BlackICE's traits giving 2% to 12.5%.
 - **The replay for players: recording and watching are built, and neither is reviewed in play** (2026-11-25, `replay.md`,
   sections 10 to 12). A playback pops no message up, shows no offer, and shows the player's events as they are
   answered, the choice marked, for five seconds. **A save written from a playback takes the game over** at that hour

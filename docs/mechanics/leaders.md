@@ -658,18 +658,20 @@ in the box over a row's trait icon.
     (section 9) - and so none of the offence, defence and ground traits its commanders' chain
     would bring it either; the other traits reach it all the same.
 12. **`fort_defence` and `surprise_chance` do nothing in a land battle**: the first is reached
-    only for an attacker, the second is read and thrown away.
+    only for an attacker, the second is read and thrown away. An enhanced game gives each a meaning of ours
+    (2026-11-26, `docs/enhanced.md`): `trait_fort_defence` puts the first on a defender behind a whole level of
+    fort, and `trait_surprise_chance` makes the second a chance at the counter-tactic (`landcombat.md`, section 11).
 13. **A tactic's `trait` condition asks only the side's leader's own traits**, where every other
     use of a trait takes the chain's.
 14. **An admiral too junior for his fleet still draws it up, picks its targets and finds ships
     for its bombers** (section 10): only the bonus asks his rank.
 15. **`dissent_impact` does nothing at sea or in the air** (section 10), where on land it makes
-    dissent more or less.
+    dissent more or less. An enhanced game's fix `trait_dissent_impact` reads it there too, 2026-11-26.
 16. **A raid on a convoy never counts the hours its raider's leader banked in it** (section
     11): the original takes the raid's battle off by hand and never ends it, so the hours wait
     for his next battle and are counted against that. So **`seawolf`, which wants a convoy
     battle, cannot be earned by raiding** - `inferred`, since the battle's own end was not
-    read to the last call.
+    read to the last call. An enhanced game's fix `raid_trait_hours` counts them as the raid ends, 2026-11-26.
 17. **`has_combined_arms` reads nothing after it**: `has_combined_arms = no` holds where a
     unit has combined arms, as `= yes` does.
 18. **`is_winner` holds for both sides of a battle broken off**: nobody lost it.
