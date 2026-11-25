@@ -819,6 +819,13 @@ public sealed class CGameState
 	public Replay.CReplay? Replay { get; set; }
 
 	/// <summary>
+	/// Where in its recording the game was last saved, or - in a game just loaded - where the save it was loaded from was
+	/// written: what an enhanced save holds of the recording kept beside it (<c>docs/replay.md</c>, section 10). Null in
+	/// a game that is not recorded so. No part of the game: nothing in play reads it.
+	/// </summary>
+	public Replay.CReplayLink? ReplayLink { get; set; }
+
+	/// <summary>
 	/// Raised as an event fires, past its <c>fire_only_once</c> test, for whatever reports it - a
 	/// message, a tool. Never for anything that changes the game.
 	/// </summary>

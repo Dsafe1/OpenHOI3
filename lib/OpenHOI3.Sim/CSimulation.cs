@@ -372,6 +372,18 @@ public sealed class CSimulation
 	/// </summary>
 	public bool TakesCommands => State.Replay is not { IsReplaying: true } || ToHost is not null;
 
+	/// <summary>
+	/// To be called as the game is about to be written as a save: where the game is recorded beside its saves, the place
+	/// is marked in the recording and kept on the game for the save to hold (<c>docs/replay.md</c>, section 10).
+	/// </summary>
+	public void MarkSaved()
+	{
+		if (State.Replay is { IsReplaying: false, Segment: not null } recording)
+		{
+			State.ReplayLink = recording.Saved(_turn);
+		}
+	}
+
 	/// <summary>A recorded player's command, posted where it was: for <see cref="Replay.CReplay"/> alone.</summary>
 	internal void PostReplayed(CCommand command)
 	{

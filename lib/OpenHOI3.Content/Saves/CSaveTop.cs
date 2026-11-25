@@ -28,6 +28,12 @@ public static class CSaveTop
 	public const string EngineKey = "openhoi_engine";
 
 	/// <summary>
+	/// An enhanced save's own key for its place in the recording kept beside it: the recording's name, a colon, the
+	/// save's mark (<c>docs/replay.md</c>, section 10). Written only by a game that is recorded.
+	/// </summary>
+	public const string ReplayKey = "openhoi_replay";
+
+	/// <summary>
 	/// The two keys of ours an enhanced game's save holds beside the original's: its rules and the engine that wrote it.
 	/// A faithful game writes neither, its save being the original's key for key.
 	/// </summary>
@@ -39,6 +45,10 @@ public static class CSaveTop
 		}
 		writer.Quoted(RulesKey, state.Rules.Text);
 		writer.Quoted(EngineKey, state.EngineVersion);
+		if (state.ReplayLink is { } link)
+		{
+			writer.Quoted(ReplayKey, link.Text);
+		}
 	}
 
 	/// <summary>Reads a top-level key this holds; false for any other.</summary>
@@ -65,6 +75,16 @@ public static class CSaveTop
 				return true;
 			case CSaveCombatReports.Key when node.IsBlock:
 				CSaveCombatReports.Read(state, node, report);
+				return true;
+			case ReplayKey when !node.IsBlock:
+				if (Sim.Replay.CReplayLink.Parse(node.Value) is { } link)
+				{
+					state.ReplayLink = link;
+				}
+				else
+				{
+					report.Unread("top", $"{ReplayKey}, '{node.Value}'");
+				}
 				return true;
 			case EngineKey when !node.IsBlock:
 				state.SavedByEngine = node.Value ?? "";

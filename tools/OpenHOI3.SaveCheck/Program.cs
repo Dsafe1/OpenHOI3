@@ -342,6 +342,12 @@ if (args.Length > 0 && args[0] == "replaycheck")
 	return CReplayCheck.Run(args);
 }
 
+// Whether a recording plays back across a save and a load (docs/replay.md, section 10).
+if (args.Length > 0 && args[0] == "replayload")
+{
+	return CReplayLoadCheck.Run(args);
+}
+
 // A host's game and a client's with nothing between them but the lines two machines would send (docs/multiplayer.md).
 if (args.Length > 0 && args[0] == "twomachines")
 {

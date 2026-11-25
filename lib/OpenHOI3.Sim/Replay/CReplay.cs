@@ -34,6 +34,12 @@ public sealed class CReplay
 		return new CReplay(sink, null);
 	}
 
+	/// <summary>A recording kept beside the game's saves under that name, which the saves written from the game name.</summary>
+	public static CReplay Recording(Action<CReplayEntry>? sink, string segment)
+	{
+		return new CReplay(sink, null) { Segment = segment };
+	}
+
 	/// <summary>A playback of what a recording kept.</summary>
 	public static CReplay Replaying(IReadOnlyList<CReplayEntry> entries)
 	{
@@ -66,7 +72,50 @@ public sealed class CReplay
 		return new CReplay(null, _ => file.Read());
 	}
 
+	/// <summary>
+	/// A playback of a recording on disk as far as one of its saves' marks and no further: the recording ends there for
+	/// the game played back, whatever the file holds after it (<c>docs/replay.md</c>, section 10).
+	/// </summary>
+	public static CReplay Replaying(CReplayFile file, int untilMark)
+	{
+		bool reached = false;
+		return new CReplay(null, _ =>
+		{
+			if (reached)
+			{
+				return null;
+			}
+			CReplayEntry? entry = file.Read();
+			reached = entry is CReplaySaved saved && saved.Mark == untilMark;
+			return entry;
+		});
+	}
+
 	public bool IsReplaying => _source is not null;
+
+	/// <summary>Recording, beside the game's saves: this recording's name, which a save written from the game names.</summary>
+	public string? Segment { get; init; }
+
+	/// <summary>Recording: the saves marked so far.</summary>
+	public int Marks { get; private set; }
+
+	/// <summary>Replaying: the mark of the last save the playback has come past, nought before the first.</summary>
+	public int LastMark { get; private set; }
+
+	/// <summary>
+	/// Recording, as the game is saved after that many drains of the queue: the place is marked, and what the save is to
+	/// hold of it answered - null where the recording has no name, being kept beside no saves.
+	/// </summary>
+	public CReplayLink? Saved(int turn)
+	{
+		if (IsReplaying || Segment is null)
+		{
+			return null;
+		}
+		Marks++;
+		Keep(new CReplaySaved(Marks, turn));
+		return new CReplayLink(Segment, Marks);
+	}
 
 	/// <summary>What a recording kept in memory, in the order it happened.</summary>
 	public IReadOnlyList<CReplayEntry> Entries => _entries;
@@ -248,6 +297,12 @@ public sealed class CReplay
 					simulation.DrainUntil(drain.Turn);
 					any = true;
 					break;
+				case CReplaySaved saved:
+					Take(simulation.State);
+					simulation.DrainUntil(saved.Turn);
+					LastMark = saved.Mark;
+					any = true;
+					break;
 				default:
 					return any;
 			}
@@ -275,6 +330,10 @@ public sealed class CReplay
 					break;
 				case CReplayDrain drain:
 					simulation.DrainUntil(drain.Turn);
+					break;
+				case CReplaySaved saved:
+					simulation.DrainUntil(saved.Turn);
+					LastMark = saved.Mark;
 					break;
 				case CReplayTick tick:
 					simulation.DrainUntil(tick.Turn);

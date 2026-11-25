@@ -20,17 +20,26 @@ namespace OpenHOI3.Sim.Replay;
 public sealed class CReplayFile : IDisposable
 {
 	/// <summary>Written first, so that a file of something else, or of another version, is not taken for a recording.</summary>
-	private const string Format = "OpenHOI3 replay 2";
+	private const string Format = "OpenHOI3 replay 3";
+
+	/// <summary>The format before a save's mark and a recording's name, which reads the same.</summary>
+	private const string OlderFormat = "OpenHOI3 replay 2";
 
 	private readonly StreamWriter? _writer;
 	private readonly StreamReader? _reader;
 	private readonly CGameState? _state;
 
+	/// <summary>What the recording says its game is made with.</summary>
+	public CReplayHeader Header { get; }
+
 	private CReplayFile(StreamWriter writer, CReplayHeader header)
 	{
 		_writer = writer;
+		Header = header;
 		_writer.WriteLine(Format);
 		_writer.WriteLine(HeaderLine(header));
+		// The head is on disk at once: a game played on from a save reads its parent's while that may still be written.
+		Flush();
 	}
 
 	private CReplayFile(StreamReader reader, CGameState state)
@@ -38,6 +47,7 @@ public sealed class CReplayFile : IDisposable
 		_reader = reader;
 		_state = state;
 		CReplayHeader header = ReadHeader(reader);
+		Header = header;
 		if (header.Seed != state.Seed)
 		{
 			throw new InvalidDataException($"the recording was made with seed {header.Seed} and the game has {state.Seed}");
@@ -53,21 +63,28 @@ public sealed class CReplayFile : IDisposable
 	/// <summary>A new recording at the path, replacing any there, of a game made as the header says.</summary>
 	public static CReplayFile Create(string path, CReplayHeader header)
 	{
-		var stream = new GZipStream(File.Create(path), CompressionLevel.Fastest);
+		var stream = new GZipStream(new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read), CompressionLevel.Fastest);
 		return new CReplayFile(new StreamWriter(stream, new UTF8Encoding(false)), header);
+	}
+
+	/// <summary>A recording's file opened to be read, one that is still being written among them.</summary>
+	private static StreamReader Reader(string path)
+	{
+		return new StreamReader(new GZipStream(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite),
+			CompressionMode.Decompress), Encoding.UTF8);
 	}
 
 	/// <summary>What a recording's game has to be made with: to be read before the game is made.</summary>
 	public static CReplayHeader ReadHeader(string path)
 	{
-		using var reader = new StreamReader(new GZipStream(File.OpenRead(path), CompressionMode.Decompress), Encoding.UTF8);
+		using StreamReader reader = Reader(path);
 		return ReadHeader(reader);
 	}
 
 	/// <summary>A recording to play back into this game, which has to have been made as its header says.</summary>
 	public static CReplayFile Open(string path, CGameState state)
 	{
-		var reader = new StreamReader(new GZipStream(File.OpenRead(path), CompressionMode.Decompress), Encoding.UTF8);
+		StreamReader reader = Reader(path);
 		try
 		{
 			return new CReplayFile(reader, state);
@@ -83,12 +100,35 @@ public sealed class CReplayFile : IDisposable
 	public void Write(CReplayEntry entry)
 	{
 		_writer!.WriteLine(ToLine(entry));
+		// A save's mark is on disk before the save is: the save names it, and whoever loads the save reads up to it.
+		if (entry is CReplaySaved)
+		{
+			Flush();
+		}
 	}
 
-	/// <summary>The next entry, or null at the end of the recording.</summary>
+	/// <summary>Everything written so far put on disk, readable by another reader of the file.</summary>
+	public void Flush()
+	{
+		_writer!.Flush();
+		_writer.BaseStream.Flush();
+	}
+
+	/// <summary>
+	/// The next entry, or null at the end of the recording - also where the file breaks off, as one does that was being
+	/// written when the game stopped.
+	/// </summary>
 	public CReplayEntry? Read()
 	{
-		string? line = _reader!.ReadLine();
+		string? line;
+		try
+		{
+			line = _reader!.ReadLine();
+		}
+		catch (InvalidDataException)
+		{
+			return null;
+		}
 		return line is null ? null : FromLine(line, _state!);
 	}
 
@@ -103,14 +143,17 @@ public sealed class CReplayFile : IDisposable
 
 	private static CReplayHeader ReadHeader(StreamReader reader)
 	{
-		if (reader.ReadLine() != Format)
+		if (reader.ReadLine() is not (Format or OlderFormat))
 		{
 			throw new InvalidDataException("not a recording of this version");
 		}
 		using JsonDocument document = JsonDocument.Parse(reader.ReadLine() ?? "{}");
 		JsonElement root = document.RootElement;
 		var played = root.GetProperty("played").EnumerateArray().Select(tag => new CCountryTag(tag.GetString()!)).ToList();
-		return new CReplayHeader(played, root.GetProperty("seed").GetUInt32());
+		return new CReplayHeader(played, root.GetProperty("seed").GetUInt32(),
+			root.TryGetProperty("segment", out JsonElement segment) ? segment.GetString() : null,
+			root.TryGetProperty("parent", out JsonElement parent) ? CReplayLink.Parse(parent.GetString()) : null,
+			root.TryGetProperty("made", out JsonElement made) ? made.GetString() ?? "" : "");
 	}
 
 	private static string HeaderLine(CReplayHeader header)
@@ -125,6 +168,18 @@ public sealed class CReplayFile : IDisposable
 			}
 			json.WriteEndArray();
 			json.WriteNumber("seed", header.Seed);
+			if (header.Segment is not null)
+			{
+				json.WriteString("segment", header.Segment);
+			}
+			if (header.Parent is not null)
+			{
+				json.WriteString("parent", header.Parent.Text);
+			}
+			if (header.Made.Length > 0)
+			{
+				json.WriteString("made", header.Made);
+			}
 			json.WriteEndObject();
 		});
 	}
@@ -187,6 +242,11 @@ public sealed class CReplayFile : IDisposable
 					json.WriteString("k", "q");
 					json.WriteNumber("t", drain.Turn);
 					break;
+				case CReplaySaved saved:
+					json.WriteString("k", "v");
+					json.WriteNumber("m", saved.Mark);
+					json.WriteNumber("t", saved.Turn);
+					break;
 				default:
 					throw new NotSupportedException($"a recording has no form for {entry.GetType().Name}");
 			}
@@ -227,6 +287,8 @@ public sealed class CReplayFile : IDisposable
 				return new CReplayTick(root.GetProperty("t").GetInt32());
 			case "q":
 				return new CReplayDrain(root.GetProperty("t").GetInt32());
+			case "v":
+				return new CReplaySaved(root.GetProperty("m").GetInt32(), root.GetProperty("t").GetInt32());
 			default:
 				throw new InvalidDataException($"a recording's line of an unknown kind: {line[..Math.Min(line.Length, 60)]}");
 		}
