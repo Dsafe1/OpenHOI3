@@ -2224,6 +2224,10 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   arm is a function of the library - the tooltip's place, the ordinal, the adjuster's line - and run once in the
   client with no error; none was looked at on screen. With them `air_orders_for_all`: several air units selected are
   offered the missions every one may fly; not tested and not looked at.
+- **Three data fixes of the enhanced mode are built and seen in no game** (2026-11-25, `enhanced.md`, *What is
+  built*): `key_without_equals`, `unit_figure_decimals`, `yield_modifiers`. Each arm is tested; BlackICE's files hold
+  none of the faulty lines today and no province yields fuel or money, so no run shows them. The first two are read
+  with the files, by the folders' rules: a save of a faithful game loaded under an enhanced folder gets them.
 - **The replay for players: recording and watching are built, and neither is reviewed in play** (2026-11-25, `replay.md`,
   sections 10 to 12). A playback pops no message up, shows no offer, and shows the player's events as they are
   answered, the choice marked, for five seconds. **A save written from a playback takes the game over** at that hour

@@ -29,6 +29,11 @@ So, in a block of pairs:
 | `theatre { ... }` | a theatre: the `{` taken in the `=`'s place, the unit's loader reading to its `}` | the same, reported |
 | a word followed by `=` or `}` | the next token lost, then reading out of step | the word passed over, reported |
 
+**An enhanced game's fix `key_without_equals` reads the first three rows as they plainly say** (2026-11-25,
+`docs/enhanced.md`): a bare key followed by a word is that key with that word, a quoted one too, reported as before. It
+is asked only where a province's history and a unit file are read; a block with no `=` and a word before `=` or `}`
+are read as above.
+
 **A block counts as one of pairs when it holds any `key = value` or `key = { }`.** A list of bare words, with no pair in
 it, is a list and nothing is said - the original reads lists by another routine. Of the base game's and BlackICE's data
 files, the blocks that mix pairs and bare words are all faults (*measured* on the files, 2026-11-19, `tfh` over the

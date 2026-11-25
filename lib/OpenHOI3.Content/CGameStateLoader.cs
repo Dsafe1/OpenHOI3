@@ -741,6 +741,7 @@ public static class CGameStateLoader
 		// Each fault a line of its own at its place, once: the three passes never give one entry twice (logs.md, section 4).
 		var said = new HashSet<string>(StringComparer.Ordinal);
 
+		bool wordAfterKey = Rules.CRulesReader.Has(directories, Sim.Rules.EFix.KeyWithoutEquals);
 		foreach (CDirectorySettings.LayeredFile file in
 			directories.ListFilesRecursive(ProvinceHistoryDirectory, "*.txt"))
 		{
@@ -754,7 +755,7 @@ public static class CGameStateLoader
 			ClausewitzNode root;
 			try
 			{
-				root = ClausewitzParser.ParseFile(file.AbsolutePath);
+				root = ClausewitzParser.ParseFile(file.AbsolutePath, wordAfterKey);
 			}
 			catch (IOException e)
 			{

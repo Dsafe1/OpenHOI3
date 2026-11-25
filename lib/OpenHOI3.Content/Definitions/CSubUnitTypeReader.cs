@@ -60,6 +60,7 @@ public static class CSubUnitTypeReader
 		Action<string>? warn = null)
 	{
 		warn ??= CDiagnostics.Problem;
+		bool cutToThree = Rules.CRulesReader.Has(directories, Sim.Rules.EFix.UnitFigureDecimals);
 		var adjusters = new HashSet<string>(Circumstances, StringComparer.OrdinalIgnoreCase);
 		adjusters.UnionWith(terrains);
 
@@ -124,7 +125,7 @@ public static class CSubUnitTypeReader
 					entry => ReadOther(type, entry, file, amphibious,
 						other => Report(file, other.Line, $"{type.Key}: '{(other.IsBlock ? other.Key + " { }" : other.Key)}' is a key of a unit type that is not understood"),
 						NotNumber),
-					NotNumber);
+					NotNumber, cutToThree);
 				types.Add(type);
 				fileOf[type] = file;
 			}

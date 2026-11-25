@@ -206,6 +206,25 @@ public class ResourcesTests
 	}
 
 	[Fact]
+	public void FuelAndMoneyReadEachOthersCountryModifierAndWithTheFixTheirOwn()
+	{
+		CCountry holder = Country("GER", 1);
+		holder.Modifier.Set("global_fuel", CFixedPoint.Parse("0.5"));
+		holder.Modifier.Set("global_money", CFixedPoint.Parse("0.1"));
+		CProvince fuel = Yielding(Land(1, Ger), EGoods.Fuel, "100");
+		CProvince money = Yielding(Land(2, Ger), EGoods.Money, "100");
+
+		// The original's table has the two the wrong way round.
+		Assert.Equal(CFixedPoint.FromInt(110), CResources.Yield(holder, fuel, EGoods.Fuel));
+		Assert.Equal(CFixedPoint.FromInt(150), CResources.Yield(holder, money, EGoods.Money));
+		// An enhanced game's fix gives each its own, and leaves the others as they were.
+		Assert.Equal(CFixedPoint.FromInt(150), CResources.Yield(holder, fuel, EGoods.Fuel, mended: true));
+		Assert.Equal(CFixedPoint.FromInt(110), CResources.Yield(holder, money, EGoods.Money, mended: true));
+		(CCountry other, CProvince metal) = Held("100", (false, "global_metal", "0.1"));
+		Assert.Equal(CResources.Yield(other, metal, EGoods.Metal), CResources.Yield(other, metal, EGoods.Metal, mended: true));
+	}
+
+	[Fact]
 	public void TheGoodsOwnModifiersGoIntoTheSameSum()
 	{
 		(CCountry holder, CProvince province) = Held("100",

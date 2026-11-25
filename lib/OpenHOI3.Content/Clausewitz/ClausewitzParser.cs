@@ -26,17 +26,26 @@ public static class ClausewitzParser
 	/// </summary>
 	public static ClausewitzNode ParseFile(string absolutePath)
 	{
+		return ParseFile(absolutePath, wordAfterKey: false);
+	}
+
+	/// <param name="wordAfterKey">
+	/// An enhanced game's fix: a key whose <c>=</c> is missing takes the word after it as its value, and not the value of
+	/// the pair before (<c>docs/mechanics/clausewitz.md</c>, section 2).
+	/// </param>
+	public static ClausewitzNode ParseFile(string absolutePath, bool wordAfterKey)
+	{
 		byte[] bytes = System.IO.File.ReadAllBytes(absolutePath);
-		return Parse(Encoding.Latin1.GetString(bytes), absolutePath);
+		return Parse(Encoding.Latin1.GetString(bytes), absolutePath, wordAfterKey);
 	}
 
 	/// <param name="source">Where the text came from, for the reports of a key with no <c>=</c>.</param>
-	public static ClausewitzNode Parse(string text, string source = "text")
+	public static ClausewitzNode Parse(string text, string source = "text", bool wordAfterKey = false)
 	{
 		var tokens = Tokenize(text);
 		var root = new ClausewitzNode();
 		int index = 0;
-		ParseInto(root, tokens, ref index, topLevel: true, new CParse(source));
+		ParseInto(root, tokens, ref index, topLevel: true, new CParse(source) { WordAfterKey = wordAfterKey });
 		return root;
 	}
 
@@ -45,6 +54,7 @@ public static class ClausewitzParser
 	{
 		public string Source { get; } = source;
 		public string LastValue { get; set; } = "";
+		public bool WordAfterKey { get; init; }
 	}
 
 	/// <summary>A bare word met in a block: its node, the value read before it, its line and what came straight after.</summary>
@@ -231,6 +241,17 @@ public static class ClausewitzParser
 			string key = word.Node.Value ?? "";
 			if (word.Next == TokenKind.Word && after is { Key: null, IsBlock: false })
 			{
+				if (parse.WordAfterKey)
+				{
+					// The fix: the line is read as it plainly says.
+					CDiagnostics.Problem(parse.Source, word.Line,
+						$"'{key} {after.Value}' has no '='; read as '{key} = {after.Value}', where the original reads " +
+						$"'{key} = {word.Previous}', the value the pair before it gave");
+					parent.Children[at] = new ClausewitzNode { Key = key, Value = after.Value, IsQuoted = after.IsQuoted, Line = word.Line };
+					parent.Children.RemoveAt(at + 1);
+					taken.Add(after);
+					continue;
+				}
 				// The value token is lost and the key takes the value the pair before it read.
 				CDiagnostics.Problem(parse.Source, word.Line,
 					$"'{key} {after.Value}' has no '='; read as the original reads it, '{key} = {word.Previous}' - the value " +

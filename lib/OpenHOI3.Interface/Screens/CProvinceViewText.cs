@@ -91,7 +91,7 @@ public static class CProvinceViewText
 		}
 		string colour = province.CurrentProducing[goods] < province.MaxProducing[goods] ? "§R" : "§G";
 		CFixedPoint yield = state.Country(province.Controller) is { } holder
-			? CResources.Yield(holder, province, goods)
+			? CResources.Yield(holder, province, goods, state.Rules.Has(OpenHOI3.Sim.Rules.EFix.YieldModifiers))
 			: province.CurrentProducing[goods];
 		return colour + Rounded(yield);
 	}

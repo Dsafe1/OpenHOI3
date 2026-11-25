@@ -305,7 +305,8 @@ public static class CTechnologyReader
 				CSubUnitStatsReader.Read(entry, stats, CSubUnitTypeReader.Statistics.Contains, adjusters.Contains,
 					other => Report(file, other.Line, $"{block.Key}: {entry.Key}: '{(other.IsBlock ? other.Key + " { }" : other.Key)}' " +
 						"is a key a technology gives a unit type that is not understood"),
-					(figure, text) => Report(file, figure.Line, $"{block.Key}: {text} is no number and was ignored"));
+					(figure, text) => Report(file, figure.Line, $"{block.Key}: {text} is no number and was ignored"),
+					Rules.CRulesReader.Has(directories, Sim.Rules.EFix.UnitFigureDecimals));
 			}
 
 			// Said, where it was passed over (clausewitz.md, section 3): a block that is no unit type, mission or block of a

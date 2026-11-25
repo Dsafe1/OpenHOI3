@@ -219,6 +219,31 @@ public class ClausewitzParserTests
 	}
 
 	[Fact]
+	public void WithTheFixAKeyWithNoEqualsTakesTheWordAfterIt()
+	{
+		// An enhanced game's fix reads the line as it plainly says, a quoted value with it.
+		ClausewitzNode root = ClausewitzParser.Parse("""
+			owner = HUN
+			infra = 5
+			manpower 0.66
+			terrain = plains
+			regiment = { type = hq_brigade name "17th Mechanised Corps HQ" historical_model = 0 }
+			theatre { name = x }
+			""", wordAfterKey: true);
+
+		Assert.Equal("0.66", root.GetString("manpower"));
+		Assert.Equal("plains", root.GetString("terrain"));
+		Assert.Equal("17th Mechanised Corps HQ", root.Get("regiment")!.GetString("name"));
+		Assert.Equal("hq_brigade", root.Get("regiment")!.GetString("type"));
+		Assert.Equal("0", root.Get("regiment")!.GetString("historical_model"));
+		// A block whose `=` is missing is read as before.
+		Assert.Equal("x", root.Get("theatre")!.GetString("name"));
+		// A list of bare words is still a list.
+		ClausewitzNode list = ClausewitzParser.Parse("values = { a b c }", wordAfterKey: true);
+		Assert.Equal(3, list.Get("values")!.Children.Count);
+	}
+
+	[Fact]
 	public void AKeyWithNoEqualsInsideABlockTakesItsLastPairsValueAndAfterABlockThatPairs()
 	{
 		// Their Finest Hour's SOV_1938: a brigade's name is its type, the value read before it.

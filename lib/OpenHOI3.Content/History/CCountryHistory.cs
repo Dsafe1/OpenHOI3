@@ -469,6 +469,13 @@ public static class CCountryHistory
 					}
 					if (ministerTypes.TryGetValue(line.Value, out CMinisterType? type))
 					{
+						// The first type his block gives for a post is the one he is; a later one of another type is read
+						// and never used, in the original without a word (politics.md, section 7).
+						if (minister.TypeIn(line.Key) is { } first && first != type)
+						{
+							say(path, line.Line, $"minister {id}: '{line.Key} = {line.Value}' gives the post a second type; " +
+								$"the first, '{first.Name}', stands, as in the original");
+						}
 						minister.SetType(line.Key, type);
 					}
 					else

@@ -30,6 +30,15 @@ public static class CRulesReader
 		return File.Exists(directories.Resolve(FileName));
 	}
 
+	/// <summary>
+	/// Whether the folders' rules have a fix: for a reader of files, which works before there is a game to ask. Nothing
+	/// is reported here - the game's own reading of the file reports what is wrong with it.
+	/// </summary>
+	public static bool Has(CDirectorySettings directories, EFix fix)
+	{
+		return Read(directories, _ => { }).Has(fix);
+	}
+
 	/// <summary>The rules the folders give a game: the faithful ones where no layer has the file.</summary>
 	public static CRules Read(CDirectorySettings directories, Action<string>? warn = null)
 	{

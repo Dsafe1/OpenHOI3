@@ -57,4 +57,24 @@ public enum EFix
 	/// (<c>docs/mechanics/selection.md</c>, section 6). Changes which orders a player can give at once.
 	/// </summary>
 	AirOrdersForAll,
+
+	/// <summary>
+	/// In a province's history and a file of units, a key whose <c>=</c> is missing takes the word after it as its
+	/// value, where the original gives it the value of the pair before (<c>docs/mechanics/clausewitz.md</c>, section
+	/// 2). Asked of the folders as a game's files are read.
+	/// </summary>
+	KeyWithoutEquals,
+
+	/// <summary>
+	/// A unit type's figure of more than three decimals is cut to three, as every other figure is, where the original
+	/// reads it ten times or more too large (<c>docs/mechanics/units.md</c>, section 2). Asked of the folders as the
+	/// unit types and technologies are read.
+	/// </summary>
+	UnitFigureDecimals,
+
+	/// <summary>
+	/// A province's yield of fuel is scaled by its holder's <c>global_fuel</c> and of money by <c>global_money</c>,
+	/// which the original has the wrong way round (<c>docs/mechanics/resources.md</c>, section 3).
+	/// </summary>
+	YieldModifiers,
 }

@@ -36,7 +36,8 @@ The folder below, `units/models`, is not types (section 5). `confirmed`
   section 2; all 44 numeric stores of the unit loader). The same reading is a technology's block for a unit type, read
   through the unit files' lookup (`likely`). Only BlackICE writes such a figure, three `build_cost_ic = ±0.3375` of its
   division-size technologies; the modifier loader cuts to three places, as ours always did. A fault of the original's,
-  kept (`docs/enhanced.md`).
+  kept (`docs/enhanced.md`) - and cut to three places by an enhanced game's fix `unit_figure_decimals`, 2026-11-25,
+  asked of the folders' rules as the files are read.
 - A line whose key is one of twelve flags is a yes or a no: `active`, `capital`,
   `is_armor`, `is_mobile`, `can_paradrop` and the rest.
 - `sprite`, `unit_group` and `on_completion` are names.

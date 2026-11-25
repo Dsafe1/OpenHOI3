@@ -204,7 +204,8 @@ the 22 countries the history names nobody for.
 
 **A minister is the first type his block gives for a post.** `confirmed` (`reversing/findings/FINDINGS-startshares.md`):
 the original appends each post-and-type line of a minister's block to his list of postings in the file's order, and
-asks his type in a post of the first line that names it, so a second line for the same post is read and never used.
+asks his type in a post of the first line that names it, so a second line for the same post is read and never used -
+and reported here since 2026-11-25 where it gives another type.
 (measured) Honduras's armament minister of 1936 is declared a laissez-faire capitalist and then a resource
 industrialist; the start save's energy for Honduras, 17.500, is the first's, where the second's 5% more resources gave
 18.000 until 2026-11-14. The base game declares a post twice or more 270 times, 71 of them with different types -

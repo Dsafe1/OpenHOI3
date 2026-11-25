@@ -119,7 +119,7 @@ public static class COrderOfBattleReader
 		{
 			return;
 		}
-		ClausewitzNode root = ClausewitzParser.ParseFile(path);
+		ClausewitzNode root = ClausewitzParser.ParseFile(path, state.Rules.Has(Sim.Rules.EFix.KeyWithoutEquals));
 		// A ship or a wing the file leaves unnamed is named as its block closes, and every name read is the country's from
 		// then on, as in a new game's reading: the same unit loader reads both (units.md, section 3). A unit's own name is
 		// not given here - only a new game's entering gives it.
@@ -265,6 +265,7 @@ public static class COrderOfBattleReader
 			NameSubUnit = nameSubUnit, Unnamed = unnamed, Leaders = leaders, Buildings = state?.Buildings,
 		};
 
+		bool wordAfterKey = Rules.CRulesReader.Has(directories, Sim.Rules.EFix.KeyWithoutEquals);
 		foreach (CCountry country in countries)
 		{
 			if (country.OrderOfBattleFile.Length == 0)
@@ -275,7 +276,7 @@ public static class COrderOfBattleReader
 			ClausewitzNode root;
 			try
 			{
-				root = ClausewitzParser.ParseFile(path);
+				root = ClausewitzParser.ParseFile(path, wordAfterKey);
 			}
 			catch (IOException e)
 			{

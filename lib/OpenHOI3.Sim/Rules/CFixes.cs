@@ -21,6 +21,9 @@ public static class CFixes
 		(EFix.ShownFigures, "shown_figures"),
 		(EFix.UnitOrdinals, "unit_ordinals"),
 		(EFix.AirOrdersForAll, "air_orders_for_all"),
+		(EFix.KeyWithoutEquals, "key_without_equals"),
+		(EFix.UnitFigureDecimals, "unit_figure_decimals"),
+		(EFix.YieldModifiers, "yield_modifiers"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

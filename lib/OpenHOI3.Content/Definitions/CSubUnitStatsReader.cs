@@ -29,7 +29,8 @@ public static class CSubUnitStatsReader
 	/// <paramref name="notNumber"/>, with the line it is on and how it is written.
 	/// </summary>
 	public static void Read(ClausewitzNode block, CSubUnitStats stats, Func<string, bool> isStatistic,
-		Func<string, bool> isAdjuster, Action<ClausewitzNode> other, Action<ClausewitzNode, string> notNumber)
+		Func<string, bool> isAdjuster, Action<ClausewitzNode> other, Action<ClausewitzNode, string> notNumber,
+		bool cutToThree = false)
 	{
 		foreach (ClausewitzNode entry in block.Children)
 		{
@@ -40,7 +41,9 @@ public static class CSubUnitStatsReader
 			if (!entry.IsBlock && isStatistic(entry.Key))
 			{
 				// Every digit after the point, as the original's unit loader reads a figure (units.md, section 2).
-				if (CFixedPoint.TryParseAsUnitFigure(entry.Value, out CFixedPoint value))
+				// With an enhanced game's fix a figure is cut to three places as every other is.
+				if (cutToThree ? CFixedPoint.TryParse(entry.Value, out CFixedPoint value)
+					: CFixedPoint.TryParseAsUnitFigure(entry.Value, out value))
 				{
 					// Two lines for one statistic: the later one stands.
 					stats.Values.Set(entry.Key, value);

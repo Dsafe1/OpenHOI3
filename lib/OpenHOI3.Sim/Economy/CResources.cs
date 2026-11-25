@@ -77,7 +77,7 @@ public static class CResources
 		List<int> joined = ProvincesJoinedToCapital(state, country);
 		foreach (int id in joined)
 		{
-			AddYield(home, country, state.Provinces[id]);
+			AddYield(home, country, state.Provinces[id], state.Rules.Has(Rules.EFix.YieldModifiers));
 		}
 
 		// And land that is not joined to the capital but draws on a depot that is: its
@@ -92,7 +92,7 @@ public static class CResources
 				if (Holds(country, province) && network.AreaOf(province.Id) != homeArea
 					&& IsHome(network, country, province))
 				{
-					AddYield(home, country, province);
+					AddYield(home, country, province, state.Rules.Has(Rules.EFix.YieldModifiers));
 				}
 			}
 		}
@@ -173,7 +173,7 @@ public static class CResources
 			{
 				continue;
 			}
-			AddYield(province.Pool, holder, province);
+			AddYield(province.Pool, holder, province, state.Rules.Has(Rules.EFix.YieldModifiers));
 
 			if (network.AreaOf(province.Id) is not { } area)
 			{
@@ -197,13 +197,13 @@ public static class CResources
 	/// Adds what a province yields in a day to a pool, good by good, as its holder gets
 	/// it: scaled by the province's own modifier, the country's laws and its technology.
 	/// </summary>
-	private static void AddYield(CGoodsPool into, CCountry country, CProvince province)
+	private static void AddYield(CGoodsPool into, CCountry country, CProvince province, bool mended)
 	{
 		foreach ((EGoods goods, string _) in Produced)
 		{
 			if (province.CurrentProducing[goods].Raw != 0)
 			{
-				into[goods] += Yield(country, province, goods);
+				into[goods] += Yield(country, province, goods, mended);
 			}
 		}
 	}
@@ -217,14 +217,15 @@ public static class CResources
 	/// at <c>non_core</c>'s and a policy's -0.5 each still yields the laws' share (resources.md, section 3). Also the
 	/// province view's figure (<c>provinceview.md</c>, section 2).
 	/// </summary>
-	public static CFixedPoint Yield(CCountry country, CProvince province, EGoods goods)
+	/// <param name="mended">An enhanced game's fix: fuel by the holder's <c>global_fuel</c> and money by its <c>global_money</c>.</param>
+	public static CFixedPoint Yield(CCountry country, CProvince province, EGoods goods, bool mended = false)
 	{
 		long yield = province.CurrentProducing[goods].Raw;
 		if (TechnologyKey(goods) is { Length: > 0 } technologyKey)
 		{
 			yield = yield * (CFixedPoint.Scale + country.Technology[technologyKey].Raw) / CFixedPoint.Scale;
 		}
-		long factor = CFixedPoint.Scale + province.Modifier[LocalKey(goods)].Raw + country.Modifier[GlobalKey(goods)].Raw
+		long factor = CFixedPoint.Scale + province.Modifier[LocalKey(goods)].Raw + country.Modifier[GlobalKey(goods, mended)].Raw
 			+ province.Modifier[LocalResources].Raw + country.Modifier[GlobalResources].Raw;
 		return new CFixedPoint(yield * Math.Max(0, factor) / CFixedPoint.Scale);
 	}
@@ -245,11 +246,11 @@ public static class CResources
 	/// The holder's modifier of one good, as the original's table of them names it - which has fuel's and money's the
 	/// wrong way round (docs/enhanced.md); no province yields either.
 	/// </summary>
-	private static string GlobalKey(EGoods goods) => goods switch
+	private static string GlobalKey(EGoods goods, bool mended) => goods switch
 	{
 		EGoods.Supplies => "global_supplies",
-		EGoods.Fuel => "global_money",
-		EGoods.Money => "global_fuel",
+		EGoods.Fuel => mended ? "global_fuel" : "global_money",
+		EGoods.Money => mended ? "global_money" : "global_fuel",
 		EGoods.CrudeOil => "global_crude_oil",
 		EGoods.Metal => "global_metal",
 		EGoods.Energy => "global_energy",
