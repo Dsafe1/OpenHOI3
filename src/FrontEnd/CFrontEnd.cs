@@ -561,6 +561,26 @@ public partial class CFrontEnd : Node
 	/// <summary>The save loaded into the lobby's world, where one is.</summary>
 	private string? _loadedSavePath;
 
+	/// <summary>What a recording made here is made with: the engine's version and the rules. Given by whoever owns the front end.</summary>
+	public Func<string>? MadeWith { get; set; }
+
+	/// <summary>
+	/// Whether the game that led to the loaded save can be played back: null where no save is loaded, it names no
+	/// recording, or its recordings cannot be followed to a start (docs/replay.md, section 11). Found as the save loads.
+	/// </summary>
+	public Content.Replays.CReplayProbe? LoadedReplay { get; private set; }
+
+	/// <summary>The lobby's Watch replay: the game that led to that save is to be played back.</summary>
+	public event Action<string>? ReplayRequested;
+
+	public void WatchReplay()
+	{
+		if (LoadedSavePath is { } path && LoadedReplay is { Fits: true })
+		{
+			ReplayRequested?.Invoke(path);
+		}
+	}
+
 	/// <summary>The file of the save loaded into the lobby, or null where its world is a new game's.</summary>
 	public string? LoadedSavePath => SaveLoaded ? _loadedSavePath : null;
 
@@ -752,6 +772,9 @@ public partial class CFrontEnd : Node
 		}
 		SaveLoaded = true;
 		_loadedSavePath = path;
+		LoadedReplay = World.ReplayLink is { } link && System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(path)) is { } folder
+			? Content.Replays.CReplayStore.Probe(Content.Replays.CReplayStore.Folder(folder), link, MadeWith?.Invoke() ?? "")
+			: null;
 		ShowOnMap(World);
 		ShowOptions();
 		return true;

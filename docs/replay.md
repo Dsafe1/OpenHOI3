@@ -390,8 +390,8 @@ fits. *Not built*: any test of the mod's files, which a recording hangs on as mu
 
 ### 10.5 Not built
 
-- **Any screen to watch one from**: the main menu's list of saves to play back, a country to look through
-  (section 6's second piece), and a notice at a crossing other than the loading screen.
+- **A country to look through** other than the one that played (section 6's second piece), and a list of replays
+  apart from the list of saves (section 11).
 - **A game between machines.** The host's recording is its wire already (section 8); nothing keeps it beside the saves.
 - **Moving through a recording**: a playback runs every hour from the start. A start kept at each crossing, or at
   intervals, would let one begin late.
@@ -399,6 +399,34 @@ fits. *Not built*: any test of the mod's files, which a recording hangs on as mu
   the base game, 560 KB for BlackICE's first six days with its start.
 - **The second load of a save played on** could be spared wherever the mod's Lua is known to keep nothing.
 - **A recording that outlives its engine**: section 1's limit stands - it holds only while the rules do not change.
+
+## 11. Watching one from the lobby
+
+Built 2026-11-25, on the word of that day to begin the interface too. Ours throughout.
+
+- **The list of replays is the list of saves.** A save is a place in a game, and its replay is the game up to it; so
+  nothing new is listed. In the lobby's Saved Games a save is loaded as ever, and where it names a recording that can
+  be followed back to a start that is there (`CReplayStore.Probe`, asked once as the save loads), **a window of the
+  mod's, `openhoi_lobby_replay`, is shown with the button `watch_replay`** (`CLobbyOptions`; BlackICE's
+  `interface/openhoi/lobbyreplay.gui`, under its window of rules). Not shown between machines.
+- **The button** says `OPENHOI_WATCH_REPLAY`; its tooltip is `OPENHOI_WATCH_REPLAY_TIP` with `$COUNT$` the number
+  of recordings - or, where one of them was made with another engine or other rules, the button is greyed and the
+  tooltip is `OPENHOI_WATCH_REPLAY_OTHER_ENGINE` with `$MADE$` and `$NOW$` (`CReplayText`, which has words of its own
+  where a table has no key). So a recording that will not fit is said before it is tried; `--replay=` still tries it.
+- **Pressed**, the front end gives way to the playback under the loading screen (`Main.WatchReplay`), as to a game.
+  The game comes up **paused, as every game does**, looked on through the country that played (section 6); pause and
+  speed are the top bar's.
+- **At a save the player loaded** the loading screen comes up with `OPENHOI_REPLAY_LOADING` over it, and the playback
+  goes on at the speed it had.
+- **At its end** the clock stops and `OPENHOI_REPLAY_ENDED` stands in the upper part of the screen, in the notices'
+  font (`CScreenNotice` with a band), over the game as it stood at the save. The menu's Resign leads back to the main
+  menu.
+
+**Tried on 2026-11-25** with `--click` on BlackICE, in a player's folder of its own: Saved Games, the save `two` of
+section 10.4's trial chosen - the window and its tooltip looked at, "Record a replay" ticked for it - the button
+pressed with `--run`: the playback ran to 7 January, loaded, and ran on to its end on the 12th by itself. The end's
+notice was looked at in the playback by switch. **Not reviewed in play**; not tried: a recording of another engine in
+the lobby, Resign out of a playback, and a playback begun a second time in one run of the program.
 
 ## Not established
 

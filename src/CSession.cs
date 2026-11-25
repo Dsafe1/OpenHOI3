@@ -2705,6 +2705,12 @@ public partial class CSession : Node
 		}
 		_simulation.Pace.Stop();
 		GD.Print($"--replay: {ended.Message}; the clock stops here.");
+		// Said on the screen too, and left there: the game stands at its last hour to be looked at.
+		var said = new Loading.CScreenNotice { Name = "ReplayEnded", Band = 0.3f };
+		said.Setup(_directories);
+		said.Line = Interface.Screens.CReplayText.Text(_localisation.Localise, Interface.Screens.CReplayText.EndedKey,
+			Interface.Screens.CReplayText.Ended);
+		AddChild(said);
 	}
 
 	/// <summary>Whether this session's playback goes on in another, being loaded: nothing more is asked of this one.</summary>

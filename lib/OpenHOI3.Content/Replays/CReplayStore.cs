@@ -65,6 +65,20 @@ public static class CReplayStore
 		}
 	}
 
+	/// <summary>
+	/// Whether the game that led to a place can be played back, and on what: null where the recordings cannot be
+	/// followed back to a start that is there.
+	/// </summary>
+	public static CReplayProbe? Probe(string folder, CReplayLink to, string made)
+	{
+		List<CReplaySegment>? chain = Chain(folder, to);
+		if (chain is null || !File.Exists(StartPathOf(folder, chain[0].Header.Segment ?? "")))
+		{
+			return null;
+		}
+		return new CReplayProbe(chain.Count, chain.Find(segment => segment.Header.Made != made)?.Header.Made);
+	}
+
 	/// <summary>The place in its recording a save's text names, or null where it names none.</summary>
 	public static CReplayLink? LinkOf(string saveText)
 	{

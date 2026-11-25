@@ -398,6 +398,8 @@ public partial class Main : Control
 		frontEnd.Setup(_directories, content, first: !_frontEndShown);
 		_frontEndShown = true;
 		frontEnd.PlayRequested += chosen => Guarded(Play(chosen));
+		frontEnd.MadeWith = MadeWith;
+		frontEnd.ReplayRequested += path => Guarded(WatchReplay(path));
 		frontEnd.JoinRequested += (player, address) => Guarded(JoinFromMenu(frontEnd, player, address));
 		frontEnd.JoinCancelled += () =>
 		{
@@ -483,6 +485,21 @@ public partial class Main : Control
 		await StartSession(screen, game, replayFile: recording);
 	}
 
+	/// <summary>The lobby's Watch replay: the game that led to the save played back in the front end's place.</summary>
+	private async Task WatchReplay(string savePath)
+	{
+		if (_frontEnd is not { } frontEnd)
+		{
+			return;
+		}
+		CLoadingScreen screen = OpenLoadingScreen(frontEnd.Localisation);
+		await screen.Drawn();
+		if (!await PlaySaveRecording(screen, savePath, switched: false))
+		{
+			screen.QueueFree();
+		}
+	}
+
 	/// <summary>The folder of recordings beside this machine's saves.</summary>
 	private string ReplayStore => Content.Replays.CReplayStore.Folder(
 		System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderFor(_directories)));
@@ -554,11 +571,14 @@ public partial class Main : Control
 	private List<Content.Replays.CReplaySegment>? _replayChain;
 	private int _replayAt;
 
+	/// <summary>Whether the developer switches asked for the playback, and not the lobby's button.</summary>
+	private bool _replaySwitched;
+
 	/// <summary>
 	/// <c>--replay=</c> with a save: the game that led to it played back from its start, through every save and load on
 	/// the way (docs/replay.md, section 10). Answers whether there was anything to play.
 	/// </summary>
-	private async Task<bool> PlaySaveRecording(CLoadingScreen screen, string savePath)
+	private async Task<bool> PlaySaveRecording(CLoadingScreen screen, string savePath, bool switched = true)
 	{
 		string store = Content.Replays.CReplayStore.Folder(System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(savePath))!);
 		CReplayLink? link = System.IO.File.Exists(savePath)
@@ -581,6 +601,7 @@ public partial class Main : Control
 		GD.Print($"--replay: {chain.Count} recordings lead to {savePath}.");
 		_replayChain = chain;
 		_replayAt = 0;
+		_replaySwitched = switched;
 		await PlayRecording(screen, start);
 		return true;
 	}
@@ -590,7 +611,10 @@ public partial class Main : Control
 	{
 		Content.Replays.CReplaySegment segment = _replayChain![_replayAt];
 		bool first = segment.Header.Parent is null;
-		await LoadNetGame(save, segment.Header.Played, screen, over: _replayAt == 0 ? null : "Loading the save...", taken: state =>
+		CLocalisation? texts = _session?.Localisation ?? screen?.Localisation;
+		await LoadNetGame(save, segment.Header.Played, screen, over: _replayAt == 0 ? null : Interface.Screens.CReplayText.Text(
+			key => texts?.Localise(key) ?? key, Interface.Screens.CReplayText.LoadingKey,
+			Interface.Screens.CReplayText.Loading), taken: state =>
 		{
 			if (segment.Header.Options is { } options)
 			{
@@ -603,7 +627,7 @@ public partial class Main : Control
 			CReplayFile file = CReplayFile.Open(segment.Path, state);
 			state.Replay = CReplay.Replaying(file, segment.UntilMark);
 			return file;
-		}, switched: true, asSaved: !first);
+		}, switched: _replaySwitched, asSaved: !first);
 	}
 
 	/// <summary>
@@ -1021,6 +1045,8 @@ public partial class Main : Control
 		{
 			// Left without the end-of-game screen, which plays its own track: the music stopped, as on every road out.
 			_startSettings = session.Settings;
+			// A playback left is over: the next game is nobody's recording.
+			_replayChain = null;
 			_music.LeaveGame();
 			// A game between machines is left with it: a host's leaving ends it for every machine.
 			LeaveNet();

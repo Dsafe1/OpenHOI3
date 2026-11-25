@@ -158,6 +158,42 @@ public class ReplaySavesTests
 	}
 
 	[Fact]
+	public void WhetherASavesGameCanBePlayedBackIsFoundBeforeAnythingIsPlayed()
+	{
+		string folder = Folder();
+		string store = CReplayStore.Folder(folder);
+		try
+		{
+			var nobody = Array.Empty<CCountryTag>();
+			CReplayStore.Begin(store, new CReplayHeader(nobody, 5, "a", null, "engine 1")).File.Dispose();
+			CReplayStore.Begin(store, new CReplayHeader(nobody, 5, "b", new CReplayLink("a", 1), "engine 1")).File.Dispose();
+			// Without the first recording's start nothing can be played.
+			Assert.Null(CReplayStore.Probe(store, new CReplayLink("b", 1), "engine 1"));
+			CReplayStore.WriteStart(store, "a", new byte[] { 1, 2, 3 });
+			Assert.Equal(new CReplayProbe(2, null), CReplayStore.Probe(store, new CReplayLink("b", 1), "engine 1"));
+			Assert.True(CReplayStore.Probe(store, new CReplayLink("b", 1), "engine 1")!.Fits);
+			// Made with something else: found, and not to be played here.
+			CReplayProbe? other = CReplayStore.Probe(store, new CReplayLink("b", 1), "engine 2");
+			Assert.Equal(new CReplayProbe(2, "engine 1"), other);
+			Assert.False(other!.Fits);
+			Assert.Null(CReplayStore.Probe(store, new CReplayLink("missing", 1), "engine 1"));
+
+			// What the lobby's button says of each, in the words of ours where no table has the keys.
+			string fits = OpenHOI3.Interface.Screens.CReplayText.Tooltip(key => key, 2, null, "engine 1");
+			Assert.Contains("2 recordings", fits);
+			string not = OpenHOI3.Interface.Screens.CReplayText.Tooltip(key => key, 2, "engine 1", "engine 2");
+			Assert.Contains("(engine 1)", not);
+			Assert.Contains("(engine 2)", not);
+			Assert.Equal("Seen: 3", OpenHOI3.Interface.Screens.CReplayText.Tooltip(
+				key => key == OpenHOI3.Interface.Screens.CReplayText.WatchTipKey ? "Seen: $COUNT$" : key, 3, null, ""));
+		}
+		finally
+		{
+			Directory.Delete(folder, recursive: true);
+		}
+	}
+
+	[Fact]
 	public void ARecordingBeingWrittenIsReadAsFarAsItsLastMark()
 	{
 		string folder = Folder();

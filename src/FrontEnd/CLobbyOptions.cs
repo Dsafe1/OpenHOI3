@@ -32,6 +32,15 @@ public partial class CLobbyOptions : Control
 	/// <summary>An enhanced game's rule: whether it is recorded beside its saves (docs/replay.md, section 10).</summary>
 	public const string ReplayButton = "record_replay";
 
+	/// <summary>
+	/// The mod's window with the button that plays back the game a loaded save came of, shown only where there is one
+	/// to play (docs/replay.md, section 11).
+	/// </summary>
+	public const string ReplayWindowName = "openhoi_lobby_replay";
+	public const string WatchButton = "watch_replay";
+
+	private CGuiWindow? _replay;
+
 	private CGuiWindow? _rules;
 
 	/// <summary>A choice changed: the line the lobby's chat is to say.</summary>
@@ -75,6 +84,22 @@ public partial class CLobbyOptions : Control
 		{
 			Bind(element + "_prev", () => StepArea(label, area, -1));
 			Bind(element + "_next", () => StepArea(label, area, 1));
+		}
+		_replay = _context.Types.FindWindow(ReplayWindowName) is null ? null : CGuiWindow.Create(_context, ReplayWindowName);
+		if (_replay is not null)
+		{
+			AddChild(_replay);
+			if (_replay.TryFindButton(WatchButton) is { } watch)
+			{
+				watch.SetText(CReplayText.Text(Localise, CReplayText.WatchKey, CReplayText.Watch));
+				watch.Pressed += () => _frontEnd.WatchReplay();
+				watch.Tooltip = () => _frontEnd.LoadedReplay is { } probe
+					? new Interface.Tooltips.CTooltip
+					{
+						Text = CReplayText.Tooltip(Localise, probe.Recordings, probe.OtherMade, _frontEnd.MadeWith?.Invoke() ?? ""),
+					}
+					: null;
+			}
 		}
 		// An enhanced game's own rules, in a window of the mod's beside the original's (statisticsrecord.md, section 6).
 		_rules = _context.Types.FindWindow(RulesWindowName) is null ? null : CGuiWindow.Create(_context, RulesWindowName);
@@ -285,6 +310,16 @@ public partial class CLobbyOptions : Control
 		{
 			replay.SetText(_frontEnd.ChosenPlay.RecordReplay ? "X" : "");
 			replay.Disabled = _readOnly;
+		}
+		if (_replay is not null)
+		{
+			// Shown for a loaded save whose game can be played back, and not between machines.
+			Content.Replays.CReplayProbe? probe = _readOnly ? null : _frontEnd.LoadedReplay;
+			_replay.Visible = probe is not null;
+			if (_replay.TryFindButton(WatchButton) is { } watch)
+			{
+				watch.Disabled = probe is not { Fits: true };
+			}
 		}
 		Set("difficulty_box", CLobbyOptionsText.Text(Localise, CLobbyOptionsText.Difficulties, _frontEnd.ChosenPlay.Difficulty));
 		Set("arcade_box", CLobbyOptionsText.Text(Localise, CLobbyOptionsText.GameModes, _frontEnd.ChosenPlay.GameMode));

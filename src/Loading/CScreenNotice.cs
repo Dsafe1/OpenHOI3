@@ -24,6 +24,12 @@ public partial class CScreenNotice : CanvasLayer
 		_directories = directories;
 	}
 
+	/// <summary>
+	/// The part of the screen's height, from the top, the line is centred in: the whole of it, as the original's notices
+	/// are, unless a notice of ours that stays up is kept out of the middle.
+	/// </summary>
+	public float Band { get; init; } = 1f;
+
 	/// <summary>The line shown; empty for none.</summary>
 	public string Line
 	{
@@ -52,7 +58,7 @@ public partial class CScreenNotice : CanvasLayer
 		{
 			// The font is found when first a notice is drawn: most games never show one.
 			_font ??= new CLoadingFont(_directories);
-			_font.DrawCentred(_text, Vector2.Zero, _text.Size, _line);
+			_font.DrawCentred(_text, Vector2.Zero, new Vector2(_text.Size.X, _text.Size.Y * Band), _line);
 		};
 		AddChild(_text);
 	}
