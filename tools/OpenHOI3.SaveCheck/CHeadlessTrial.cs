@@ -263,12 +263,20 @@ internal static class CHeadlessTrial
 			Console.WriteLine($"THE RUN THREW on {state.Date} hour {state.Hour}:");
 			Console.WriteLine(exception);
 			Report(state, scripts, luaReports, fired, taken, messages, below, yearTimes, happenings, clock);
+			if (args.Contains("reports"))
+			{
+				CCombatReportsSize.Report(state);
+			}
 			return 1;
 		}
 		Report(state, scripts, luaReports, fired, taken, messages, below, yearTimes, happenings, clock);
 		if (state.Statistics.Forced)
 		{
 			CStatisticsSize.Report(state);
+		}
+		if (args.Contains("reports"))
+		{
+			CCombatReportsSize.Report(state);
 		}
 		return 0;
 	}

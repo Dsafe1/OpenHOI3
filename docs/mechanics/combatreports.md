@@ -45,15 +45,41 @@ outside.
 
 ## 3. Where it is and is not
 
-- **In an enhanced save** (`savegame.md`, section 22; `CSaveCombatReports`): a key a battle. So a game saved and
+- **In an enhanced save** (`savegame.md`, section 22; `CSaveCombatReports`): **packed, a block a year**, every
+  figure exact - a key a battle until 2026-11-25, which a save written so is still read from. So a game saved and
   loaded shows what it showed before - the rule on a whole game's replay (`docs/enhanced.md`) is kept.
 - **Not in the state's hash, nor the play checksum**: nothing in the game reads the record, so it cannot make two
   games play apart. It is made from the battles, which are hashed.
 - **The same on every machine** of a game between several, each making it from the same battles.
 
 **It grows for the whole game.** A report is ten figures; a long war has tens of thousands of battles, the air's
-and the bombings' the most. *Not decided*: whether old reports are to be gathered into monthly sums, or dropped
-after so many years - listed with the save's other bloat in `docs/enhanced.md`.
+and the bombings' the most. **Packed since 2026-11-25** - asked for that day: "we could save the combat reports as
+blobs as well, monthly or yearly, to reduce the filesize", and "keep them exact". A year's reports are written
+column by column - the hours as their differences, each side's country by its place among those the year names,
+every number in as few bytes as it needs - and deflated (`CCombatReportBlock`), a year a block because a month's
+blocks came to a tenth more. Nothing is rounded and nothing dropped. **Measured** on a save of BlackICE's 1 January
+1937, 1,684 battles of a year: 127 KB as a key a battle, 25 KB packed, 15 bytes a battle where it was 76.
+Checked on that save too: read as a key a battle and written back packed, **all 1,684 reports' every figure the same**,
+the save 104 KB smaller.
+**A game to 1943, measured the same day** - BlackICE from 1936 with nobody playing, `OpenHOI3.SaveCheck headless
+<install> 1943 mod="BlackICE GitHub" reports`, which says for each year how many battles ended and what they come to
+both ways:
+
+| year | battles | a key a battle | packed |
+| --- | --- | --- | --- |
+| 1936 | 1,596 | 113 KiB | 22 KiB |
+| 1937 | 2,193 | 154 KiB | 29 KiB |
+| 1938 | 2,222 | 157 KiB | 33 KiB |
+| 1939 | 8,104 | 538 KiB | 89 KiB |
+| 1940 | 15,235 | 1,021 KiB | 182 KiB |
+| 1941 | 20,195 | 1.30 MiB | 215 KiB |
+| 1942 | 23,076 | 1.52 MiB | 281 KiB |
+| all | 72,621 | 4.75 MiB | 853 KiB |
+
+So a year of the war is some 20,000 battles and a quarter of a MiB packed, where it was a MiB and a half; twelve
+bytes a battle, 18% of the text. The run's seven years took 68 minutes, with no error of the Lua's.
+*Not decided*: whether old reports are ever to be gathered into sums or dropped; packed, the question is less
+pressing.
 
 ## 4. What a page reads
 

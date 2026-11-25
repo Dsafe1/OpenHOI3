@@ -970,8 +970,24 @@ The prefix is the rule for everything of this engine's in a file the original al
 
 ## 22. An enhanced save's record of finished battles
 
-**Ours** (`CSaveCombatReports`; `combatreports.md`). An enhanced game writes, at the top after `openhoi_engine`, a
-key for each battle that has ended, in the order they ended:
+**Ours** (`CSaveCombatReports`; `combatreports.md`). An enhanced game writes, at the top after `openhoi_engine`, one
+block with a `y` for each year a battle ended in, the years in order:
+
+    openhoi_combat_reports={
+        y={ 1936 1684 <letters> }
+        y={ 1937 212 <letters> }
+    }
+
+The year - the battle's hour over the 8,760 of a year - how many reports the block holds, and the block as a bare
+word, base64 with `-` and `_` and no `=`, as the statistics' blocks are (`statisticsrecord.md`, section 5). **A
+block** (`CCombatReportBlock`) is the format's number, 1; how many reports; the countries the year names, each
+once; then the reports column by column in the order they ended - the hours as their differences, the kind, the
+province, the attacker's losses and men, the defender's, the winner, and each side's country by its place among
+those named, nought for none - every number seven bits to a byte with its sign folded into its lowest bit; and the
+whole deflated at the smallest size. **Every figure is exact.** Every year is packed at each save, which a hundred
+thousand battles make a matter of milliseconds.
+
+**Until 2026-11-25 a battle was a key of its own**, and a save written so is still read:
 
     openhoi_combat_report={ 17002212 0 1861 GER POL 21900 26700 40500 9000 1 }
 
@@ -979,4 +995,5 @@ Ten words: the hour it ended; its kind's number - 0 land, 1 naval, 2 air, 3 grou
 bombing; its province; the attacker's and the defender's tag, `---` for a side with none; the attacker's losses in
 thousandths and its men; the defender's the same; and who won - 0 nobody, 1 the attacker, 2 the defender. A
 faithful game writes none. A load takes the save's record whole, and none where the save has none; a key with
-fewer than ten words, a number that is none or a kind there is none of is reported and left out.
+fewer than ten words, a number that is none or a kind there is none of is reported and left out, and so is a year
+whose letters are no block.

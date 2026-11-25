@@ -60,6 +60,9 @@ public static class CSaveTop
 			case CSaveStatistics.Key when node.IsBlock:
 				CSaveStatistics.Read(state, node, report);
 				return true;
+			case CSaveCombatReports.BlockKey when node.IsBlock:
+				CSaveCombatReports.ReadBlock(state, node, report);
+				return true;
 			case CSaveCombatReports.Key when node.IsBlock:
 				CSaveCombatReports.Read(state, node, report);
 				return true;

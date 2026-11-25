@@ -137,13 +137,41 @@ public class CombatReportTests
 		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
 		var writer = new CSaveTextWriter();
 		CSaveCombatReports.Write(writer, state);
-		Assert.Contains("openhoi_combat_report=", writer.Text);
-		Assert.Contains("100 0 1 GER POL 1000 10 3000 20 1", writer.Text);
-		Assert.Contains("500 5 9 --- GER 0 0 0 0 0", writer.Text);
+		// One block, a year in it for each year a battle ended in: the year, how many, and the letters.
+		ClausewitzNode block = Assert.Single(ClausewitzParser.Parse(writer.Text).Children);
+		Assert.Equal(CSaveCombatReports.BlockKey, block.Key);
+		Assert.All(block.Children, year => Assert.Equal("y", year.Key));
+		Assert.Equal(state.CombatReports.Entries.Count, block.Children.Sum(year => int.Parse(year.Children[1].Value!)));
+		Assert.DoesNotContain("GER", writer.Text);
 
 		CGameState loaded = State(enhanced: true);
 		var report2 = new CSaveReport();
-		foreach (ClausewitzNode node in ClausewitzParser.Parse(writer.Text).Children)
+		CSaveCombatReports.ReadBlock(loaded, block, report2);
+		Assert.Equal(state.CombatReports.Entries, loaded.CombatReports.Entries);
+		Assert.Empty(report2.UnreadKeys);
+
+		// A year whose letters are no block is reported and left out.
+		CSaveCombatReports.ReadBlock(loaded, ClausewitzParser.Parse("openhoi_combat_reports = { y = { 1936 2 AAAA } y = { 1936 } }").Children[0], report2);
+		Assert.Equal(state.CombatReports.Entries.Count, loaded.CombatReports.Entries.Count);
+		Assert.Equal(2, report2.UnreadKeys.Values.Sum());
+	}
+
+	[Fact]
+	public void ASaveOfBeforeThePackingIsStillReadABattleAKey()
+	{
+		CGameState state = State(enhanced: true);
+		foreach (CCombatReport report in Sample().Entries)
+		{
+			state.CombatReports.Add(report);
+		}
+		state.CombatReports.Add(new CCombatReport(500, ECombatKind.NavalBombing, 9, null, Ger, 0, 0, 0, 0, ECombatWinner.Nobody));
+		string old = string.Concat(state.CombatReports.Entries.Select(CSaveCombatReports.OldText));
+		Assert.Contains("100 0 1 GER POL 1000 10 3000 20 1", old);
+		Assert.Contains("500 5 9 --- GER 0 0 0 0 0", old);
+
+		CGameState loaded = State(enhanced: true);
+		var report2 = new CSaveReport();
+		foreach (ClausewitzNode node in ClausewitzParser.Parse(old).Children)
 		{
 			Assert.Equal(CSaveCombatReports.Key, node.Key);
 			CSaveCombatReports.Read(loaded, node, report2);
@@ -154,7 +182,45 @@ public class CombatReportTests
 		// A report that is not ten words, or names a kind there is none of, is reported and left out.
 		CSaveCombatReports.Read(loaded, ClausewitzParser.Parse("openhoi_combat_report = { 1 2 3 }").Children[0], report2);
 		CSaveCombatReports.Read(loaded, ClausewitzParser.Parse("openhoi_combat_report = { 1 9 3 GER POL 0 0 0 0 0 }").Children[0], report2);
-		Assert.Equal(5, loaded.CombatReports.Entries.Count);
+		Assert.Equal(state.CombatReports.Entries.Count, loaded.CombatReports.Entries.Count);
 		Assert.Equal(2, report2.UnreadKeys.Values.Sum());
+	}
+
+	[Fact]
+	public void ABlockOfReportsComesBackExactAndIsAFractionOfTheText()
+	{
+		// Figures of every size and sign a report may hold, a side with no country, and hours out of order.
+		var reports = new System.Collections.Generic.List<CCombatReport>
+		{
+			new(16959413, ECombatKind.Land, 7425, Ger, Pol, 57500, 82800, 946600, 54025, ECombatWinner.Attacker),
+			new(16959413, ECombatKind.NavalBombing, 1, null, Ger, 0, 0, long.MaxValue, -5, ECombatWinner.Nobody),
+			new(16959000, ECombatKind.Naval, 14000, Pol, null, 1, 2, 3, 4, ECombatWinner.Defender),
+		};
+		Assert.Equal(reports, CCombatReportBlock.Unpack(CCombatReportBlock.Pack(reports)));
+		Assert.Empty(CCombatReportBlock.Unpack(CCombatReportBlock.Pack(System.Array.Empty<CCombatReport>()))!);
+		Assert.Null(CCombatReportBlock.Unpack(new byte[] { 1, 2, 3, 4 }));
+		Assert.Null(CCombatReportBlock.Unpack(System.Array.Empty<byte>()));
+
+		// A year of battles as a war has them: packed, a small part of what a key a battle came to.
+		var random = new System.Random(3);
+		var year = new System.Collections.Generic.List<CCombatReport>();
+		long hour = 1941L * CSaveCombatReports.HoursInYear;
+		for (int index = 0; index < 5000; index++)
+		{
+			hour += random.Next(0, 3);
+			year.Add(new CCombatReport(hour, (ECombatKind)random.Next(0, 3), random.Next(1, 14000), index % 2 == 0 ? Ger : Pol,
+				index % 2 == 0 ? Pol : Ger, random.Next(0, 900000), random.Next(0, 90000), random.Next(0, 900000), random.Next(0, 90000),
+				(ECombatWinner)random.Next(0, 3)));
+		}
+		byte[] packed = CCombatReportBlock.Pack(year);
+		Assert.Equal(year, CCombatReportBlock.Unpack(packed));
+		Assert.True(CSaveStatistics.Letters(packed).Length * 3 < year.Sum(report => CSaveCombatReports.OldText(report).Length));
+
+		// The years apart, each in the record's order.
+		year.Add(new CCombatReport(1942L * CSaveCombatReports.HoursInYear + 5, ECombatKind.Land, 3, Ger, Pol, 1, 1, 1, 1, ECombatWinner.Nobody));
+		var years = CSaveCombatReports.Years(year).ToList();
+		Assert.Equal(new long[] { 1941, 1942 }, years.Select(one => one.Year));
+		Assert.Equal(5000, years[0].Reports.Count);
+		Assert.Single(years[1].Reports);
 	}
 }
