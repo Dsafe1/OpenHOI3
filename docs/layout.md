@@ -143,6 +143,7 @@ lib/OpenHOI3.Content/   reading an install: finding and layering it, localisatio
     Logs/               where the game's own log goes, in the player's folder's logs, and the runs kept
     Messages/           the message types of interface/messagetypes.txt
     Mods/               a .mod file, the mods a command line selects and their order, the layering's rules
+    Replays/            the recordings kept beside a game's saves: their folder, a new game's start and the chain that leads to a save
     Saves/              the original's .hoi3 saves: the loader, a save's values, its ids, units, orders, leaders and lines, wars, pacts and convoys, battles, what a load left unread, the writer and its layout
     Settings/           the player's settings.txt, from the original's folder under Documents, and an
                         enhanced game's own openhoi_settings.txt beside it

@@ -32,6 +32,13 @@ public sealed class CGamePlaySettings
 	/// </summary>
 	public bool AllowOtherFiles { get; set; }
 
+	/// <summary>
+	/// An enhanced game's rule, the lobby's choice: whether the game is recorded beside its saves, to be played back
+	/// (<c>docs/replay.md</c>, section 10). Off unless it is turned on, and in no save: a save of a recorded game names
+	/// its place in the recording, which is what the lobby shows the rule by once it is loaded.
+	/// </summary>
+	public bool RecordReplay { get; set; }
+
 	/// <summary>Both set to another's.</summary>
 	public void CopyFrom(CGamePlaySettings other)
 	{
@@ -39,5 +46,6 @@ public sealed class CGamePlaySettings
 		GameMode = other.GameMode;
 		CollectStatistics = other.CollectStatistics;
 		AllowOtherFiles = other.AllowOtherFiles;
+		RecordReplay = other.RecordReplay;
 	}
 }

@@ -12,7 +12,15 @@ public static class CLobbyRulesText
 	public const string OtherFilesKey = "OPENHOI_RULE_OTHER_FILES";
 	public const string OtherFilesTipKey = "OPENHOI_RULE_OTHER_FILES_TIP";
 
+	public const string ReplayKey = "OPENHOI_RULE_RECORD_REPLAY";
+	public const string ReplayTipKey = "OPENHOI_RULE_RECORD_REPLAY_TIP";
+
 	public const string Title = "Game rules";
+	public const string Replay = "Record a replay";
+
+	public const string ReplayTip = "Records the game beside its saves, so that it can be played back from its start "
+		+ "to any of its saves.\nA recorded game is saved and loaded once as it begins, and loaded twice when a save "
+		+ "is played on. A recording plays back only on the engine and the files it was made with.";
 	public const string OtherFiles = "Allow other files";
 
 	public const string OtherFilesTip = "Lets a player in whose game files are not the host's, as long as the engine, "

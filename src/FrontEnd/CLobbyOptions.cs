@@ -29,6 +29,9 @@ public partial class CLobbyOptions : Control
 	/// <summary>An enhanced game's host's rule on other files (docs/multiplayer.md, section 15).</summary>
 	public const string OtherFilesButton = "other_files";
 
+	/// <summary>An enhanced game's rule: whether it is recorded beside its saves (docs/replay.md, section 10).</summary>
+	public const string ReplayButton = "record_replay";
+
 	private CGuiWindow? _rules;
 
 	/// <summary>A choice changed: the line the lobby's chat is to say.</summary>
@@ -100,6 +103,27 @@ public partial class CLobbyOptions : Control
 						CLobbyRulesText.OtherFilesKey, Localise(play.AllowOtherFiles ? "YES" : "NO")));
 				};
 			}
+			if (_rules.TryFindButton(ReplayButton) is { } replay)
+			{
+				replay.Pressed += () =>
+				{
+					play.RecordReplay = !play.RecordReplay;
+					Refresh();
+					Changed?.Invoke(CLobbyOptionsText.Changed(
+						key => key == CLobbyRulesText.ReplayKey
+							? CLobbyRulesText.Text(Localise, key, CLobbyRulesText.Replay) : Localise(key),
+						CLobbyRulesText.ReplayKey, Localise(play.RecordReplay ? "YES" : "NO")));
+				};
+			}
+			if (_rules.TryFindButton(ReplayButton + "_help") is { } replayHelp)
+			{
+				string replayTip = CLobbyRulesText.Text(Localise, CLobbyRulesText.ReplayTipKey, CLobbyRulesText.ReplayTip);
+				replayHelp.Tooltip = () => new Interface.Tooltips.CTooltip { Text = replayTip };
+			}
+			if (_rules.TryFindElement(ReplayButton + "_label") is CGuiTextBox replayLabel)
+			{
+				replayLabel.Text = CLobbyRulesText.Text(Localise, CLobbyRulesText.ReplayKey, CLobbyRulesText.Replay);
+			}
 			if (_rules.TryFindButton(OtherFilesButton + "_help") is { } otherHelp)
 			{
 				string otherTip = CLobbyRulesText.Text(Localise, CLobbyRulesText.OtherFilesTipKey, CLobbyRulesText.OtherFilesTip);
@@ -161,6 +185,10 @@ public partial class CLobbyOptions : Control
 			{
 				otherFiles.Disabled = value;
 			}
+			if (_rules?.TryFindButton(ReplayButton) is { } replay)
+			{
+				replay.Disabled = value;
+			}
 			if (_window is null)
 			{
 				return;
@@ -199,6 +227,8 @@ public partial class CLobbyOptions : Control
 		values.Add(play.CollectStatistics ? 1 : 0);
 		// And the host's rule on other files, which the others are shown.
 		values.Add(play.AllowOtherFiles ? 1 : 0);
+		// And whether the game is recorded.
+		values.Add(play.RecordReplay ? 1 : 0);
 		return values;
 	}
 
@@ -227,6 +257,10 @@ public partial class CLobbyOptions : Control
 		{
 			play.AllowOtherFiles = values[3 + CLobbyOptionsText.Areas.Count] != 0;
 		}
+		if (values.Count > 4 + CLobbyOptionsText.Areas.Count)
+		{
+			play.RecordReplay = values[4 + CLobbyOptionsText.Areas.Count] != 0;
+		}
 	}
 
 	/// <summary>Every box written again from the front end's choices.</summary>
@@ -246,6 +280,11 @@ public partial class CLobbyOptions : Control
 		{
 			otherFiles.SetText(_frontEnd.ChosenPlay.AllowOtherFiles ? "X" : "");
 			otherFiles.Disabled = _readOnly;
+		}
+		if (_rules?.TryFindButton(ReplayButton) is { } replay)
+		{
+			replay.SetText(_frontEnd.ChosenPlay.RecordReplay ? "X" : "");
+			replay.Disabled = _readOnly;
 		}
 		Set("difficulty_box", CLobbyOptionsText.Text(Localise, CLobbyOptionsText.Difficulties, _frontEnd.ChosenPlay.Difficulty));
 		Set("arcade_box", CLobbyOptionsText.Text(Localise, CLobbyOptionsText.GameModes, _frontEnd.ChosenPlay.GameMode));

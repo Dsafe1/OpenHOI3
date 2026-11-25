@@ -22,11 +22,11 @@ what any rule does puts units elsewhere, and the recorded orders no longer fit w
 
 It does not serve a fix tried: that needs the AI deciding again.
 
-**It is for development only.** It records from one starting point - a new game, or one save loaded - and plays back from
-that point, so it never crosses a load. **The replay wanted for players** (2026-11-12) records a whole game
-from its start to its end, through every save and load, to be watched afterwards; that needs a game to go on after a load
-exactly as it would have without one, which a save in the original's keys cannot give. It is in `enhanced.md`, and every
-addition is checked against it (`CLAUDE.md`, *Always*).
+**What sections 2 to 9 describe is for development.** It records from one starting point - a new game, or one save
+loaded - and plays back from that point, so it never crosses a load. **The replay wanted for players** (2026-11-12)
+records a whole game from its start to its end, through every save and load, to be watched afterwards. **Its recording
+is built since 2026-11-25** (section 10): the game is not made to go on after a load as it would have without one -
+which a save in the original's keys cannot give, `enhanced.md` - the playback makes the same load instead.
 
 ## 2. What is recorded
 
@@ -299,6 +299,106 @@ first, where an unprobed entering keeps the save's order with it last - which mo
 stance of its targets (`reversing/findings/FINDINGS-liveread.md`, section 147). Ours keeps the save's order, as the
 unprobed game does; a playback of such a recording parts on entering wherever that matters - `wr11`'s and `wr21`'s
 Soviet attacks on 1576 and 1440 - and that parting is the probe's, not a rule's.
+
+## 10. A game recorded beside its saves, and played back across them
+
+Built 2026-11-25, the first piece of the replay for players, by the decisions of that day: of two ways across a
+save and a load - an enhanced save that loses nothing, or a playback that makes the load too - "go with solution 1",
+the second; recorded by "a lobby option"; and "recording through loads" before any screen to watch one on.
+
+**The idea.** A recording is the orders given to one game. A game loaded from a save is another game than the one
+that was saved - some sixty things differ (`enhanced.md`, *A whole game's replay*) - so the orders given after a load
+fit only a game that was loaded too. So **a playback, where the player loaded a save, writes a save of its own and
+loads it**: it loses exactly what the played game lost, and nothing has to be added to the save for it. Each of those
+sixty things mended later makes the step at a crossing smaller and changes nothing here.
+
+**It rests on two things**, both checked: a save written from the same game is the same save, and a save loaded
+twice is the same game.
+
+### 10.1 On disk
+
+Beside the saves, in `save games/openhoi/replays` under the player's folder (`CReplayStore`):
+
+- `<name>.replay` - **a recording**, in section 4's form (format 3; 2 is read too), from one entering of a game to
+  wherever it was left. Its header also holds its own name, **its parent** - the place it was begun from, none for a
+  recording with a start of its own - what it was made with (the engine's version and the rules) and the lobby's choices
+  the game was entered with, as the numbers they travel between machines as.
+- `<name>.start` - for a recording with no parent, **the game it begins from, as a save**, compressed.
+
+**A save's mark** (`CReplaySaved`, written `v`: `m` its number in the recording, `t` the drains before it) goes into
+the recording wherever the game is saved - the menu's Save Game, every autosave - and the file is flushed there, so
+everything up to a mark is on disk before the save that names it. **A save names its place**: an enhanced save's top
+holds `openhoi_replay="<name>:<mark>"` (`CSaveTop`, `CReplayLink`; `savegame.md`, section 23). A name is letters and
+digits alone, being a file's name.
+
+So the game that led to any save is **a chain of recordings** (`CReplayStore.Chain`), each played to the mark the next
+was begun at. Loading an older save and playing on begins another recording with the same parent: a fork, and both
+lines keep.
+
+### 10.2 Recording
+
+**The lobby's rule `record_replay`** (`CGamePlaySettings.RecordReplay`; the tick is in the mod's window
+`openhoi_lobby_rules`, its texts `OPENHOI_RULE_RECORD_REPLAY` and `_TIP`), an enhanced game's alone, off unless ticked,
+and in no save: a loaded save shows it ticked where it names a recording. Not between machines yet.
+
+On Play (`Main.BeginRecording`):
+
+- **A save that names a recording still there goes on from it**: the save's file is loaded again, the lobby's choices
+  written into it and the country chosen taken up (`CFrontEnd.TakeUpLoaded`), and a recording begun whose parent is the
+  save's place.
+- **Anything else begins a recording with a start of its own** - a new game, or a save that names none: the game as
+  Play made it is written as a save, kept as the `.start`, and **loaded**.
+
+**The game recorded is always one loaded from a save, on a Lua begun afresh** - *ours*, because that is the one thing a
+playback can make again: what the lobby made a new game from - its bookmark, its victory conditions, whatever a later
+lobby option adds - is all in the save, and the mod's Lua holds nothing of the front end's making of worlds. The price
+is the tooltip's: **a recorded new game is saved and loaded once as it begins, and a save played on is loaded twice**.
+A recorded new game is therefore the game a player gets by saving at the first hour and loading - not the game an
+unrecorded Play gives.
+
+### 10.3 Playing back
+
+`--replay=<save>.hoi3` (`Main.PlaySaveRecording`): the chain to the save is found, the first recording's start loaded
+and its recording played to its mark. **At the mark the recording ends for the game played back** (`CReplay.Replaying`
+with a mark; the hour asked for next is `CReplayEndedException`'s, before anything of it runs), which stands where the
+game was saved: it is written as a save, that save loaded in the session's place under the loading screen - the choices
+and the country of the next recording's header taken up as Play took them - and the next recording played. The camera
+and the speed go across. At the last mark the clock stops, as at any recording's end.
+
+**A game played back writes no autosave** (it would be written over the player's own) and marks nothing.
+
+A recording made with another engine or other rules is said, and played all the same: it stops where it no longer
+fits. *Not built*: any test of the mod's files, which a recording hangs on as much.
+
+### 10.4 Checked
+
+- `OpenHOI3.SaveCheck replayload <install> [save date ...] [player=TAG] [folder=FOLDER]`: a game recorded beside its
+  saves, saved and loaded at each date, each loaded game recorded on; then the chain to the last save played back, a
+  save written and loaded at each crossing, and every midnight's hash set beside the played game's. On 2026-11-25:
+  the base game with nobody playing, saves on 10 and 20 January and 1 February 1936, **31 of 31 days, across 2
+  loads**; BlackICE as Germany, saves on 6, 12 and 18 January, **17 of 17, across 2 loads**, each loaded save giving
+  back its place. Before the chain was built, the bare question: a recorded game and its playback each saved on 15
+  January wrote **the same save byte for byte**, and the two loaded games were alike for the 31 days after.
+- **In the client**, 2026-11-25, BlackICE as Germany with `--recordreplay` (the rule, by switch), `--save=one` after
+  six days and three more played; then `--load=` of that save recorded on, `--save=two` after five days; then
+  `--replay=` of `two.hoi3` with `--hash`: **11 of 11 midnights' hashes those of the two games played**, the five after
+  the load with them - where the first game's own seventh day, played on without a load, hashes otherwise.
+- `ReplaySavesTests`: a mark and what a save is given of it, a playback ending at its mark with what was ordered before
+  the save run and nothing after, the chain by its parents with a fork, a missing recording and a ring, a file still
+  being written read to its last mark, a place's text and a name's letters, the header's choices, the start's file, and
+  the save's key both ways.
+
+### 10.5 Not built
+
+- **Any screen to watch one from**: the main menu's list of saves to play back, a country to look through
+  (section 6's second piece), and a notice at a crossing other than the loading screen.
+- **A game between machines.** The host's recording is its wire already (section 8); nothing keeps it beside the saves.
+- **Moving through a recording**: a playback runs every hour from the start. A start kept at each crossing, or at
+  intervals, would let one begin late.
+- **Clearing recordings no save leads to**, and telling the player how much they hold: about 320 KB a month of 1936 in
+  the base game, 560 KB for BlackICE's first six days with its start.
+- **The second load of a save played on** could be spared wherever the mod's Lua is known to keep nothing.
+- **A recording that outlives its engine**: section 1's limit stands - it holds only while the rules do not change.
 
 ## Not established
 

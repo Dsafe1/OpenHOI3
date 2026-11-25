@@ -561,6 +561,9 @@ public partial class CFrontEnd : Node
 	/// <summary>The save loaded into the lobby's world, where one is.</summary>
 	private string? _loadedSavePath;
 
+	/// <summary>The file of the save loaded into the lobby, or null where its world is a new game's.</summary>
+	public string? LoadedSavePath => SaveLoaded ? _loadedSavePath : null;
+
 	/// <summary>On a host: the save last given the machines in the lobby to look at; null for none.</summary>
 	private string? _lobbyViewPath;
 
@@ -616,8 +619,12 @@ public partial class CFrontEnd : Node
 	{
 		// The rule on other files is the host's session's and in no save: it stays as it was chosen.
 		bool otherFiles = ChosenPlay.AllowOtherFiles;
+		bool recorded = ChosenPlay.RecordReplay;
 		ChosenPlay.CopyFrom(World.GamePlay);
 		ChosenPlay.AllowOtherFiles = otherFiles;
+		// Whether the game is recorded is in no save either: a loaded save's is shown by whether it names a recording,
+		// and a new game's stays as it was chosen (docs/replay.md, section 10).
+		ChosenPlay.RecordReplay = SaveLoaded ? World.ReplayLink is not null : recorded;
 		ChosenAutomation.CopyFrom(World.Automation);
 		if (_lobbyOptions is not null)
 		{
@@ -705,6 +712,25 @@ public partial class CFrontEnd : Node
 		ChosenAutomation.CopyFrom(automation);
 		_handedOver = true;
 		PlayRequested?.Invoke(start.Tag);
+	}
+
+	/// <summary>
+	/// What Play makes of a loaded save's game once the lobby's choices are written into it: the country chosen played in
+	/// its player's place. A playback of a recording does the same to the save it loads (docs/replay.md, section 10).
+	/// </summary>
+	public static void TakeUpLoaded(CGameState state, CCountryTag chosen)
+	{
+		bool automated = state.Played.Any(played => state.AutomateTrade.Remove(played));
+		state.Played.Clear();
+		state.Played.Add(chosen);
+		if (automated)
+		{
+			state.AutomateTrade.Add(chosen);
+		}
+		// Another player or other choices: each country's ministers by who does its work now, and its modifier by the
+		// difficulty it is now played at.
+		Sim.Settings.CAutomation.SetMinisters(state);
+		Sim.Modifiers.CCountryModifiers.Rebuild(state);
 	}
 
 	/// <summary>A save loaded at once into the lobby's world, as the original's row loads it; answers whether it loaded.</summary>
@@ -846,17 +872,7 @@ public partial class CFrontEnd : Node
 		state.Automation.CopyFrom(ChosenAutomation);
 		if (SaveLoaded)
 		{
-			bool automated = state.Played.Any(played => state.AutomateTrade.Remove(played));
-			state.Played.Clear();
-			state.Played.Add(chosen);
-			if (automated)
-			{
-				state.AutomateTrade.Add(chosen);
-			}
-			// Another player or other choices: each country's ministers by who does its work now, and its modifier by the
-			// difficulty it is now played at.
-			Sim.Settings.CAutomation.SetMinisters(state);
-			Sim.Modifiers.CCountryModifiers.Rebuild(state);
+			TakeUpLoaded(state, chosen);
 		}
 		else
 		{

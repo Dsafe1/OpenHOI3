@@ -128,6 +128,36 @@ public class ReplaySavesTests
 	}
 
 	[Fact]
+	public void ARecordingKeepsTheLobbysChoicesAndANewGamesRecordingTheSaveItBeginsFrom()
+	{
+		string folder = Folder();
+		string store = CReplayStore.Folder(folder);
+		try
+		{
+			var options = new[] { 3, 0, 1, 0, 2, 0, 0, 1, 0, 1 };
+			CReplayStore.Begin(store, new CReplayHeader(Array.Empty<CCountryTag>(), 9, "a", null, "engine", options)).File.Dispose();
+			Assert.Equal(options, CReplayFile.ReadHeader(CReplayStore.PathOf(store, "a")).Options);
+			CReplayStore.Begin(store, new CReplayHeader(Array.Empty<CCountryTag>(), 9, "b")).File.Dispose();
+			Assert.Null(CReplayFile.ReadHeader(CReplayStore.PathOf(store, "b")).Options);
+
+			byte[] save = System.Text.Encoding.Latin1.GetBytes("HoI3txt\ndate=\"1936.1.1.0\"\nplayer=\"GER\"\n" + new string('x', 5000));
+			CReplayStore.WriteStart(store, "a", save);
+			Assert.Equal(save, CReplayStore.ReadStart(store, "a"));
+			Assert.True(new FileInfo(CReplayStore.StartPathOf(store, "a")).Length < save.Length);
+			Assert.Null(CReplayStore.ReadStart(store, "b"));
+
+			// A save's text names its place, or none.
+			Assert.Equal(new CReplayLink("abc", 4), CReplayStore.LinkOf("date=\"1936.1.1.0\"\nopenhoi_replay=\"abc:4\"\nplayer=\"GER\"\n"));
+			Assert.Null(CReplayStore.LinkOf("date=\"1936.1.1.0\"\nplayer=\"GER\"\n"));
+			Assert.Null(CReplayStore.LinkOf("openhoi_replay=\"abc"));
+		}
+		finally
+		{
+			Directory.Delete(folder, recursive: true);
+		}
+	}
+
+	[Fact]
 	public void ARecordingBeingWrittenIsReadAsFarAsItsLastMark()
 	{
 		string folder = Folder();

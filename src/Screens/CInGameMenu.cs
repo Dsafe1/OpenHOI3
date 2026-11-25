@@ -371,6 +371,8 @@ public sealed partial class CInGameMenu : Control
 	{
 		try
 		{
+			// A recorded game marks the place: the save names it (docs/replay.md, section 10).
+			_simulation.MarkSaved();
 			CSaveFiles.Write(_simulation.State, _context.Localisation.Localise, path);
 		}
 		catch (Exception failed) when (failed is System.IO.IOException or UnauthorizedAccessException or ArgumentException

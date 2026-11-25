@@ -153,7 +153,9 @@ public sealed class CReplayFile : IDisposable
 		return new CReplayHeader(played, root.GetProperty("seed").GetUInt32(),
 			root.TryGetProperty("segment", out JsonElement segment) ? segment.GetString() : null,
 			root.TryGetProperty("parent", out JsonElement parent) ? CReplayLink.Parse(parent.GetString()) : null,
-			root.TryGetProperty("made", out JsonElement made) ? made.GetString() ?? "" : "");
+			root.TryGetProperty("made", out JsonElement made) ? made.GetString() ?? "" : "",
+			root.TryGetProperty("options", out JsonElement options)
+				? options.EnumerateArray().Select(option => option.GetInt32()).ToList() : null);
 	}
 
 	private static string HeaderLine(CReplayHeader header)
@@ -179,6 +181,15 @@ public sealed class CReplayFile : IDisposable
 			if (header.Made.Length > 0)
 			{
 				json.WriteString("made", header.Made);
+			}
+			if (header.Options is not null)
+			{
+				json.WriteStartArray("options");
+				foreach (int option in header.Options)
+				{
+					json.WriteNumberValue(option);
+				}
+				json.WriteEndArray();
 			}
 			json.WriteEndObject();
 		});

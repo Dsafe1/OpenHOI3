@@ -458,6 +458,14 @@ public partial class Main : Control
 		{
 			frontEnd.QueueFree();
 		}
+		// A game the lobby's rule says to record is recorded beside its saves from here (docs/replay.md, section 10).
+		CReplayFile? recording = null;
+		if (_net is null && frontEnd.HostAs is null && game.State.Rules.Enhanced && game.State.GamePlay.RecordReplay
+			&& game.State.Played.Count > 0)
+		{
+			string? loadedFrom = frontEnd.LoadedSavePath;
+			(game, recording) = await screen.Work("", () => BeginRecording(game, loadedFrom));
+		}
 		if (frontEnd.HostAs is not null && game.State.Played.Count > 0)
 		{
 			// Host brought the lobby up (frontend.md, section 8): the game is hosted from its first frame. The machines
@@ -472,7 +480,149 @@ public partial class Main : Control
 				await Host(screen, game.State.Played.First(), SettingsPort);
 			}
 		}
-		await StartSession(screen, game);
+		await StartSession(screen, game, replayFile: recording);
+	}
+
+	/// <summary>The folder of recordings beside this machine's saves.</summary>
+	private string ReplayStore => Content.Replays.CReplayStore.Folder(
+		System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderFor(_directories)));
+
+	/// <summary>What a recording is made with and plays back on: the engine's version and the rules.</summary>
+	private string MadeWith() => Content.Launch.CEngineFile.VersionBeside(OS.GetExecutablePath()) + " "
+		+ Content.Rules.CRulesReader.Read(_directories, _ => { }).Text;
+
+	/// <summary>
+	/// A game Play made, recorded from here (docs/replay.md, section 10). The game recorded is always one loaded from a
+	/// save, with the install's Lua begun afresh, because that is what a playback can make again: a new game is written
+	/// as a save, kept as the recording's start, and loaded; a save played on is loaded again. A save that names its
+	/// place in a recording that is still there goes on from it; any other begins a recording of its own. Touches no
+	/// engine object.
+	/// </summary>
+	private (FrontEnd.CPreparedGame Game, CReplayFile File) BeginRecording(FrontEnd.CPreparedGame game, string? loadedFrom)
+	{
+		Sim.CGameState made = game.State;
+		string store = ReplayStore;
+		CCountryTag chosen = made.Played.First();
+		List<int> options = FrontEnd.CLobbyOptions.Values(made.GamePlay, made.Automation);
+		CReplayLink? parent = loadedFrom is not null && made.ReplayLink is { } link
+			&& System.IO.File.Exists(Content.Replays.CReplayStore.PathOf(store, link.Segment)) ? link : null;
+		string name = Content.Replays.CReplayStore.NewName();
+		byte[] save;
+		if (parent is not null)
+		{
+			save = System.IO.File.ReadAllBytes(loadedFrom!);
+		}
+		else
+		{
+			save = System.Text.Encoding.Latin1.GetBytes(Content.Saves.CSaveWriter.Write(made, game.Localisation.Localise));
+			Content.Replays.CReplayStore.WriteStart(store, name, save);
+		}
+		var scripts = new OpenHOI3.Lua.CAiScripts(_directories);
+		Sim.CGameState state = LoadRecorded(save, parent is null ? chosen : null, game.Localisation, game.Map, scripts);
+		FrontEnd.CLobbyOptions.Apply(options, state.GamePlay, state.Automation);
+		if (parent is not null)
+		{
+			FrontEnd.CFrontEnd.TakeUpLoaded(state, chosen);
+		}
+		game.AiScripts.Dispose();
+		state.ReplayLink = parent;
+		(CReplayFile file, CReplay recording) = Content.Replays.CReplayStore.Begin(store,
+			new CReplayHeader(state.Played.ToList(), state.Seed, name, parent, MadeWith(), options));
+		state.Replay = recording;
+		GD.Print($"Replay: recording {name}" + (parent is null ? ", from a start of its own." : $", on from {parent.Text}."));
+		return (game with { State = state, AiScripts = scripts }, file);
+	}
+
+	/// <summary>A save's bytes loaded as a game, played by <paramref name="played"/> or else by the save's own player.</summary>
+	private Sim.CGameState LoadRecorded(byte[] save, CCountryTag? played, CLocalisation localisation, Content.Map.CMap map,
+		OpenHOI3.Lua.CAiScripts scripts)
+	{
+		string path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"openhoi3_replay_{System.Environment.ProcessId}.hoi3");
+		System.IO.File.WriteAllBytes(path, save);
+		try
+		{
+			Content.Definitions.CCountries countries = Content.Definitions.CCountries.Load(_directories, localisation);
+			return Content.Saves.CSaveLoader.Load(_directories, map, localisation, countries, path, played, scripts).State;
+		}
+		finally
+		{
+			System.IO.File.Delete(path);
+		}
+	}
+
+	/// <summary>The recordings a playback of a save goes through, and which of them is being played.</summary>
+	private List<Content.Replays.CReplaySegment>? _replayChain;
+	private int _replayAt;
+
+	/// <summary>
+	/// <c>--replay=</c> with a save: the game that led to it played back from its start, through every save and load on
+	/// the way (docs/replay.md, section 10). Answers whether there was anything to play.
+	/// </summary>
+	private async Task<bool> PlaySaveRecording(CLoadingScreen screen, string savePath)
+	{
+		string store = Content.Replays.CReplayStore.Folder(System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(savePath))!);
+		CReplayLink? link = System.IO.File.Exists(savePath)
+			? Content.Replays.CReplayStore.LinkOf(System.IO.File.ReadAllText(savePath, System.Text.Encoding.Latin1)) : null;
+		List<Content.Replays.CReplaySegment>? chain = link is null ? null
+			: Content.Replays.CReplayStore.Chain(store, link, problem => GD.Print($"--replay: {problem}"));
+		byte[]? start = chain is null ? null : Content.Replays.CReplayStore.ReadStart(store, chain[0].Header.Segment ?? "");
+		if (chain is null || start is null)
+		{
+			GD.Print($"--replay: {savePath} " + (link is null ? "names no recording." : chain is null
+				? "names a recording that cannot be followed back to its start." : "names a recording whose start is missing."));
+			return false;
+		}
+		string made = MadeWith();
+		foreach (Content.Replays.CReplaySegment segment in chain.Where(segment => segment.Header.Made != made))
+		{
+			GD.Print($"--replay: the recording {segment.Header.Segment} was made with '{segment.Header.Made}' and this is " +
+				$"'{made}': it may not fit.");
+		}
+		GD.Print($"--replay: {chain.Count} recordings lead to {savePath}.");
+		_replayChain = chain;
+		_replayAt = 0;
+		await PlayRecording(screen, start);
+		return true;
+	}
+
+	/// <summary>The recording at <see cref="_replayAt"/> played back from the save it begins at.</summary>
+	private async Task PlayRecording(CLoadingScreen? screen, byte[] save)
+	{
+		Content.Replays.CReplaySegment segment = _replayChain![_replayAt];
+		bool first = segment.Header.Parent is null;
+		await LoadNetGame(save, segment.Header.Played, screen, over: _replayAt == 0 ? null : "Loading the save...", taken: state =>
+		{
+			if (segment.Header.Options is { } options)
+			{
+				FrontEnd.CLobbyOptions.Apply(options, state.GamePlay, state.Automation);
+			}
+			if (!first && segment.Header.Played.Count > 0)
+			{
+				FrontEnd.CFrontEnd.TakeUpLoaded(state, segment.Header.Played[0]);
+			}
+			CReplayFile file = CReplayFile.Open(segment.Path, state);
+			state.Replay = CReplay.Replaying(file, segment.UntilMark);
+			return file;
+		}, switched: true, asSaved: !first);
+	}
+
+	/// <summary>
+	/// A playback at the end of its recording: where it stands at the save the next recording was begun from, the game
+	/// is written as that save and the next played back from it - the load the player made.
+	/// </summary>
+	private bool CrossToNextRecording()
+	{
+		if (_replayChain is null || _session is not { } session || _replayAt + 1 >= _replayChain.Count
+			|| session.State.Replay?.LastMark != _replayChain[_replayAt].UntilMark)
+		{
+			return false;
+		}
+		byte[] save = System.Text.Encoding.Latin1.GetBytes(
+			Content.Saves.CSaveWriter.Write(session.State, session.Localisation.Localise));
+		_replayAt++;
+		GD.Print($"--replay: on {session.State.Date} the game was saved and loaded; recording {_replayAt + 1} of {_replayChain.Count}.");
+		Guarded(PlayRecording(null, save));
+		return true;
 	}
 
 	/// <summary>
@@ -628,6 +778,16 @@ public partial class Main : Control
 			await Join(screen, address);
 			return;
 		}
+		// --replay= with a save: the game that led to it, played back through its saves and loads.
+		if (CSession.Argument("--replay=") is { } saved && saved.EndsWith(Content.Saves.CSaveFiles.Extension, System.StringComparison.OrdinalIgnoreCase))
+		{
+			if (!await PlaySaveRecording(screen, saved))
+			{
+				screen.QueueFree();
+				ShowFrontEnd();
+			}
+			return;
+		}
 		CSwitchedGame made = await screen.Work(CLoadingSteps.History, () => CSwitchedGame.Make(_directories, localisation), steps: 2);
 		Gui.CGuiContext gui = null!;
 		await screen.OnMain(CLoadingSteps.GuiDefinitions, () => gui = Gui.CGuiContext.Load(_directories, made.Localisation));
@@ -638,8 +798,23 @@ public partial class Main : Control
 				host.Length > "--host=".Length && int.TryParse(host["--host=".Length..], out int named) ? named
 					: SettingsPort);
 		}
-		await StartSession(screen, new FrontEnd.CPreparedGame(made.State, made.Map, made.Localisation, gui, made.AiScripts),
-			replayFile: made.ReplayFile, switched: true);
+		var prepared = new FrontEnd.CPreparedGame(made.State, made.Map, made.Localisation, gui, made.AiScripts);
+		CReplayFile? file = made.ReplayFile;
+		// --recordreplay: the game recorded beside its saves, as the lobby's rule has it (docs/replay.md, section 10).
+		if (file is null && _net is null && CSession.UserArguments().Contains("--recordreplay") && made.State.Played.Count > 0)
+		{
+			if (made.State.Rules.Enhanced)
+			{
+				made.State.GamePlay.RecordReplay = true;
+				string? loadedFrom = CSession.Argument("--load=");
+				(prepared, file) = await screen.Work("", () => BeginRecording(prepared, loadedFrom));
+			}
+			else
+			{
+				GD.Print("--recordreplay: only an enhanced game is recorded beside its saves; left aside.");
+			}
+		}
+		await StartSession(screen, prepared, replayFile: file, switched: true);
 	}
 
 	/// <summary>This machine's play checksum, in hexadecimal (docs/mechanics/checksum.md, section 8). Takes some seconds.</summary>
@@ -727,7 +902,12 @@ public partial class Main : Control
 	/// (docs/multiplayer.md, sections 2 and 4.1). The save names the host's country as its player; the others played are
 	/// taken up before the game is entered, so that every machine enters the same game.
 	/// </summary>
-	private async Task LoadNetGame(byte[] bytes, IReadOnlyList<CCountryTag> played, CLoadingScreen? screen = null)
+	/// <param name="over">What is written over the loading screen where a game being played gives way; null for nothing.</param>
+	/// <param name="taken">Run on the game as loaded, before it is entered: answers the recording the session is to own.</param>
+	/// <param name="asSaved">Whether the save is loaded with its own player, the countries given taken up by <paramref name="taken"/>.</param>
+	private async Task LoadNetGame(byte[] bytes, IReadOnlyList<CCountryTag> played, CLoadingScreen? screen = null,
+		string? over = "Syncing games...", System.Func<Sim.CGameState, CReplayFile?>? taken = null, bool switched = false,
+		bool asSaved = false)
 	{
 		CSession? old = _session;
 		// The game is here whole: what said how far it had come gives way to the loading screen's own line.
@@ -743,12 +923,12 @@ public partial class Main : Control
 		screen ??= OpenLoadingScreen(left?.Read.Localisation ?? frontEnd?.Localisation);
 		// Over the loading screen, what it is for: a game already being played is loaded again only to bring the
 		// machines into step - a machine joined, or one was out of step. Ours (asked for on 2026-11-20).
-		if (old is not null)
+		if (old is not null && over is not null)
 		{
 			var syncing = new Label
 			{
 				Name = "Syncing",
-				Text = "Syncing games...",
+				Text = over,
 				HorizontalAlignment = HorizontalAlignment.Center,
 				Position = new Vector2(0, 140),
 				Size = new Vector2(1920, 60),
@@ -760,7 +940,10 @@ public partial class Main : Control
 			syncing.AddThemeConstantOverride("outline_size", 10);
 			screen.AddChild(syncing);
 		}
-		GD.Print($"Multiplayer: loading the game sent, {bytes.Length / 1024} KiB, played by {string.Join(", ", played)}.");
+		GD.Print(taken is null
+			? $"Multiplayer: loading the game sent, {bytes.Length / 1024} KiB, played by {string.Join(", ", played)}."
+			: $"Replay: loading the game to play back, {bytes.Length / 1024} KiB, played by {string.Join(", ", played)}.");
+		CReplayFile? takenFile = null;
 		// The frame that said so ends first: it may be the old session's own.
 		await screen.Drawn();
 		if (frontEnd is not null)
@@ -787,8 +970,8 @@ public partial class Main : Control
 			Content.Map.CMap map = left?.Read.Map ?? Content.Map.CMap.Load(_directories);
 			var scripts = new OpenHOI3.Lua.CAiScripts(_directories);
 			(Sim.CGameState state, _) = Content.Saves.CSaveLoader.Load(_directories, map, localisation, countries, path,
-				played.Count > 0 ? played[0] : null, scripts);
-			foreach (CCountryTag other in played.Skip(1))
+				played.Count > 0 && !asSaved ? played[0] : null, scripts);
+			foreach (CCountryTag other in asSaved ? Enumerable.Empty<CCountryTag>() : played.Skip(1))
 			{
 				if (!state.Played.Contains(other) && state.Country(other) is { } country)
 				{
@@ -796,6 +979,7 @@ public partial class Main : Control
 				}
 			}
 			System.IO.File.Delete(path);
+			takenFile = taken?.Invoke(state);
 			return (state, map, scripts);
 		}, steps: 2);
 		Gui.CGuiContext? gui = left?.Read.Gui;
@@ -804,7 +988,7 @@ public partial class Main : Control
 			await screen.OnMain(CLoadingSteps.GuiDefinitions, () => gui = Gui.CGuiContext.Load(_directories, localisation));
 		}
 		await StartSession(screen, new FrontEnd.CPreparedGame(made.State, made.Map, localisation, gui!, made.Scripts,
-			left?.Read.Cache, left?.Read.Tiles), left?.Carry);
+			left?.Read.Cache, left?.Read.Tiles), left?.Carry, takenFile, switched);
 	}
 
 	/// <summary>
@@ -827,7 +1011,11 @@ public partial class Main : Control
 		// game's screens are built from are given the sounds.
 		_sounds.Enabled = false;
 		game.Gui.Sounds = _sounds;
-		var session = new CSession { Name = "Session", Music = _music, PlaysClicks = switched, Surfaces = _surfaces, Net = _net };
+		var session = new CSession
+		{
+			Name = "Session", Music = _music, PlaysClicks = switched, Surfaces = _surfaces, Net = _net,
+			SwitchesAgain = switched && _replayChain is not null && _replayAt > 0,
+		};
 		session.Setup(_directories, game, carried, replayFile);
 		session.Resigned += () =>
 		{
@@ -846,6 +1034,10 @@ public partial class Main : Control
 			Guarded(StartSession(OpenLoadingScreen(made.Localisation), made, kept));
 		};
 		_session = session;
+		if (_replayChain is not null)
+		{
+			session.NextRecording = CrossToNextRecording;
+		}
 		// "Loading Graphics..." steps the pictures as the original's does on entering a game - which after the first main menu
 		// has the first picture alone to show.
 		await screen.OnMain(CLoadingSteps.Graphics, () =>

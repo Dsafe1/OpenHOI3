@@ -340,11 +340,17 @@ public partial class CSession : Node
 	/// </summary>
 	public void Begin()
 	{
-		if (_carried is null)
+		if (_carried is null || SwitchesAgain)
 		{
 			RunDeveloperArguments();
 		}
 	}
+
+	/// <summary>
+	/// Whether the developer switches are run in a session that takes another's place: a playback gone on into its next
+	/// recording, whose days the switches ask for (docs/replay.md, section 10).
+	/// </summary>
+	public bool SwitchesAgain { get; init; }
 
 	/// <summary>
 	/// This machine's part in a game between several machines, which the boot scene keeps across the sessions of it; null
@@ -534,6 +540,7 @@ public partial class CSession : Node
 			"Multiplayer_" + Content.Saves.CSaveFiles.OfferedName(Player.Name, State.TotalHours) + ".hoi3");
 		try
 		{
+			_simulation.MarkSaved();
 			Content.Saves.CSaveFiles.Write(State, _localisation.Localise, path);
 			return path;
 		}
@@ -563,7 +570,8 @@ public partial class CSession : Node
 		_mapView.View = (carried.Centre, carried.Zoom);
 		_mapView.RenderLayers = carried.RenderLayers;
 		_simulation.Pace.Set(carried.Paused, carried.Speed);
-		_replayFile = carried.ReplayFile;
+		// A session made around a game loaded for it is given its own recording, and takes none over.
+		_replayFile = carried.ReplayFile ?? _replayFile;
 		_wireframe = carried.Wireframe;
 		GetViewport().DebugDraw = _wireframe ? Viewport.DebugDrawEnum.Wireframe : Viewport.DebugDrawEnum.Disabled;
 		_console?.Restore(carried.ConsoleLines, carried.ConsoleHistory, carried.ConsoleOpen);
@@ -1889,6 +1897,11 @@ public partial class CSession : Node
 		{
 			return;
 		}
+		// A game played back saves nothing: its autosaves would be written over the player's own.
+		if (State.Replay is { IsReplaying: true })
+		{
+			return;
+		}
 		DecideExtraAutosaves();
 		if (Settings.DebugSaves != 0)
 		{
@@ -1946,6 +1959,8 @@ public partial class CSession : Node
 		{
 			try
 			{
+				// A recorded game marks the place: the save names it (docs/replay.md, section 10).
+				_simulation.MarkSaved();
 				Content.Saves.CAutosave.Write(State, _localisation.Localise, folder, files);
 			}
 			catch (System.Exception failed) when (failed is System.IO.IOException or System.UnauthorizedAccessException)
@@ -2573,9 +2588,7 @@ public partial class CSession : Node
 		{
 			if (!_replayEnded)
 			{
-				_replayEnded = true;
-				_simulation.Pace.Stop();
-				GD.Print($"--replay: {ended.Message}; the clock stops here.");
+				ReplayRanOut(ended);
 			}
 			return 0;
 		}
@@ -2668,12 +2681,34 @@ public partial class CSession : Node
 		}
 		catch (CReplayEndedException ended)
 		{
-			_replayEnded = true;
-			_simulation.Pace.Stop();
-			GD.Print($"--replay: {ended.Message}; the clock stops here.");
+			ReplayRanOut(ended);
 			return false;
 		}
 	}
+
+	/// <summary>
+	/// Asked, once the frame has ended, where a playback has come to the end of its recording: whether another follows -
+	/// the game played on from a save written here - in which case whoever answers loads it in this session's place
+	/// (docs/replay.md, section 10).
+	/// </summary>
+	public System.Func<bool>? NextRecording { get; set; }
+
+	/// <summary>A playback at the end of its recording: on into the next where one follows, else the clock stopped for good.</summary>
+	private void ReplayRanOut(CReplayEndedException ended)
+	{
+		_replayEnded = true;
+		// Whoever answers yes has begun loading the next in this session's place, which gives way once the frame has ended.
+		if (NextRecording?.Invoke() == true)
+		{
+			_crossing = true;
+			return;
+		}
+		_simulation.Pace.Stop();
+		GD.Print($"--replay: {ended.Message}; the clock stops here.");
+	}
+
+	/// <summary>Whether this session's playback goes on in another, being loaded: nothing more is asked of this one.</summary>
+	private bool _crossing;
 
 	/// <summary>
 	/// The seed a new game is made with: <c>--seed=N</c>'s, or else one taken from the clock as Play is pressed, as the
@@ -3191,8 +3226,23 @@ public partial class CSession : Node
 				// Runs that many days at once, whatever the clock says: a unit ordered or
 				// under construction can then be found finished.
 				UnlessTheReplayEnds(() => _simulation.RunHours(days * 24));
+				if (_crossing)
+				{
+					// The playback goes on in the session being loaded, which runs the switches for itself.
+					return;
+				}
 				// Hours run with no frame between them: an autosave they decided on is written at once.
 				WriteHeldAutosaves(whetherShownOrNot: true);
+			}
+			else if (argument.StartsWith("--save=") && State.Replay is not { IsReplaying: true })
+			{
+				// Saves the game now under that name in the folder of saves, as the menu's Save Game does.
+				string path = System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderFor(_directories),
+					Content.Saves.CSaveFiles.FileName(argument["--save=".Length..]) ?? "switch.hoi3");
+				_simulation.Pump();
+				_simulation.MarkSaved();
+				Content.Saves.CSaveFiles.Write(State, _localisation.Localise, path);
+				GD.Print($"--save: {path}" + (State.ReplayLink is { } link ? $", at {link.Text} of its recording." : "."));
 			}
 			else if (argument.StartsWith("--lock=")
 				&& System.Enum.TryParse(argument["--lock=".Length..], ignoreCase: true, out EProductionCategory locked))

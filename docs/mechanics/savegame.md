@@ -997,3 +997,14 @@ thousandths and its men; the defender's the same; and who won - 0 nobody, 1 the 
 faithful game writes none. A load takes the save's record whole, and none where the save has none; a key with
 fewer than ten words, a number that is none or a kind there is none of is reported and left out, and so is a year
 whose letters are no block.
+
+## 23. A save's place in its recording
+
+**Ours** (`CSaveTop.ReplayKey`; `docs/replay.md`, section 10). An enhanced game that is recorded writes, at the top after
+`openhoi_engine`:
+
+    openhoi_replay="3e67d13d39bb4145bdb6e510303a6e0f:2"
+
+the recording's name, a colon, and the number of this save's mark in it. A game not recorded writes none. Read into
+`CGameState.ReplayLink`, which nothing in play reads: it is what the lobby shows the rule by, and what a recording
+begun from the save names as its parent. A text that is no such place is reported and left out.
