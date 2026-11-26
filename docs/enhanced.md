@@ -199,6 +199,26 @@ Begun 2026-11-21; as of 2026-11-25.
   same figures. Nothing is kept for it: the limit is worked out from
   the defines and the country's modifier each time it is asked. Changes play, for the player; **the AI's ladder of
   commands is left counting five**, as BiceLib leaves it (*Not decided*, in the entry below).
+- **Six fixes and two defines after BiceLib's, 2026-11-26** - "Ok do 1 to 8", the rest of what the mod has
+  switched on that changes play. The fixes, each a name a mod may go without:
+  - `historical_model_choice`: a model that asks for a level above the one held loses to every model that does
+    not (`mechanics/units.md`, section 5). Display only.
+  - `queued_historical_model`: a queued brigade's `historical_model` gives nought for a technology it does not
+    name, so no level lands on the technology before it (`mechanics/buildqueue.md`, section 5).
+  - `place_unresearched_building`: a finished building may be placed without its technology, the placing's other
+    tests standing and an order still asking for it (`mechanics/buildinglines.md`, section 6).
+  - `oob_leader_ranks` and `history_leader_ranks`: a land leader a file of units puts on a land unit of his own
+    country takes that unit's rank and is put in service; one who comes into service on his history's day takes
+    the rank its line names (`mechanics/leaders.md`, section 5).
+  - `saved_event_candidates`: the save keeps each country's candidate events and a load puts them back, where
+    BiceLib makes them again after a load - so a loaded game plays on as the saved one would have
+    (`mechanics/events.md`, section 1; `mechanics/savegame.md`, section 21).
+  The defines, a mod's choice and no fix, the original's rule where one is not given:
+  `OPENHOI_WAR_EXHAUSTION_TO_NEUTRALITY = 0` - no hand-over to neutrality at peace, the figure back to nought all
+  the same (`mechanics/warexhaustion.md`, section 2) - and `OPENHOI_AI_LENDS_UNITS = 0` - the AI lends no unit, and
+  still gives a loaned one back (`mechanics/agents.md`, section 10.5). Each arm is tested, the AI's lending by its
+  question alone; `OpenHOI3.SaveCheck enhancedstart` looks at a new game under them, and forty days of BlackICE
+  went through. Not reviewed in play.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).

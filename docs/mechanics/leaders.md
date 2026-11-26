@@ -250,6 +250,10 @@ Both after BiceLib's, each a name a mod may go without (`docs/enhanced.md`).
   and 4, where the original gives 1. Of two lines of one day the first written. Nothing later in a history is
   applied, as before.
 
+On BlackICE's 1936 start (`OpenHOI3.SaveCheck enhancedstart`, 2026-11-26): no land unit's own leader at another rank
+than its level, and of the leaders still to come 377 at rank 2, 125 at rank 3 and 25 at rank 4. The base game,
+faithful: four at another rank, and everybody to come at rank 1.
+
 ## 6. What the save says
 
 `OpenHOI3.SaveCheck <install> <save>` sets the leaders of a new game beside a savegame two

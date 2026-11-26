@@ -2228,6 +2228,12 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   built*): `key_without_equals`, `unit_figure_decimals`, `yield_modifiers`. Each arm is tested; BlackICE's files hold
   none of the faulty lines today and no province yields fuel or money, so no run shows them. The first two are read
   with the files, by the folders' rules: a save of a faithful game loaded under an enhanced folder gets them.
+- **Six fixes and two defines after BiceLib's are built and not reviewed in play** (2026-11-26, `enhanced.md`, *What
+  is built*): which historical model is shown, a queued brigade's model, a building placed unresearched, the two
+  leader ranks, the event candidates in the save, and the defines for war exhaustion's hand-over and the AI's
+  lending - with BlackICE's two defines in its working copy. Tried with `OpenHOI3.SaveCheck enhancedstart` and forty
+  days of BlackICE. **Left of BiceLib's**: the display items, and what the mod leaves off - the trait's command
+  limit, the screen penalty, rank-specific traits.
 - **How many units a command holds is built and not reviewed in play** (2026-11-26, `attaching.md`, section 8): the
   bases in `defines.lua`, the three kinds of modifier, and the one-brigade division's define, with BlackICE's data
   for them in its working copy - its twelve steps in its own `common/triggered_modifiers.txt`. Tried with `OpenHOI3.SaveCheck

@@ -276,6 +276,12 @@ if (args.Length > 0 && args[0] == "commandlimits")
 	return CCommandLimitLook.Run(args);
 }
 
+// What the fixes and defines taken after BiceLib's make of a new game: leaders' ranks, queued models, saved candidates.
+if (args.Length > 0 && args[0] == "enhancedstart")
+{
+	return CEnhancedStartLook.Run(args);
+}
+
 // Factions on a new game, and a join or an invitation answered.
 if (args.Length > 0 && args[0] == "faction")
 {
