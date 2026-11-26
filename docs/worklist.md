@@ -2228,6 +2228,14 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   built*): `key_without_equals`, `unit_figure_decimals`, `yield_modifiers`. Each arm is tested; BlackICE's files hold
   none of the faulty lines today and no province yields fuel or money, so no run shows them. The first two are read
   with the files, by the folders' rules: a save of a faithful game loaded under an enhanced folder gets them.
+- **Three things raised from play, 2026-11-26.** *The player's automatic deployment left its units under no
+  headquarters*: the original's placing, for the played country alone, also attaches the unit to the headquarters
+  of the province's theatre, which the findings had and the build had left out - built (`ministers.md`, section 6).
+  *Effect texts ran together*: not the engine's - BlackICE's tables had lost the line break or the space at the
+  end of 91 of the base game's texts in a clean-up of May 2026 (`RANDOM_LIST_EFFECT`, `JOIN_FACTION_EFFECT`, the
+  `..._LESS` and `..._MORE` halves of conditions); put back in the mod's working copy. *A faction invite pulling the
+  joiner into the wars* is the original's: the join passes the flag for the war sweep (`factions.md`, section 2),
+  read again on the listing that day, and is left as it is unless the user says otherwise.
 - **A BlackICE game of 1939 was profiled** (2026-11-26, `performance.md`, section 2): no one step holds it, the
   day having grown as the world did. Built from it: the fix `air_regroup_agrees`, which ends the AI's air groups
   going round (`agents.md`, section 5.3), and the day's base crowding counted only where a fleet or an air group

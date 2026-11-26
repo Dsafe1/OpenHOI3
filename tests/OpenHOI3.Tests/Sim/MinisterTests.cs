@@ -268,6 +268,45 @@ public class MinisterTests
 		Assert.Equal(1, CAiDeployment.Place(state, germany, waiting));
 	}
 
+	[Fact]
+	public void A_played_countrys_placed_unit_is_put_under_the_headquarters_of_its_provinces_theatre()
+	{
+		(CGameState State, CUnit Waiting, CUnit Headquarters) Made()
+		{
+			CGameState state = World();
+			CCountry germany = state.Country(Ger)!;
+			var headquarters = new CUnit(EUnitKind.Theatre, Ger) { Id = ++state.LastUnitId, Location = 1, Name = "OB West" };
+			germany.Units.Add(headquarters);
+			var theatre = new OpenHOI3.Sim.Theatres.CTheatre(7, Ger) { Headquarters = headquarters.Id };
+			state.Theatres[theatre.Id] = theatre;
+			OpenHOI3.Sim.Theatres.CTheatreProvinces.Add(state, theatre, 1);
+			var waiting = new CUnit(EUnitKind.Division, Ger) { Id = ++state.LastUnitId };
+			waiting.SubUnits.Add(new CSubUnit(Infantry) { Unit = waiting });
+			waiting.SubUnits.Add(new CSubUnit(Infantry) { Unit = waiting });
+			germany.Deployments.Add(waiting);
+			state.ForgetPositions();
+			return (state, waiting, headquarters);
+		}
+
+		// A country nobody plays: placed, and its agents see to the rest.
+		(CGameState ai, _, _) = Made();
+		CAiDeployment.Deploy(ai, ai.Country(Ger)!);
+		Assert.IsType<CDeployUnitCommand>(Assert.Single(ai.Outbox));
+
+		// The player's: placed in the capital, and put under the headquarters of the capital's theatre.
+		(CGameState state, CUnit waiting, CUnit headquarters) = Made();
+		state.Played.Add(Ger);
+		CAiDeployment.Deploy(state, state.Country(Ger)!);
+		Assert.Equal(new[] { typeof(CDeployUnitCommand), typeof(CAttachUnitCommand) }, state.Outbox.Select(command => command.GetType()));
+		foreach (CCommand command in state.Outbox.ToList())
+		{
+			Assert.True(command.MayExecute(state));
+			command.Execute(state);
+		}
+		Assert.Equal(1, waiting.Location);
+		Assert.Same(headquarters, waiting.Parent);
+	}
+
 	// ---- the queue
 
 	[Fact]

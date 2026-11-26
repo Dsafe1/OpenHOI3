@@ -13,7 +13,9 @@ namespace OpenHOI3.Sim.Construction;
 /// The AI's placing of a finished unit, for the countries nobody plays: once a day, in an hour of the country's own, each
 /// unit waiting is sent to join a fitting unit near the capital where it is a single brigade, ship or wing, and otherwise
 /// to the capital's area's best province. The original's <c>CEU3AI::DeployFinishedUnits</c>; every figure here is its
-/// own. See <c>docs/mechanics/ministers.md</c>, section 6.
+/// own. See <c>docs/mechanics/ministers.md</c>, section 6. <b>A played country's unit placed so is also put under the
+/// headquarters of that province's theatre</b> - the player's automatic deployment, whose units no agent sorts into
+/// theatres as an AI country's are.
 /// </summary>
 public static class CAiDeployment
 {
@@ -83,6 +85,14 @@ public static class CAiDeployment
 			{
 				state.Outbox.Add(new CDeployUnitCommand(country.Tag, unit.Id, province));
 				posted = true;
+				// The played country's alone, and not a carrier's group, whose placing is another: the unit under the
+				// headquarters of that province's theatre, where the province has a theatre and the theatre a headquarters.
+				if (state.Played.Contains(country.Tag) && !CCarriers.IsCarrierAirGroup(unit)
+					&& Theatres.CTheatreProvinces.Of(state, province) is { } theatre
+					&& Theatres.CTheatres.Headquarters(state, theatre) is { } headquarters)
+				{
+					state.Outbox.Add(new CAttachUnitCommand(country.Tag, unit.Id, headquarters.Id));
+				}
 			}
 		}
 	}

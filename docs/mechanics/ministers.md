@@ -245,6 +245,15 @@ empty carrier. Britain's 3rd, 4th, 5th and 10th CAG wait the whole of 16 to 18 J
 London's airfield and so crowded it that Oman's dive bombers left for another (`confirmed` on the listing and the
 original's saves, `reversing/findings/FINDINGS-liveread.md`, section 135). A unit nothing suits waits for the next day. *Hardcoded*: every figure here.
 
+**The played country's alone**, whose units are placed so every hour while its automatic deployment is ticked
+(`frontend.md`, section 4.4): a unit placed in a province with no unit to join - never a carrier's group, placed by
+its own arm - **is also put under the headquarters of that province's theatre**, by a `CAttachUnitCommand` posted
+after the placing, where the province has a theatre and the theatre a headquarters still in the game (`confirmed`
+on the listing, `reversing/findings/FINDINGS-ministers.md`, B.6: the test of the local player and the attach
+follow the third placing alone). An AI country's units are sorted into its theatres by its agents instead
+(`agents.md`, section 2). Left out until 2026-11-26, when it was missed in play: the player's placed units stood
+under no headquarters.
+
 ## 7. What the scripts reach
 
 Section by section of `FINDINGS-ministers.md`: the tech minister's methods A.6, the production script's units and
