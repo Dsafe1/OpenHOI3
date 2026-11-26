@@ -233,7 +233,11 @@ duration is taken as the days it still has to go:** `confirmed`
   model does not list, so that the levels after it move up a place. `confirmed`, and it is
   not what the original does for a unit in the field (`units.md`, section 4), where an
   unlisted technology is left alone. No model of the base game's thirty lines leaves one
-  out.
+  out. *An enhanced game's* (the fix `queued_historical_model`, after BiceLib's
+  `fixQueuedHistoricalModel`) gives an unlisted technology **nought**, so the list has a
+  level for every technology of the type and each is built on its own. The same for a
+  line a file of units brings as the game runs (`units.md`, *A file of units as a game
+  runs*).
 - **A file's line of reserves is not given its law's share of a brigade**: it is queued
   before its `is_reserve` is read, so it is priced as reserves, and gathers experience and
   teaches its practical as regulars would - unless the file gives `factor`. `confirmed`,

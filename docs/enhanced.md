@@ -215,6 +215,7 @@ names of keys and defines are proposals.
 - A historical model that needs a technology the country has not researched loses to every model that does not.
   **Built 2026-11-26**, `historical_model_choice`.
 - A queued brigade's `historical_model` gets a level for every technology of its type, so none lands on another.
+  **Built 2026-11-26**, `queued_historical_model`.
 - A country-level `ic` modifier counts, as off-map IC: a country's IC is its provinces' sum and that figure.
   **Built 2026-11-22**, `offmap_ic` (`mechanics/ic.md`, section 3).
 - A leader an order of battle puts on a land unit gets the rank of that unit's level and is put in service; a leader

@@ -77,7 +77,9 @@ public static class CBuildQueue
 	/// <summary>
 	/// The equipment a historical model gives: for each technology of the type, in the
 	/// type's order, the model's level - and nothing at all for one the model does not
-	/// list, so that what follows moves up a place. That is the original's.
+	/// list, so that what follows moves up a place. That is the original's. An enhanced game's gives such a
+	/// technology nought (<see cref="Rules.EFix.QueuedHistoricalModel"/>), so the list has a level for every
+	/// technology of the type and each is built on its own - as the model gives a unit read onto the map.
 	/// </summary>
 	public static void SetModelToHistorical(CGameState state, CCountry country, CBrigadeOrder order, int model)
 	{
@@ -91,6 +93,10 @@ public static class CBuildQueue
 			if (CHistoricalModels.Level(state, country, order.Type, model, technology) is { } level)
 			{
 				order.Model.Add(level);
+			}
+			else if (state.Rules.Has(Rules.EFix.QueuedHistoricalModel))
+			{
+				order.Model.Add(0);
 			}
 		}
 	}

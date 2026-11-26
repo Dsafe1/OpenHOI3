@@ -121,4 +121,10 @@ public enum EFix
 	/// only: which model a type to build and a brigade are shown as.
 	/// </summary>
 	HistoricalModelChoice,
+
+	/// <summary>
+	/// A queued brigade's <c>historical_model</c> gives a level for every technology of its type, nought for one the
+	/// model does not name, so none lands on the technology before it (<c>docs/mechanics/buildqueue.md</c>, section 5).
+	/// </summary>
+	QueuedHistoricalModel,
 }

@@ -210,6 +210,28 @@ public class BuildQueueTests
 		Assert.Equal(2, ship.TechnologyLevels["cruiser_technology_1"]);
 	}
 
+	[Fact]
+	public void AnEnhancedGamesHistoricalModelGivesNoughtForATechnologyItLeavesOut()
+	{
+		CSubUnitType type = HeavyCruiser();
+		CCountry country = Germany();
+		country.HistoricalModels[type.Key] = new SortedDictionary<int, Dictionary<string, int>>
+		{
+			[0] = new Dictionary<string, int> { ["cruiser_technology_1"] = 4, ["cruiser_technology_3"] = 2 },
+		};
+		CGameState state = State(country, type);
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		var order = new CBrigadeOrder(type);
+
+		CBuildQueue.SetModelToHistorical(state, country, order, 0);
+
+		Assert.Equal(new[] { 0, 4, 0, 2, 0, 0, 0 }, order.Model);
+		CSubUnit ship = CBuildQueue.AsBuilt(order, isReserve: false, out long _);
+		Assert.Equal(0, ship.TechnologyLevels["cruiser_technology_0"]);
+		Assert.Equal(4, ship.TechnologyLevels["cruiser_technology_1"]);
+		Assert.Equal(2, ship.TechnologyLevels["cruiser_technology_3"]);
+	}
+
 	// ---- a new game
 
 	[Fact]

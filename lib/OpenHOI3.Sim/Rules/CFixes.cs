@@ -31,6 +31,7 @@ public static class CFixes
 		(EFix.RadarEfficiency, "radar_efficiency"),
 		(EFix.TraitSurpriseChance, "trait_surprise_chance"),
 		(EFix.HistoricalModelChoice, "historical_model_choice"),
+		(EFix.QueuedHistoricalModel, "queued_historical_model"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>
