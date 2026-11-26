@@ -136,6 +136,12 @@ public sealed class CUnit
 	/// </summary>
 	public List<CCombat> Combats { get; } = new();
 
+	/// <summary>
+	/// What an enhanced game keeps of its damage in the land battle it is in, for the battle window's tooltip; null
+	/// where it has none. Nothing in the game reads it.
+	/// </summary>
+	public CBattleDamage? BattleDamage { get; set; }
+
 	public bool IsFighting => Combats.Count > 0;
 
 	/// <summary>The lines of the queue changing a brigade of this unit into another type: its rows and its counter's orange corner.</summary>

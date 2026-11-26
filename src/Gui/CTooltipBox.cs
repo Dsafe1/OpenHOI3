@@ -34,6 +34,16 @@ public partial class CTooltipBox : Control
 	private string _belowText = "";
 	private float _widest;
 
+	/// <summary>
+	/// How wide a text is in the font tooltips are drawn in, for a text that makes columns of spaces
+	/// (<see cref="CTextTable"/>); each character one where the box or its font is not to be had.
+	/// </summary>
+	public static System.Func<string, float> MeasureFor(CGuiContext context)
+	{
+		CGuiFont? font = context.Types.Find(TypeName) is CGuiTextBoxType type ? context.Fonts.Find(type.Font) : null;
+		return font is null ? text => text.Length : text => CTextIcons.Measure(text, font.Width);
+	}
+
 	/// <summary>The box the install declares, or null - said once - where it declares none.</summary>
 	public static CTooltipBox? Create(CGuiContext context)
 	{

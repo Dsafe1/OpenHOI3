@@ -94,9 +94,32 @@ public static class CCombatDamage
 	public static long SettleUnit(CGameState state, CUnit unit)
 	{
 		long men = 0;
+		// An enhanced game's record of the unit's damage in its battle: what the settling really takes off it.
+		bool recorded = unit.BattleDamage is not null;
+		long strengthBefore = 0;
+		long organisationBefore = 0;
+		if (recorded)
+		{
+			foreach (CSubUnit subUnit in unit.SubUnits)
+			{
+				strengthBefore += subUnit.Strength.Raw;
+				organisationBefore += subUnit.Organisation.Raw;
+			}
+		}
 		foreach (CSubUnit subUnit in unit.SubUnits)
 		{
 			men += Settle(subUnit);
+		}
+		if (recorded)
+		{
+			long strengthAfter = 0;
+			long organisationAfter = 0;
+			foreach (CSubUnit subUnit in unit.SubUnits)
+			{
+				strengthAfter += subUnit.Strength.Raw;
+				organisationAfter += subUnit.Organisation.Raw;
+			}
+			CBattleDamages.Settled(state, unit, strengthBefore - strengthAfter, organisationBefore - organisationAfter);
 		}
 		if (state.Country(unit.FiguresOwner) is not { } owner)
 		{

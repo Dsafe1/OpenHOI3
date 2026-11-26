@@ -123,6 +123,7 @@ public static class CLandFire
 			}
 			strength = defines[CManpower.MilitarySection, StrengthDamage].Raw * strength / CFixedPoint.Scale;
 			organisation = defines[CManpower.MilitarySection, OrganisationDamage].Raw * organisation / CFixedPoint.Scale;
+			CBattleDamages.Note(state, combat, attacker, target, strength, organisation);
 			CCombatDamage.Take(state, target, strength, organisation);
 		}
 	}

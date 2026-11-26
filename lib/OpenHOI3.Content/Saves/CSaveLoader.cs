@@ -86,6 +86,7 @@ public static class CSaveLoader
 		var units = new CSaveUnitReader(state, ids, report);
 		var routes = new List<(Sim.Trade.CTradeRoute Route, int Convoy)>();
 		ClausewitzNode? combats = null;
+		ClausewitzNode? battleDamage = null;
 		bool automateTrade = false;
 
 		foreach (ClausewitzNode node in root.Children)
@@ -181,6 +182,10 @@ public static class CSaveLoader
 				case "combat" when node.IsBlock:
 					combats = node;
 					break;
+				// An enhanced save's record of the damage in those battles, read after them (CSaveBattleDamage).
+				case CSaveBattleDamage.Key when node.IsBlock:
+					battleDamage = node;
+					break;
 				// The local player's, given to whoever is played once that is known (savegame.md, section 14).
 				case "automate_trade":
 					automateTrade = node.Value == "yes";
@@ -215,6 +220,10 @@ public static class CSaveLoader
 		if (combats is not null)
 		{
 			CSaveCombats.Read(state, combats, units.ById, ids, report);
+		}
+		if (battleDamage is not null)
+		{
+			CSaveBattleDamage.Read(battleDamage, units.ById);
 		}
 		// Entering the game, a unit in a battle starts its count towards breaking off again from nought.
 		foreach (Sim.Combat.CCombat combat in state.Combats)

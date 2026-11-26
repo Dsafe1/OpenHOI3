@@ -187,6 +187,7 @@ public sealed class CCombatSide
 	public void Remove(CGameState state, CUnit unit)
 	{
 		CTraitGain.Count(state, Combat, this);
+		CBattleDamages.Forget(unit, Combat);
 		Units.Remove(unit);
 		Front.Remove(unit);
 		Reserves.Remove(unit);

@@ -503,6 +503,42 @@ Neither of the two was looked at on screen: no bombing was brought up for it.
 
 ---
 
+### An enhanced game's: a unit's figures and its damage
+
+After BiceLib's `activateCombatUnitStats`; `CBattleStatsText`, `CBattleDamage`, `CTextTable`. A block at the end of
+a land unit's whole tooltip - a unit on the front or a reserve of the defender's; not the bars', not a ship's or a
+wing's - where the localisation has `OPENHOI_BATTLE_STATS_HEAD`. Every word is the mod's, twelve keys
+`OPENHOI_BATTLE_STATS_...` and `OPENHOI_BATTLE_DAMAGE_...`.
+
+**The figures.** A blank line, the heading, and four rows: soft attack, hard attack, defensiveness and toughness,
+each **summed over the unit's brigades** from the brigades' own figures, nothing weighed by strength. Beside each,
+` -> ` and what the battle makes of it - the two attacks by the attack percentage above, the other two by the
+defend percentage, a landing's second scale in both - where that is not exactly one. So the block says what the
+two percentages are percentages of. Piercing and armour are left out: the lines above have them, and no modifier
+scales them. To one decimal.
+
+**The damage**, once the unit has dealt or taken any: the heading and a table - strength and organisation, dealt
+and taken, over **the battle** and over **the last hour** in which it dealt or took anything.
+
+- A shot of a land battle that lands is noted against its target with who fired it and what it asked. When the
+  hour's damage is settled, **what is really taken off the target** - a hundredth of what the hits came to and no
+  more than it had (`landcombat.md`) - is its *taken*, and is **shared among those who fired, each by its part of
+  what was asked**, as their *dealt*. Strength and organisation alike. *Ours*: BiceLib's counts the strength a shot
+  asks at once, before the hundredth and the cap, and shares only the organisation; here both are what the target
+  lost, so a unit's dealt is what its targets lost by it and the two sides add up.
+- A unit's organisation is its brigades' average: taken is the sum over their number, and dealt the target's.
+- **One battle**: a shot of another battle starts a unit's figures afresh, and they go when it leaves the battle or
+  the battle ends - the tooltip is a battle's window's. BiceLib's keeps a unit's last battle until its next.
+- **Land battles only**, as BiceLib's. What bombs take off a unit that has figures counts as taken, by nobody.
+
+**Columns** are made of spaces measured in the tooltip's own font (`CTextTable`): a column starts two spaces after
+the widest cell before it, reached by the nearest whole number of spaces, so it lands within half a space; the
+damage table's two figure columns end together.
+
+**The damage is display only** - nothing in the game reads it, and it is not in the state's hash - **and in an
+enhanced save** (`savegame.md`, section 21), so a loaded game's battle says what it said, where BiceLib's starts
+afresh.
+
 ## What is not built
 
 - ~~**The naval mode's icons** of convoys sunk and raiders fought~~ - built (`mapmodes.md`, section 11), as the air

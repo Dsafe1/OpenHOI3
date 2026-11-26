@@ -23,7 +23,9 @@ public static class CBattleUnitTooltips
 	private const long Scale = CFixedPoint.Scale;
 
 	/// <summary>A land unit on the front, or a reserve of the defender's.</summary>
-	public static CTooltip Unit(Func<string, string> localise, CGameState state, CCombat combat, CUnit unit, string element)
+	/// <param name="measure">How wide a text is in the tooltip's font, for an enhanced game's columns (<see cref="CBattleStatsText"/>).</param>
+	public static CTooltip Unit(Func<string, string> localise, CGameState state, CCombat combat, CUnit unit, string element,
+		Func<string, float>? measure = null)
 	{
 		CCountry? owner = state.Country(unit.Owner);
 		switch (element)
@@ -61,6 +63,8 @@ public static class CBattleUnitTooltips
 			.Append("§!\n");
 		text.Append(localise("ARMOR_VALUE")).Append(": §Y").Append(CNumberText.Trimmed(CUnitTotals.Best(unit, CUnitTotals.Armour)))
 			.Append("§!\n");
+		// An enhanced game's: the unit's summed figures and its damage in the battle.
+		text.Append(CBattleStatsText.Block(localise, state, unit, measure));
 		return Text(text.ToString());
 	}
 

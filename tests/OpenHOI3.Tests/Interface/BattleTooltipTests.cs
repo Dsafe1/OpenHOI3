@@ -91,6 +91,61 @@ public class BattleTooltipTests
 		return unit;
 	}
 
+	// ---- an enhanced game's figures and damage
+
+	[Fact]
+	public void AnEnhancedGamesUnitTooltipEndsWithItsSummedFiguresAndItsDamage()
+	{
+		CGameState state = State(out _);
+		var combat = new CCombat(Posen);
+		CUnit division = Unit(Ger, EUnitKind.Division, "1. Inf", "infantry_brigade", "infantry_brigade");
+		foreach (CSubUnit brigade in division.SubUnits)
+		{
+			brigade.Stats.Values.Set(CUnitTotals.SoftAttack, CFixedPoint.FromInt(3));
+			brigade.Stats.Values.Set(CUnitTotals.Defensiveness, CFixedPoint.Parse("4.5"));
+		}
+		division.CombatAttack = CFixedPoint.Parse("1.25");
+		combat.Attacker.Add(division);
+		var words = new Dictionary<string, string>
+		{
+			[CBattleStatsText.HeadKey] = "§YBase§W -> §Yeffective§W", [CBattleStatsText.SoftKey] = "Soft Attack:",
+			[CBattleStatsText.HardKey] = "Hard Attack:", [CBattleStatsText.DefensivenessKey] = "Defensiveness:",
+			[CBattleStatsText.ToughnessKey] = "Toughness:", [CBattleStatsText.DamageHeadKey] = "§YDamage§W",
+			[CBattleStatsText.StrengthKey] = "Strength", [CBattleStatsText.OrganisationKey] = "Organisation",
+			[CBattleStatsText.BattleKey] = "Battle", [CBattleStatsText.HourKey] = "Last hour",
+			[CBattleStatsText.DealtKey] = "dealt:", [CBattleStatsText.TakenKey] = "taken:",
+		};
+		string Given(string key) => words.GetValueOrDefault(key, Localise(key));
+		string original = CBattleUnitTooltips.Unit(Given, state, combat, division, "name").Text;
+		Assert.EndsWith("Armor: §Y0§!\n", original);
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		// The figures summed over the brigades; beside each what the battle's modifier makes of it, where that is not one.
+		Assert.Equal(original + "\n§YBase§W -> §Yeffective§W\n"
+			+ "  §WSoft Attack:    §Y6.0§W -> §Y7.5§W\n"
+			+ "  §WHard Attack:    §Y0.0§W -> §Y0.0§W\n"
+			+ "  §WDefensiveness:  §Y9.0§W\n"
+			+ "  §WToughness:      §Y0.0§W",
+			CBattleUnitTooltips.Unit(Given, state, combat, division, "name").Text);
+		// The bars' own tooltips are left alone, and a localisation without the lines leaves the whole.
+		Assert.DoesNotContain("Base", CBattleUnitTooltips.Unit(Given, state, combat, division, "str_bar").Text);
+		Assert.Equal(original, CBattleUnitTooltips.Unit(Localise, state, combat, division, "name").Text);
+
+		// Once it has dealt or taken anything: the battle's and the last hour's, the unit's organisation its brigades' average.
+		division.BattleDamage = new CBattleDamage
+		{
+			Combat = combat, StrengthDealt = 1500 * CBattleDamage.Fine, StrengthTaken = 250, OrganisationDealt = 12300 * CBattleDamage.Fine,
+			OrganisationTaken = 9000, HourStrengthDealt = 100 * CBattleDamage.Fine, HourOrganisationTaken = 600,
+		};
+		string damage = CBattleUnitTooltips.Unit(Given, state, combat, division, "name").Text;
+		Assert.EndsWith("\n§YDamage§W\n"
+			+ "                     §WStrength  §WOrganisation\n"
+			+ "  §WBattle     §Wdealt:       §Y1.5§W          §Y12.3§W\n"
+			+ "             §Wtaken:       §Y0.2§W           §Y4.5§W\n"
+			+ "  §WLast hour  §Wdealt:       §Y0.1§W           §Y0.0§W\n"
+			+ "             §Wtaken:       §Y0.0§W           §Y0.3§W", damage);
+	}
+
 	// ---- the window
 
 	[Fact]

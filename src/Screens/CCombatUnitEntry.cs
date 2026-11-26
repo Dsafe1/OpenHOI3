@@ -58,9 +58,10 @@ public sealed class CCombatUnitEntry
 			return null;
 		}
 		Func<string, string> localise = context.Localisation.Localise;
+		Func<string, float> measure = Gui.CTooltipBox.MeasureFor(context);
 		window.SetTooltips(element => chance
 				? CBattleUnitTooltips.Reserve(localise, state, unit)
-				: CBattleUnitTooltips.Unit(localise, state, combat, unit, element),
+				: CBattleUnitTooltips.Unit(localise, state, combat, unit, element, measure),
 			"name", "location", "org_bar", "str_bar");
 		return new CCombatUnitEntry(window, state, unit, player);
 	}

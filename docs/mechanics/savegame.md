@@ -989,6 +989,19 @@ attrition and trickleback have gathered today; whether a day has been closed, 1 
 many days are kept, thirty at most; and so many days of attrition and so many of trickleback, the oldest first. A
 list cut short is no record. Display only: nothing in the game reads it, and it is not in the state's hash.
 
+**And at the save's top, the damage of the units in the land battles being fought** (`CSaveBattleDamage`;
+`combatview.md`, section 12), where there is any:
+
+    openhoi_battle_damage = { 5012 17544 1500000 250 12300000 9000 100000 0 0 600 ... }
+
+Ten whole numbers a unit: its number; the game's hour its last-hour figures are of; then the battle's four and the
+hour's four, each strength dealt, strength taken, organisation dealt, organisation taken - what is dealt a
+thousand times finer than thousandths, the organisation taken summed over the unit's brigades. Read once the
+units and the battles are, each unit given its figures for the land battle it is in; a unit that is gone or in no
+land battle is passed over. **The `combat` block stays the original's.** Only units in a battle have figures, so
+the list is as long as the battles are large: some twenty kilobytes for a 1941 save's twenty battles. Display only,
+and not in the state's hash.
+
 ## 22. An enhanced save's record of finished battles
 
 **Ours** (`CSaveCombatReports`; `combatreports.md`). An enhanced game writes, at the top after `openhoi_engine`, one

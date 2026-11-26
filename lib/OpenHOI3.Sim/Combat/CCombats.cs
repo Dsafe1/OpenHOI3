@@ -571,6 +571,13 @@ public static class CCombats
 		}
 		// Over: each side's leaders have their banked hours counted, the attacker's first.
 		combat.HasEnded = true;
+		foreach (CCombatSide side in new[] { combat.Attacker, combat.Defender })
+		{
+			foreach (CUnit unit in side.Units)
+			{
+				CBattleDamages.Forget(unit, combat);
+			}
+		}
 		CTraitGain.Count(state, combat, combat.Attacker);
 		Detach(combat.Attacker);
 		CTraitGain.Count(state, combat, combat.Defender);
