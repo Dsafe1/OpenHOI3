@@ -221,6 +221,7 @@ names of keys and defines are proposals.
 - A leader an order of battle puts on a land unit gets the rank of that unit's level and is put in service; a leader
   whose history dates his first rank after the start comes into service at the rank the line names (*Leaders*, above).
 - A finished building may be placed without its technology, every other test of the placing standing.
+  **Built 2026-11-26**, `place_unresearched_building`.
 - A loaded game has its event candidates (*Script, events and weather*, above) - the enhanced save keeps them.
 - The Simplified Terrain map mode colours the sea. **Built 2026-11-21**, `simplified_terrain_sea`.
 - Already the normal engine's: a province's most infrastructure (`compatibility.md`, entry 29) and the requirement

@@ -32,6 +32,7 @@ public static class CFixes
 		(EFix.TraitSurpriseChance, "trait_surprise_chance"),
 		(EFix.HistoricalModelChoice, "historical_model_choice"),
 		(EFix.QueuedHistoricalModel, "queued_historical_model"),
+		(EFix.PlaceUnresearchedBuilding, "place_unresearched_building"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

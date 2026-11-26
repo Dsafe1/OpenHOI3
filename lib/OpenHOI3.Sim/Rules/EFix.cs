@@ -127,4 +127,10 @@ public enum EFix
 	/// model does not name, so none lands on the technology before it (<c>docs/mechanics/buildqueue.md</c>, section 5).
 	/// </summary>
 	QueuedHistoricalModel,
+
+	/// <summary>
+	/// A finished building waiting to be placed may go in a province whether or not the country has researched it,
+	/// every other test of the placing standing (<c>docs/mechanics/buildinglines.md</c>, section 6).
+	/// </summary>
+	PlaceUnresearchedBuilding,
 }

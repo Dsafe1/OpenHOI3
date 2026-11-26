@@ -58,11 +58,16 @@ public static class CBuildingLines
 	/// <summary>
 	/// The original's <c>CCountry::IsBuildingAllowed</c>: available to the country; the country holds the province - not
 	/// asked for the underground; built and queued below <c>max_level</c>; a port where it needs one; none of what
-	/// excludes it and all of what it needs.
+	/// excludes it and all of what it needs. <paramref name="placing"/> is the question asked for a finished building
+	/// waiting to be placed: in an enhanced game that one alone passes the first test outright
+	/// (<see cref="Rules.EFix.PlaceUnresearchedBuilding"/>), so a building an event hands a country that has not
+	/// researched it can be put down; an order, the AI's question and every other asker keep it.
 	/// </summary>
-	public static bool IsAllowed(CGameState state, CCountry country, CBuilding building, CProvince province)
+	public static bool IsAllowed(CGameState state, CCountry country, CBuilding building, CProvince province,
+		bool placing = false)
 	{
-		if (!IsAvailable(state, country, building))
+		bool unresearched = placing && state.Rules.Has(Rules.EFix.PlaceUnresearchedBuilding);
+		if (!unresearched && !IsAvailable(state, country, building))
 		{
 			return false;
 		}
@@ -108,7 +113,7 @@ public static class CBuildingLines
 		{
 			return false;
 		}
-		if (!IsAllowed(state, country, building, province))
+		if (!IsAllowed(state, country, building, province, placing: true))
 		{
 			return false;
 		}

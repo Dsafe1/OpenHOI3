@@ -131,6 +131,25 @@ public class BuildingLineTests
 	}
 
 	[Fact]
+	public void An_enhanced_games_finished_building_is_placed_without_its_technology_and_not_ordered_without_it()
+	{
+		CGameState state = World();
+		CCountry germany = state.Country(RebelWorld.Ger)!;
+
+		// Germany has not researched the air base: the original lets it go nowhere.
+		Assert.False(CBuildingLines.CanDeployIn(state, germany, AirBase, state.Province(4)));
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		Assert.True(CBuildingLines.CanDeployIn(state, germany, AirBase, state.Province(4)));
+		// Every other test stands: Lodz is Poland's, and a whole level of air base is no place for another.
+		Assert.False(CBuildingLines.CanDeployIn(state, germany, AirBase, state.Province(5)));
+		state.Province(3).SetBuildingLevel(AirBase, CFixedPoint.One);
+		Assert.False(CBuildingLines.CanDeployIn(state, germany, AirBase, state.Province(3)));
+		// And an order still asks for the technology.
+		Assert.False(CBuildingLines.IsAllowed(state, germany, AirBase, state.Province(4)));
+	}
+
+	[Fact]
 	public void A_line_with_no_province_waits_in_the_deploy_menu_and_is_placed_where_the_country_holds()
 	{
 		CGameState state = World();

@@ -133,6 +133,12 @@ the areas are made whole whenever they are asked for (`supply.md`), so it is at 
 - a `port` building needs a port;
 - none of `not_if_x_exists` is there and all of `prerequisites` are.
 
+*An enhanced game's* (the fix `place_unresearched_building`, after BiceLib's `enablePlacingNonResearchedBuildings`):
+**asked for a finished building waiting to be placed, the first test passes outright** - so a building an event
+hands a country that has not researched it can be put down, where the original offers it no province at all. The
+other four stand, and every other asker - an order, the province view's rows, the AI's question in Lua - keeps the
+first.
+
 **A building waiting to be placed may go** where that holds, and the province has a port where the building needs one,
 and:
 
