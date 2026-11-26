@@ -220,6 +220,7 @@ names of keys and defines are proposals.
   **Built 2026-11-22**, `offmap_ic` (`mechanics/ic.md`, section 3).
 - A leader an order of battle puts on a land unit gets the rank of that unit's level and is put in service; a leader
   whose history dates his first rank after the start comes into service at the rank the line names (*Leaders*, above).
+  **Built 2026-11-26**, `oob_leader_ranks` and `history_leader_ranks`.
 - A finished building may be placed without its technology, every other test of the placing standing.
   **Built 2026-11-26**, `place_unresearched_building`.
 - A loaded game has its event candidates (*Script, events and weather*, above) - the enhanced save keeps them.
@@ -491,7 +492,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 ## Leaders
 
 - **Later history is ignored.** Nothing after a leader's first rank applies, and a dated `skill` does nothing. `leaders.md`, 1, oddities 2 and 8. *Dead.* Risk: historical data would suddenly apply.
-- **An order of battle's leader goes on anybody,** another country's or the wrong rank included. `leaders.md`, oddity 1. *Oversight.* Risk: small.
+- **An order of battle's leader goes on anybody,** another country's or the wrong rank included. `leaders.md`, oddity 1. *Oversight.* Risk: small. **Mended in part 2026-11-26**, `oob_leader_ranks`: his own country's land leader takes the unit's rank; another country's still goes on.
 - **One-brigade divisions are given no leader** by the choosing. `leaders.md`, oddity 3. *Oversight.* Risk: small.
 - **`paradrop_mission` never counts** in the choice of a general. `leaders.md`, oddity 4. *Bug.* Risk: negligible.
 - **`defence_modifier` suits only units slower than 3,** so militia at exactly 3 miss out. `leaders.md`, oddity 5. *Oversight.* Risk: small.

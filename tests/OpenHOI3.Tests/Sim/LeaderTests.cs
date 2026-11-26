@@ -491,6 +491,44 @@ public class LeaderTests
 	}
 
 	[Fact]
+	public void AnEnhancedGamesOrderOfBattleGivesItsOwnLandLeaderTheUnitsRankAndPutsHimInService()
+	{
+		CGameState state = State(out CCountry germany, out CCountry italy);
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		CUnit corps = Unit(state, germany, EUnitKind.Corps, Infantry);
+		CUnit division = Unit(state, germany, EUnitKind.Division, Infantry, Infantry);
+		CUnit fleet = Unit(state, germany, EUnitKind.Navy, Destroyer);
+		CUnit army = Unit(state, germany, EUnitKind.Army, Infantry);
+		CLeader waiting = Leader(state, germany, 1, 0, 2);          // his history's rank lies ahead: not in service
+		CLeader marshal = Leader(state, germany, 2, 4, 2);
+		CLeader admiral = Leader(state, germany, 3, 1, 2, ELeaderType.Sea);
+		CLeader italian = Leader(state, italy, 7, 0, 1);
+		corps.LeaderId = 1;
+		division.LeaderId = 2;
+		fleet.LeaderId = 3;
+		army.LeaderId = 7;
+
+		CLeaders.SetAtStart(state);
+		CLeaders.AssignAtStart(state);
+
+		Assert.Same(waiting, corps.Leader);
+		Assert.Equal(2, waiting.Rank);
+		Assert.Contains(waiting, germany.ActiveLeaders);
+		// Lowered as well as raised.
+		Assert.Equal(1, marshal.Rank);
+		// A fleet's leader and another country's are left as the file has them.
+		Assert.Equal(1, admiral.Rank);
+		Assert.Same(italian, army.Leader);
+		Assert.Equal(0, italian.Rank);
+		Assert.Empty(italy.ActiveLeaders);
+		// On his history's day he is in service already, and keeps the rank his unit gave him.
+		waiting.FirstRankDate = state.Date;
+		waiting.FirstRank = 4;
+		CLeaders.ActivateDaily(state);
+		Assert.Equal(2, waiting.Rank);
+	}
+
+	[Fact]
 	public void ALeaderWithNoRankInHisHistoryIsNeverPutInService()
 	{
 		CGameState state = State(out CCountry germany, out _);

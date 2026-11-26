@@ -184,7 +184,41 @@ public static class CLeaders
 		named.Sort((a, b) => a.LeaderLine != b.LeaderLine ? a.LeaderLine.CompareTo(b.LeaderLine) : a.Id.CompareTo(b.Id));
 		foreach (CUnit unit in named)
 		{
+			TakeRankOfUnit(state, unit, state.Leaders[unit.LeaderId]);
 			SetLeader(state, unit, state.Leaders[unit.LeaderId], false, false);
+		}
+	}
+
+	/// <summary>
+	/// What an enhanced game does as a file of units puts a leader on a unit, a new game's or one an effect loads
+	/// (<see cref="Rules.EFix.OobLeaderRanks"/>; <c>docs/mechanics/leaders.md</c>, section 5): a land leader on a land
+	/// unit of his own country takes the rank of the unit's level - a division 1, a corps 2, an army 3, an army group or
+	/// a theatre 4 - raised or lowered, and is put in service where he was not, at the end of his country's list. A
+	/// fleet's or an air unit's leader, one of the wrong arm and another country's are left as the file has them.
+	/// </summary>
+	public static void TakeRankOfUnit(CGameState state, CUnit unit, CLeader leader)
+	{
+		if (!state.Rules.Has(Rules.EFix.OobLeaderRanks) || leader.Type != ELeaderType.Land
+			|| leader.Country is not { } home || home != unit.Owner || state.Country(home) is not { } country)
+		{
+			return;
+		}
+		int rank = unit.Kind switch
+		{
+			EUnitKind.Division => 1,
+			EUnitKind.Corps => 2,
+			EUnitKind.Army => 3,
+			EUnitKind.ArmyGroup or EUnitKind.Theatre => 4,
+			_ => 0,
+		};
+		if (rank == 0)
+		{
+			return;
+		}
+		leader.Rank = rank;
+		if (!country.ActiveLeaders.Contains(leader))
+		{
+			country.ActiveLeaders.Add(leader);
 		}
 	}
 

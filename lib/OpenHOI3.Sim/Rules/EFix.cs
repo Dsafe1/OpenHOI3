@@ -135,6 +135,12 @@ public enum EFix
 	PlaceUnresearchedBuilding,
 
 	/// <summary>
+	/// A land leader an order of battle puts on a land unit of his own country takes the rank of that unit's level and
+	/// is put in service (<c>docs/mechanics/leaders.md</c>, section 5).
+	/// </summary>
+	OobLeaderRanks,
+
+	/// <summary>
 	/// A leader put in service on the day his history first gives him a rank takes the rank that line names, where the
 	/// original gives him rank 1 (<c>docs/mechanics/leaders.md</c>, section 5).
 	/// </summary>

@@ -240,6 +240,12 @@ they differ was not read. A leader whose history has no `rank` is never put in s
 
 Both after BiceLib's, each a name a mod may go without (`docs/enhanced.md`).
 
+- **`oob_leader_ranks`**: as a file of units puts a leader on a unit - a new game's order of battle or one an effect
+  loads, never a save - a **land leader on a land unit of his own country takes the rank of the unit's level**: a
+  division 1, a corps 2, an army 3, an army group or a theatre 4, raised or lowered, nothing else of him changed.
+  Where he is not in service he is put in it, at the end of his country's list - so a leader whose history's rank
+  lies ahead commands at once, and his day finds him in service and leaves him be. A fleet's or an air unit's leader,
+  one of the wrong arm and **another country's** are left as the file has them.
 - **`history_leader_ranks`**: the day's putting in service gives **the rank that first line names**, held between 1
   and 4, where the original gives 1. Of two lines of one day the first written. Nothing later in a history is
   applied, as before.

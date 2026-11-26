@@ -33,6 +33,7 @@ public static class CFixes
 		(EFix.HistoricalModelChoice, "historical_model_choice"),
 		(EFix.QueuedHistoricalModel, "queued_historical_model"),
 		(EFix.PlaceUnresearchedBuilding, "place_unresearched_building"),
+		(EFix.OobLeaderRanks, "oob_leader_ranks"),
 		(EFix.HistoryLeaderRanks, "history_leader_ranks"),
 	};
 
