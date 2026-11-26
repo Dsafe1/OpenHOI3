@@ -428,6 +428,12 @@ public partial class CMapView : Node2D
 	public event Action<CCombat>? CombatSelected;
 
 	/// <summary>
+	/// Raised when everything selected is let go (<see cref="ClearSelection"/>), whether or not anything was: a battle
+	/// is a thing selected too, which this map does not hold, and its window goes with the rest (combatview.md, section 1).
+	/// </summary>
+	public event Action? SelectionCleared;
+
+	/// <summary>
 	/// Marks the provinces a unit being placed may go in, or with null marks none.
 	/// How the original shows them was not read; here they are tinted green.
 	/// </summary>
@@ -1371,6 +1377,7 @@ public partial class CMapView : Node2D
 	{
 		SelectUnit(null);
 		Select(0);
+		SelectionCleared?.Invoke();
 	}
 
 	/// <summary>

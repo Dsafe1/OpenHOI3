@@ -51,9 +51,17 @@ review in play saw the marker on the sea.
 - *Ours:* a click on the battle's **marker** (section 8) does what a click on the row does
   here: the window comes up and the map does not move.
   What the original's marker does when clicked was not read; it is how the game is remembered.
-- *Ours:* selecting a unit takes the window down, and the window stands where the file puts
-  it, which is where the unit panel is. The original hides something when a battle opens that
-  was not identified; by what is on screen it is the panel of the selected unit.
+- **Whatever lets go of the battle takes its window down** - the original's `CCombat::OnDeselected`, which shows
+  no battle where the one on screen is its own: a unit selected in its place, **a province selected in its
+  place**, and **everything let go** - which a country screen's opening and its closing do (`topscreens.md`,
+  section B.1), and the in-game menu's opening, Escape, a click on the sea and the province view's close button.
+  The Statistics screen clears nothing where no country screen is open, so a battle's window stays under it.
+  **Built so since 2026-11-26**, on its being seen in play that only a unit took the window down. And the click
+  that selects a battle **lets go of everything first**, a selected province with the unit, so the province view
+  goes as the unit's panel does.
+- *Ours:* the window stands where the file puts it, which is where the unit panel is. The original hides
+  something when a battle opens that was not identified; by what is on screen it is the panel of the selected
+  unit.
 
 ## 2. The window
 

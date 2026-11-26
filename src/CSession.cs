@@ -863,6 +863,18 @@ public partial class CSession : Node
 		_combat.Setup(gui, _simulation, actor);
 		layer.AddChild(_combat);
 		_combat.Toggled += () => ShowProvince(_shownProvince);
+		// A battle is selected as a unit is, and its window is up only while it is: a province selected in its place,
+		// or everything let go - which a country screen's opening and closing, the in-game menu, Escape, a click on the
+		// sea and the province view's close button all do - takes it down, as the original's OnDeselected does
+		// (combatview.md, section 1). A unit selected in its place is heard below, with the unit.
+		_mapView.SelectionCleared += () => _combat?.Close();
+		_mapView.ProvinceSelected += province =>
+		{
+			if (province > 0)
+			{
+				_combat?.Close();
+			}
+		};
 		_combat.RetreatPressed += Retreat;
 		_unitPanel.CombatChosen += ShowCombat;
 		if (Player is not null)
@@ -1626,8 +1638,8 @@ public partial class CSession : Node
 	}
 
 	/// <summary>
-	/// A battle was chosen, by its marker or by its row in a unit's panel: the unit
-	/// selected is let go and the battle's window comes up. The map stays where it is -
+	/// A battle was chosen, by its marker or by its row in a unit's panel: everything
+	/// selected is let go, units and provinces, and the battle's window comes up. The map stays where it is -
 	/// decided on 2026-10-09 - where the original's row in a unit's panel
 	/// takes it to the province fought over.
 	/// </summary>
@@ -1637,7 +1649,8 @@ public partial class CSession : Node
 		{
 			return;
 		}
-		_mapView.SelectUnit(null);
+		// The original's click clears the selection and selects the battle: the province view goes with the unit's panel.
+		_mapView.ClearSelection();
 		_combat.Open(combat);
 		// Opening a battle's window closes the in-game menu, as its Close does (ingamemenu.md, section 2).
 		_menu?.Close();
