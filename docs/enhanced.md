@@ -251,7 +251,8 @@ names of keys and defines are proposals.
   every month - and that is not wanted here. **Built 2026-11-26**: `OPENHOI_WAR_EXHAUSTION_TO_NEUTRALITY` in the
   section `diplomacy`, nought turning the hand-over off; the figure still goes back to nought at peace.
 - **The AI's lending of units** - *decided*: a define stops the AI lending a unit to another country; a unit on loan
-  is still given back, which BiceLib's patch stops too.
+  is still given back, which BiceLib's patch stops too. **Built 2026-11-26**: `OPENHOI_AI_LENDS_UNITS` in the
+  section `military`, nought stopping the lending.
 - **A country's own conversion of energy into crude oil and of crude oil into fuel** - *decided*: a native setting,
   not country variables. Per country: for each of the two conversions whether it is the player's own, how much a day,
   how much of the source to keep and the level of the product to stop at - changed by a command of its own, kept in

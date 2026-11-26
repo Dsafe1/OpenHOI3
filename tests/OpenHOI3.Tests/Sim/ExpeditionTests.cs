@@ -66,6 +66,22 @@ public class ExpeditionTests
 	}
 
 	[Fact]
+	public void AnEnhancedGamesDefineStopsTheAiLendingAndAFaithfulGameDoesNotAskIt()
+	{
+		CGameState state = World().State;
+		Assert.True(OpenHOI3.Sim.Agents.CAiExpeditions.MayLend(state));
+		state.Defines.Set(OpenHOI3.Sim.Agents.CAiExpeditions.MilitarySection, OpenHOI3.Sim.Agents.CAiExpeditions.LendsDefine,
+			CFixedPoint.Zero);
+		Assert.True(OpenHOI3.Sim.Agents.CAiExpeditions.MayLend(state));
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		Assert.False(OpenHOI3.Sim.Agents.CAiExpeditions.MayLend(state));
+		state.Defines.Set(OpenHOI3.Sim.Agents.CAiExpeditions.MilitarySection, OpenHOI3.Sim.Agents.CAiExpeditions.LendsDefine,
+			CFixedPoint.One);
+		Assert.True(OpenHOI3.Sim.Agents.CAiExpeditions.MayLend(state));
+	}
+
+	[Fact]
 	public void AnAcceptedOfferMovesTheUnitAndAllUnderItToTheHost()
 	{
 		(CGameState state, CCountry england, CCountry france, CUnit corps, CUnit division) = World();

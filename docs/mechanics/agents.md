@@ -604,6 +604,12 @@ game's end. It is how the USA's Phillippine Force is the Philippines' by the fir
 by `AreaMayWidenFrontSearch` as these ask it: the holder on the country's side or fighting beside it, and then in exile, a
 priority province in the area or beside it against an enemy, or the holder unplayed.
 
+**An enhanced game's define** [mod: `defines.lua`, section `military`], a mod's choice after BiceLib's
+`disableInterAiExpeditionaries`: with `OPENHOI_AI_LENDS_UNITS = 0` the second branch is not taken - **no AI country
+lends a unit** - and the first stands, so a unit on loan still goes home. BiceLib's patch stops both. Not given, or
+given as anything else, it is the original's; a faithful game never asks. A player's lending, and a landless
+country's units (`expeditions.md`, section 6), are not touched.
+
 ## 11. Kept as the original does them
 
 - **The played country's agents exist and are never bound**, but for a headquarters the player hands over by the unit panel's box (`mapunits.md`, section 12); its other theatres carry no plan.

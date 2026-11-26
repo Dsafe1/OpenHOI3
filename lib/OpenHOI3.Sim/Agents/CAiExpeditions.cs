@@ -14,6 +14,22 @@ namespace OpenHOI3.Sim.Agents;
 /// </summary>
 public static class CAiExpeditions
 {
+	public const string MilitarySection = "military";
+
+	/// <summary>
+	/// An enhanced game's define, a mod's choice: given as nought, an AI country lends no unit to whoever holds the
+	/// ground it stands on. A unit on loan is still given back. Not given, or anything else, is the original's
+	/// (<c>docs/mechanics/agents.md</c>, section 10.5).
+	/// </summary>
+	public const string LendsDefine = "OPENHOI_AI_LENDS_UNITS";
+
+	/// <summary>Whether the AI lends units at all (<see cref="LendsDefine"/>).</summary>
+	public static bool MayLend(CGameState state)
+	{
+		return !state.Rules.Enhanced || !state.Defines.Has(MilitarySection, LendsDefine)
+			|| state.Defines[MilitarySection, LendsDefine].Raw != 0;
+	}
+
 	public static void Run(CGameState state, CCountry country, CAgent agent)
 	{
 		if (!country.UnitAi.RunsUnits)
@@ -21,6 +37,7 @@ public static class CAiExpeditions
 			return;
 		}
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
+		bool lends = MayLend(state);
 		foreach (CUnit unit in new List<CUnit>(agent.Land))
 		{
 			if (unit.Location <= 0 || network.AreaOf(unit.Location) is not { } area)
@@ -31,7 +48,7 @@ public static class CAiExpeditions
 			{
 				GiveBack(state, country, agent, unit, owner, area);
 			}
-			else
+			else if (lends)
 			{
 				Lend(state, country, agent, unit, area);
 			}
