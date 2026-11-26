@@ -515,7 +515,8 @@ each **summed over the unit's brigades** from the brigades' own figures, nothing
 ` -> ` and what the battle makes of it - the two attacks by the attack percentage above, the other two by the
 defend percentage, a landing's second scale in both - where that is not exactly one. So the block says what the
 two percentages are percentages of. Piercing and armour are left out: the lines above have them, and no modifier
-scales them. To one decimal.
+scales them. To one decimal. Three columns after the names - asked for on seeing the first build, 2026-11-26: the
+figures ending together, the arrows, and what they come to ending together.
 
 **The damage**, once the unit has dealt or taken any: the heading and a table - strength and organisation, dealt
 and taken, over **the battle** and over **the last hour** in which it dealt or took anything.

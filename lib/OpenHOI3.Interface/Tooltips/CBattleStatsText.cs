@@ -54,7 +54,8 @@ public static class CBattleStatsText
 			Row(localise(DefensivenessKey), CUnitTotals.Sum(unit, CUnitTotals.Defensiveness).Raw, defend),
 			Row(localise(ToughnessKey), CUnitTotals.Sum(unit, CSubUnitStats.Toughness).Raw, defend),
 		};
-		string text = "\n" + localise(HeadKey) + "\n" + CTextTable.Render(figures, Indent, measure);
+		// The figures end together, and so does what the battle makes of them, the arrows in a column between.
+		string text = "\n" + localise(HeadKey) + "\n" + CTextTable.Render(figures, Indent, measure, 1, 3);
 
 		if (unit.BattleDamage is not { IsEmpty: false } damage)
 		{
@@ -73,16 +74,19 @@ public static class CBattleStatsText
 		return text + "\n" + localise(DamageHeadKey) + "\n" + CTextTable.Render(rows, Indent, measure, 2, 3);
 	}
 
-	/// <summary>A figure's row: its name, and the figure - with what the modifier makes of it where that is not one.</summary>
+	/// <summary>
+	/// A figure's row: its name and the figure - and, where the modifier is not one, an arrow and what the modifier
+	/// makes of it, each a cell of its own so that they stand in columns.
+	/// </summary>
 	private static IReadOnlyList<string> Row(string caption, long figure, long modifier)
 	{
-		string value = Figure(figure);
-		if (modifier != CFixedPoint.Scale)
-		{
-			value += " -> " + Figure(figure * modifier / CFixedPoint.Scale);
-		}
-		return new[] { W + caption, value };
+		return modifier == CFixedPoint.Scale
+			? new[] { W + caption, Figure(figure) }
+			: new[] { W + caption, Figure(figure), W + Arrow, Figure(figure * modifier / CFixedPoint.Scale) };
 	}
+
+	/// <summary>Between a figure and what the battle makes of it: punctuation, as the heading's own is.</summary>
+	private const string Arrow = "->";
 
 	private static string Figure(long thousandths) => Y + CNumberText.Format(new CFixedPoint(thousandths), 1) + W;
 }

@@ -102,6 +102,7 @@ public class BattleTooltipTests
 		foreach (CSubUnit brigade in division.SubUnits)
 		{
 			brigade.Stats.Values.Set(CUnitTotals.SoftAttack, CFixedPoint.FromInt(3));
+			brigade.Stats.Values.Set(CUnitTotals.HardAttack, CFixedPoint.FromInt(6));
 			brigade.Stats.Values.Set(CUnitTotals.Defensiveness, CFixedPoint.Parse("4.5"));
 		}
 		division.CombatAttack = CFixedPoint.Parse("1.25");
@@ -121,11 +122,12 @@ public class BattleTooltipTests
 
 		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
 		// The figures summed over the brigades; beside each what the battle's modifier makes of it, where that is not one.
+		// Three columns after the names: the figures ending together, the arrows, and what they come to ending together.
 		Assert.Equal(original + "\n§YBase§W -> §Yeffective§W\n"
-			+ "  §WSoft Attack:    §Y6.0§W -> §Y7.5§W\n"
-			+ "  §WHard Attack:    §Y0.0§W -> §Y0.0§W\n"
-			+ "  §WDefensiveness:  §Y9.0§W\n"
-			+ "  §WToughness:      §Y0.0§W",
+			+ "  §WSoft Attack:     §Y6.0§W  §W->   §Y7.5§W\n"
+			+ "  §WHard Attack:    §Y12.0§W  §W->  §Y15.0§W\n"
+			+ "  §WDefensiveness:   §Y9.0§W\n"
+			+ "  §WToughness:       §Y0.0§W",
 			CBattleUnitTooltips.Unit(Given, state, combat, division, "name").Text);
 		// The bars' own tooltips are left alone, and a localisation without the lines leaves the whole.
 		Assert.DoesNotContain("Base", CBattleUnitTooltips.Unit(Given, state, combat, division, "str_bar").Text);
