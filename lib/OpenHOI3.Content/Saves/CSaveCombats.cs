@@ -191,6 +191,9 @@ public static class CSaveCombats
 				case "size" when entry.IsBlock:
 					ReadSize(state, side, entry, report, where);
 					break;
+				case SizeByTypeKey when entry.IsBlock:
+					ReadSizeByType(state, side, entry, report, where);
+					break;
 				case "tactic":
 					int number = (int)CSaveValues.Whole(entry.Value);
 					if (number >= 1 && number <= state.Tactics.Count)
@@ -273,6 +276,39 @@ public static class CSaveCombats
 			index++;
 		}
 	}
+
+	/// <summary>
+	/// An enhanced save's size of a side (<see cref="SizeByTypeKey"/>): the types the side has any of, each by its
+	/// name. It stands as the original's whole list does: what the joins counted of a type it does not name is
+	/// nought, as a nought in the list would make it. A name that is no unit type's is reported and left out.
+	/// </summary>
+	private static void ReadSizeByType(CGameState state, CCombatSide side, ClausewitzNode block, CSaveReport report, string where)
+	{
+		foreach (string counted in side.Size.Keys.ToList())
+		{
+			side.Size[counted] = CFixedPoint.Zero;
+		}
+		foreach (ClausewitzNode figure in block.Children)
+		{
+			if (figure.Key is not { } key || figure.IsBlock)
+			{
+				continue;
+			}
+			if (!state.SubUnitTypes.ContainsKey(key))
+			{
+				report.Unread(where, $"a size of no unit type known, {key}");
+				continue;
+			}
+			side.Size[key] = CSaveValues.Fixed(figure.Value);
+		}
+	}
+
+	/// <summary>
+	/// The key an enhanced save writes a side's size under, in the place of the original's <c>size</c>: a block of
+	/// <c>type = figure</c> for the types the side has any of. The original's list has a figure for every type of the
+	/// database, nearly all nought - 58 in Their Finest Hour, some 1,650 under BlackICE, about ten kilobytes a side.
+	/// </summary>
+	public const string SizeByTypeKey = "openhoi_size";
 
 	/// <summary>What a side's <c>size</c> calls the original's empty type, the first of its database.</summary>
 	public const string EmptyType = "---";
@@ -494,9 +530,29 @@ public static class CSaveCombats
 		writer.End();
 	}
 
-	/// <summary>A side's size: a figure for every type of the database, the empty type first, in the database's order.</summary>
+	/// <summary>
+	/// A side's size: a figure for every type of the database, the empty type first, in the database's order - the
+	/// original's, which a faithful game's save has to be. An enhanced game's, which the original never reads, names
+	/// the types the side has any of and no others, in the database's order (<see cref="SizeByTypeKey"/>); a side with
+	/// none writes the block empty, so that a load still sets what its joins counted to nought. Every figure is as
+	/// it was: nothing is added up.
+	/// </summary>
 	private static void WriteSize(CSaveTextWriter writer, CGameState state, CCombatSide side)
 	{
+		if (state.Rules.Enhanced)
+		{
+			writer.Begin(SizeByTypeKey);
+			foreach (CSubUnitType type in state.SubUnitTypes.Values.OrderBy(type => type.DatabaseIndex))
+			{
+				CFixedPoint figure = side.Size.GetValueOrDefault(type.Key);
+				if (figure.Raw != 0)
+				{
+					writer.Fixed(type.Key, figure);
+				}
+			}
+			writer.End();
+			return;
+		}
 		var figures = new CFixedPoint[state.SubUnitTypes.Values.Max(type => type.DatabaseIndex) + 1];
 		figures[0] = side.Size.GetValueOrDefault(EmptyType);
 		foreach (CSubUnitType type in state.SubUnitTypes.Values)

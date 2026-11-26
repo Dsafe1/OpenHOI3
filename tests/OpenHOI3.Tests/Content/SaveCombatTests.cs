@@ -231,6 +231,49 @@ public class SaveCombatTests
 	}
 
 	[Fact]
+	public void An_enhanced_save_names_the_types_a_side_has_any_of_and_reads_them_back_as_the_whole_list_would_stand()
+	{
+		CGameState state = State(out Dictionary<int, CUnit> units);
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		state.Province(2).Terrain = state.Terrains[0];
+		var combat = new CCombat(2);
+		combat.Attacker.Add(units[1]);
+		combat.Attacker.Add(units[2]);
+		combat.Defender.Add(units[3]);
+		// What a side holds is everything that ever joined, not what stands on it now.
+		combat.Attacker.Size["infantry_brigade"] = CFixedPoint.Parse("29985.5");
+		combat.Defender.Size["infantry_brigade"] = CFixedPoint.Zero;
+		state.Combats.Add(combat);
+
+		var writer = new CSaveTextWriter();
+		writer.OpenRoot();
+		CSaveCombats.Write(writer, state);
+		ClausewitzNode saved = ClausewitzParser.Parse(writer.Text).Get("combat")!.Get("land_combat")!;
+		ClausewitzNode attacker = saved.Get("attacker")!, defender = saved.Get("defender")!;
+		// No figure for every type: the two types the attacker has, in the database's order, each as it was.
+		Assert.Null(attacker.Get("size"));
+		Assert.Equal(new[] { ("Alpini_brigade", "300.000"), ("infantry_brigade", "29985.500") },
+			attacker.Get(CSaveCombats.SizeByTypeKey)!.Children.Select(figure => (figure.Key!, figure.Value!)));
+		// A side with none of anything still writes the block, empty.
+		Assert.Empty(defender.Get(CSaveCombats.SizeByTypeKey)!.Children);
+
+		// Loaded: the units join and are counted, and the saved figures stand in their place - nought where no type is named.
+		CGameState loaded = State(out Dictionary<int, CUnit> again);
+		loaded.Province(2).Terrain = loaded.Terrains[0];
+		var report = new CSaveReport();
+		CSaveCombats.Read(loaded, ClausewitzParser.Parse(writer.Text).Get("combat")!, again, new CSaveIds(), report);
+		CCombat back = Assert.Single(loaded.Combats);
+		Assert.Equal(CFixedPoint.Parse("29985.5"), back.Attacker.Size["infantry_brigade"]);
+		Assert.Equal(CFixedPoint.FromInt(300), back.Attacker.Size["Alpini_brigade"]);
+		Assert.Equal(CFixedPoint.Zero, back.Defender.Size.GetValueOrDefault("infantry_brigade"));
+		Assert.Empty(report.UnreadKeys);
+		// A name that is no unit type's is reported and left out.
+		CGameState other = State(out Dictionary<int, CUnit> others);
+		Read(other, others, "land_combat = { location = 2 day = 1 duration = 1 attacker = { dice = 1 openhoi_size = { cavalry = 5.000 } } defender = { dice = 1 } }", report);
+		Assert.Contains(report.UnreadKeys.Keys, key => key.Key.Contains("cavalry"));
+	}
+
+	[Fact]
 	public void A_side_counts_a_land_brigades_men_and_a_whole_ship_and_counts_a_unit_again_when_it_joins_again()
 	{
 		CGameState state = State(out Dictionary<int, CUnit> units);

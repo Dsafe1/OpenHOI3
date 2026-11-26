@@ -998,9 +998,28 @@ Ten whole numbers a unit: its number; the game's hour its last-hour figures are 
 hour's four, each strength dealt, strength taken, organisation dealt, organisation taken - what is dealt a
 thousand times finer than thousandths, the organisation taken summed over the unit's brigades. Read once the
 units and the battles are, each unit given its figures for the land battle it is in; a unit that is gone or in no
-land battle is passed over. **The `combat` block stays the original's.** Only units in a battle have figures, so
+land battle is passed over. **The `combat` block stays the original's but for a side's size, below.** Only units in a battle have figures, so
 the list is as long as the battles are large: some twenty kilobytes for a 1941 save's twenty battles. Display only,
 and not in the state's hash.
+
+**And a battle's side's `size` by the types it has** (`CSaveCombats.SizeByTypeKey`), in the place of the original's
+list:
+
+    openhoi_size=
+    {
+        Alpini_brigade=300.000
+        infantry_brigade=29985.000
+    }
+
+The original writes a figure for every unit type of the database, nearly all nought (section 7): 58 in Their
+Finest Hour and some 1,650 under BlackICE, where a side's list is about ten kilobytes. `size` is read by nothing
+but the battle's end message and the record of finished battles, which add it up - asked and answered so on
+2026-11-26, "Yes, build that for the enhanced save". So an enhanced save names **the types the side has any
+of**, in the database's order, each figure as it was: nothing is added up, and the message's count is the same to
+the man. A side with none writes the block empty. Read back it stands as the whole list does - what the joins
+counted of a type it does not name is nought - and a name that is no unit type's is reported and left out. A
+save with the original's `size` is read as before. **The first of the original's keys an enhanced save does not
+write**; a faithful game's save has the whole list, as the original reads it by position. **Measured** on BlackICE saved on 10 February 1936 with four land battles being fought (`OpenHOI3.SaveCheck reload`): the eight sides' blocks come to 1,388 bytes where the original's lists would be about 79,000, and no figure of a side differs after the load.
 
 ## 22. An enhanced save's record of finished battles
 
