@@ -570,8 +570,11 @@ public static class CTick
 			step(state);
 			return;
 		}
+		CTickProfile profile = state.Profile;
+		string was = profile.Begin(name);
 		long start = Stopwatch.GetTimestamp();
 		step(state);
-		state.Profile.Add(name, Stopwatch.GetTimestamp() - start);
+		profile.Add(name, Stopwatch.GetTimestamp() - start);
+		profile.End(was);
 	}
 }

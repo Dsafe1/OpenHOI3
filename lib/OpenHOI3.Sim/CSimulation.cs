@@ -486,14 +486,29 @@ public sealed class CSimulation
 			for (int waiting = _queue.Count; waiting > 0; waiting--)
 			{
 				CCommand command = _queue.Dequeue();
-				if (!command.MayExecute(State))
+				// Where a profile is kept, every order but the hour's own tick - whose steps are timed one by one - is
+				// timed as a part of one step, by its kind.
+				CTickProfile? profile = command is CHourlyTickCommand ? null : State.Profile;
+				long began = profile is null ? 0 : Stopwatch.GetTimestamp();
+				bool may = command.MayExecute(State);
+				long hoursBefore = State.TotalHours;
+				CDate before = State.Date;
+				if (may)
+				{
+					command.Execute(State);
+				}
+				if (profile is not null)
+				{
+					long took = Stopwatch.GetTimestamp() - began;
+					string was = profile.Begin(CTickProfile.OrdersStep);
+					profile.Add(CTickProfile.PartPrefix + command.GetType().Name, took);
+					profile.Add(CTickProfile.OrdersStep, took);
+					profile.End(was);
+				}
+				if (!may)
 				{
 					continue;
 				}
-
-				long hoursBefore = State.TotalHours;
-				CDate before = State.Date;
-				command.Execute(State);
 				executed++;
 				Executed++;
 
@@ -577,6 +592,9 @@ public sealed class CSimulation
 
 	private void RunOneHour()
 	{
+		// Timed whole where a profile is kept: the tick and the orders drained with it.
+		CTickProfile? profile = State.Profile;
+		long began = profile is null ? 0 : Stopwatch.GetTimestamp();
 		// A recording keeps how often the queue had been drained when the hour began; a replay first posts the players'
 		// commands that came before it and drains as far (docs/replay.md, section 8).
 		if (State.Replay is { } replay)
@@ -592,5 +610,6 @@ public sealed class CSimulation
 		}
 		Enqueue(new CHourlyTickCommand());
 		PumpCore();
+		profile?.AddHour(Stopwatch.GetTimestamp() - began, State.Hour == 0);
 	}
 }

@@ -1908,13 +1908,32 @@ public partial class CSession : Node
 	/// The mod's own windows as its Lua gives them, made the first time they are asked for, over the Lua state the
 	/// screens have for themselves; null where that state cannot be had, which is said once.
 	/// </summary>
+	/// <summary>
+	/// What the program says of itself to a mod's page that asks for the engine's timing (modwindows.md, section 6.5):
+	/// Godot's own monitors, each under a key the page words.
+	/// </summary>
+	private static IReadOnlyList<(string Key, double Value)> EngineFigures()
+	{
+		const double megabyte = 1048576.0;
+		return new (string, double)[]
+		{
+			("fps", Performance.GetMonitor(Performance.Monitor.TimeFps)),
+			("frame_ms", Performance.GetMonitor(Performance.Monitor.TimeProcess) * 1000.0),
+			("draw_calls", Performance.GetMonitor(Performance.Monitor.RenderTotalDrawCallsInFrame)),
+			("primitives", Performance.GetMonitor(Performance.Monitor.RenderTotalPrimitivesInFrame)),
+			("nodes", Performance.GetMonitor(Performance.Monitor.ObjectNodeCount)),
+			("memory_mb", Performance.GetMonitor(Performance.Monitor.MemoryStatic) / megabyte),
+			("video_memory_mb", Performance.GetMonitor(Performance.Monitor.RenderVideoMemUsed) / megabyte),
+		};
+	}
+
 	private Content.Windows.IModPages? ModWindows()
 	{
 		if (_modWindows is null && !_modWindowsFailed)
 		{
 			if (State.DisplayScripts?.Invoke() is CAiScripts scripts)
 			{
-				_modWindows = new CLuaWindows(scripts, _directories, _localisation.Localise);
+				_modWindows = new CLuaWindows(scripts, _directories, _localisation.Localise) { EngineFigures = EngineFigures };
 			}
 			else
 			{

@@ -282,6 +282,12 @@ if (args.Length > 0 && args[0] == "enhancedstart")
 	return CEnhancedStartLook.Run(args);
 }
 
+// The windows a mod defines, with no screen: which pages there are, and what one of them draws on a new game.
+if (args.Length > 0 && args[0] == "pages")
+{
+	return CPagesLook.Run(args);
+}
+
 // Factions on a new game, and a join or an invitation answered.
 if (args.Length > 0 && args[0] == "faction")
 {

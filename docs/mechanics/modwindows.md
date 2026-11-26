@@ -200,7 +200,8 @@ Under the global `OpenHOI3`, beside `Files`, `Enhanced` and `Fixes` (`mods.md`, 
   its modifier's and its technologies' `casualty_trickleback` together, held at nought, which is what a battle
   applies; nil for no country or no game;
 - `OpenHOI3.SetConversion(tag, which, own, per_day, keep, target)` - **an order**, section 6.1: `which` is `energy`
-  or `crude_oil`. Answers whether it was understood.
+  or `crude_oil`. Answers whether it was understood;
+- `OpenHOI3.Profile` - the engine's own timing, section 6.5.
 
 ### 6.1 A page that changes the game
 
@@ -275,6 +276,50 @@ overlay's was not. The layout the library keeps itself (section 7).
 
 More reads come page by page (`docs/enhanced.md`, *What mods build on*: modifier totals, a province's figures, a
 leader's state, the selection).
+
+### 6.5 The engine's own timing: `OpenHOI3.Profile`
+
+For a page that says where the engine's time goes - asked for on 2026-11-26, "a profiling page which details the
+time taken for different parts of the engine". BlackICE's is Engine Profiler, under its Debug tab. Nothing like it
+is in the original or in BiceLib.
+
+- **`OpenHOI3.Profile.Read()`**, asked in `Collect`: **asking starts the timing** - the game keeps a profile
+  (`CTickProfile`, the one `OpenHOI3.SaveCheck profile` has always set) from the first asking on, also while the
+  page is closed - and answers, nil for no game:
+
+  | | |
+  | --- | --- |
+  | `seconds` | how long the timing has run, in real seconds |
+  | `hours`, `hour_ms`, `hour_most` | the hours that turned no day: how many, their milliseconds together, the longest |
+  | `days`, `day_ms`, `day_most` | the same of the hours that turned a day |
+  | `last` | the last 240 hours' milliseconds, the oldest first |
+  | `steps` | every step, the longest first, each `{ name, ms, calls, part, parent }` |
+  | `engine` | what the program says of itself, by key |
+
+- **`OpenHOI3.Profile.Reset()`** forgets what was counted and begins again; **`OpenHOI3.Profile.Stop()`** ends the
+  timing. Both ask the game, so a page calls them in its `Collect`, a press noted while it draws.
+
+**An hour** is one hour as the simulation runs it, the orders it drains with it (`CSimulation.RunOneHour`).
+
+**A step** is one of the tick's, by the engine's own name for it - `Trade.CTradeAi.RunHourly`,
+`CSupplyPass.RunDaily` - which a page shows as it is: it is the name a developer looks the code up by, and no word
+for a player. **A part** (`part` true) is a piece of a step timed inside it, and `parent` names that step; it is
+counted in its step as well. **Parts that run side by side on several threads - the unit AI's - add up to more
+than their step**, which is the time that passed. **`the orders drained`** is a step of the simulation's own:
+every order an hour runs but its tick - the players' and the AI's - each kind of order a part of it by its class's
+name. What the steps do not come to is not timed: the events the clock raises for the screens, mostly.
+
+**The program's figures**, each under a key the page words: from Godot's own monitors `fps`, `frame_ms` (a
+frame's process time), `draw_calls`, `primitives`, `nodes`, `memory_mb`, `video_memory_mb` - given by the client
+(`CLuaWindows.EngineFigures`), so absent where there is no screen - and from the runtime `managed_mb`,
+`collections`, `collections_full` and `threads`, the processor's.
+
+**A profile is no part of a game**: it is not saved, not in the hash, and a game plays the same with one. It costs
+two readings of a clock a step and an order, so it is left running once asked for.
+
+Checked with `OpenHOI3.SaveCheck pages`, which draws a mod's page with no screen: on BlackICE's first three days
+the page's steps come to all but a hair of the hours' time, 44% of it the orders drained and 36% the AI's
+decisions among them. Not looked at on screen.
 
 ## 7. How it is drawn
 

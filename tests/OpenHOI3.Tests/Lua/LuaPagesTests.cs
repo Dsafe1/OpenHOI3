@@ -151,6 +151,64 @@ public sealed class LuaPagesTests : IDisposable
 	}
 
 	[Fact]
+	public void APageThatAsksForTheEnginesTimingStartsItAndReadsItsHoursStepsAndFigures()
+	{
+		Page("profile", "local ImGui = OpenHOI3.ImGui local wanted return { "
+			+ "Collect = function() if wanted == 'reset' then OpenHOI3.Profile.Reset() end "
+			+ "if wanted == 'stop' then OpenHOI3.Profile.Stop() return nil end return OpenHOI3.Profile.Read() end, "
+			+ "Draw = function(data) wanted = __wanted if data == nil then ImGui.Text('stopped') return end "
+			+ "ImGui.Text('hours ' .. data.hours .. ' days ' .. data.days .. ' last ' .. #data.last) "
+			+ "for _, step in ipairs(data.steps) do ImGui.Text(step.name .. ' ' .. step.calls .. ' ' .. tostring(step.part) .. ' [' .. step.parent .. ']') end "
+			+ "ImGui.Text('fps ' .. tostring(data.engine.fps) .. ' heap ' .. tostring(data.engine.managed_mb ~= nil)) end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			windows.EngineFigures = () => new[] { ("fps", 60.0) };
+			CGameState state = State();
+			var simulation = new CSimulation(state);
+			Assert.Null(state.Profile);
+
+			// The first asking starts the profile; nothing has run under it yet.
+			var canvas = new CRecordingCanvas();
+			windows.Collect(state, windows.Pages[0], Ger);
+			windows.Draw(windows.Pages[0], Ger, canvas);
+			Assert.NotNull(state.Profile);
+			Assert.Equal(new[] { "Text hours 0 days 0 last 0", "Text fps 60 heap true" }, canvas.Calls);
+
+			// A day and an hour: 24 hours that turn no day, one that does, each kept; and a step and a part of one.
+			simulation.RunHours(25);
+			state.Profile!.Steps.Clear();
+			// A part is the step's it was timed in; one timed in no step has none.
+			string was = state.Profile.Begin("CSupply.RunDaily");
+			state.Profile.Add(CTickProfile.PartPrefix + "the carrying", 2000);
+			state.Profile.Add("CSupply.RunDaily", 5000);
+			state.Profile.End(was);
+			state.Profile.Add("  of which loose", 1000);
+			canvas.Calls.Clear();
+			windows.Collect(state, windows.Pages[0], Ger);
+			windows.Draw(windows.Pages[0], Ger, canvas);
+			Assert.Equal(new[]
+			{
+				"Text hours 24 days 1 last 25", "Text CSupply.RunDaily 1 false []", "Text the carrying 1 true [CSupply.RunDaily]",
+				"Text loose 1 true []", "Text fps 60 heap true",
+			}, canvas.Calls);
+
+			// Reset forgets what was counted; Stop ends the profile.
+			scripts.Lua.SetGlobal("__wanted", "reset");
+			windows.Draw(windows.Pages[0], Ger, new CRecordingCanvas());
+			canvas.Calls.Clear();
+			windows.Collect(state, windows.Pages[0], Ger);
+			windows.Draw(windows.Pages[0], Ger, canvas);
+			Assert.Equal("Text hours 0 days 0 last 0", canvas.Calls[0]);
+			scripts.Lua.SetGlobal("__wanted", "stop");
+			windows.Draw(windows.Pages[0], Ger, new CRecordingCanvas());
+			windows.Collect(state, windows.Pages[0], Ger);
+			Assert.Null(state.Profile);
+			Assert.Empty(_reports);
+		}
+	}
+
+	[Fact]
 	public void APageReadsACountrysVariablesAndTheModifiersItWasGiven()
 	{
 		Page("inspect", "local ImGui = OpenHOI3.ImGui return { "

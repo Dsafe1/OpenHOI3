@@ -102,6 +102,24 @@ public sealed class CLuaWindows : IModPages
 		"elseif p[1] == 'R' and byId[tonumber(p[2])] ~= nil then local regiments = byId[tonumber(p[2])].regiments " +
 		"regiments[#regiments + 1] = { name = p[3], type = p[4], strength = tonumber(p[5]), organisation = tonumber(p[6]) } end end " +
 		"return units end " +
+		// The engine's own timing (modwindows.md, section 6.5): asking starts it, and it is read where the game is.
+		"local profile, profilereset, profilestop = __ohoi_w_profile, __ohoi_w_profile_reset, __ohoi_w_profile_stop " +
+		"__ohoi_w_profile, __ohoi_w_profile_reset, __ohoi_w_profile_stop = nil, nil, nil " +
+		"OpenHOI3.Profile = { " +
+		"Read = function() " +
+		"local seconds, hours, hour_ms, hour_most, days, day_ms, day_most, last, steps, figures = profile() " +
+		"if seconds == nil then return nil end " +
+		"local result = { seconds = seconds, hours = hours, hour_ms = hour_ms, hour_most = hour_most, " +
+		"days = days, day_ms = day_ms, day_most = day_most, last = {}, steps = {}, engine = {} } " +
+		"for value in string.gmatch(last, '%S+') do result.last[#result.last + 1] = tonumber(value) end " +
+		"for _, line in ipairs(lines(steps)) do " +
+		"local name, ms, calls, part, parent = string.match(line, '^(.*)\\t(.*)\\t(.*)\\t(.*)\\t(.*)$') " +
+		"result.steps[#result.steps + 1] = { name = name, ms = tonumber(ms), calls = tonumber(calls), part = part == '1', parent = parent } end " +
+		"for _, line in ipairs(lines(figures)) do local key, value = string.match(line, '^(.*)\\t(.*)$') " +
+		"result.engine[key] = tonumber(value) end " +
+		"return result end, " +
+		"Reset = function() profilereset() end, " +
+		"Stop = function() profilestop() end } " +
 		// The game's date, and a date as the number of its day and back: years of 365 days, as the game counts.
 		"local today, daynumber, dateof = __ohoi_w_today, __ohoi_w_daynumber, __ohoi_w_dateof " +
 		"__ohoi_w_today, __ohoi_w_daynumber, __ohoi_w_dateof = nil, nil, nil " +
@@ -198,6 +216,16 @@ public sealed class CLuaWindows : IModPages
 		lua.SetGlobal("__ohoi_w_dateof", (CLuaFunction)DateOf);
 		lua.SetGlobal("__ohoi_w_combattally", (CLuaFunction)CombatTally);
 		lua.SetGlobal("__ohoi_w_lastcombats", (CLuaFunction)LastCombats);
+		lua.SetGlobal("__ohoi_w_profile", (CLuaFunction)Profile);
+		lua.SetGlobal("__ohoi_w_profile_reset", (CLuaFunction)(call => { _state?.Profile?.Clear(); return 0; }));
+		lua.SetGlobal("__ohoi_w_profile_stop", (CLuaFunction)(call =>
+		{
+			if (_state is { } game)
+			{
+				game.Profile = null;
+			}
+			return 0;
+		}));
 		if (!scripts.RunChunk(Encoding.Latin1.GetBytes(Glue), "=OpenHOI3"))
 		{
 			return;
@@ -650,6 +678,56 @@ public sealed class CLuaWindows : IModPages
 				.Append(report.Province).Append('\n');
 		}
 		return call.Return(text.ToString());
+	}
+
+	/// <summary>
+	/// What the program that shows the pages says of itself - frames a second, a frame's time, memory, what is drawn -
+	/// each by a key a page words; given by the screen, which knows the engine this library does not.
+	/// </summary>
+	public Func<IReadOnlyList<(string Key, double Value)>>? EngineFigures { get; set; }
+
+	/// <summary>
+	/// The engine's own timing as a page reads it (<c>docs/mechanics/modwindows.md</c>, section 6.5): **asking starts
+	/// it** - the game keeps a profile from the first asking on, which costs two readings of a clock a step - and
+	/// answers the seconds since it began; the hours that turned no day, their milliseconds together and the longest;
+	/// the same of the hours that turned a day; the last hours' milliseconds, the oldest first; every step, the longest
+	/// first, a line each of name, milliseconds, runs, whether it is a part of another and of which; and the program's own
+	/// figures, a line each of key and value. Nothing for no game. A profile is no part of a game: it is not saved,
+	/// not in the hash, and a game plays the same with one.
+	/// </summary>
+	private int Profile(CLuaCall call)
+	{
+		if (_state is not { } state)
+		{
+			return 0;
+		}
+		CTickProfile profile = state.Profile ??= new CTickProfile();
+		double perMs = System.Diagnostics.Stopwatch.Frequency / 1000.0;
+		string Ms(long ticks) => (ticks / perMs).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
+		CTickProfileHours hours = profile.Hours();
+		var steps = new StringBuilder();
+		foreach ((string name, long ticks, int calls, string parent) in profile.Snapshot())
+		{
+			steps.Append(CTickProfile.PartName(name)).Append('\t').Append(Ms(ticks)).Append('\t').Append(calls).Append('\t')
+				.Append(CTickProfile.IsPart(name) ? '1' : '0').Append('\t').Append(parent).Append('\n');
+		}
+		var figures = new StringBuilder();
+		void Figure(string key, double value) => figures.Append(key).Append('\t')
+			.Append(value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)).Append('\n');
+		foreach ((string key, double value) in EngineFigures?.Invoke() ?? Array.Empty<(string, double)>())
+		{
+			Figure(key, value);
+		}
+		// The program's own heap, which this library can read for itself.
+		Figure("managed_mb", GC.GetTotalMemory(false) / 1048576.0);
+		Figure("collections", GC.CollectionCount(0));
+		Figure("collections_full", GC.CollectionCount(2));
+		Figure("threads", Environment.ProcessorCount);
+		return call.ReturnMany(
+			(System.Diagnostics.Stopwatch.GetTimestamp() - profile.Started) / (double)System.Diagnostics.Stopwatch.Frequency,
+			(double)hours.Plain, hours.PlainTicks / perMs, hours.PlainMost / perMs,
+			(double)hours.Turning, hours.TurningTicks / perMs, hours.TurningMost / perMs,
+			string.Join(" ", hours.Last.Select(Ms)), steps.ToString(), figures.ToString());
 	}
 
 	/// <summary>Whether a page asked, as it drew, to gather again at once.</summary>
