@@ -21,9 +21,9 @@ defaults are the original's constructors' [exe]. A number is a figure, not thous
 | `gui = { language }` | `l_english` | read; nothing uses it yet |
 | `gui = { has_set_language }` | no | read and written |
 | `graphics = { size = { x y } }` | 1024 x 768 | **a width under 1024 is made 1024 and a height under 768 is made 768** [exe]; the original's constructor takes the desktop's size, which nothing here asks. Not applied: the game options window's resolution (`gameoptions.md`, *Ours*) |
-| `graphics = { refreshRate fullScreen shadows anisotropic_filtering adapter vsync debugmonitor }` | 60, yes, no, 0, 0, yes, no | read and written; not applied |
+| `graphics = { refreshRate fullScreen shadows anisotropic_filtering adapter vsync debugmonitor }` | 60, yes, no, 0, 0, yes, no | read and written; not applied. **`fullScreen` is not what the window goes by**: the window's mode is a choice of three kept in `openhoi_settings.txt` (`gameoptions.md`, section 3) |
 | `graphics = { shadowSize }` | 2048 | **held to 256 under 1 and to 4096 above it** [exe]; not applied |
-| `graphics = { multi_sampling }` | 0 | **applied as a session starts**: 2, 4 or 8 samples, the engine's - a count between taken down |
+| `graphics = { multi_sampling }` | 0 | **applied as a session starts**: 2, 4 or 8 samples, the engine's - a count between taken down. No row of the game options chooses it since 2026-11-26, the window's mode standing where it was (`docs/compatibility.md`, entry 33); the file's figure is kept |
 | `graphics = { gamma }` | 50 | **applied**: the screen scaled by a fiftieth of it, held to 0.1 and 1.9 (`gameoptions.md`, section 3) |
 | `sound_fx_volume`, `music_volume`, `master_volume` | 100 | read and written; there is no sound |
 | `scroll_speed`, `zoom_speed`, `mouse_speed` | 50 | read and written; `zoom_speed` sizes a wheel notch and its pull towards the pointer as the original's (`mapunits.md`, section 7), the other two not used |

@@ -1306,9 +1306,13 @@ public partial class CSession : Node
 		// and opening it lets the selection go and shuts the side menus and a country view (docs/mechanics/ingamemenu.md).
 		// Its Game Options window holds the player's settings (docs/mechanics/gameoptions.md).
 		var options = new CGameOptionsWindow();
-		options.Setup(gui, () => Settings, settings => Settings = settings, DisplayModes(), new[] { 2, 4, 8 },
+		options.Setup(gui, () => Settings, settings => Settings = settings, DisplayModes(),
 			(Settings.Width, Settings.Height, Settings.RefreshRate));
 		options.SettingsPath = Content.Settings.CUserSettingsReader.DefaultPath(_directories);
+		// The window's mode is kept in this engine's own file in any game; the copy held here follows it, so that a
+		// later write of that file - a mod's window key, a palette - does not put the old mode back.
+		options.OwnSettingsPath = Content.Settings.CEnhancedSettingsFile.DefaultPath(_directories);
+		options.WindowModeStored += mode => EnhancedSettings = EnhancedSettings with { WindowMode = mode };
 		options.GammaPreviewed += scale => _brightness?.SetBrightness(scale);
 		options.Applied += ApplySettings;
 		// An enhanced game's own options, on the Game tab below the autosave frequency (gameoptions.md, section 5).

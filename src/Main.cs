@@ -223,6 +223,14 @@ public partial class Main : Control
 		// The title theme from the load's first moment, as the original starts it before its first loading frame
 		// (docs/mechanics/music.md, section 3). The settings it is played by are the screen's that has them, else the file's.
 		_startSettings = Content.Settings.CUserSettingsReader.Read(Content.Settings.CUserSettingsReader.DefaultPath(directories));
+		// The window as the player last chose it on the game options' Video tab - where one was chosen: with none the
+		// window stays as the system opened it. Not under the editor, whose runs are a developer's and stay windows
+		// (docs/mechanics/gameoptions.md, section 3).
+		if (!OS.HasFeature("editor")
+			&& Content.Settings.CEnhancedSettingsFile.Read(Content.Settings.CEnhancedSettingsFile.DefaultPath(directories)).WindowMode is { } windowMode)
+		{
+			Screens.CGameOptionsWindow.ApplyWindowMode(windowMode);
+		}
 		_music = new Audio.CMusic { Name = "Music" };
 		_music.Setup(directories, () => _session?.Settings ?? _frontEnd?.Settings ?? _startSettings);
 		_music.GameBusy = () => _session?.GameBusy == true;

@@ -12,9 +12,14 @@ namespace OpenHOI3.Content.Settings;
 /// <param name="TimedMinutes">The autosave on a timer: every so many minutes of real time, 1 to 240, or nought for none.</param>
 /// <param name="EdgeScrolling">Whether the map moves with the pointer at the screen's edge, as the original's always does.</param>
 /// <param name="EventWindow">Where a country event's window comes up.</param>
+/// <param name="WindowMode">
+/// How the game's window stands on the screen, in any game, a faithful one too; null until the player has chosen,
+/// and the window is then left as the system opened it.
+/// </param>
 public sealed record CEnhancedSettings(int PreMonthDays = 0, int TimedMinutes = 0, bool EdgeScrolling = true,
 	EEventWindowPlace EventWindow = EEventWindowPlace.AsFiled, string WindowKey = CEnhancedSettings.DefaultWindowKey,
-	string WindowTheme = CEnhancedSettings.DefaultWindowTheme, string MapPalette = CEnhancedSettings.DefaultMapPalette)
+	string WindowTheme = CEnhancedSettings.DefaultWindowTheme, string MapPalette = CEnhancedSettings.DefaultMapPalette,
+	EWindowMode? WindowMode = null)
 {
 	/// <summary>The most days before the month's end: the 27 that keep the day inside February.</summary>
 	public const int MostDays = 27;

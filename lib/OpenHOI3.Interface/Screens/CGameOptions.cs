@@ -7,46 +7,39 @@ namespace OpenHOI3.Interface.Screens;
 
 /// <summary>
 /// What the game options window holds between its opening and Apply, and the original's rules for it: the autosave
-/// frequency, the display mode, the refresh rate and the multisampling stepped round with their text, the Video tab's
+/// frequency, the display mode and the refresh rate stepped round with their text, the Video tab's
 /// boxes and sliders, and what Apply stores into the settings and whether it asks for a restart - the original's two slips
-/// with them, the refresh rate looked for among the first mode's rates. See <c>docs/mechanics/gameoptions.md</c>.
+/// with them, the refresh rate looked for among the first mode's rates. <b>The row that was the original's
+/// multisampling is the window's mode here</b> - full screen, windowed, borderless - by the decision of 2026-11-26
+/// (<c>docs/compatibility.md</c>, entry 33); the samples stay what the settings file says.
+/// See <c>docs/mechanics/gameoptions.md</c>.
 /// </summary>
 public sealed class CGameOptions
 {
-	/// <summary>The sample counts the original tries, two to sixteen.</summary>
-	public static readonly IReadOnlyList<int> SampleCounts = new[] { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+	/// <summary>The window's modes in the order the row's buttons step through them.</summary>
+	public static readonly IReadOnlyList<EWindowMode> WindowModes = new[]
+	{
+		EWindowMode.Fullscreen, EWindowMode.Windowed, EWindowMode.Borderless,
+	};
+
+	/// <summary>The row's heading: a mod's text where it has the key, else ours.</summary>
+	public const string WindowModeLabelKey = "OPENHOI_WINDOW_MODE";
 
 	private readonly IReadOnlyList<CDisplayMode> _modes;
-	private readonly List<int> _supported = new();
 
 	/// <param name="modes">The screen's modes, at least one; their order is the buttons' order.</param>
-	/// <param name="supportedSamples">The sample counts that may be had, in any order; none, and multisampling is greyed.</param>
-	public CGameOptions(IReadOnlyList<CDisplayMode> modes, IEnumerable<int> supportedSamples, CUserSettings settings)
+	public CGameOptions(IReadOnlyList<CDisplayMode> modes, CUserSettings settings)
 	{
 		if (modes.Count == 0)
 		{
 			throw new ArgumentException("a screen has at least one mode", nameof(modes));
 		}
 		_modes = modes;
-		foreach (int count in SampleCounts)
-		{
-			foreach (int supported in supportedSamples)
-			{
-				if (supported == count)
-				{
-					_supported.Add(count);
-					break;
-				}
-			}
-		}
 		// The autosave choice is read from the settings once, as the window is made, and never again.
 		Autosave = Math.Max(Array.IndexOf(CUserSettingsReader.AutosaveNames, settings.Autosave), 0);
 	}
 
 	public IReadOnlyList<CDisplayMode> Modes => _modes;
-
-	/// <summary>Whether multisampling's buttons may be pressed: not where the screen supports no count.</summary>
-	public bool MultisamplingAvailable => _supported.Count > 0;
 
 	/// <summary>The autosave frequency chosen, nought to five, which outlives Back.</summary>
 	public int Autosave { get; private set; }
@@ -55,8 +48,11 @@ public sealed class CGameOptions
 
 	public int Rate { get; private set; }
 
-	/// <summary>The samples chosen, nought for none.</summary>
-	public int Multisample { get; private set; }
+	/// <summary>
+	/// The window's mode chosen; set by the window at each opening - the one stored, else the one the window is in -
+	/// and put in force and stored at Apply.
+	/// </summary>
+	public EWindowMode WindowMode { get; set; } = EWindowMode.Windowed;
 
 	/// <summary>The last mode and rate Apply asked a restart for, shown in brackets; null before one.</summary>
 	public (int Mode, int Rate)? Pending { get; private set; }
@@ -83,7 +79,6 @@ public sealed class CGameOptions
 	{
 		Mode = RunningMode(runningWidth, runningHeight);
 		Rate = RateIndex(Mode, settings.RefreshRate);
-		Multisample = settings.MultiSampling >= 2 && _supported.Contains(settings.MultiSampling) ? settings.MultiSampling : 0;
 		Trees = settings.RenderTrees;
 		AdvancedWater = !settings.SimpleWater;
 		Hierarchy = settings.RenderHierarchy;
@@ -122,22 +117,43 @@ public sealed class CGameOptions
 		Rate = Wrap(Rate + by, Math.Max(_modes[Mode].Rates.Count, 1));
 	}
 
-	/// <summary>A multisampling button: the next count that may be had, nought between the greatest and the least.</summary>
-	public void StepMultisample(int by)
+	/// <summary>A button of the window mode's row: the next mode round, either way.</summary>
+	public void StepWindowMode(int by)
 	{
-		if (_supported.Count == 0)
+		int at = 0;
+		for (int i = 0; i < WindowModes.Count; i++)
 		{
-			return;
+			if (WindowModes[i] == WindowMode)
+			{
+				at = i;
+			}
 		}
-		int at = _supported.IndexOf(Multisample);
-		if (by > 0)
-		{
-			Multisample = Multisample == 0 ? _supported[0] : at < 0 || at == _supported.Count - 1 ? 0 : _supported[at + 1];
-		}
-		else
-		{
-			Multisample = Multisample == 0 ? _supported[^1] : at <= 0 ? 0 : _supported[at - 1];
-		}
+		WindowMode = WindowModes[Wrap(at + by, WindowModes.Count)];
+	}
+
+	/// <summary>A window mode's text key, which a mod may give words: <c>OPENHOI_WINDOW_MODE_BORDERLESS</c>.</summary>
+	public static string WindowModeKey(EWindowMode mode) => mode switch
+	{
+		EWindowMode.Fullscreen => "OPENHOI_WINDOW_MODE_FULLSCREEN",
+		EWindowMode.Borderless => "OPENHOI_WINDOW_MODE_BORDERLESS",
+		_ => "OPENHOI_WINDOW_MODE_WINDOWED",
+	};
+
+	/// <summary>The row's heading: the key's text where a table has it - the original's have not - else "Window Mode".</summary>
+	public static string WindowModeLabel(Func<string, string> localise) => Worded(localise, WindowModeLabelKey, "Window Mode");
+
+	/// <summary>The mode chosen as the row writes it.</summary>
+	public string WindowModeText(Func<string, string> localise) => Worded(localise, WindowModeKey(WindowMode), WindowMode switch
+	{
+		EWindowMode.Fullscreen => "Fullscreen",
+		EWindowMode.Borderless => "Borderless Window",
+		_ => "Windowed",
+	});
+
+	private static string Worded(Func<string, string> localise, string key, string ours)
+	{
+		string text = localise(key);
+		return text == key || text.Length == 0 ? ours : text;
 	}
 
 	/// <summary>The resolution as the window writes it, with the one a restart waits for in brackets.</summary>
@@ -153,22 +169,15 @@ public sealed class CGameOptions
 		return Pending is { } pending ? text + " (" + Hz(RateOf(pending.Mode, pending.Rate)) + ")" : text;
 	}
 
-	public string MultisampleText() => Multisample.ToString(CultureInfo.InvariantCulture);
-
 	/// <summary>
 	/// Apply's store: every choice into the settings - the slider values given as they stand - and whether a restart is
-	/// asked, which only a changed mode, rate or multisampling asks.
+	/// asked, which only a changed mode or rate asks. The samples are left as the settings have them, no row choosing
+	/// them; the window's mode is not the settings' and is the window's to store.
 	/// </summary>
 	public (CUserSettings Settings, bool Restart) Apply(CUserSettings settings, CGameOptionsSliders sliders,
 		int runningWidth, int runningHeight, int runningRate)
 	{
 		bool restart = false;
-		int multisample = settings.MultiSampling;
-		if (Multisample != settings.MultiSampling)
-		{
-			multisample = Multisample;
-			restart = true;
-		}
 		int runningMode = RunningMode(runningWidth, runningHeight);
 		int running = RateIndex(Mode, runningRate);
 		if (Mode != runningMode || Rate != running)
@@ -199,7 +208,6 @@ public sealed class CGameOptions
 			ScrollSpeed = sliders.ScrollSpeed <= 5f ? 5f : sliders.ScrollSpeed,
 			ZoomSpeed = sliders.ZoomSpeed <= 1f ? 1f : sliders.ZoomSpeed,
 			UseLegacyCamera = sliders.LegacyCameraTicked,
-			MultiSampling = multisample,
 			Width = mode.Width,
 			Height = mode.Height,
 			RefreshRate = RateOf(Mode, Rate),

@@ -19,7 +19,7 @@ public class GameOptionsTests
 	[Fact]
 	public void The_autosave_frequency_wraps_both_ways_and_is_read_once()
 	{
-		var options = new CGameOptions(Modes, new[] { 2, 4 }, CUserSettings.Default with { Autosave = "FIVE_YEAR" });
+		var options = new CGameOptions(Modes, CUserSettings.Default with { Autosave = "FIVE_YEAR" });
 
 		options.StepAutosave(1);
 		Assert.Equal("NEVER", options.AutosaveKey);
@@ -33,7 +33,7 @@ public class GameOptionsTests
 	[Fact]
 	public void The_rate_is_looked_for_among_the_first_modes_rates_as_the_original_does()
 	{
-		var options = new CGameOptions(Modes, new[] { 2 }, Settings);
+		var options = new CGameOptions(Modes, Settings);
 
 		options.Refresh(Settings, 1920, 1080);
 
@@ -46,7 +46,7 @@ public class GameOptionsTests
 	[Fact]
 	public void A_changed_resolution_asks_a_restart_and_brackets_it_and_the_rate_starts_again()
 	{
-		var options = new CGameOptions(Modes, new[] { 2 }, Settings);
+		var options = new CGameOptions(Modes, Settings);
 		options.Refresh(Settings, 1920, 1080);
 		options.StepMode(1);                                           // wraps to the first
 
@@ -58,26 +58,33 @@ public class GameOptionsTests
 	}
 
 	[Fact]
-	public void Multisampling_goes_round_the_supported_counts_through_nought_and_only_a_change_asks_a_restart()
+	public void The_window_mode_goes_round_its_three_in_our_words_or_a_mods_and_asks_no_restart()
 	{
-		var options = new CGameOptions(Modes, new[] { 8, 2, 4 }, Settings);
+		var options = new CGameOptions(Modes, Settings);
 		options.Refresh(Settings, 1920, 1080);
+		string Missing(string key) => key;                             // the original's tables have none of the keys
+		options.WindowMode = EWindowMode.Windowed;
 
-		options.StepMultisample(1);
-		Assert.Equal("2", options.MultisampleText());
-		options.StepMultisample(-1);
-		options.StepMultisample(-1);
-		Assert.Equal("8", options.MultisampleText());
-		options.StepMultisample(1);
-		Assert.Equal("0", options.MultisampleText());
+		Assert.Equal("Window Mode", CGameOptions.WindowModeLabel(Missing));
+		Assert.Equal("Windowed", options.WindowModeText(Missing));
+		options.StepWindowMode(1);
+		Assert.Equal("Borderless Window", options.WindowModeText(Missing));
+		options.StepWindowMode(1);                                     // round to the first
+		Assert.Equal("Fullscreen", options.WindowModeText(Missing));
+		options.StepWindowMode(-1);
+		Assert.Equal(EWindowMode.Borderless, options.WindowMode);
+		Assert.Equal("Randlos", options.WindowModeText(key => key == "OPENHOI_WINDOW_MODE_BORDERLESS" ? "Randlos" : key));
 
-		Assert.False(new CGameOptions(Modes, new int[0], Settings).MultisamplingAvailable);
+		// The samples are no row's any more: Apply leaves them as the settings have them, and asks no restart for a mode.
+		(CUserSettings stored, bool restart) = options.Apply(Settings with { MultiSampling = 4 }, Sliders, 1920, 1080, 144);
+		Assert.False(restart);
+		Assert.Equal(4, stored.MultiSampling);
 	}
 
 	[Fact]
 	public void Apply_stores_the_choices_the_distance_five_times_its_slider_and_the_least_speeds()
 	{
-		var options = new CGameOptions(Modes, new[] { 2 }, Settings);
+		var options = new CGameOptions(Modes, Settings);
 		options.Refresh(Settings, 1920, 1080);
 		options.CounterDistanceMoved(CGameOptions.CounterDistanceSlider(500f));
 		options.Trees = false;

@@ -221,8 +221,9 @@ public partial class CFrontEnd : Node
 		_lobbyOptions.Imported += () => _lobby.ShowSavedGames();
 		_options = new CGameOptionsWindow();
 		_options.Setup(_gui, () => Settings, settings => Settings = settings, CGameOptionsWindow.DisplayModes(Settings),
-			new[] { 2, 4, 8 }, (Settings.Width, Settings.Height, Settings.RefreshRate), CGameOptionsWindow.FrontEndWindowName);
+			(Settings.Width, Settings.Height, Settings.RefreshRate), CGameOptionsWindow.FrontEndWindowName);
 		_options.SettingsPath = CUserSettingsReader.DefaultPath(_directories);
+		_options.OwnSettingsPath = CEnhancedSettingsFile.DefaultPath(_directories);
 		// An enhanced game's own options with them, kept in their own file; a game reads it as it starts (gameoptions.md, section 5).
 		if (Content.Rules.CRulesReader.IsEnhanced(_directories))
 		{

@@ -31,8 +31,8 @@ confirmed in the original the same day. `confirmed` unless marked.
 1. **every tab's choices into the settings** - the Video tab's boxes and sliders, the autosave frequency, the gamma, the
    volumes (and they become what Back puts back), scroll speed and zoom speed, `counters_checkbox` and
    `legacy_camera_checkbox` as they stand;
-2. **whether a restart is asked**: where the multisampling chosen is not the settings', or the mode or the refresh rate
-   chosen is not the one the game runs at. The running rate is looked for **among the first mode's rates**, as far as the
+2. **whether a restart is asked**: where the mode or the refresh rate chosen is not the one the game runs at - and, in
+   the original, where the multisampling chosen is not the settings', which no row chooses here (section 3). The running rate is looked for **among the first mode's rates**, as far as the
    chosen mode has rates - the original's slip, which can ask a restart with nothing changed where the first mode's
    rates are not the running mode's. The size and rate chosen are stored either way. **Nothing changes the screen**: they
    take effect at the next start;
@@ -62,7 +62,7 @@ the frequency the autosave goes by from the next day on (`savegame.md`, section 
 | --- | --- | --- | --- |
 | `resolution_value` and its buttons | `graphics.size` | the screen's modes in their order, wrapping; a change sets the rate back to the mode's first. Text `1920x1080`, and while a restart is waiting the one asked for in brackets, `1920x1080 (1600x900)` | the next start |
 | `refreshrate_value` and its buttons | `graphics.refreshRate` | the chosen mode's own rates, wrapping. Text `60 Hz`, bracketed as above | the next start |
-| `multisample_value` and its buttons | `graphics.multi_sampling` | the sample counts the screen supports, **nought between the greatest and the least**; the bare number; both buttons greyed where none is supported | the next start |
+| `multisample_value` and its buttons | **ours: the window's mode**, `window_mode` in `openhoi_settings.txt` | below. In the original the row is `graphics.multi_sampling`: the sample counts the screen supports, nought between the greatest and the least, the bare number, both buttons greyed where none is supported, at the next start | **at Apply, at once**, and at every start after |
 | `gamma_slider` | `graphics.gamma` | 0 to 100, step 1 [mod: settings.gui]; the screen scaled by **value / 50, held to 0.1 and 1.9**, every channel and cut at full - a brightness scale, not a power curve; 50 is the screen as it is | **at once, as it moves**; stored at Apply. **Back does not undo it** - the next opening puts the stored one back |
 | `counter_slider` ("Counter Dist.") | `counter_distance` | 0 to 100 [mod: settings.gui]; **the distance is five times it**, 0 to 500 | at Apply |
 | `counter_scale_slider` | `counter_scale` | 0 to 2, step 0.1 [mod: settings.gui] | at Apply |
@@ -74,6 +74,42 @@ the frequency the autosave goes by from the next day on (`savegame.md`, section 
 
 Looks wrong and is the original's: the slider's position comes of the distance through the slider's own report, so a
 `settings.gui` without `counter_slider` makes every Apply multiply the distance by five.
+
+**The window's mode stands where the original has its multisampling**, in every game, a faithful one too - decided
+2026-11-26: "Window modes. Fullscreen, Windowed, Borderless Window. I think we can place the setting in the video
+category by replacing the 'multisample level' setting" (`docs/compatibility.md`, entry 33). Ours throughout:
+
+- **The row is the original's own elements**, found by their names as ever - `multisample_label`,
+  `multisample_value`, `decrease_multisample_button`, `increase_multisample_button` - so a mod's `settings.gui` lays
+  it out as it lays out the original's. The heading's text is set over the file's `SM_MULTISAMPLE`: the text of
+  `OPENHOI_WINDOW_MODE` where a table has that key, else "Window Mode". The value is the text of
+  `OPENHOI_WINDOW_MODE_FULLSCREEN`, `_WINDOWED` or `_BORDERLESS`, else "Fullscreen", "Windowed", "Borderless
+  Window". The original's tables have none of the four keys; a mod may give them words.
+- **The buttons go round the three**, in that order, either way, never greyed (`CGameOptions.StepWindowMode`).
+- **What each is** (`CGameOptionsWindow.ApplyWindowMode`): *Fullscreen* is the screen for the game alone, the
+  engine's exclusive full screen; *Borderless Window* is a window with no frame over the whole screen, the engine's
+  plain full screen, with the other programs a key away; *Windowed* is a framed window, made as large as the
+  screen allows where it would otherwise not fit on it. The screen's size and rate are never changed: the
+  resolution and refresh rate rows are stored and not applied, as before (*Ours*).
+- **At each opening** the row shows the mode stored, or - none stored - the mode the window is in.
+- **Apply puts it in force at once, with no restart asked**, and stores it where it is a choice: another than the
+  one stored, or, with none stored, another than the window was in. So a player who never touches the row has no
+  mode stored, and the window is left as the system opens it.
+- **It is kept in `openhoi_settings.txt`**, this engine's own file beside `settings.txt` (section 5), as
+  `window_mode = fullscreen`, `windowed` or `borderless` - in a faithful game too, which reads nothing else of that
+  file; the other keys are written back as they were. The original's `fullScreen` is left as it is, read and
+  written and not applied: `settings.txt` is the original's too, and a third value there would be its to
+  misread. A failure to write is told as the settings' own is.
+- **At the start** the program reads the key and puts the window in that mode before the first screen
+  (`Main._Ready`) - only where one is stored, and **not when run from the editor**, whose runs are a developer's and
+  the scripted checks' and stay windows.
+- **The samples** are what `settings.txt` says, applied as a session starts as before, and written back
+  unchanged; no row chooses them. They smooth the stair-stepped edges of what is drawn, at a cost in frame rate.
+
+Tried with `--click` on 2026-11-26: the row under its heading, the arrows stepping it, and Apply on Borderless
+Window covering the whole screen and storing the key with the file's other keys kept. "Borderless Window" just
+fits between the row's arrows in the original's layout. Not tried: Fullscreen, and the start reading the key,
+which only an exported game does.
 
 ### Audio
 
@@ -162,8 +198,9 @@ timer goes by steps. Its event window choice rewrites the mod's own interface fi
   order. Here the list is the size and rate the settings name - with the screen's own rate beside it where the screen is
   that size - and the screen's own size where it is another, and the game is taken to run at what the settings name. The
   sample counts that may be had are 2, 4 and 8, the engine's.
-- **What waits on a start is not applied at one**: OpenHOI3 opens in the window it is given and does not take its size,
-  rate or full screen from the settings. Multisampling it does take, at the session's start.
+- **What waits on a start is not applied at one**: OpenHOI3 does not take its size, rate or full screen from the
+  settings. Multisampling it does take, at the session's start. **The window's mode is the player's own choice on
+  the Video tab** (section 3), kept in a file of ours; with none chosen the game opens in the window it is given.
 - **The settings nothing here drives yet** are kept, shown and written all the same: the scroll and mouse
   speeds. `settings.md`, section 1, says of each setting whether it is applied and from when; this list named the
   volumes, the zoom speed, the legacy camera, the trees, the water, the unit names and the counter distance and scale

@@ -24,6 +24,26 @@ public class EnhancedOptionsTests
 	// --- the file ---
 
 	[Fact]
+	public void The_window_mode_is_written_only_once_chosen_and_read_back()
+	{
+		var warnings = new List<string>();
+		Assert.DoesNotContain("window_mode", CEnhancedSettingsFile.Write(CEnhancedSettings.Default));
+		Assert.Null(CEnhancedSettingsFile.Parse(CEnhancedSettingsFile.Write(CEnhancedSettings.Default), "test", warnings.Add).WindowMode);
+
+		foreach (EWindowMode mode in new[] { EWindowMode.Fullscreen, EWindowMode.Windowed, EWindowMode.Borderless })
+		{
+			CEnhancedSettings chosen = CEnhancedSettings.Default with { WindowMode = mode };
+			Assert.Equal(chosen, CEnhancedSettingsFile.Parse(CEnhancedSettingsFile.Write(chosen), "test", warnings.Add));
+		}
+		Assert.Contains("window_mode = borderless", CEnhancedSettingsFile.Write(CEnhancedSettings.Default with { WindowMode = EWindowMode.Borderless }));
+		Assert.Empty(warnings);
+
+		// A word that is no mode is told and leaves none chosen.
+		Assert.Null(CEnhancedSettingsFile.Parse("window_mode = huge", "test", warnings.Add).WindowMode);
+		Assert.Single(warnings);
+	}
+
+	[Fact]
 	public void TheFileIsReadBackAsWrittenAndNoFileIsTheOriginalsBehaviour()
 	{
 		var settings = new CEnhancedSettings(2, 15, false, EEventWindowPlace.Centre);

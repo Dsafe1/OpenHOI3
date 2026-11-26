@@ -40,6 +40,57 @@ public sealed partial class CGameOptionsWindow : Control
 	/// </summary>
 	public string? EnhancedPath { get; set; }
 
+	/// <summary>
+	/// This engine's own settings file in the player's folder (<see cref="CEnhancedSettingsFile"/>), in any game: where
+	/// the window's mode is kept. Empty, and the mode chosen is put in force and not kept.
+	/// </summary>
+	public string OwnSettingsPath { get; set; } = "";
+
+	/// <summary>The window's mode stored by Apply in a game whose own rows did not carry it, for whoever keeps a copy of the file.</summary>
+	public event Action<EWindowMode>? WindowModeStored;
+
+	/// <summary>The mode the file holds, as read at the last opening; null where the player has chosen none.</summary>
+	private EWindowMode? _storedMode;
+
+	/// <summary>The mode the window is in.</summary>
+	public static EWindowMode CurrentWindowMode() => DisplayServer.WindowGetMode() switch
+	{
+		DisplayServer.WindowMode.ExclusiveFullscreen => EWindowMode.Fullscreen,
+		DisplayServer.WindowMode.Fullscreen => EWindowMode.Borderless,
+		_ => EWindowMode.Windowed,
+	};
+
+	/// <summary>
+	/// The window put in a mode, at once: the screen alone for full screen, the engine's frameless window over the
+	/// whole screen for borderless, and for windowed a framed window - made as large as the screen allows where it
+	/// would otherwise not fit on it. Nothing where it is in that mode already, or there is no screen.
+	/// </summary>
+	public static void ApplyWindowMode(EWindowMode mode)
+	{
+		if (DisplayServer.GetName() == "headless" || mode == CurrentWindowMode())
+		{
+			return;
+		}
+		switch (mode)
+		{
+			case EWindowMode.Fullscreen:
+				DisplayServer.WindowSetMode(DisplayServer.WindowMode.ExclusiveFullscreen);
+				break;
+			case EWindowMode.Borderless:
+				DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen);
+				break;
+			default:
+				DisplayServer.WindowSetMode(DisplayServer.WindowMode.Windowed);
+				Vector2I room = DisplayServer.ScreenGetUsableRect(DisplayServer.WindowGetCurrentScreen()).Size;
+				Vector2I size = DisplayServer.WindowGetSizeWithDecorations();
+				if (size.X > room.X || size.Y > room.Y)
+				{
+					DisplayServer.WindowSetMode(DisplayServer.WindowMode.Maximized);
+				}
+				break;
+		}
+	}
+
 	/// <summary>The enhanced settings stored by Apply, for what of them takes effect at once.</summary>
 	public event Action<CEnhancedSettings>? EnhancedApplied;
 
@@ -97,7 +148,7 @@ public sealed partial class CGameOptionsWindow : Control
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	/// <param name="running">The mode the game runs at, which a changed choice asks a restart for.</param>
 	public void Setup(CGuiContext context, Func<CUserSettings> settings, Action<CUserSettings> setSettings,
-		IReadOnlyList<CDisplayMode> modes, IEnumerable<int> supportedSamples, (int Width, int Height, int Rate) running,
+		IReadOnlyList<CDisplayMode> modes, (int Width, int Height, int Rate) running,
 		string windowName = WindowName)
 	{
 		_windowName = windowName;
@@ -105,7 +156,7 @@ public sealed partial class CGameOptionsWindow : Control
 		_settings = settings;
 		_setSettings = setSettings;
 		_running = running;
-		_options = new CGameOptions(modes, supportedSamples, settings());
+		_options = new CGameOptions(modes, settings());
 	}
 
 	public override void _Ready()
@@ -147,8 +198,13 @@ public sealed partial class CGameOptionsWindow : Control
 			Bind(_video.FindButton("increase_resolution_button"), () => Step(() => _options.StepMode(1)));
 			Bind(_video.FindButton("decrease_refreshrate_button"), () => Step(() => _options.StepRate(-1)));
 			Bind(_video.FindButton("increase_refreshrate_button"), () => Step(() => _options.StepRate(1)));
-			Bind(_video.FindButton("decrease_multisample_button"), () => Step(() => _options.StepMultisample(-1)));
-			Bind(_video.FindButton("increase_multisample_button"), () => Step(() => _options.StepMultisample(1)));
+			// The original's multisampling row is the window's mode here, under a heading of ours (gameoptions.md, section 3).
+			Bind(_video.FindButton("decrease_multisample_button"), () => Step(() => _options.StepWindowMode(-1)));
+			Bind(_video.FindButton("increase_multisample_button"), () => Step(() => _options.StepWindowMode(1)));
+			if (_video.FindTextBox("multisample_label") is { } modeLabel)
+			{
+				modeLabel.Text = CGameOptions.WindowModeLabel(_context.Localisation.Localise);
+			}
 			Bind(_video.FindButton("trees_checkbox"), () => _options.Trees = !_options.Trees);
 			Bind(_video.FindButton("water_checkbox"), () => _options.AdvancedWater = !_options.AdvancedWater);
 			Bind(_video.FindButton("hierarchy_checkbox"), () => _options.Hierarchy = !_options.Hierarchy);
@@ -240,6 +296,9 @@ public sealed partial class CGameOptionsWindow : Control
 	{
 		CUserSettings settings = _settings();
 		_options.Refresh(settings, _running.Width, _running.Height);
+		// The window's mode: the one the player chose, else the one the window is in.
+		_storedMode = OwnSettingsPath.Length > 0 ? CEnhancedSettingsFile.Read(OwnSettingsPath).WindowMode : null;
+		_options.WindowMode = _storedMode ?? CurrentWindowMode();
 		if (_video is not null)
 		{
 			SetChecked(_video, "trees_checkbox", _options.Trees);
@@ -263,14 +322,6 @@ public sealed partial class CGameOptionsWindow : Control
 			{
 				scale.Value = Fixed(settings.CounterScale);
 				_options.CounterScaleMoved(Float(scale.Value));
-			}
-			bool multisampling = _options.MultisamplingAvailable;
-			foreach (string name in new[] { "decrease_multisample_button", "increase_multisample_button" })
-			{
-				if (!multisampling && _video.TryFindButton(name) is { } button)
-				{
-					button.Disabled = true;
-				}
 			}
 		}
 		if (_audio is not null)
@@ -370,9 +421,9 @@ public sealed partial class CGameOptionsWindow : Control
 		{
 			rate.Text = _options.RateText();
 		}
-		if (_video.FindTextBox("multisample_value") is { } multisample)
+		if (_video.FindTextBox("multisample_value") is { } windowMode)
 		{
-			multisample.Text = _options.MultisampleText();
+			windowMode.Text = _options.WindowModeText(_context.Localisation.Localise);
 		}
 	}
 
@@ -398,6 +449,11 @@ public sealed partial class CGameOptionsWindow : Control
 		_savedVolumes = (stored.MasterVolume, stored.SoundFxVolume, stored.MusicVolume);
 		GammaPreviewed?.Invoke(CGameOptions.Brightness(stored.Gamma));
 		Applied?.Invoke(stored);
+		// The window's mode, at once and with no restart. It is kept only where it is a choice: another than the one
+		// stored, or - with none stored - another than the window was in.
+		EWindowMode mode = _options.WindowMode;
+		bool keepMode = OwnSettingsPath.Length > 0 && (_storedMode is { } was ? was != mode : mode != CurrentWindowMode());
+		ApplyWindowMode(mode);
 		if (!CUserSettingsWriter.WriteFile(stored, stored.Path ?? SettingsPath))
 		{
 			Inform("SM_ALERT", "SM_WP");
@@ -407,8 +463,24 @@ public sealed partial class CGameOptionsWindow : Control
 		if (_enhancedRows && EnhancedPath is { } enhancedPath)
 		{
 			CEnhancedSettings enhanced = _enhanced.Apply();
+			if (keepMode)
+			{
+				enhanced = enhanced with { WindowMode = mode };
+				_storedMode = mode;
+			}
 			EnhancedApplied?.Invoke(enhanced);
 			if (!CEnhancedSettingsFile.WriteFile(enhanced, enhancedPath))
+			{
+				Inform("SM_ALERT", "SM_WP");
+				return;
+			}
+		}
+		else if (keepMode)
+		{
+			// Any other game: the one key into the file, whatever else it holds left as it is.
+			_storedMode = mode;
+			WindowModeStored?.Invoke(mode);
+			if (!CEnhancedSettingsFile.WriteFile(CEnhancedSettingsFile.Read(OwnSettingsPath) with { WindowMode = mode }, OwnSettingsPath))
 			{
 				Inform("SM_ALERT", "SM_WP");
 				return;

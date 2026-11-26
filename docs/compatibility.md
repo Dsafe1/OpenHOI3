@@ -622,6 +622,19 @@ kinds."
 | why | a handed-over headquarters should neither sit at Prepare nor keep whatever its plan last held |
 | to undo | post Prepare, 0, 0 for a theatre and nothing for the levels below it, in `CAutomateUnitCommand.Execute` |
 
+## 33. The Video tab's multisampling row chooses the window's mode
+
+**Decided** 2026-11-26: "Window modes. Fullscreen, Windowed, Borderless Window. I think we can place the setting in
+the video category by replacing the 'multisample level' setting."
+
+| | |
+| --- | --- |
+| the original | the Video tab's third row - `multisample_label` with the text `SM_MULTISAMPLE`, `multisample_value` and its two buttons - steps `graphics.multi_sampling` through the sample counts the screen supports and asks a restart for a change; full screen or a window is `graphics.fullScreen`, taken at the start, with no row of its own (`reversing/findings/FINDINGS-settingswindow.md`) |
+| here | that row, by the same element names, steps the window's mode - Fullscreen, Windowed, Borderless Window - under the heading "Window Mode", put in force at Apply with no restart and kept as `window_mode` in `openhoi_settings.txt`, in every game; the samples and `fullScreen` are read from `settings.txt` and written back as they were (`mechanics/gameoptions.md`, section 3) |
+| a mod loses | a `settings.gui` that words or lays out the row for multisampling is laid out the same and headed "Window Mode" whatever its `SM_MULTISAMPLE` says; the player can no longer set the samples in the game, only in the file. A mod may word the row with `OPENHOI_WINDOW_MODE` and the three `OPENHOI_WINDOW_MODE_...` keys |
+| why | the three window modes were asked for, and the samples' row was the one given up for them: "I dont even know what that does" |
+| to undo | bind the row's buttons to a sample count again in `CGameOptionsWindow` and `CGameOptions`, leave the heading's text alone, and give the window's mode a row of its own - an enhanced game's `openhoi_game_options` window has room |
+
 ## Stricter, with the same meaning
 
 Not departures - a file means what it meant - but a mod's author will see them, so they
