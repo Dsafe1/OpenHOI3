@@ -111,6 +111,13 @@ public static class CAirRegroup
 				{
 					continue;
 				}
+				// An enhanced game joins nothing its own split would take apart again (the fix air_regroup_agrees): the
+				// merge's caps know the original's eight types alone, the split's last rule every other, so a mod's own
+				// type is joined to a group it is split from the hour after, for ever.
+				if (state.Rules.Has(Rules.EFix.AirRegroupAgrees) && (AnyBreaks(group, together) || AnyBreaks(partner, together)))
+				{
+					continue;
+				}
 				state.Outbox.Add(new CJoinUnitCommand(country.Tag, group.Id, partner.Id));
 				Trace(state, country, $"air regroup: {group.Name}#{group.Id} joins {partner.Name}#{partner.Id}");
 				handled.Add(group);
@@ -207,6 +214,19 @@ public static class CAirRegroup
 			_ => wing.Stats[Missions.CBombingOrders.StrategicAttack].Raw > LongRange || multiRole > 1 || strategic > 0
 				|| interceptors > 0 || cas > 0,
 		};
+	}
+
+	/// <summary>Whether a wing of the group would be split out of a group holding these wings.</summary>
+	private static bool AnyBreaks(CUnit group, Dictionary<string, int> counts)
+	{
+		foreach (CSubUnit wing in group.SubUnits)
+		{
+			if (Breaks(wing, counts))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static int Total(Dictionary<string, int> counts)

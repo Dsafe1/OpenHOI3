@@ -299,6 +299,8 @@ public static class COrganisation
 	public static void RunHourly(CGameState state)
 	{
 		var crowding = new CBaseCrowding(state);
+		// Counted before the hour's walk, which settles dropped units as it goes.
+		crowding.CountNow();
 		long lowBonus = state.Defines[CManpower.MilitarySection, LowRegainBonus].Raw;
 		long? redeploymentLoss = state.Defines.Has(CManpower.MilitarySection, RedeploymentLoss)
 			? state.Defines[CManpower.MilitarySection, RedeploymentLoss].Raw

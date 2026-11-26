@@ -13,9 +13,10 @@ using OpenHOI3.Sim.Countries;
 /// A look, not a check: makes a new game as the client does, with the install's Lua and one country
 /// played, runs it as the top speed would and says where the time went:
 ///
-///   OpenHOI3.SaveCheck profile &lt;install folder&gt; [days] [tag] [from=DATE]
+///   OpenHOI3.SaveCheck profile &lt;install folder&gt; [days] [tag] [from=DATE] [save=FILE]
 ///
-/// Thirty days as Germany with none given; from= makes the game at a later bookmark's date. It tells how long the loading took, how long an hour takes
+/// Thirty days as Germany with none given; from= makes the game at a later bookmark's date, and save= loads a saved
+/// game in a new one's place, played by whoever the save says played it. It tells how long the loading took, how long an hour takes
 /// on an ordinary hour and on one that turns a day, the slowest hours, and every step of the tick by
 /// the time it took in all. The figures are this machine's and this build's.
 /// </summary>
@@ -25,7 +26,7 @@ internal static class CProfileTrial
 	{
 		if (args.Length < 2)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck profile <install folder> [days] [tag] [from=DATE] [warm=DAYS] [lua] [inturn]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck profile <install folder> [days] [tag] [from=DATE] [save=FILE] [warm=DAYS] [lua] [inturn] [orders] [hash] [without=FIX]");
 			return 2;
 		}
 		int days = args.Length > 2 && int.TryParse(args[2], out int given) ? given : 30;
@@ -41,14 +42,34 @@ internal static class CProfileTrial
 		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 		CMap map = CMap.Load(directories, warnings.Add);
 		using var scripts = new CAiScripts(directories);
-		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts,
-			played: new[] { new CCountryTag(tag) }, date: from);
-		state.Played.Clear();
-		state.Played.Add(new CCountryTag(tag));
+		// save=FILE: a saved game loaded as the client loads one, its own player playing.
+		const string saveWord = "save=";
+		string? save = args.FirstOrDefault(a => a.StartsWith(saveWord, StringComparison.Ordinal))?[saveWord.Length..];
+		CGameState state;
+		if (save is not null)
+		{
+			(state, _) = OpenHOI3.Content.Saves.CSaveLoader.Load(directories, map, localisation, countries, save, null, scripts, warnings.Add);
+			tag = state.Played.FirstOrDefault().Value ?? tag;
+		}
+		else
+		{
+			state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts,
+				played: new[] { new CCountryTag(tag) }, date: from);
+			state.Played.Clear();
+			state.Played.Add(new CCountryTag(tag));
+		}
+		// without=NAME: an enhanced game played without that fix, whatever its save says - to set a speed-up beside
+		// the same play as before a fix was built.
+		const string withoutWord = "without=";
+		if (state.Rules.Enhanced && args.Where(a => a.StartsWith(withoutWord, StringComparison.Ordinal))
+			.Select(a => OpenHOI3.Sim.Rules.CFixes.Named(a[withoutWord.Length..])).Where(f => f is not null).Select(f => f!.Value).ToList() is { Count: > 0 } off)
+		{
+			state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(state.Rules.Without.Concat(off)));
+		}
 		// inturn: the AI's passes that run their countries side by side run them in turn, to time the one beside the other.
 		state.AiInTurn = args.Contains("inturn");
 		var simulation = new CSimulation(state);
-		Console.WriteLine($"a new game as {tag}, {state.Date}, loaded in {loading.ElapsedMilliseconds} ms");
+		Console.WriteLine($"{(save is null ? "a new game" : "a saved game")} as {tag}, {state.Date}, loaded in {loading.ElapsedMilliseconds} ms");
 
 		// warm=N: N days played before anything is measured, so that a start's first passes are left out.
 		if (args.FirstOrDefault(a => a.StartsWith("warm=", StringComparison.Ordinal)) is { } warmArgument
@@ -67,6 +88,25 @@ internal static class CProfileTrial
 			$"{state.Countries.Count(c => state.IsAtWar(c.Tag))} countries at war, {state.Combats.Count} battles, " +
 			$"{state.Countries.Sum(c => c.Convoys.Count)} convoys, {state.TradeRoutes.Count} trade routes");
 		state.Profile = new CTickProfile();
+		// orders: every order counted by its kind and its country, and a transfer by the type of what was moved.
+		var orders = new Dictionary<string, (int Ran, int Refused)>();
+		if (args.Skip(2).Contains("orders"))
+		{
+			simulation.CommandRan = (command, ran) =>
+			{
+				Type kind = command.GetType();
+				const System.Reflection.BindingFlags own = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+				string owner = kind.GetField("_owner", own)?.GetValue(command)?.ToString() ?? "";
+				string key = kind.Name + " " + owner;
+				if (command is OpenHOI3.Sim.Commands.CTransferSubUnitCommand && kind.GetField("_subUnit", own)?.GetValue(command) is int id
+					&& OpenHOI3.Sim.Units.CUnitFinder.FindSubUnit(state, new CCountryTag(owner), id) is { } moved)
+				{
+					key += " " + moved.Type.Key;
+				}
+				(int Ran, int Refused) was = orders.GetValueOrDefault(key);
+				orders[key] = ran ? (was.Ran + 1, was.Refused) : (was.Ran, was.Refused + 1);
+			};
+		}
 		// With `lua`, the time the scripts spend in each method of ours they call, on the game's own state.
 		bool lua = args.Skip(2).Contains("lua");
 		if (lua)
@@ -98,6 +138,12 @@ internal static class CProfileTrial
 			}
 		}
 		all.Stop();
+		// hash: the state's hash as the run ends, part by part - two builds that play the same end on the same line.
+		if (args.Skip(2).Contains("hash"))
+		{
+			ulong[] parts = OpenHOI3.Sim.Replay.CStateHash.Of(state);
+			Console.WriteLine("hash " + string.Join(" ", OpenHOI3.Sim.Replay.CStateHash.Parts.Select((name, i) => $"{name}={parts[i]:x16}")));
+		}
 
 		Console.WriteLine($"{days} days in {all.ElapsedMilliseconds} ms, {all.ElapsedMilliseconds / Math.Max(days, 1)} ms a day");
 		Console.WriteLine($"   an ordinary hour: {Describe(plain)}");
@@ -113,6 +159,14 @@ internal static class CProfileTrial
 		foreach (var (name, (ticks, calls)) in state.Profile.Steps.OrderByDescending(s => s.Value.Ticks))
 		{
 			Console.WriteLine($"   {name,-44} {ticks / ticksPerMs,7} ms {calls,7} runs {(double)ticks / ticksPerMs / calls,9:0.000} ms a run");
+		}
+		if (orders.Count > 0)
+		{
+			Console.WriteLine("the orders, by kind and country, the most first:");
+			foreach (var (key, (ran, refused)) in orders.OrderByDescending(o => o.Value.Ran + o.Value.Refused).Take(60))
+			{
+				Console.WriteLine($"   {key,-70} {ran,6} run {refused,6} refused");
+			}
 		}
 		if (scripts.Lua.Profile is { } methods)
 		{

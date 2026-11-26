@@ -99,6 +99,12 @@ public sealed class CSimulation
 	/// for anything that changes it. Day, month and year are raised in that order on
 	/// the hours that turn them, after <see cref="HourPassed"/>.
 	/// </summary>
+	/// <summary>
+	/// Each order as it has been asked and - where it might - run, with whether it ran; null unless a tool sets it, to
+	/// count what the hours run. No part of a game.
+	/// </summary>
+	public Action<CCommand, bool>? CommandRan { get; set; }
+
 	public event Action? HourPassed;
 
 	public event Action? DayPassed;
@@ -497,6 +503,7 @@ public sealed class CSimulation
 				{
 					command.Execute(State);
 				}
+				CommandRan?.Invoke(command, may);
 				if (profile is not null)
 				{
 					long took = Stopwatch.GetTimestamp() - began;

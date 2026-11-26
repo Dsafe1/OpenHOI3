@@ -242,6 +242,13 @@ Begun 2026-11-21; as of 2026-11-25.
   does not come to. Each has its tests; `OpenHOI3.SaveCheck scripttext` and `enhancedstart` look at BlackICE
   under them, and forty-five days of it went through. Not reviewed in play.
 
+- **`air_regroup_agrees`, 2026-11-26**: the AI joins a small air group to another only where no wing of the two
+  together breaks the mix its own split goes by (*AI*, below; `mechanics/agents.md`, section 5.3). Found profiling a
+  BlackICE save of July 1939 the user sent for its speed, where the engine's profiler had the transfers of wings at
+  the top of the orders: 180 a day, eleven countries' light bombers and flying boats going round. A fix and no rule of
+  the mod's: on in every enhanced game, a saved one too - a save names the fixes it goes without, and no save
+  written before a fix names it. Tested both ways; on that save 5 transfers a day.
+
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
 
@@ -656,6 +663,11 @@ What the enhanced engine's own save would have to hold, and what its load would 
 
 ## AI
 
+- **The AI's air merge joins what its split takes apart.** **Mended by the fix `air_regroup_agrees`, 2026-11-26.** The
+  merge's caps know the original's eight air types alone and the split's last rule every other, so a mod's own type -
+  BlackICE's `light_bomber`, its `Flying_boat` - is joined to a group of strategic bombers, interceptors or CAS and
+  split from it the hour after, for the whole game. `mechanics/agents.md`, section 5.3. *Oversight*, which the
+  original's own eight types never meet. Risk: none seen; fewer orders, and air units that keep their names and leaders.
 - **A dropped headquarters costs officers or not by which routine drops it.** The AI's disband of a headquarters it has no use for keeps the country's officers, as every disband does; the headquarters of a theatre its rebuild of theatres leaves over goes through the end-of-hour removal, which takes them. `units.md`, 9. *Oversight.* Risk: small.
 - **The AI loses multi-level research** from its queue the moment a level finishes. `ministers.md`, 9. *Bug.* Risk: AI research.
 - **The lend-lease figure given to the script is always 0.** `ministers.md`, 9. *Bug.* Risk: AI lend-lease.

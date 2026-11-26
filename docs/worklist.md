@@ -2228,6 +2228,12 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   built*): `key_without_equals`, `unit_figure_decimals`, `yield_modifiers`. Each arm is tested; BlackICE's files hold
   none of the faulty lines today and no province yields fuel or money, so no run shows them. The first two are read
   with the files, by the folders' rules: a save of a faithful game loaded under an enhanced folder gets them.
+- **A BlackICE game of 1939 was profiled** (2026-11-26, `performance.md`, section 2): no one step holds it, the
+  day having grown as the world did. Built from it: the fix `air_regroup_agrees`, which ends the AI's air groups
+  going round (`agents.md`, section 5.3), and the day's base crowding counted only where a fleet or an air group
+  asks. **Left for a round of its own**, each with its share of a day there: the organisation pass side by side by
+  country, the officers' count on a change, the foreign minister's walk of every decision, `UnitsInOrder`'s sort,
+  and the scripts' objects made anew at each push. Not looked at in play.
 - **The window's mode is built and not reviewed in play** (2026-11-26, `gameoptions.md`, section 3;
   `compatibility.md`, entry 33): Fullscreen, Windowed and Borderless Window on the Video tab's row that was the
   original's multisampling, in force at Apply and read at the start of an exported game. Tried with `--click` as

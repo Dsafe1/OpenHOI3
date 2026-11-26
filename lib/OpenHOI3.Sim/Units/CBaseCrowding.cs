@@ -12,7 +12,10 @@ namespace OpenHOI3.Sim.Units;
 /// the return of its organisation alike. See <c>docs/mechanics/organisation.md</c>,
 /// section 4.
 ///
-/// One of these counts every base once, so it is made for a pass and thrown away.
+/// One of these counts every base once, so it is made for a pass and thrown away. **The count is a walk of every
+/// unit in the game, and is taken when a fleet or an air group is first asked about** - an army has no base - so a
+/// pass over a country with neither, as most of the day's reinforcement passes are, counts nothing. A pass that
+/// changes what is based where between its making and its asking calls <see cref="CountNow"/> first.
 /// </summary>
 public sealed class CBaseCrowding
 {
@@ -34,6 +37,7 @@ public sealed class CBaseCrowding
 	private readonly Dictionary<int, long> _ships = new();
 	private readonly Dictionary<int, long> _wings = new();
 	private readonly Dictionary<CSubUnit, long> _onCarrier = new();
+	private bool _counted;
 
 	public CBaseCrowding(CGameState state)
 	{
@@ -41,9 +45,18 @@ public sealed class CBaseCrowding
 		// The buildings with the two roles, by the modifier they carry (CBuildingRoles).
 		_navalBase = CBuildingRoles.Find(state, NavalBase);
 		_airBase = CBuildingRoles.Find(state, AirBase);
+	}
 
+	/// <summary>What is based where, counted now where it has not been.</summary>
+	public void CountNow()
+	{
+		if (_counted)
+		{
+			return;
+		}
+		_counted = true;
 		// A base is a province's, and whoever is based there shares it.
-		foreach (CCountry country in state.Countries)
+		foreach (CCountry country in _state.Countries)
 		{
 			foreach (CUnit unit in country.AllUnits())
 			{
@@ -77,6 +90,7 @@ public sealed class CBaseCrowding
 		{
 			return CFixedPoint.Scale;
 		}
+		CountNow();
 		if (unit.CarriedBy is { Unit: { } fleet } carrier)
 		{
 			if (unit.Location == fleet.Location)
@@ -116,6 +130,7 @@ public sealed class CBaseCrowding
 		{
 			return null;
 		}
+		CountNow();
 		int province;
 		long based;
 		long room;

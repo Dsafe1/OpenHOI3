@@ -114,6 +114,30 @@ As measured, with `OpenHOI3.SaveCheck profile` and the headless run, both in Rel
   large piece that would spread is the countries' unit AI passes, which the original runs side by side; how, and what it
   would give - in a 1941 war 776 ms of a BlackICE day down to about 294 - is in `docs/enhanced.md`, *AI*, to be taken up
   once the AI's behaviour is settled.
+- **A BlackICE game of July 1939, 2026-11-26** - a save the user sent with "the drop in performance in 1939", the
+  engine's profiler showing `CTransferSubUnitCommand` at the top of its orders. Headless on it
+  (`OpenHOI3.SaveCheck profile ... save=FILE`), beside a new game of the same mod five days in: **2.3 s a day against
+  1.46**, with 3,007 divisions against 1,658, 20,117 brigades, ships and wings against 11,274 and 883 convoys against
+  264 - the day grew as the world did, and no step by more than three times. A day's 2.3 s, by step: the unit AI 300
+  ms (side by side already), the production minister's scripts 230, the day's economy country by country 220,
+  the hourly organisation 215, the orders drained 170 (the AI's decisions 95 of it), the movement 140, the foreign
+  minister 100, the officers' count 82, what countries know 100. A sample of the processor's time (`dotnet-trace`)
+  names nothing above 6%: handing objects to the scripts 6%, the organisation's own loop 5.6%, conditions of script
+  7% with what they call. Three things came of it:
+  - **the transfers were the AI's air groups going round** - a mod's own air types joined and split again each
+    regrouping, 180 transfers and 200 joins a day - the original's oversight, mended in an enhanced game by the fix
+    `air_regroup_agrees` (`docs/mechanics/agents.md`, section 5.3). It was 2% of the day, not its weight;
+  - **the day's reinforcement counted every base in the game once for each country** (`CBaseCrowding`'s walk of
+    every unit, 100 times a day). It is counted now when a fleet or an air group is first asked about, so a
+    country with neither counts nothing: the economy's step 230 ms to about 205. The state's hash after three days
+    is the same part for part;
+  - **the officers' count was tried as one walk** in place of each faction member walking every other's units, and
+    gave nothing that could be measured - the walk itself is the cost - so it is as it was.
+  **Left, and not small**: the organisation pass a country at a time side by side (about 7% of a day, each country's
+  brigades its own - to be audited for what it shares); the officers' count made on a change and not each hour (3.5%);
+  the foreign minister asking every decision's conditions for every country at its hour (4%); `UnitsInOrder` sorting
+  its list at each of forty callers (2%); and the scripts' objects made anew at each push (6%). The profiler left
+  running is itself about 1.5% of the processor's time.
 - **Drawing is already C++** - it is Godot's renderer. The client's C# builds and sets nodes.
 
 ## 3. What C++ would buy, part by part

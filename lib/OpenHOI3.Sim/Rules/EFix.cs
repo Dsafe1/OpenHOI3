@@ -165,4 +165,12 @@ public enum EFix
 	/// section 8). Display only.
 	/// </summary>
 	TooltipScroll,
+
+	/// <summary>
+	/// The AI joins a small air group to another only where no wing of the two together breaks the mix its own split
+	/// goes by. The original's merge has no rule for a type that is none of its eight, so with a mod's own air types
+	/// it joins a wing to a group - a mod's light bomber to strategic bombers - that the split takes it out of the
+	/// hour after, and the two go round for the whole game (<c>docs/mechanics/agents.md</c>, section 5.3).
+	/// </summary>
+	AirRegroupAgrees,
 }

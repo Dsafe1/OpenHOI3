@@ -38,6 +38,7 @@ public static class CFixes
 		(EFix.SavedEventCandidates, "saved_event_candidates"),
 		(EFix.CtrlUnassignSelected, "ctrl_unassign_selected"),
 		(EFix.TooltipScroll, "tooltip_scroll"),
+		(EFix.AirRegroupAgrees, "air_regroup_agrees"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

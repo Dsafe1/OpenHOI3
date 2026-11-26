@@ -38,7 +38,17 @@ public class AgentTests
 		return type;
 	}
 
-	private static CGameState World(bool withRebels = false)
+	/// <summary>The types with more air types beside them, a mod's own among them.</summary>
+	private static Dictionary<string, CSubUnitType> WithAirTypes(Dictionary<string, CSubUnitType> types, string[] more)
+	{
+		foreach (string key in more)
+		{
+			types[key] = Type(key, EUnitBranch.Air);
+		}
+		return types;
+	}
+
+	private static CGameState World(bool withRebels = false, params string[] moreAirTypes)
 	{
 		CCountry Country(CCountryTag tag, int capital) => new()
 		{
@@ -99,7 +109,7 @@ public class AgentTests
 		{
 			IdeologyGroups = new[] { fascism, democracy },
 			MapWidth = 100000,
-			SubUnitTypes = new Dictionary<string, CSubUnitType>
+			SubUnitTypes = WithAirTypes(new Dictionary<string, CSubUnitType>
 			{
 				[CTheatreHeadquarters.HqBrigade] = Type(CTheatreHeadquarters.HqBrigade, EUnitBranch.Land),
 				["infantry_brigade"] = Type("infantry_brigade", EUnitBranch.Land, ("soft_attack", 3), ("defensiveness", 5),
@@ -108,7 +118,7 @@ public class AgentTests
 				["battleship"] = Type("battleship", EUnitBranch.Naval),
 				["interceptor"] = Type("interceptor", EUnitBranch.Air),
 				["tactical_bomber"] = Type("tactical_bomber", EUnitBranch.Air),
-			},
+			}, moreAirTypes),
 			NameTexts = new CUnitNameTexts
 			{
 				NamedTheatre = "$PROV$ HQ", Theatre = "$NUM$$ORDER$ Theatre", Brigade = "$NUM$$ORDER$ $TYPE$ Brigade",
@@ -449,6 +459,43 @@ public class AgentTests
 		Assert.Same(group.SubUnits.Count == 1 ? group.SubUnits[0] : null, bomber);
 		Assert.Equal("interceptor", Assert.Single(made.SubUnits).Type.Key);
 		Assert.Equal("1st Air wing", made.Name);
+	}
+
+	[Fact]
+	public void A_mods_own_wing_is_joined_to_strategic_bombers_and_split_again_but_not_in_an_enhanced_game()
+	{
+		// The original's merge has no rule for a type that is none of its eight; its split has one.
+		int Joins(bool enhanced)
+		{
+			// A strategic bomber, and a light bomber that is none of the original's eight air types: a mod's own.
+			CGameState state = World(false, "strategic_bomber", "light_bomber");
+			if (enhanced)
+			{
+				state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+			}
+			CCountry germany = state.Country(Ger)!;
+			(CAgent agent, CUnit headquarters) = Bound(state);
+			CUnit light = Unit(state, EUnitKind.Air, 3, "light_bomber", parent: headquarters);
+			CUnit heavy = Unit(state, EUnitKind.Air, 3, "strategic_bomber", parent: headquarters);
+			CSubordinates.Sort(state, germany, agent);
+			CAirRegroup.Run(state, germany, agent, force: true, new HashSet<CUnit>(), agent.Air);
+			int joins = state.Outbox.OfType<CJoinUnitCommand>().Count();
+			if (joins > 0)
+			{
+				// Joined, the light bomber stands beside a strategic one, which the split does not allow: out it goes.
+				state.Outbox.Clear();
+				CSubUnit wing = light.SubUnits[0];
+				light.SubUnits.Clear();
+				wing.Unit = heavy;
+				heavy.SubUnits.Add(wing);
+				CAirRegroup.Run(state, germany, agent, force: true, new HashSet<CUnit>(), new[] { heavy });
+				Assert.Single(state.Outbox.OfType<CTransferSubUnitCommand>());
+			}
+			return joins;
+		}
+
+		Assert.Equal(1, Joins(enhanced: false));
+		Assert.Equal(0, Joins(enhanced: true));
 	}
 
 	[Fact]

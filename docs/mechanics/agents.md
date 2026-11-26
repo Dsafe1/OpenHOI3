@@ -247,6 +247,14 @@ joined at its third).
   and transport together at most 2 and of one kind; transports at most 1; multi-role at most 1 and without strategic or
   interceptors; interceptors at most 3 and alone with multi-role; CAS alone and at most 2. It is ordered to join the
   other, and **regroup air pending** is set.
+- **The two do not agree for a type that is none of the original's eight**, which only a mod has: the merge's caps
+  name the eight alone, so a mod's own wing passes them beside anything, while the split's last rule takes it out
+  from beside a strategic bomber, an interceptor or a CAS. So it is joined and split again, a new air unit each time,
+  as often as the regrouping runs. Found on 2026-11-26 in a BlackICE game of July 1939, whose `light_bomber` and
+  `Flying_boat` went round in eleven countries - Germany's about sixty times a day, 180 transfers and 200 joins a day
+  in all. The original's, read so on both sides, and kept in a faithful game. **An enhanced game's merge passes
+  over a partner where any wing of the two together would be split out** (the fix `air_regroup_agrees`,
+  `CAirRegroup.AnyBreaks`): on that save 5 transfers and 24 joins a day.
 
 ### 5.4 The commands
 
