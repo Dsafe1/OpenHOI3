@@ -130,6 +130,36 @@ public class ScriptTextTests
 	}
 
 	[Fact]
+	public void An_enhanced_games_kill_leader_says_what_he_commands_and_where()
+	{
+		CGameState state = ScriptWorld.State();
+		OpenHOI3.Sim.Countries.CCountry germany = state.Country(ScriptWorld.Ger)!;
+		var leader = new OpenHOI3.Sim.Leaders.CLeader(7) { Name = "Rommel", Country = ScriptWorld.Ger, Rank = 1 };
+		state.Leaders[7] = leader;
+		germany.Leaders.Add(leader);
+		germany.ActiveLeaders.Add(leader);
+		var words = new CScriptWords(
+			key => key == "KILL_LEADER_EFFECT" ? "Leader $NAME$$WHERE$ dies [$UNIT$|$LOCATION$]." : key, state, ScriptWorld.Ger);
+		string Line() => CEffectText.For(words, ScriptWorld.Effects("kill_leader = 7"), CEventScope.Start(ScriptWorld.Ger));
+
+		// A faithful game fills the name alone, as the original does.
+		Assert.Equal("Leader §YRommel§W$WHERE$ dies [$UNIT$|$LOCATION$].", Line());
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		// He commands nothing: the three are empty, and no bracket is left behind.
+		Assert.Equal("Leader §YRommel§W dies [|].", Line());
+
+		var unit = new OpenHOI3.Sim.Units.CUnit(OpenHOI3.Sim.Units.EUnitKind.Division, ScriptWorld.Ger) { Id = 900, Name = "7. Panzer", Location = 1 };
+		germany.Units.Add(unit);
+		unit.Leader = leader;
+		leader.Unit = unit;
+		Assert.Equal("Leader §YRommel§W (§R7. Panzer§W, §Rp1§W) dies [7. Panzer|p1].", Line());
+		// A unit with no place has the unit alone in its bracket.
+		unit.Location = 0;
+		Assert.Equal("Leader §YRommel§W (§R7. Panzer§W) dies [7. Panzer|].", Line());
+	}
+
+	[Fact]
 	public void Effects_that_say_nothing_write_nothing()
 	{
 		Assert.Equal("", Effects("set_country_flag = done"));

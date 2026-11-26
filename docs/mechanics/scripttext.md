@@ -153,6 +153,13 @@ None is mended. The plainest:
 - **The indentation of conditions is the corrected one everywhere**, not only in a technology's
   requirements (`docs/compatibility.md`, entry 10, extended 2026-10-12). Effects have no correction
   and keep the original's doubling.
+- **An enhanced game's `kill_leader` says what the leader commands and where** (after BiceLib's
+  `activateKillLeaderVariables`): `KILL_LEADER_EFFECT` is filled with three places more than `$NAME$`, for a text
+  that asks for them - `$UNIT$`, the unit he commands now; `$LOCATION$`, the province it stands in; `$WHERE$`, the
+  two ready as ` (unit, province)` in red, a bracket of punctuation and colour alone so that every word stays the
+  localisation's, cut at 255 characters. A leader who commands nothing has all three empty, and a unit with no
+  place the unit alone in its bracket. A faithful game fills the name alone and leaves the rest as written, as
+  the original without the DLL does. No switch: only a text that asks shows anything.
 
 ## Not established
 

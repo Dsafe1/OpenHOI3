@@ -273,7 +273,7 @@ public static class CEffectLines
 			{
 				int id = (int)CConditions.WholeOf(amount);
 				CLeader? leader = country?.ActiveLeaders.Find(each => each.Id == id);
-				return leader is null ? "" : words.T("KILL_LEADER_EFFECT", ("NAME", Y + leader.Name + W));
+				return leader is null ? "" : KillLeader(words, leader);
 			}
 			case "load_oob":
 				// The path asked for as a key, which shows it bare.
@@ -423,6 +423,40 @@ public static class CEffectLines
 	/// "Germany gets 'name' until date, giving the following effects:" and each of its values, where
 	/// the modifier is not given already.
 	/// </summary>
+	/// <summary>The most characters of a <c>kill_leader</c>'s <c>$WHERE$</c>.</summary>
+	private const int WhereLimit = 255;
+
+	/// <summary>
+	/// <c>KILL_LEADER_EFFECT</c> with the leader's name, as the original's. An enhanced game fills three places more
+	/// for a text that asks for them (after BiceLib's <c>activateKillLeaderVariables</c>): <c>$UNIT$</c>, the unit he
+	/// commands now; <c>$LOCATION$</c>, the province it stands in; and <c>$WHERE$</c>, the two ready in a bracket of
+	/// punctuation and colour alone - a space, then <c>(unit, province)</c> in red - so every word of the sentence
+	/// stays the localisation's. All three are empty for a leader who commands nothing, never left as written.
+	/// </summary>
+	private static string KillLeader(CScriptWords words, CLeader leader)
+	{
+		(string, string) name = ("NAME", Y + leader.Name + W);
+		if (!words.State.Rules.Enhanced)
+		{
+			return words.T("KILL_LEADER_EFFECT", name);
+		}
+		string unit = "", location = "", where = "";
+		if (leader.Unit is { } commanded)
+		{
+			unit = Text.CColouredText.Strip(commanded.Name);
+			if (commanded.Location > 0 && commanded.Location < words.State.Provinces.Count)
+			{
+				location = Text.CColouredText.Strip(words.Province(commanded.Location));
+			}
+			where = location.Length != 0 ? $" ({R}{unit}{W}, {R}{location}{W})" : $" ({R}{unit}{W})";
+			if (where.Length > WhereLimit)
+			{
+				where = where[..WhereLimit];
+			}
+		}
+		return words.T("KILL_LEADER_EFFECT", name, ("UNIT", unit), ("LOCATION", location), ("WHERE", where));
+	}
+
 	private static string ModifierAdded(CScriptWords words, CEffect effect, System.Collections.Generic.List<CTimedModifier> given, string where)
 	{
 		CModifier? modifier = CEffects.Field(effect, "name") is { } name ? words.State.FindStaticModifier(name.Text) : null;
