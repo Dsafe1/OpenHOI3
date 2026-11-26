@@ -114,4 +114,11 @@ public enum EFix
 	/// that counters the other's outright (<c>docs/mechanics/landcombat.md</c>, section 11).
 	/// </summary>
 	TraitSurpriseChance,
+
+	/// <summary>
+	/// A historical model that asks for a level above the one held loses to every model that does not, where the
+	/// original counts a level too many as it counts one too few (<c>docs/mechanics/units.md</c>, section 5). Display
+	/// only: which model a type to build and a brigade are shown as.
+	/// </summary>
+	HistoricalModelChoice,
 }

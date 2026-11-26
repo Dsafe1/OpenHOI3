@@ -16,6 +16,12 @@ public static class CHistoricalModels
 	public const string MilitarySection = "military";
 	public const string MaxDefine = "HISTORICAL_MODEL_MAX";
 
+	/// <summary>
+	/// What a technology a model asks more of than is held counts in an enhanced game, whatever the gap
+	/// (<see cref="Rules.EFix.HistoricalModelChoice"/>): more than any sum of levels a thousand each.
+	/// </summary>
+	public const long TooHighTerm = 1_048_576;
+
 	/// <summary>How many default models every country has of every type.</summary>
 	public static int DefaultCount(CGameState state)
 	{
@@ -95,12 +101,16 @@ public static class CHistoricalModels
 	/// <summary>
 	/// The model of a type nearest a set of levels: each model scored by the sum, over the technologies it lists that
 	/// change a unit, of how far the level is from the model's, a thousand a level; the least wins, the first of equals.
-	/// -1 for a type with no model.
+	/// -1 for a type with no model. The original's counts a level the model has too many as one it has too few, so a
+	/// country is shown a model it has not researched; an enhanced game's counts <see cref="TooHighTerm"/> for each
+	/// technology the model asks more of, so such a model loses to every one that asks no more, and of those that all
+	/// do the one with the fewest such technologies wins.
 	/// </summary>
 	public static int Nearest(CGameState state, CCountry country, CSubUnitType type, IReadOnlyDictionary<string, int> levels)
 	{
 		long best = 999_999_000;
 		int chosen = -1;
+		bool tooHighLoses = state.Rules.Has(Rules.EFix.HistoricalModelChoice);
 		for (int model = 0; model < Count(state, country, type); model++)
 		{
 			long score = 0;
@@ -110,7 +120,8 @@ public static class CHistoricalModels
 				{
 					continue;
 				}
-				score += Math.Abs(levels.GetValueOrDefault(technology.Name) - wanted) * 1000L;
+				int held = levels.GetValueOrDefault(technology.Name);
+				score += tooHighLoses && wanted > held ? TooHighTerm : Math.Abs(held - wanted) * 1000L;
 			}
 			if (score < best)
 			{

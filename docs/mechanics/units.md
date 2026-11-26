@@ -345,6 +345,14 @@ itself carries**: `confirmed`
                        of |the brigade's level - the model's| x 1000
     the least wins, from 999,999,000, the first of equals; none for a type with no model
 
+The same score picks the model a builder window shows for a type, from the country's own levels. **A level the model
+has too many counts as one it has too few**, so a country at 3 is shown a model at 4 before one at 0 - a model it has
+not researched [exe]. *An enhanced game's* (the fix `historical_model_choice`, after BiceLib's
+`historicalModelLogicFix`): a technology the model asks **more** of than is held counts a flat 1,048,576, whatever
+the gap, and one it asks the same or less of counts as before. So a model that needs anything unresearched loses to
+every model that does not, and of models that all do, the one with the fewest such technologies wins. Display only:
+a unit is built with the country's levels, whichever model is shown.
+
 and it is marked `+*` where **the first model the brigade's levels match exactly** is not that one - none matching, or
 an earlier one alike: a model matches where it lists every technology the brigade carries, each that changes a unit at
 the brigade's level and the rest at any. So a model out of a file that leaves a technology out is never matched

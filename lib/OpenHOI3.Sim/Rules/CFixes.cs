@@ -30,6 +30,7 @@ public static class CFixes
 		(EFix.TraitFortDefence, "trait_fort_defence"),
 		(EFix.RadarEfficiency, "radar_efficiency"),
 		(EFix.TraitSurpriseChance, "trait_surprise_chance"),
+		(EFix.HistoricalModelChoice, "historical_model_choice"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

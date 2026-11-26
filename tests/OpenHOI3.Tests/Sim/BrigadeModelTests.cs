@@ -72,6 +72,34 @@ public class BrigadeModelTests
 	}
 
 	[Fact]
+	public void AnEnhancedGamesModelThatAsksForMoreThanIsHeldLosesToOneThatDoesNot()
+	{
+		(CGameState state, CCountry germany, _, CSubUnitType type) = World();
+		germany.HistoricalModels["infantry_brigade"] = new()
+		{
+			[0] = new() { ["smallarms"] = 0 }, [1] = new() { ["smallarms"] = 4 },
+			[2] = new() { ["smallarms"] = 8 }, [3] = new() { ["smallarms"] = 9 },
+		};
+		germany.TechnologyLevels["smallarms"] = 3;
+		var brigade = new CSubUnit(type);
+		brigade.TechnologyLevels["smallarms"] = 3;
+
+		// The original's: a level too many is as near as a level too few, and model 1 is one away.
+		Assert.Equal(1, CHistoricalModels.PickCurrent(state, germany, type));
+		Assert.Equal(1, CHistoricalModels.OfBrigade(state, germany, brigade));
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		Assert.Equal(0, CHistoricalModels.PickCurrent(state, germany, type));
+		Assert.Equal(0, CHistoricalModels.OfBrigade(state, germany, brigade));
+		// Where every model asks more, the first of them: each such technology counts the same whatever the gap.
+		germany.HistoricalModels["infantry_brigade"][0]["smallarms"] = 9;
+		Assert.Equal(0, CHistoricalModels.PickCurrent(state, germany, type));
+		// A game that goes without the fix keeps the original's.
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(new[] { OpenHOI3.Sim.Rules.EFix.HistoricalModelChoice }));
+		Assert.Equal(1, CHistoricalModels.PickCurrent(state, germany, type));
+	}
+
+	[Fact]
 	public void ABrigadeBuiltForAnotherIsNamedByItsBuildersModelsAndItsNumeralByItsOwners()
 	{
 		(CGameState state, CCountry germany, CCountry italy, CSubUnitType type) = World();
