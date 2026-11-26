@@ -219,6 +219,28 @@ Begun 2026-11-21; as of 2026-11-25.
   still gives a loaned one back (`mechanics/agents.md`, section 10.5). Each arm is tested, the AI's lending through
   its expeditions pass with a unit on a friend's land and one on loan; `OpenHOI3.SaveCheck enhancedstart` looks at a
   new game under them, and forty days of BlackICE went through. Not reviewed in play.
+- **The display lines after BiceLib's, 2026-11-26** - "Go ahead and build it", each put to the user first. What
+  BiceLib writes in hard-coded English is written here **in the mod's words**: a line is on where the
+  localisation has its key (`localisation/openhoi/`), so these are no fixes and need no switch -
+  - a leader's skill with his highest, in the leader window (`mechanics/leaders.md`, section 12);
+  - `kill_leader`'s unit, place and bracket, for a text that asks (`mechanics/scripttext.md`);
+  - what a `load_oob` file would do, counted off the engine's own reading of it (`mechanics/scripttext.md`);
+  - the manpower tooltip's need by branch, rotation, attrition and trickleback (`mechanics/topbar.md`, section
+    14);
+  - a land unit's summed figures and its damage in a battle's tooltip, in columns measured in the tooltip's
+    font (`mechanics/combatview.md`, section 12);
+  - the division designer's paradrop line and a combined arms group's bonus (`mechanics/builders.md`, section
+    11).
+  Two are behaviour and have names a mod may go without: `ctrl_unassign_selected`, Ctrl on "remove all leaders"
+  taking the selected units' leaders alone, and `tooltip_scroll`, a tooltip taller than the screen moved through
+  with Alt and the wheel or the arrow keys (`mechanics/tooltips.md`, section 8). **Two records are kept for
+  them, display only, in an enhanced save and not in the hash** - by the user's word on both: a country's
+  manpower record, thirty days of it, and the damage of the units in the land battles being fought
+  (`mechanics/savegame.md`, section 21). Other than BiceLib's: any tooltip scrolls and says what is left below;
+  a battle's damage is what was really taken off a unit, strength as organisation; the rotation's and the
+  attrition's cost is kept a thousand times finer than a thousandth of manpower, which a brigade's day of it
+  does not come to. Each has its tests; `OpenHOI3.SaveCheck scripttext` and `enhancedstart` look at BlackICE
+  under them, and forty-five days of it went through. Not reviewed in play.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -288,11 +310,14 @@ names of keys and defines are proposals.
 **Texts - built in, their wording from the localisation**
 
 - Variables filled where a text asks for them: the unit, place and manner of a `kill_leader`; the manpower tooltip's
-  reinforcement need by land, air and navy with its four further figures.
+  reinforcement need by land, air and navy with its four further figures. **Built 2026-11-26.**
 - Lines of the engine's own under new keys: a leader's skill with his highest, what a `load_oob` file would do, a
   unit's summed figures and damage in a battle's tooltip, whether a design may be dropped by parachute and which
   brigades stop it, what a combined-arms group gives, and manpower and leadership in the resources map mode's tooltip.
+  **Built 2026-11-26**, the keys `OPENHOI_LEADER_SKILL`, `OPENHOI_LOAD_OOB_...`, `OPENHOI_BATTLE_STATS_...`,
+  `OPENHOI_BATTLE_DAMAGE_...` and `OPENHOI_DESIGNER_...`; the map mode's two lines earlier, with the custom map modes.
 - A tooltip taller than the screen scrolls - any tooltip, not the requirement's alone (*Interface*, above).
+  **Built 2026-11-26**, `tooltip_scroll`.
 
 **Interface**
 

@@ -2228,6 +2228,13 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   built*): `key_without_equals`, `unit_figure_decimals`, `yield_modifiers`. Each arm is tested; BlackICE's files hold
   none of the faulty lines today and no province yields fuel or money, so no run shows them. The first two are read
   with the files, by the folders' rules: a save of a faithful game loaded under an enhanced folder gets them.
+- **The display lines after BiceLib's are built and not reviewed in play** (2026-11-26, `enhanced.md`, *What is
+  built*): the leader window's skill, Ctrl on "remove all leaders", a scrolling tooltip, `kill_leader`'s and
+  `load_oob`'s texts, the manpower tooltip's breakdown, a unit's figures and damage in a battle's tooltip, and the
+  designer's two lines - with their words in BlackICE's working copy, `localisation/openhoi/texts.csv`. Tried by
+  their tests and by `scripttext` on BlackICE; **nothing of them has been looked at on screen**, the columns of
+  the battle tooltip and the leader window's skill column - whether `3 (5)` fits it - first. **Left of BiceLib's**:
+  what the mod leaves off - the trait's command limit, the screen penalty, rank-specific traits.
 - **Six fixes and two defines after BiceLib's are built and not reviewed in play** (2026-11-26, `enhanced.md`, *What
   is built*): which historical model is shown, a queued brigade's model, a building placed unresearched, the two
   leader ranks, the event candidates in the save, and the defines for war exhaustion's hand-over and the AI's

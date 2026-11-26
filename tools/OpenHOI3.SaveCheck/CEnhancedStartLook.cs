@@ -181,6 +181,19 @@ internal static class CEnhancedStartLook
 			{
 				Console.WriteLine($"  not read: {unread.Key.Key}, {unread.Value} times");
 			}
+			// The manpower tooltip's record, which the new game's days left: the need by branch, through the same save.
+			int recorded = state.Countries.Count(country => !country.ManpowerRecord.IsEmpty);
+			int recordsSame = state.Countries.Count(country =>
+			{
+				OpenHOI3.Sim.Economy.CManpowerRecord before =country.ManpowerRecord, after = loaded.Country(country.Tag)!.ManpowerRecord;
+				return before.NeedLand == after.NeedLand && before.NeedAir == after.NeedAir && before.NeedNavy == after.NeedNavy
+					&& before.RotationToday == after.RotationToday && before.RotationLastDay == after.RotationLastDay;
+			});
+			Console.WriteLine($"manpower records: {recorded} countries have one; after the load {recordsSame} of {state.Countries.Count} the same");
+			if (recordsSame != state.Countries.Count)
+			{
+				return false;
+			}
 			return state.Rules.Has(EFix.SavedEventCandidates) ? same == state.Countries.Count : kept == 0;
 		}
 		finally

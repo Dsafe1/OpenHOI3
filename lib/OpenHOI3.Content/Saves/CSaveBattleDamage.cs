@@ -9,7 +9,7 @@ namespace OpenHOI3.Content.Saves;
 
 /// <summary>
 /// The damage units have dealt and taken in the land battles being fought, in an enhanced game's save, both ways
-/// (<c>docs/mechanics/savegame.md</c>, section 22; <see cref="CBattleDamage"/>): one list of ours at the top, ten whole
+/// (<c>docs/mechanics/savegame.md</c>, section 21; <see cref="CBattleDamage"/>): one list of ours at the top, ten whole
 /// numbers a unit - its number; the hour its last-hour figures are of; and the eight figures, the battle's four and
 /// the hour's four, each as strength dealt, strength taken, organisation dealt, organisation taken. The battles' own
 /// block stays the original's. A game with nothing to keep writes no key, and a faithful game none.
