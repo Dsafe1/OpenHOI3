@@ -116,6 +116,8 @@ public class LeaderReaderTests
 		Assert.Equal("L798", leader.Picture);
 		Assert.Equal(new[] { "old_guard", "engineer" }, leader.Traits.Select(trait => trait.Key));
 		Assert.Equal(new CDate(1930, 1, 1), leader.FirstRankDate);
+		// Of two lines of one day, the first's.
+		Assert.Equal(1, leader.FirstRank);
 		Assert.Equal(CFixed15.FromInt(2000), leader.Experience);
 	}
 
@@ -123,12 +125,13 @@ public class LeaderReaderTests
 	public void ALeaderNotYetInServiceKnowsTheDayHeWillBe()
 	{
 		CLeader leader = Read("""
-			3 = { name = "Andersen" country = GER type = air skill = 1 history = { 1945.1.1 = { rank = 1 } } }
+			3 = { name = "Andersen" country = GER type = air skill = 1 history = { 1945.1.1 = { rank = 3 } } }
 			""", new CDate(1936, 1, 1));
 
 		Assert.Equal(0, leader.Rank);
 		Assert.Equal(ELeaderType.Air, leader.Type);
 		Assert.Equal(new CDate(1945, 1, 1), leader.FirstRankDate);
+		Assert.Equal(3, leader.FirstRank);
 	}
 
 	[Fact]

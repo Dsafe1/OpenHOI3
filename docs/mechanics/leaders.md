@@ -236,6 +236,14 @@ history gives. `confirmed`. "First" is the earliest dated `rank` in his history:
 game that is always the first written, which is what the original takes; which it means where
 they differ was not read. A leader whose history has no `rank` is never put in service.
 
+### An enhanced game's two fixes
+
+Both after BiceLib's, each a name a mod may go without (`docs/enhanced.md`).
+
+- **`history_leader_ranks`**: the day's putting in service gives **the rank that first line names**, held between 1
+  and 4, where the original gives 1. Of two lines of one day the first written. Nothing later in a history is
+  applied, as before.
+
 ## 6. What the save says
 
 `OpenHOI3.SaveCheck <install> <save>` sets the leaders of a new game beside a savegame two

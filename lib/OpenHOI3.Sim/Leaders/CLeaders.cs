@@ -221,7 +221,8 @@ public static class CLeaders
 	/// <summary>
 	/// The day's putting in service: a leader whose history first gives him a rank today,
 	/// and who is not in service already, is put in service at rank 1, whatever rank the
-	/// history gives. Nothing later in his history is ever applied.
+	/// history gives. Nothing later in his history is ever applied. An enhanced game's gives
+	/// him the rank that line names, held between 1 and 4 (<see cref="Rules.EFix.HistoryLeaderRanks"/>).
 	/// </summary>
 	public static void ActivateDaily(CGameState state)
 	{
@@ -229,13 +230,14 @@ public static class CLeaders
 		{
 			return;
 		}
+		bool named = state.Rules.Has(Rules.EFix.HistoryLeaderRanks);
 		foreach (CCountry country in state.Countries)
 		{
 			foreach (CLeader leader in country.Leaders)
 			{
 				if (leader.FirstRankDate == state.Date && !country.ActiveLeaders.Contains(leader))
 				{
-					leader.Rank = 1;
+					leader.Rank = named ? Math.Clamp(leader.FirstRank, 1, 4) : 1;
 					country.ActiveLeaders.Add(leader);
 				}
 			}

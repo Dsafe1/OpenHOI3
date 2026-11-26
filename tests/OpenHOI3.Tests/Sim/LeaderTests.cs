@@ -468,6 +468,29 @@ public class LeaderTests
 	}
 
 	[Fact]
+	public void AnEnhancedGamesLeaderComesIntoServiceAtTheRankHisHistoryNamesHeldBetweenOneAndFour()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		CLeader general = Leader(state, germany, 1, 0, 2);
+		CLeader marshal = Leader(state, germany, 2, 0, 2);
+		CLeader unnamed = Leader(state, germany, 3, 0, 2);
+		foreach (CLeader leader in new[] { general, marshal, unnamed })
+		{
+			leader.FirstRankDate = state.Date;
+		}
+		general.FirstRank = 3;
+		marshal.FirstRank = 9;
+
+		CLeaders.ActivateDaily(state);
+
+		Assert.Equal(new[] { general, marshal, unnamed }, germany.ActiveLeaders);
+		Assert.Equal(3, general.Rank);
+		Assert.Equal(4, marshal.Rank);
+		Assert.Equal(1, unnamed.Rank);
+	}
+
+	[Fact]
 	public void ALeaderWithNoRankInHisHistoryIsNeverPutInService()
 	{
 		CGameState state = State(out CCountry germany, out _);

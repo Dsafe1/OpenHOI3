@@ -169,10 +169,11 @@ public static class CLeaderReader
 	{
 		foreach (ClausewitzNode block in history.Children)
 		{
-			if (block.IsBlock && CDate.TryParse(block.Key, out CDate when) && block.Get("rank") is not null
+			if (block.IsBlock && CDate.TryParse(block.Key, out CDate when) && block.Get("rank") is { } rank
 				&& (leader.FirstRankDate is not { } first || when.CompareTo(first) < 0))
 			{
 				leader.FirstRankDate = when;
+				leader.FirstRank = Whole(rank.Value);
 			}
 		}
 		foreach (ClausewitzNode entry in CHistory.Fold(history, start))

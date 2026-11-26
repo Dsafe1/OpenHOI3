@@ -133,4 +133,10 @@ public enum EFix
 	/// every other test of the placing standing (<c>docs/mechanics/buildinglines.md</c>, section 6).
 	/// </summary>
 	PlaceUnresearchedBuilding,
+
+	/// <summary>
+	/// A leader put in service on the day his history first gives him a rank takes the rank that line names, where the
+	/// original gives him rank 1 (<c>docs/mechanics/leaders.md</c>, section 5).
+	/// </summary>
+	HistoryLeaderRanks,
 }

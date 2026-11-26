@@ -68,6 +68,12 @@ public sealed class CLeader
 	/// </summary>
 	public CDate? FirstRankDate { get; set; }
 
+	/// <summary>
+	/// The rank that first line of his history names. The original's pass never asks it and gives him rank 1; an
+	/// enhanced game's gives him this, held between 1 and 4 (<see cref="Rules.EFix.HistoryLeaderRanks"/>).
+	/// </summary>
+	public int FirstRank { get; set; }
+
 	/// <summary>The unit he commands, or null.</summary>
 	public CUnit? Unit { get; set; }
 
