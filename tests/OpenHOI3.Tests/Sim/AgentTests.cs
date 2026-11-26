@@ -178,6 +178,54 @@ public class AgentTests
 	// ---- the agents
 
 	[Fact]
+	public void The_expeditions_pass_lends_a_unit_on_a_friends_land_and_an_enhanced_games_define_stops_the_lending_alone()
+	{
+		CGameState state = World();
+		CCountry germany = state.Country(Ger)!;
+		// Holland is Germany's puppet and in its faction: a friend whose land Germany may operate in. No way leads there
+		// from Germany's, so it is no part of the land Germany's theatre looks after.
+		state.Country(Hol)!.Faction = "axis";
+		state.Country(Hol)!.Overlord = Ger;
+		foreach ((int from, int to) in new[] { (1, 31), (31, 1) })
+		{
+			CProvince province = state.Province(from);
+			province.Neighbours = province.Neighbours.Where(neighbour => neighbour != to).ToArray();
+			province.Edges = province.Edges.Where(edge => edge.To != to).ToArray();
+		}
+		state.ForgetPositions();
+		(CAgent agent, _) = Bound(state);
+		// A German division on Holland's land, outside Germany's theatre; and one Poland lent Germany, in Germany, where
+		// Poland - no friend - may not operate.
+		CUnit abroad = Unit(state, EUnitKind.Division, 31, "infantry_brigade", 2);
+		CUnit onLoan = Unit(state, EUnitKind.Division, 5, "infantry_brigade", 2);
+		onLoan.Lender = Pol;
+		foreach (CUnit unit in new[] { abroad, onLoan })
+		{
+			if (!agent.Land.Contains(unit))
+			{
+				agent.Land.Add(unit);
+			}
+		}
+		state.Outbox.Clear();
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		state.Defines.Set(CAiExpeditions.MilitarySection, CAiExpeditions.LendsDefine, CFixedPoint.Zero);
+
+		CAiExpeditions.Run(state, germany, agent);
+
+		// The unit on loan is sent home all the same; the one abroad stays Germany's.
+		Assert.Single(state.Outbox.OfType<CSendExpeditionCommand>());
+		Assert.DoesNotContain(onLoan, agent.Land);
+		Assert.Contains(abroad, agent.Land);
+
+		// Without the define - the original's - it is lent to Holland.
+		state.Outbox.Clear();
+		state.Defines.Set(CAiExpeditions.MilitarySection, CAiExpeditions.LendsDefine, CFixedPoint.One);
+		CAiExpeditions.Run(state, germany, agent);
+		Assert.Single(state.Outbox.OfType<CSendExpeditionCommand>());
+		Assert.DoesNotContain(abroad, agent.Land);
+	}
+
+	[Fact]
 	public void A_theatre_gets_an_unbound_agent_and_the_pass_binds_it_and_switches_its_plan_on()
 	{
 		CGameState state = World();

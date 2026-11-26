@@ -216,9 +216,9 @@ Begun 2026-11-21; as of 2026-11-25.
   The defines, a mod's choice and no fix, the original's rule where one is not given:
   `OPENHOI_WAR_EXHAUSTION_TO_NEUTRALITY = 0` - no hand-over to neutrality at peace, the figure back to nought all
   the same (`mechanics/warexhaustion.md`, section 2) - and `OPENHOI_AI_LENDS_UNITS = 0` - the AI lends no unit, and
-  still gives a loaned one back (`mechanics/agents.md`, section 10.5). Each arm is tested, the AI's lending by its
-  question alone; `OpenHOI3.SaveCheck enhancedstart` looks at a new game under them, and forty days of BlackICE
-  went through. Not reviewed in play.
+  still gives a loaned one back (`mechanics/agents.md`, section 10.5). Each arm is tested, the AI's lending through
+  its expeditions pass with a unit on a friend's land and one on loan; `OpenHOI3.SaveCheck enhancedstart` looks at a
+  new game under them, and forty days of BlackICE went through. Not reviewed in play.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
