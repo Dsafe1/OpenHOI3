@@ -507,7 +507,7 @@ public partial class COobBrowser : Control
 	{
 		if (_draggedUnit is { } unit)
 		{
-			return COobBrowserText.MayTakeUnit(row, unit);
+			return COobBrowserText.MayTakeUnit(_simulation.State, row, unit);
 		}
 		if (_draggedSubUnit is { } subUnit)
 		{

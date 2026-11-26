@@ -186,6 +186,19 @@ Begun 2026-11-21; as of 2026-11-25.
   **Kept dead, by the same word**: `call_ally` in a `war` effect - "a leftover from EU3" - and the casus belli the
   two effects make, which neither the base game nor BlackICE uses. Each fix's arm is tested but the raid's, the
   fort's and the dissent's, which were only run; a game of 45 days on BlackICE went through.
+- **How many units a command holds, 2026-11-26** (`mechanics/attaching.md`, section 8), the first of BiceLib's
+  rules taken in - "Start with the command limits". A mod's choice written as data, and no fix: a base for a
+  corps, an army and an army group in `defines.lua` (`OPENHOI_CORPS_UNIT_LIMIT` and its like, five with none),
+  three kinds of modifier that raise or lower it for a country - `corps_unit_limit`, `army_unit_limit`,
+  `army_group_unit_limit`, from a technology's levels or any source of a modifier - and a define that lets a
+  division of one brigade take no place. BlackICE's steps are at set levels of a technology, which a figure a level
+  cannot say, so they are twelve triggered modifiers, **in `common/triggered_modifiers.txt` with the mod's others
+  and in no file of the engine's own** - a second file read after it was built first and taken out the same day,
+  "please dont make it a new modifier file". The original reads them too: it logs the kind as unknown and drops
+  it, so there each is a row of the Strategic Effects window with a name and no effect, BiceLib's Lua setting the
+  same figures. Nothing is kept for it: the limit is worked out from
+  the defines and the country's modifier each time it is asked. Changes play, for the player; **the AI's ladder of
+  commands is left counting five**, as BiceLib leaves it (*Not decided*, in the entry below).
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -217,6 +230,15 @@ names of keys and defines are proposals.
   `army_group_unit_limit` - added to a base in `defines.lua`, so a technology, a triggered modifier, a minister or a law
   may raise it and no script has to set figures day by day. A leader's trait raises or lowers it by a trait effect,
   `command_limit`. A division of one brigade takes no place. The country asked is the commander's.
+  **Built 2026-11-26** (`mechanics/attaching.md`, section 8), with two things other than proposed here: the
+  defines carry the prefix, `OPENHOI_CORPS_UNIT_LIMIT`, `OPENHOI_ARMY_UNIT_LIMIT`, `OPENHOI_ARMY_GROUP_UNIT_LIMIT`,
+  in the section `military`; and the one-brigade division's allowance is a define of its own,
+  `OPENHOI_LONE_BRIGADE_TAKES_NO_PLACE`, so that a mod that gives no define plays the original's rule. BlackICE's
+  twelve steps are triggered modifiers in `common/triggered_modifiers.txt`. **Not built**: the trait effect `command_limit` - BiceLib's `addCommandLimitTrait`,
+  which the mod leaves off. **Not decided**: whether the AI's own ladder of commands (`mechanics/agents.md`,
+  section 4) follows the limit. It counts five to a command on both engines today, BiceLib not changing it, so an
+  AI's corps holds five where the player's holds four; following the limit would change how many headquarters
+  the AI makes.
 - **Screens and capital ships**: two defines, the flat penalty and the screens wanted for each capital ship.
 - **A trait that counts only at some ranks**: `min_rank` and `max_rank` on the trait; no pair of traits to exchange,
   and nothing left out of a save. Off in the mod today, so it may come last.

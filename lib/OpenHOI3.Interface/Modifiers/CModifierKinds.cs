@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace OpenHOI3.Interface.Modifiers;
 
@@ -128,12 +129,27 @@ public static class CModifierKinds
 		new("local_unit_speed", "MODIFIER_LOCAL_UNIT_SPEED", true, true),
 	};
 
+	/// <summary>
+	/// The kinds of an enhanced game's own, after the original's: how many units a corps, an army and an army group may
+	/// command, whole numbers that are better for more. Their names are the mod's to give, under these keys.
+	/// </summary>
+	public static IReadOnlyList<CModifierKind> Enhanced { get; } = new CModifierKind[]
+	{
+		new(Sim.Units.CCommandLimit.CorpsKind, "OPENHOI_MODIFIER_CORPS_UNIT_LIMIT", false, true),
+		new(Sim.Units.CCommandLimit.ArmyKind, "OPENHOI_MODIFIER_ARMY_UNIT_LIMIT", false, true),
+		new(Sim.Units.CCommandLimit.ArmyGroupKind, "OPENHOI_MODIFIER_ARMY_GROUP_UNIT_LIMIT", false, true),
+	};
+
 	private static readonly Dictionary<string, CModifierKind> ByKey = Index();
 
 	private static Dictionary<string, CModifierKind> Index()
 	{
 		var byKey = new Dictionary<string, CModifierKind>(StringComparer.OrdinalIgnoreCase);
 		foreach (CModifierKind kind in All)
+		{
+			byKey.TryAdd(kind.Key, kind);
+		}
+		foreach (CModifierKind kind in Enhanced)
 		{
 			byKey.TryAdd(kind.Key, kind);
 		}
@@ -161,7 +177,7 @@ public static class CModifierKinds
 	/// <summary>Whether the original builds the kind: its own, the 32 mission efficiencies and a faction's.</summary>
 	public static bool IsKnown(string key)
 	{
-		return ByKey.ContainsKey(key) || MissionIndex(key) >= 0
+		return (ByKey.TryGetValue(key, out CModifierKind? kind) && !Enhanced.Contains(kind)) || MissionIndex(key) >= 0
 			|| key.StartsWith(Sim.Modifiers.CModifierKeys.SusceptibilityPrefix, StringComparison.OrdinalIgnoreCase);
 	}
 

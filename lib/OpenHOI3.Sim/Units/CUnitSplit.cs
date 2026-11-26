@@ -77,7 +77,7 @@ public static class CUnitSplit
 		{
 			var created = new CUnit(unit.Kind, country.Tag) { Id = ++state.LastUnitId, Location = unit.Location, Base = unit.Base };
 			country.Units.Add(created);
-			if (unit.Parent is { } parent && CDeployment.MayTakeSubordinate(parent, created))
+			if (unit.Parent is { } parent && CDeployment.MayTakeSubordinate(state, parent, created))
 			{
 				CAgentUnits.Attach(state, created, parent);
 			}

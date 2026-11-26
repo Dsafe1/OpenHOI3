@@ -105,8 +105,8 @@ public static class CDeployment
 		Diplomacy.CThreat.UnitDeployed(state, country, unit);
 	}
 
-	/// <summary>The most land units an army group, an army or a corps may have under it.</summary>
-	public const int MostLandSubordinates = 5;
+	/// <summary>The most land units an army group, an army or a corps may have under it, as the original has it.</summary>
+	public const int MostLandSubordinates = CCommandLimit.Original;
 
 	private const string IsCarrierAirGroup = "is_cag";
 
@@ -157,7 +157,7 @@ public static class CDeployment
 			{
 				return IsLand(target) && target.SubUnits.Count < CUnitAvailability.MostBrigades(state, country);
 			}
-			return MayTakeSubordinate(target, unit);
+			return MayTakeSubordinate(state, target, unit);
 		}
 		if (unit.Kind == EUnitKind.Air)
 		{
@@ -170,9 +170,10 @@ public static class CDeployment
 
 	/// <summary>
 	/// Whether one unit may be put under another: the commander has to be of a higher
-	/// rank, and anything but a theatre takes no more than five land units.
+	/// rank, and anything but a theatre takes no more than five land units - or, in an enhanced game, than its
+	/// country's limit for its level (<see cref="CCommandLimit"/>).
 	/// </summary>
-	public static bool MayTakeSubordinate(CUnit commander, CUnit subordinate)
+	public static bool MayTakeSubordinate(CGameState state, CUnit commander, CUnit subordinate)
 	{
 		if ((int)commander.Kind >= (int)subordinate.Kind)
 		{
@@ -186,15 +187,7 @@ public static class CDeployment
 		{
 			return true;
 		}
-		int land = 0;
-		foreach (CUnit child in commander.Children)
-		{
-			if (IsLand(child))
-			{
-				land++;
-			}
-		}
-		return land < MostLandSubordinates;
+		return CCommandLimit.HasRoom(state, commander, subordinate);
 	}
 
 	/// <summary>
@@ -244,7 +237,7 @@ public static class CDeployment
 	public static void JoinOrdered(CGameState state, CCountry country, CUnit unit, CUnit target)
 	{
 		bool mayTake = unit.SubUnits.Count != 0 && CSubUnitTransfer.MayTake(state, country, target, unit.SubUnits[0], sameProvince: false);
-		if (!mayTake && !(target.Kind == EUnitKind.Theatre && MayTakeSubordinate(target, unit)))
+		if (!mayTake && !(target.Kind == EUnitKind.Theatre && MayTakeSubordinate(state, target, unit)))
 		{
 			return;
 		}

@@ -157,4 +157,12 @@ This file is the order of work across the two repositories and what was decided 
   the DLL holds what this engine does not.
 - **A save whose rules are not the folders'.** A loaded save's rules stand (step 1), but the mod's Lua is told the
   folders' - `OpenHOI3.Enhanced` is set as the scripts are loaded, before any save is.
-- **Whether new defines carry the prefix.** Proposed: yes, `openhoi_` in front, though a define is a key.
+- ~~**Whether new defines carry the prefix.** Proposed: yes, `openhoi_` in front, though a define is a key.~~ Built
+  so with the first of them, 2026-11-26: `OPENHOI_CORPS_UNIT_LIMIT` and its like, in the section of their subject.
+  A kind of modifier carries none - `corps_unit_limit` - being a key among the original's own.
+- **An OpenHOI3 switch for the mod's validator** - for later, 2026-11-26. BiceValidator checks a file against what the
+  original reads, so a key of this engine's in a file both read is a warning there: the twelve `unit_limit_...`
+  entries of `common/triggered_modifiers.txt` give twelve BV308, "`corps_unit_limit` is not a key of ...", true of
+  the original and meant. Wanted: a switch that makes the validator check for OpenHOI3 as well - this engine's kinds
+  of modifier, defines and files known, and told apart from a typo. Until then the twelve stand as warnings; they
+  are not put in its baseline.

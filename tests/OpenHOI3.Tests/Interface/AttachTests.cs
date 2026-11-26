@@ -82,11 +82,11 @@ public class AttachTests
 	[Fact]
 	public void NothingAboveMeansNoAttaching()
 	{
-		(_, CCountry england) = World();
+		(CGameState state, CCountry england) = World();
 		CUnit division = Unit(england, EUnitKind.Division, 1);
-		Assert.False(CAttachText.MayAttach(england, division));
+		Assert.False(CAttachText.MayAttach(state, england, division));
 		Unit(england, EUnitKind.Corps, 2);
-		Assert.True(CAttachText.MayAttach(england, division));
+		Assert.True(CAttachText.MayAttach(state, england, division));
 	}
 
 	[Fact]
@@ -152,14 +152,14 @@ public class AttachTests
 	[Fact]
 	public void SeveralGivenAHeadquartersMayBeRefusedByTheCommandersCommander()
 	{
-		(_, CCountry england) = World();
+		(CGameState state, CCountry england) = World();
 		CUnit theatre = Unit(england, EUnitKind.Theatre, 1);
 		CUnit corps = Unit(england, EUnitKind.Corps, 2, parent: theatre);
 		CUnit division = Unit(england, EUnitKind.Division, 3, parent: corps);
-		Assert.Equal(2, CAttachText.ForHigher(new[] { division, corps }).Count);
+		Assert.Equal(2, CAttachText.ForHigher(state, new[] { division, corps }).Count);
 		CUnit deep = Unit(england, EUnitKind.Division, 4, parent: division);
 		var odd = new CUnit(EUnitKind.Air, Eng) { Id = 5, Parent = deep };
-		Assert.Empty(CAttachText.ForHigher(new[] { odd }));
+		Assert.Empty(CAttachText.ForHigher(state, new[] { odd }));
 	}
 
 	[Fact]

@@ -100,6 +100,16 @@ public static class CTechnologyEffectsText
 		("naval_air_target_chance", "NAVAL_AIR_TARGET_CHANCE_TECH", EColour.More),
 	};
 
+	/// <summary>
+	/// An enhanced game's own country-wide figures, written after the original's: how many units a corps, an army and
+	/// an army group may command, by the kind a technology gives a level and the label a mod's localisation names.
+	/// </summary>
+	private static readonly (string Key, string Label)[] EnhancedFigures =
+	{
+		(CCommandLimit.CorpsKind, "OPENHOI_CORPS_UNIT_LIMIT_TECH"), (CCommandLimit.ArmyKind, "OPENHOI_ARMY_UNIT_LIMIT_TECH"),
+		(CCommandLimit.ArmyGroupKind, "OPENHOI_ARMY_GROUP_UNIT_LIMIT_TECH"),
+	};
+
 	/// <summary>The missions in the original's order of them, each by its name in the files and its label.</summary>
 	private static readonly (string Mission, string Label)[] Missions =
 	{
@@ -295,6 +305,16 @@ public static class CTechnologyEffectsText
 			{
 				text.Append(localise(label)).Append(Colour(colour, value))
 					.Append(CNumberText.Format(new CFixedPoint(value * 100), 2)).Append(PercentLine);
+			}
+		}
+		// An enhanced game's own: a whole figure bare, a part of one to two places.
+		foreach ((string key, string label) in EnhancedFigures)
+		{
+			long value = state.Rules.Enhanced ? effect[key].Raw * levels : 0;
+			if (value != 0)
+			{
+				text.Append(localise(label)).Append(Colour(EColour.More, value))
+					.Append(CNumberText.Format(new CFixedPoint(value), value % CFixedPoint.Scale == 0 ? 0 : 2)).Append(Line);
 			}
 		}
 		// A tactic's figure is whole percentage points, and always written green with a plus.

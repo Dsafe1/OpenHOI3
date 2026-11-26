@@ -60,7 +60,9 @@ it but a building's, a building being no modifier. `confirmed`
 
 ### The kinds a block may name
 
-**A closed list, every kind made before the first file of modifiers is read**: `confirmed`
+**A closed list, every kind made before the first file of modifiers is read**: `confirmed`. *Ours, for an enhanced
+game's files alone* (`CModifierKeys.Enhanced`, 2026-11-26): three more, `corps_unit_limit`, `army_unit_limit` and
+`army_group_unit_limit`, how many units a command holds (`attaching.md`, section 8).
 
 1. **The engine's 108**, 107 keys - `naval_intel_boost` is made twice, and the first is the one
    found. They are `CModifierKeys.Engine` in `lib/OpenHOI3.Sim/Modifiers`, in the original's

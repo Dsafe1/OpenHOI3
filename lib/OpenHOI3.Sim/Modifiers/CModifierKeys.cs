@@ -51,16 +51,28 @@ public sealed class CModifierKeys
 	/// </summary>
 	public static IReadOnlyList<string> Missions => Sim.Missions.CMissionEfficiency.Names;
 
+	/// <summary>
+	/// The kinds an enhanced game's files may name beyond the original's: how many units a corps, an army and an army
+	/// group may command (<see cref="Units.CCommandLimit"/>). The original logs and drops them as it does any key it
+	/// does not know, so a file made for both engines may hold them. <c>docs/enhanced.md</c>.
+	/// </summary>
+	public static IReadOnlyList<string> Enhanced => Units.CCommandLimit.Kinds;
+
 	/// <summary>The engine's kinds and the missions', with no faction's: what a faction's own modifier may hold before any.</summary>
 	public static CModifierKeys WithoutFactions { get; } = new(Array.Empty<string>());
 
 	private readonly HashSet<string> _keys = new(StringComparer.OrdinalIgnoreCase);
 
 	/// <param name="factions">The tags of the factions whose kinds are made, in the file's order.</param>
-	public CModifierKeys(IEnumerable<string> factions)
+	/// <param name="enhanced">Whether the files are an enhanced game's, which has kinds of its own.</param>
+	public CModifierKeys(IEnumerable<string> factions, bool enhanced = false)
 	{
 		_keys.UnionWith(Engine);
 		_keys.UnionWith(Missions);
+		if (enhanced)
+		{
+			_keys.UnionWith(Enhanced);
+		}
 		foreach (string faction in factions)
 		{
 			if (faction.Length > 0)
@@ -70,7 +82,7 @@ public sealed class CModifierKeys
 		}
 	}
 
-	/// <summary>How many keys there are: 139 and one a faction.</summary>
+	/// <summary>How many keys there are: 139 and one a faction, and an enhanced game's three.</summary>
 	public int Count => _keys.Count;
 
 	/// <summary>

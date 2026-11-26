@@ -2228,6 +2228,11 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   built*): `key_without_equals`, `unit_figure_decimals`, `yield_modifiers`. Each arm is tested; BlackICE's files hold
   none of the faulty lines today and no province yields fuel or money, so no run shows them. The first two are read
   with the files, by the folders' rules: a save of a faithful game loaded under an enhanced folder gets them.
+- **How many units a command holds is built and not reviewed in play** (2026-11-26, `attaching.md`, section 8): the
+  bases in `defines.lua`, the three kinds of modifier, and the one-brigade division's define, with BlackICE's data
+  for them in its working copy - its twelve steps in its own `common/triggered_modifiers.txt`. Tried with `OpenHOI3.SaveCheck
+  commandlimits`, and by nobody at the attach window. **Open**: whether the AI's ladder of commands follows the limit
+  - it counts five on both engines - and the trait effect `command_limit`, which the mod leaves off.
 - **Six fixes of dead values are built and not reviewed in play** (2026-11-26, `enhanced.md`, *What is built*):
   `tech_repair_cost`, `trait_dissent_impact`, `raid_trait_hours`, `trait_fort_defence`, `radar_efficiency`,
   `trait_surprise_chance`. The repair cost, the radar's reach and the surprise pick are tested; the other three were

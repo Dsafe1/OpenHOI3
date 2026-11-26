@@ -81,6 +81,14 @@ public class ModifierKeysTests : IDisposable
 		Assert.True(keys.Contains("GLOBAL_IC"));
 		Assert.False(keys.Contains("global_lc"));
 		Assert.False(CModifierKeys.WithoutFactions.Contains("suseptibility_axis"));
+
+		// An enhanced game's files may name three more: how many units a command holds.
+		Assert.False(keys.Contains("corps_unit_limit"));
+		var enhanced = new CModifierKeys(new[] { "axis" }, enhanced: true);
+		Assert.Equal(143, enhanced.Count);
+		Assert.True(enhanced.Contains("corps_unit_limit"));
+		Assert.True(enhanced.Contains("army_unit_limit"));
+		Assert.True(enhanced.Contains("army_group_unit_limit"));
 	}
 
 	[Fact]
@@ -109,6 +117,44 @@ public class ModifierKeysTests : IDisposable
 		string warning = Assert.Single(_warnings);
 		// At the file and the line of the key, as a compiler writes it (logs.md, section 4).
 		Assert.Contains("laws.txt:4: war_economy: global_lc", warning);
+	}
+
+	[Fact]
+	public void An_enhanced_folders_files_may_name_the_unit_limits()
+	{
+		WriteIdeologies();
+		Write("common/laws.txt", """
+			training_law = {
+				staff_training = { corps_unit_limit = 1 }
+			}
+			""");
+		Write("common/triggered_modifiers.txt", """
+			plain = { global_ic = 0.1 }
+			staff = { army_unit_limit = 2 trigger = { tag = GER } }
+			""");
+
+		// A faithful folder's: the key is no kind, and is reported and dropped as the original drops it.
+		CLaw law = CModifierReader.ReadLaws(Directories, _warnings.Add)["training_law"]["staff_training"];
+		Assert.False(law.Modifier.Values.ContainsKey("corps_unit_limit"));
+		Assert.Contains("corps_unit_limit", Assert.Single(_warnings));
+		OpenHOI3.Content.Script.CScriptContext faithful = ScriptFixture.Context();
+		List<CTriggeredModifier> dropped = OpenHOI3.Content.Script.CTriggeredModifierReader.Read(Directories, faithful,
+			CModifierReader.Kinds(Directories));
+		Assert.Equal(new[] { "plain", "staff" }, dropped.Select(each => each.Name));
+		Assert.False(dropped[1].Modifier.Values.ContainsKey("army_unit_limit"));
+		Assert.Contains("army_unit_limit", Assert.Single(faithful.Problems.All).Message);
+
+		Write("common/openhoi_enhanced.txt", "");
+		_warnings.Clear();
+		law = CModifierReader.ReadLaws(Directories, _warnings.Add)["training_law"]["staff_training"];
+		Assert.Equal(CFixedPoint.One, law.Modifier["corps_unit_limit"]);
+		Assert.Empty(_warnings);
+		OpenHOI3.Content.Script.CScriptContext context = ScriptFixture.Context();
+		List<CTriggeredModifier> triggered = OpenHOI3.Content.Script.CTriggeredModifierReader.Read(Directories, context,
+			CModifierReader.Kinds(Directories));
+		Assert.Equal(new[] { "plain", "staff" }, triggered.Select(each => each.Name));
+		Assert.Equal(CFixedPoint.FromInt(2), triggered[1].Modifier["army_unit_limit"]);
+		Assert.Empty(context.Problems.All);
 	}
 
 	[Fact]

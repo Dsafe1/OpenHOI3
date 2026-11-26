@@ -90,3 +90,29 @@ was not read, and its first sample is where the press was, the original's start 
 selection box always, where the original draws it in the theatre's colour brightened by 1.1, or (0.8, 0, 0) for a theatre past
 the regions; the sea keeps its own colour; and a minimap button pressed while the editor is open changes the mode under it
 while the editor's colours and style stand, where the original's map mode would be the button's.
+
+## 8. How many units a command holds
+
+*The original's rule from `reversing/findings/FINDINGS-attachbuttons.md`, section 3; the enhanced game's is ours, after BiceLib's as the mod's `docs/bicelib/features.md` describes it. `CCommandLimit` (`Sim/Units`), asked by `CDeployment.MayTakeSubordinate`.*
+
+**The original** [exe]: a land unit goes under a commander of a higher rank, and under an army group, an army or a corps only while that one has fewer than **five** land units under it. A theatre takes any number. The test is asked wherever a unit is offered a commander - the attach button and its window, a drag in the order of battle browser, a finished unit joining one in the field, a new headquarters taking the other selected units, a split's new units - and **the attach command itself does not ask it**. A faithful game's rule, whatever its files say.
+
+**An enhanced game** takes the five from the mod's data:
+
+    limit(commander) = max(1, whole part of (base + the country's modifier of the kind + its technology's))
+
+    level        base, defines.lua's military section     kind of modifier
+    corps        OPENHOI_CORPS_UNIT_LIMIT                 corps_unit_limit
+    army         OPENHOI_ARMY_UNIT_LIMIT                  army_unit_limit
+    army group   OPENHOI_ARMY_GROUP_UNIT_LIMIT            army_group_unit_limit
+
+- **A base the file does not give is five** [mod: `defines.lua`], so an enhanced mod that says nothing plays the original's rule.
+- **The country is the commander's.** Its modifier is everything section 4 of `modifiers.md` adds - a triggered modifier, a law, a minister, a strategic resource - and its technology is each technology's figure a level times its level [mod: any file a modifier is written in]. The two are summed before the whole part is taken, as a division's most brigades are.
+- **Never less than one**: a commander with nothing under it always takes a unit, as BiceLib's does.
+- **`OPENHOI_LONE_BRIGADE_TAKES_NO_PLACE`** at one or more [mod: `defines.lua`]: a division of exactly one brigade may always be put under a commander, and those already under it are not counted. A headquarters' one brigade is no division's.
+- **Nothing is detached when a limit falls**, and nothing is kept for the rule: it is worked out as it is asked, from the defines and the country's modifier, which a save and the hash already hold.
+- **The three kinds are kinds of an enhanced game only** (`modifiers.md`, section 2): a faithful folder's file that names one has it reported and dropped, as the original drops it. They are written as whole figures better for more, under `OPENHOI_MODIFIER_CORPS_UNIT_LIMIT` and its like; a technology's tooltip says its figure under `OPENHOI_CORPS_UNIT_LIMIT_TECH` and its like. The words are the mod's.
+
+**The AI's ladder of commands asks none of this** (`agents.md`, section 4): it keeps a command at four of a kind and takes a fifth, by its own count, in both games - the original's code, which BiceLib leaves alone too. So under BlackICE's base of four an AI's corps may hold five. Whether it should follow the limit is not decided (`docs/enhanced.md`).
+
+*Not built:* a leader's trait that changes the limit, which BiceLib has and BlackICE leaves off. Checked with `OpenHOI3.SaveCheck commandlimits` on 2026-11-26: BlackICE's bases four each, its twelve triggered modifiers read, and Germany given the technologies of BiceLib's table at their levels comes to that table's figures - a corps 8, an army 7, an army group 6. Not reviewed in play.

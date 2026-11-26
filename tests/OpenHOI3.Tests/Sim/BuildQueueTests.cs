@@ -862,14 +862,14 @@ public class BuildQueueTests
 
 		for (int count = 0; count < CDeployment.MostLandSubordinates; count++)
 		{
-			Assert.True(CDeployment.MayTakeSubordinate(corps, division));
+			Assert.True(CDeployment.MayTakeSubordinate(state, corps, division));
 			corps.Children.Add(new CUnit(EUnitKind.Division, Ger) { Parent = corps });
 			theatre.Children.Add(new CUnit(EUnitKind.Corps, Ger) { Parent = theatre });
 		}
-		Assert.False(CDeployment.MayTakeSubordinate(corps, division));
-		Assert.True(CDeployment.MayTakeSubordinate(theatre, division));            // a theatre takes any number
-		Assert.False(CDeployment.MayTakeSubordinate(full, division));              // not of a higher rank
-		Assert.False(CDeployment.MayTakeSubordinate(division, corps));
+		Assert.False(CDeployment.MayTakeSubordinate(state, corps, division));
+		Assert.True(CDeployment.MayTakeSubordinate(state, theatre, division));            // a theatre takes any number
+		Assert.False(CDeployment.MayTakeSubordinate(state, full, division));              // not of a higher rank
+		Assert.False(CDeployment.MayTakeSubordinate(state, division, corps));
 	}
 
 	[Fact]

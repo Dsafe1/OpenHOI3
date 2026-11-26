@@ -270,6 +270,12 @@ if (args.Length > 0 && args[0] == "declare")
 	return CDeclareTrial.Run(args);
 }
 
+// How many units a command may hold on a new game, and what gives each country its limits.
+if (args.Length > 0 && args[0] == "commandlimits")
+{
+	return CCommandLimitLook.Run(args);
+}
+
 // Factions on a new game, and a join or an invitation answered.
 if (args.Length > 0 && args[0] == "faction")
 {

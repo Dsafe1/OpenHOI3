@@ -33,7 +33,7 @@ public static class CScriptLoader
 			factions.Add(group.Faction);
 		}
 		state.TriggeredModifiers.AddRange(CTriggeredModifierReader.Read(directories, context,
-			new Sim.Modifiers.CModifierKeys(factions)));
+			new Sim.Modifiers.CModifierKeys(factions, Rules.CRulesReader.IsEnhanced(directories))));
 		CheckAcrossFiles(state.Events, state.Decisions, context);
 		return context.Problems;
 	}

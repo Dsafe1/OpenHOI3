@@ -71,7 +71,7 @@ public static class CModifierReader
 		{
 			factions.Add(group.Faction);
 		}
-		return new CModifierKeys(factions);
+		return new CModifierKeys(factions, Rules.CRulesReader.IsEnhanced(directories));
 	}
 
 	/// <summary>
