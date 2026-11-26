@@ -35,6 +35,7 @@ public static class CFixes
 		(EFix.PlaceUnresearchedBuilding, "place_unresearched_building"),
 		(EFix.OobLeaderRanks, "oob_leader_ranks"),
 		(EFix.HistoryLeaderRanks, "history_leader_ranks"),
+		(EFix.SavedEventCandidates, "saved_event_candidates"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

@@ -224,6 +224,7 @@ names of keys and defines are proposals.
 - A finished building may be placed without its technology, every other test of the placing standing.
   **Built 2026-11-26**, `place_unresearched_building`.
 - A loaded game has its event candidates (*Script, events and weather*, above) - the enhanced save keeps them.
+  **Built 2026-11-26**, `saved_event_candidates`.
 - The Simplified Terrain map mode colours the sea. **Built 2026-11-21**, `simplified_terrain_sea`.
 - Already the normal engine's: a province's most infrastructure (`compatibility.md`, entry 29) and the requirement
   tooltip's indentation (entry 10).
@@ -357,7 +358,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - **The Lua's memory**: Their Finest Hour's scripts keep none between calls, a mod's may (`replay.md`, 7).
 
 **The game's own state that the save leaves out**
-- **The event candidates**: a load leaves every country with none until its month turns, as the original's does (`events.md`, section 1; below, *Script, events and weather*), so no event with a mean time to happen fires where the saved game's would have.
+- **The event candidates**: a load leaves every country with none until its month turns, as the original's does (`events.md`, section 1; below, *Script, events and weather*), so no event with a mean time to happen fires where the saved game's would have. **Kept in an enhanced save since 2026-11-26** (the fix `saved_event_candidates`; `savegame.md`, section 21); a faithful game's are still lost.
 - **A relation's fraction**: `value` is written as a whole number.
 - **A lend-lease convoy's own efficiency**: the original neither writes nor reads it, and a convoy read from a save is
   made whole again, so a route a raid has cut delivers in full from the load where the saved game's would have
@@ -760,7 +761,7 @@ All of these are risk-free but for what the entry says.
 - **A battle side's "lost outright" byte is never set.** A side's defeat test and a decided battle's losses figures each read a byte that only the side's constructor writes, zeroing it, so the immediate loss and the figure's standing-strength, ships and wings terms never apply. `triggers.md`, 5.2. *Dead.* Risk: battles end and figures change.
 - **The south has no season.** Latitude is nought everywhere south of the equator. `weather.md`. *Oversight.* Risk: large for southern theatres.
 - **Season 5's doubling is dead** while `TEMPERATURECHANGESPEED` is positive. `weather.md`, "What looks wrong", 3. *Dead.* Risk: small.
-- **A loaded game fires no event until its month turns.** Each country's candidate events are made only by the month's pass, the save keeps none and a load does not make them, so after a load nothing with a mean time to happen fires until the 2nd of the next month, when every candidate has its first roll at once. BlackICE's DLL has the month's making run once after a load with `rebuildCandidates`. `events.md`, 1; `reversing/findings/FINDINGS-events.md`. *Oversight.* Risk: events fire sooner after a load, and the generator moves a draw.
+- **A loaded game fires no event until its month turns.** Each country's candidate events are made only by the month's pass, the save keeps none and a load does not make them, so after a load nothing with a mean time to happen fires until the 2nd of the next month, when every candidate has its first roll at once. BlackICE's DLL has the month's making run once after a load with `rebuildCandidates`. `events.md`, 1; `reversing/findings/FINDINGS-events.md`. *Oversight.* Risk: events fire sooner after a load, and the generator moves a draw. **Mended 2026-11-26**, `saved_event_candidates`: the enhanced save keeps the lists.
 - **Decision rows are never re-enabled** until the screen is reopened. `events.md`, 12. *Oversight.* Risk: none.
 
 ## Music and the loading screen

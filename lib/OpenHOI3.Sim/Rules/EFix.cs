@@ -145,4 +145,10 @@ public enum EFix
 	/// original gives him rank 1 (<c>docs/mechanics/leaders.md</c>, section 5).
 	/// </summary>
 	HistoryLeaderRanks,
+
+	/// <summary>
+	/// A save keeps each country's candidate events, so a loaded game asks them from its first day, where the
+	/// original's has none until its month turns (<c>docs/mechanics/events.md</c>, section 1).
+	/// </summary>
+	SavedEventCandidates,
 }

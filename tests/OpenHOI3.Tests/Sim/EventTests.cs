@@ -105,6 +105,47 @@ public class EventTests
 	}
 
 	[Fact]
+	public void An_enhanced_save_keeps_a_countrys_candidates_in_their_order_and_a_faithful_one_none()
+	{
+		CGameState state = ScriptWorld.State();
+		CEvent dated = Event(4, "date = 1936.6.20");
+		CEvent german = Event(1, "tag = GER");
+		state.Events = new[] { dated, german };
+		CEventPass.RebuildCandidates(state);
+		CCountry germany = state.Country(Ger)!;
+		Assert.Equal(new[] { dated, german }, germany.EventCandidates);
+
+		var writer = new OpenHOI3.Content.Saves.CSaveTextWriter();
+		OpenHOI3.Content.Saves.CSaveEventCandidates.Write(writer, state, germany);
+		Assert.Equal("", writer.Text);
+		// Nor an enhanced game that goes without the fix.
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(new[] { OpenHOI3.Sim.Rules.EFix.SavedEventCandidates }));
+		OpenHOI3.Content.Saves.CSaveEventCandidates.Write(writer, state, germany);
+		Assert.Equal("", writer.Text);
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		OpenHOI3.Content.Saves.CSaveEventCandidates.Write(writer, state, germany);
+		Assert.Contains("openhoi_event_candidates", writer.Text);
+		Assert.Contains("4 1", writer.Text);
+
+		// A load: the list as it stood, a number that is no event's reported and left out.
+		germany.EventCandidates.Clear();
+		var report = new OpenHOI3.Content.Saves.CSaveReport();
+		OpenHOI3.Content.Saves.CSaveEventCandidates.Read(state, germany,
+			OpenHOI3.Content.Clausewitz.ClausewitzParser.Parse(writer.Text), report);
+		Assert.Equal(new[] { dated, german }, germany.EventCandidates);
+		Assert.Empty(report.UnreadKeys);
+		OpenHOI3.Content.Saves.CSaveEventCandidates.Read(state, germany,
+			OpenHOI3.Content.Clausewitz.ClausewitzParser.Parse("openhoi_event_candidates = { 1 77 }"), report);
+		Assert.Equal(new[] { german }, germany.EventCandidates);
+		Assert.Single(report.UnreadKeys);
+		// A block without the key leaves the list alone.
+		OpenHOI3.Content.Saves.CSaveEventCandidates.Read(state, germany,
+			OpenHOI3.Content.Clausewitz.ClausewitzParser.Parse("capital = 1"), report);
+		Assert.Equal(new[] { german }, germany.EventCandidates);
+	}
+
+	[Fact]
 	public void Candidates_are_events_with_options_not_triggered_only_whose_trigger_holds_a_month_ahead()
 	{
 		CGameState state = ScriptWorld.State();

@@ -26,8 +26,11 @@ for them between the lobby and the first hour.
   make them, and a loaded game's entering runs none of a new game's days. So no event with a mean
   time to happen fires until the 2nd of the next month, and then every candidate has its first roll
   at once. Triggered-only events, fired by others, are not touched. *Exe-hardcoded*; a fault of the
-  original, kept (`docs/enhanced.md`, *Script, events and weather*). BlackICE's DLL mends it, which
-  this engine does not give (`docs/enhanced.md`, *Asked for*).
+  original, kept (`docs/enhanced.md`, *Script, events and weather*). BlackICE's DLL mends it by
+  making the lists again a day or so after a load. *An enhanced game's* (the fix
+  `saved_event_candidates`): **the save keeps each country's list**, in its order, and a load
+  puts it back - so a loaded game asks what the saved one would have, from its first day, and
+  the lists are still made only by the month (`savegame.md`, section 21).
 Making them throws every country's away and then, for each event in the order the files were read
 and each country **that owns a province** in the order the countries were declared, keeps the event
 for that country where:

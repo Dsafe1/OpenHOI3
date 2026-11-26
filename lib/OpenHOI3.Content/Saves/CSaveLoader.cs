@@ -35,6 +35,8 @@ public static class CSaveLoader
 		"alignment", "nukes",
 		// An enhanced save's own (CSaveConversions).
 		CSaveConversions.EnergyKey, CSaveConversions.CrudeOilKey,
+		// And its candidate events (CSaveEventCandidates).
+		CSaveEventCandidates.Key,
 	};
 
 	private static readonly HashSet<string> ProvinceKeys = new(StringComparer.Ordinal)
@@ -553,6 +555,7 @@ public static class CSaveLoader
 			}
 		}
 		CSaveConversions.Read(country, node);
+		CSaveEventCandidates.Read(state, country, node, report);
 
 		foreach (ClausewitzNode child in node.Children)
 		{

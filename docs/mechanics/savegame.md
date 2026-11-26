@@ -955,7 +955,7 @@ order a country took its provinces in (*inferred*; the entry on that order).
 work brought it to the 215 this began from). The two games still part in
 the first hour after the load, in the generator, the relations and the units, as `docs/enhanced.md` says they must.
 
-## 21. An enhanced save's keys in a country: its own conversions
+## 21. An enhanced save's keys in a country: its own conversions and its candidate events
 
 **Ours** (`CSaveConversions`; `ic.md`, section 4.1). An enhanced game writes, in a country's block after its
 variables, a key for each conversion the country has ever set:
@@ -967,6 +967,18 @@ Four whole numbers: whether it is the country's own, 1 or 0; then a day's amount
 at, in thousandths. A setting never touched writes no key, and a faithful game writes neither, so its save stays the
 original's key for key. Read back, a key with fewer than four numbers is as one never set.
 The prefix is the rule for everything of this engine's in a file the original also reads (`docs/blackice.md`).
+
+**Its candidate events** (`CSaveEventCandidates`; `events.md`, section 1), after them, for a country that has any and
+while the game has the fix `saved_event_candidates`:
+
+    openhoi_event_candidates = { 2001 2002 4505 }
+
+The events' numbers in the list's order, which is the order the day's pass asks them in. Read back wherever a save
+has the key: a number is the first country event of that number in the order the files were read, as a fired
+event's is found; one that is no event's is reported and left out, and a save without the key leaves a loaded
+game's lists empty until its month, as the original's are. **Two events of one number are one to a save**, here as
+in `fired_events`. On BlackICE's 1936 start, 914 candidates in 80 countries, every country's list the same after a
+load (`OpenHOI3.SaveCheck enhancedstart`, 2026-11-26).
 
 ## 22. An enhanced save's record of finished battles
 
