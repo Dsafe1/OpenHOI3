@@ -27,13 +27,13 @@ public sealed class CLeaderEntry
 	/// <summary>Raised when one of the promotion buttons is pressed: true for down.</summary>
 	public event Action<CLeader, bool>? Promoted;
 
-	private CLeaderEntry(CGuiWindow window, CGuiContext context, CLeader leader, CUnit unit)
+	private CLeaderEntry(CGuiWindow window, CGuiContext context, CLeader leader, CUnit unit, string skill)
 	{
 		Window = window;
 		Leader = leader;
 		_unit = unit;
 		SetText(window.FindTextBox("leader_name"), leader.Name);
-		SetText(window.FindTextBox("leader_skill"), CLeaderWindowText.Skill(leader));
+		SetText(window.FindTextBox("leader_skill"), skill);
 		_rank = window.FindIcon("leader_rank");
 		_choose = window.FindButton("leader_button");
 		if (_choose is not null)
@@ -58,7 +58,9 @@ public sealed class CLeaderEntry
 	public CLeader Leader { get; }
 
 	/// <param name="tooltip">What each element says, by its name. The name and the skill answer too where the mouse is over them, as the original's topmost element does - with nothing.</param>
-	public static CLeaderEntry? Create(CGuiContext context, CLeader leader, CUnit unit, Func<string, CTooltip> tooltip)
+	/// <param name="skill">His skill as the window writes it; his plain skill where none is given.</param>
+	public static CLeaderEntry? Create(CGuiContext context, CLeader leader, CUnit unit, Func<string, CTooltip> tooltip,
+		string? skill = null)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, CLeaderWindowText.EntryName(leader));
 		if (window is null)
@@ -67,7 +69,7 @@ public sealed class CLeaderEntry
 		}
 		// Before the trait icons are put in, which answer for themselves.
 		window.SetTooltips(tooltip, "leader_name", "leader_skill");
-		return new CLeaderEntry(window, context, leader, unit);
+		return new CLeaderEntry(window, context, leader, unit, skill ?? CLeaderWindowText.Skill(leader));
 	}
 
 	/// <summary>

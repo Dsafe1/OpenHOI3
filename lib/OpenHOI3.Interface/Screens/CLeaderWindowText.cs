@@ -22,6 +22,12 @@ public static class CLeaderWindowText
 	public const string ConfirmWindowName = "DefaultConfirm";
 	public const string ConfirmTitleKey = "CONFIRM_REMOVEAll_TITLE";
 	public const string ConfirmTextKey = "CONFIRM_REMOVEALL_DESC";
+
+	/// <summary>
+	/// An enhanced game's text for a leader's skill, the mod's: <c>$SKILL$</c> and <c>$MAX$</c>, the highest his
+	/// experience may bring him to. Where the localisation has no such key the skill stands alone, as the original's.
+	/// </summary>
+	public const string SkillKey = "OPENHOI_LEADER_SKILL";
 	public const string PortraitSprite = "GFX_empty_position";
 
 	/// <summary>A row's window, by the kind of leader in it.</summary>
@@ -100,6 +106,24 @@ public static class CLeaderWindowText
 	public static string Skill(CLeader? leader)
 	{
 		return (leader?.Skill ?? 0).ToString(CultureInfo.InvariantCulture);
+	}
+
+	/// <summary>
+	/// His skill as the window writes it, in a row and at its head: the number, and in an enhanced game whose
+	/// localisation gives <see cref="SkillKey"/> that text, with his highest skill beside it. The empty leader's is
+	/// the plain 0 always.
+	/// </summary>
+	public static string Skill(CGameState state, CLeader? leader, Func<string, string> localise)
+	{
+		string skill = Skill(leader);
+		if (leader is null || !state.Rules.Enhanced)
+		{
+			return skill;
+		}
+		string template = localise(SkillKey);
+		return template == SkillKey
+			? skill
+			: Text.CTextTemplate.Fill(template, ("SKILL", skill), ("MAX", leader.MaxSkill.ToString(CultureInfo.InvariantCulture)));
 	}
 
 	/// <summary>The rank strip's frame, counted from one: the rank. The empty leader's 0 draws nothing.</summary>

@@ -603,6 +603,14 @@ trait alone.
 In a battle's window each side shows its highest ranked leader's portrait and name, and the
 side whose leader has more skill has the arrow of initiative (`combatview.md`, section 4).
 
+### An enhanced game's
+
+- **A skill with the highest beside it** (after BiceLib's `activateLeaderListShowMaxSkill`): in a row and at the
+  window's head a leader's skill is the text the localisation gives under `OPENHOI_LEADER_SKILL`, with `$SKILL$`
+  and `$MAX$` - his `max_skill`, which caps what experience brings him. BlackICE's is `$SKILL$ ($MAX$)`, `3 (5)`.
+  With no such key the number stands alone, and the empty leader's is the plain 0 always. No switch: the words are
+  the mod's, and a mod that gives none sees the original's.
+
 ## 13. The window's tooltips
 
 Read whole on 2026-10-12 (`reversing/findings/FINDINGS-leadertooltips.md`); built in

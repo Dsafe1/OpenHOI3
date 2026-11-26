@@ -112,7 +112,7 @@ public sealed class CLeaderSelectionPanel
 		}
 		if (window.FindTextBox("selected_leader_skill") is { } skill)
 		{
-			skill.Text = CLeaderWindowText.Skill(_leader);
+			skill.Text = CLeaderWindowText.Skill(simulation.State, _leader, context.Localisation.Localise);
 		}
 		CTraitIconEntry.Fill(context, window.FindBox("selected_leader_traits"), _leader);
 		_rank = window.FindIcon("selected_leader_rank");
@@ -264,7 +264,8 @@ public sealed class CLeaderSelectionPanel
 		_rows.Clear();
 		foreach (CLeader leader in leaders)
 		{
-			if (CLeaderEntry.Create(_context, leader, _unit, RowTooltip(leader)) is { } row)
+			if (CLeaderEntry.Create(_context, leader, _unit, RowTooltip(leader),
+				CLeaderWindowText.Skill(_simulation.State, leader, _context.Localisation.Localise)) is { } row)
 			{
 				row.Chosen += chosen =>
 				{

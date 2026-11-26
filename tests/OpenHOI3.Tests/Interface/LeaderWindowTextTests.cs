@@ -184,6 +184,24 @@ public class LeaderWindowTextTests
 	}
 
 	[Fact]
+	public void AnEnhancedGameWritesTheSkillAsItsLocalisationSaysWithTheHighestBesideIt()
+	{
+		var state = new CGameState(new CDate(1936, 1, 1), new[] { new CProvince(0, "", isSea: false) },
+			new[] { new CCountry { Tag = Ger, Name = "Germany", DefinitionFile = "" } });
+		var leader = new CLeader(1) { Skill = 3, MaxSkill = 5 };
+		string Given(string key) => key == CLeaderWindowText.SkillKey ? "$SKILL$ ($MAX$)" : key;
+
+		// A faithful game's is the number, whatever the localisation holds.
+		Assert.Equal("3", CLeaderWindowText.Skill(state, leader, Given));
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		Assert.Equal("3 (5)", CLeaderWindowText.Skill(state, leader, Given));
+		// With no such text, and for the empty leader, the number alone.
+		Assert.Equal("3", CLeaderWindowText.Skill(state, leader, key => key));
+		Assert.Equal("0", CLeaderWindowText.Skill(state, null, Given));
+	}
+
+	[Fact]
 	public void TheHeadShowsTheEmptyLeaderForAUnitWithNone()
 	{
 		Assert.Equal("No Leader", CLeaderWindowText.Name(null, key => key == "NO_LEADER" ? "No Leader" : key));
