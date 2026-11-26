@@ -1,0 +1,154 @@
+name: Build
+
+# Builds the engine and its launcher and publishes them (docs/launcher.md, section 8):
+#
+#   a tag v<x> is pushed   -> the release v<x>, which stays as it is: what a mod's release names and ships
+#   main is pushed          -> the release "latest", made again each time: for trying what is not released yet, and
+#                              for a mod's test builds
+#   started by hand         -> the branch it is started on, built as "latest" is and kept as an artifact of the run,
+#                              nothing published: a trial of the pipeline
+#
+# The archives are those tools/build_release.ps1 makes on a developer's machine, by the same script.
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  # To make a release and to move the tag "latest".
+  contents: write
+
+concurrency:
+  # A newer push to main overtakes the build of an older one; a tag's build is never cut short.
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
+
+env:
+  GODOT_VERSION: '4.7.1'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        # 9 builds, as Godot's tooling asks; 8 is what the projects target and the tests run on.
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Restore Godot from the cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ runner.temp }}\godot
+            ~\AppData\Roaming\Godot\export_templates
+          key: godot-${{ env.GODOT_VERSION }}-mono-windows
+
+      - name: Fetch Godot
+        # The .NET editor and its Windows export templates, from Godot's own releases; nothing where the cache had them.
+        id: godot
+        shell: pwsh
+        run: |
+          $lines = powershell -NoProfile -ExecutionPolicy Bypass -File tools/fetch_godot.ps1 -Into "$env:RUNNER_TEMP\godot" -Version $env:GODOT_VERSION
+          if ($LASTEXITCODE -ne 0) { $lines; exit 1 }
+          $lines
+          "editor=$($lines | Select-Object -Last 1)" >> $env:GITHUB_OUTPUT
+
+      - name: Fetch Breitkopf Fraktur
+        # The typeface of the Axis names on the map, which the repository may not hold (fonts/readme.md). Only where
+        # the repository's variable FETCH_FRAKTUR is "true"; without it, or where the download fails, the build draws
+        # those names in Liberation Sans and leaves the typeface's licence out, as tools/build_engine.ps1 says.
+        if: ${{ vars.FETCH_FRAKTUR == 'true' }}
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $ProgressPreference = 'SilentlyContinue'
+          $archive = Join-Path $env:RUNNER_TEMP 'breitkopf-fraktur.zip'
+          Invoke-WebRequest -Uri 'https://www.1001fonts.com/download/breitkopf-fraktur.zip' -OutFile $archive
+          $folder = Join-Path $env:RUNNER_TEMP 'breitkopf-fraktur'
+          Expand-Archive -Path $archive -DestinationPath $folder -Force
+          $font = Get-ChildItem -Path $folder -Recurse -Filter 'BreitkopfFraktur.ttf' | Select-Object -First 1
+          if (-not $font) { throw 'The archive held no BreitkopfFraktur.ttf.' }
+          Copy-Item $font.FullName 'fonts/BreitkopfFraktur.ttf'
+          "BreitkopfFraktur.ttf, $($font.Length) bytes"
+
+      - name: Test
+        # Builds the libraries - the two Lua interpreters among them, with the Visual Studio C++ tools the runner has -
+        # and runs every test; none needs an install of the game.
+        run: dotnet test tests/OpenHOI3.Tests
+
+      - name: Build
+        # A tag's tree is a release and is packed under its number; any other is packed as "latest".
+        shell: pwsh
+        run: |
+          $arguments = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'tools/build_release.ps1', '-Godot', '${{ steps.godot.outputs.editor }}')
+          if ($env:GITHUB_REF_TYPE -ne 'tag') { $arguments += '-Latest' }
+          powershell @arguments
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          Get-Content export/OpenHOI3/engine.txt
+          # Said for whoever reads a failed run: a tree the build left changed would be no release.
+          git status --porcelain
+
+      - name: Keep the archives with the run
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenHOI3-${{ github.ref_name }}-${{ github.run_number }}
+          path: export/release/
+          # The archives are compressed already.
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish the release of the tag
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          $files = @(Get-ChildItem export/release -File | Where-Object { $_.Name -ne 'release.md' } | ForEach-Object { $_.FullName })
+          gh release view $tag 2>$null | Out-Null
+          if ($LASTEXITCODE -eq 0) {
+            # The release is there already - made by hand, or by an earlier run of this tag: its files are replaced.
+            gh release upload $tag @files --clobber
+          }
+          else {
+            gh release create $tag --verify-tag --title "OpenHOI3 $($tag.Substring(1))" --notes-file export/release/release.md @files
+          }
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Publish as latest
+        # The tag "latest" is moved to this commit and its release's files replaced, the checksums last. It is kept
+        # a pre-release, so that the page's "latest release" stays the newest numbered one.
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git tag -f latest $env:GITHUB_SHA
+          git push -f origin refs/tags/latest
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          $version = (Select-String -Path export/OpenHOI3/engine.txt -Pattern '^version = "([^"]+)"').Matches[0].Groups[1].Value
+          $title = "OpenHOI3 latest ($version)"
+          $archives = @(Get-ChildItem export/release -Filter '*.zip' | ForEach-Object { $_.FullName })
+          $sums = (Resolve-Path export/release/SHA256SUMS.txt).Path
+          gh release view latest 2>$null | Out-Null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload latest @archives --clobber
+            if ($LASTEXITCODE -ne 0) { exit 1 }
+            gh release upload latest $sums --clobber
+            if ($LASTEXITCODE -ne 0) { exit 1 }
+            gh release edit latest --title $title --notes-file export/release/release.md --prerelease
+          }
+          else {
+            gh release create latest --verify-tag --prerelease --title $title --notes-file export/release/release.md @archives $sums
+          }
+          if ($LASTEXITCODE -ne 0) { exit 1 }

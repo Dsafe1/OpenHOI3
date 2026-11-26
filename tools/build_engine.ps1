@@ -50,6 +50,17 @@ New-Item -ItemType Directory -Force -Path $out | Out-Null
 # Keep the editor from importing what an export leaves here.
 New-Item -ItemType File -Force -Path (Join-Path $exportRoot '.gdignore') | Out-Null
 
+# A tree fresh from the repository has nothing imported, and an export of it finds no texture and no typeface: the
+# editor imports it first, which a tree that has been opened in it has behind it. Start-Process, since the editor's
+# binary called plainly has been seen to come back before the import was done.
+if (-not (Test-Path (Join-Path $root '.godot\imported'))) {
+    Write-Host 'Importing the project, which this tree has not been yet.'
+    $import = Start-Process -FilePath $Godot -ArgumentList "--headless --path `"$root`" --import" -Wait -PassThru -NoNewWindow
+    if (-not (Test-Path (Join-Path $root '.godot\imported'))) {
+        throw "The import made no .godot\imported (the editor answered $($import.ExitCode))."
+    }
+}
+
 $mode = if ($Debug) { '--export-debug' } else { '--export-release' }
 $exe = Join-Path $out 'OpenHOI3.exe'
 # The editor's binary is a GUI program; piping it through Out-Host makes PowerShell wait for it.
