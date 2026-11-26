@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
@@ -111,6 +112,90 @@ public class BuilderTooltipTests
 		Assert.Equal(CTooltip.Empty, CBuilderTooltips.ForDesigner(Localise, groups, () => "", "combined_arms_indicator_0"));
 		Assert.Equal(CTooltip.Empty, CBuilderTooltips.ForDesigner(Localise, groups, () => "", "combined_arms_indicator_3"));
 		Assert.Equal(CTooltip.Empty, CBuilderTooltips.ForDesigner(Localise, groups, () => "", "combined_arms_indicator_x"));
+	}
+
+	private static readonly Dictionary<string, string> DesignerWords = new()
+	{
+		[CDesignerLines.ParadropYesKey] = "This unit §Gcan§W be paradropped (Weight: $WEIGHT$)",
+		[CDesignerLines.ParadropNoKey] = "This unit §Rcan not§W be paradropped (Weight: $WEIGHT$):",
+		[CDesignerLines.ParadropBlockerKey] = "   $NAME$",
+		[CDesignerLines.GroupBonusKey] = "Combined arms bonus: $VALUE$",
+		[CDesignerLines.GroupBonusTechKey] = "Combined arms bonus: $VALUE$ ($TECH$ from technology)",
+		[CDesignerLines.GroupBaseKey] = "Base: §Gyes§W",
+		[CDesignerLines.GroupNotBaseKey] = "Base: §Rno§W",
+		["armor_brigade"] = "Armour",
+	};
+
+	private static string DesignerText(string key) => DesignerWords.GetValueOrDefault(key, key);
+
+	private static (CGameState State, CCountry Germany) DesignerWorld()
+	{
+		var germany = new CCountry { Tag = new CCountryTag("GER"), Name = "Germany", DefinitionFile = "" };
+		var state = new CGameState(new CDate(1936, 1, 1), new[] { new OpenHOI3.Sim.Provinces.CProvince(0, "", isSea: false) },
+			new[] { germany });
+		return (state, germany);
+	}
+
+	private static (CSubUnitType, CSubUnitStats) Brigade(string key, bool drops, string weight)
+	{
+		var type = new CSubUnitType(key, EUnitBranch.Land);
+		if (drops)
+		{
+			type.Flags[OpenHOI3.Sim.Transport.CAirTransport.CanParadrop] = true;
+		}
+		var stats = new CSubUnitStats();
+		stats.Values.Set(CSubUnitType.TransportWeight, CFixedPoint.Parse(weight));
+		return (type, stats);
+	}
+
+	[Fact]
+	public void An_enhanced_games_designer_says_whether_the_design_may_be_dropped_what_it_weighs_and_what_stops_it()
+	{
+		(CGameState state, _) = DesignerWorld();
+		var paratroops = new[] { Brigade("paratrooper_brigade", true, "2.5"), Brigade("paratrooper_brigade", true, "2.6") };
+		var mixed = new[]
+		{
+			Brigade("paratrooper_brigade", true, "2"), Brigade("armor_brigade", false, "10"),
+			Brigade("artillery_brigade", false, "4"), Brigade("armor_brigade", false, "10"),
+		};
+
+		// A faithful game's tooltip is the summary.
+		Assert.Equal("the summary", CDesignerLines.OverTerrainSummary(DesignerText, state, paratroops, "the summary"));
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		// 5.1 cut to 5; then a blank line and the summary.
+		Assert.Equal("This unit §Gcan§W be paradropped (Weight: 5)\n\nthe summary",
+			CDesignerLines.OverTerrainSummary(DesignerText, state, paratroops, "the summary"));
+		// Each type that stops it once, in the design's order, by its name or its key.
+		Assert.Equal("This unit §Rcan not§W be paradropped (Weight: 26):\n   Armour\n   artillery_brigade",
+			CDesignerLines.OverTerrainSummary(DesignerText, state, mixed, ""));
+		// An empty design says nothing, and a localisation without the lines leaves the summary alone.
+		Assert.Equal("", CDesignerLines.OverTerrainSummary(DesignerText, state, System.Array.Empty<(CSubUnitType, CSubUnitStats)>(), ""));
+		Assert.Equal("the summary", CDesignerLines.OverTerrainSummary(key => key, state, paratroops, "the summary"));
+	}
+
+	[Fact]
+	public void An_enhanced_games_group_icon_says_what_the_group_adds_and_whether_it_is_a_base()
+	{
+		(CGameState state, CCountry germany) = DesignerWorld();
+		var infantry = new CCombinedArmsGroup("infantry_unit_type", isBase: true, CFixedPoint.Zero);
+		var armour = new CCombinedArmsGroup("armor_unit_type", isBase: false, CFixedPoint.Parse("0.1"));
+		germany.Technology.Set("armor_unit_type", CFixedPoint.Parse("0.025"));
+
+		Assert.Equal("", CDesignerLines.UnderGroup(DesignerText, state, germany, armour));
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		Assert.Equal("Combined arms bonus: +0.0%\nBase: §Gyes§W", CDesignerLines.UnderGroup(DesignerText, state, germany, infantry));
+		Assert.Equal("Combined arms bonus: +12.5% (+2.5% from technology)\nBase: §Rno§W",
+			CDesignerLines.UnderGroup(DesignerText, state, germany, armour));
+		Assert.Equal("-0.5%", CDesignerLines.SignedPercent(-5));
+		Assert.Equal("", CDesignerLines.UnderGroup(key => key, state, germany, armour));
+
+		// Under the group's name in its icon's tooltip, the description still the delayed half.
+		CTooltip icon = CBuilderTooltips.ForDesigner(Localise, new[] { infantry, armour }, () => "", "combined_arms_indicator_1",
+			group => CDesignerLines.UnderGroup(DesignerText, state, germany, group));
+		Assert.Equal("Infantry\nCombined arms bonus: +0.0%\nBase: §Gyes§W", icon.Text);
+		Assert.Equal("Infantry is the basis for combined arms.", icon.Delayed);
 	}
 
 	[Fact]

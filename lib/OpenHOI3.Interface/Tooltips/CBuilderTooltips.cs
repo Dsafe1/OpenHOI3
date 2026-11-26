@@ -128,8 +128,9 @@ public static class CBuilderTooltips
 	/// The designer's element: its terrain summary, its combined arms bonus and each group's
 	/// icon, and otherwise as <see cref="For"/>.
 	/// </summary>
+	/// <param name="underGroup">What an enhanced game writes under a group's name (<see cref="CDesignerLines.UnderGroup"/>); nothing where none is given.</param>
 	public static CTooltip ForDesigner(Func<string, string> localise, IReadOnlyList<CCombinedArmsGroup> groups,
-		Func<string> terrainSummary, string element)
+		Func<string> terrainSummary, string element, Func<CCombinedArmsGroup, string>? underGroup = null)
 	{
 		if (element == TerrainBonus)
 		{
@@ -141,7 +142,7 @@ public static class CBuilderTooltips
 		}
 		if (element.StartsWith(CombinedArmsIndicator, StringComparison.Ordinal))
 		{
-			return Group(localise, groups, element[CombinedArmsIndicator.Length..]);
+			return Group(localise, groups, element[CombinedArmsIndicator.Length..], underGroup);
 		}
 		return For(localise, Designer, element);
 	}
@@ -150,7 +151,8 @@ public static class CBuilderTooltips
 	/// A combined arms group's icon: the group the number after the name counts to, from one,
 	/// by its name, and what it is for after a moment. The number is read as C's atoi reads it.
 	/// </summary>
-	private static CTooltip Group(Func<string, string> localise, IReadOnlyList<CCombinedArmsGroup> groups, string number)
+	private static CTooltip Group(Func<string, string> localise, IReadOnlyList<CCombinedArmsGroup> groups, string number,
+		Func<CCombinedArmsGroup, string>? underGroup)
 	{
 		int index = Atoi(number);
 		// The original reads its list without asking its length; past the end here is nothing.
@@ -159,7 +161,12 @@ public static class CBuilderTooltips
 			return CTooltip.Empty;
 		}
 		string key = groups[index - 1].Name;
-		return new CTooltip { Text = localise(key), Delayed = localise(key + Description) };
+		string under = underGroup?.Invoke(groups[index - 1]) ?? "";
+		return new CTooltip
+		{
+			Text = under.Length == 0 ? localise(key) : localise(key) + "\n" + under,
+			Delayed = localise(key + Description),
+		};
 	}
 
 	/// <summary>C's atoi: spaces, a sign, digits, and nothing for anything else.</summary>

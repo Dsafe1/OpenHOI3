@@ -468,6 +468,23 @@ designer's few saying anything.
 change to the design; it differs only if the country's technology moves while the window is up. A
 group icon numbered past the groups says nothing, where the original reads past its list.
 
+**An enhanced game's designer says two things more** (`CDesignerLines`; after BiceLib's `activateParadropLine` and
+`activateCombinedArmsLine`), every word the localisation's by keys of ours, so a mod that gives none sees the
+original's tooltips:
+
+- **Over the terrain summary, whether the design may be dropped by parachute**: `OPENHOI_DESIGNER_PARADROP_YES`
+  where every brigade's type has `can_paradrop`, else `OPENHOI_DESIGNER_PARADROP_NO` and a line of
+  `OPENHOI_DESIGNER_PARADROP_BLOCKER` (`$NAME$`) for each type that stops it, once each in the design's order. Both
+  take `$WEIGHT$`: the brigades' `transport_weight` **as the player's country would build them today**, summed
+  and cut to a whole number, which is what a plane's room is set against (`transport.md`). Then a blank line and
+  the summary. An empty design says nothing. Organisation and the planes' room, which a real boarding also asks,
+  a design on paper has not.
+- **Under a combined arms group's name, what it gives**: `OPENHOI_DESIGNER_CA_BONUS` with `$VALUE$`, the group's
+  `value` and what the player's technology adds to it as a signed percentage of one decimal, `+12.5%` - or, where
+  the technology's part is not nought, `OPENHOI_DESIGNER_CA_BONUS_TECH` with `$TECH$` as well - and then
+  `OPENHOI_DESIGNER_CA_BASE` or `OPENHOI_DESIGNER_CA_NOT_BASE`: a group counts only beside a brigade of a base
+  group. The description stays the delayed half.
+
 ## What is not built
 
 - **Custom game mode**, in which the four price by points.

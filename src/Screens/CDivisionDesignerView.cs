@@ -126,7 +126,7 @@ public partial class CDivisionDesignerView : CBuilderWindow
 	{
 		Func<string, string> localise = Context.Localisation.Localise;
 		CTooltip For(string element) => CBuilderTooltips.ForDesigner(localise, Simulation.State.CombinedArmsGroups,
-			TerrainSummary, element);
+			TerrainSummary, element, group => CDesignerLines.UnderGroup(localise, Simulation.State, Player, group));
 		window.SetTooltips(For);
 		_picker?.SetTooltips(For);
 		if (_combinedArms is not null)
@@ -139,8 +139,11 @@ public partial class CDivisionDesignerView : CBuilderWindow
 	{
 		CGameState state = Simulation.State;
 		var brigades = _design.Select(type => CBuilderLists.AsBuiltToday(Player, type, out long _).Stats).ToList();
-		return CBuilderTooltips.TerrainSummary(Context.Localisation.Localise, state.Defines, state.Terrains, brigades,
+		string summary = CBuilderTooltips.TerrainSummary(Context.Localisation.Localise, state.Defines, state.Terrains, brigades,
 			state.Rules.Has(Sim.Rules.EFix.ShownFigures));
+		// An enhanced game's first line: whether the design may be dropped by parachute (builders.md, section 11).
+		return CDesignerLines.OverTerrainSummary(Context.Localisation.Localise, state,
+			_design.Select((type, index) => (type, brigades[index])).ToList(), summary);
 	}
 
 	protected override void Opened()
