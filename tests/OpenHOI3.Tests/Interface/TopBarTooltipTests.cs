@@ -250,6 +250,35 @@ public class TopBarTooltipTests
 	}
 
 	[Fact]
+	public void An_enhanced_games_manpower_tooltip_fills_the_need_by_branch_rotation_attrition_and_trickleback()
+	{
+		(CGameState state, CCountry germany) = State();
+		germany.ReinforcementManpowerNeeded = CFixedPoint.Parse("12.345");
+		germany.Modifier.Set("peacetime_manpower_rotation", CFixedPoint.Parse("0.025"));
+		string Text(string key) => key == "MANPOWER_DETAILS_IRO"
+			? "$NEED$: $LAND$/$AIR$/$NAVY$ rot $ROTATION$% $ROTATIONCOST$ att $ATTRITION$ back $TRICKLEBACK$"
+			: key;
+
+		// A faithful game leaves the seven as written.
+		Assert.Equal("12.3: $LAND$/$AIR$/$NAVY$ rot $ROTATION$% $ROTATIONCOST$ att $ATTRITION$ back $TRICKLEBACK$",
+			CTopBarTooltips.Manpower(Text, germany, state).Text);
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		// Nothing counted yet: the parts do not come to the need and no day is closed, so all but the rate are empty.
+		Assert.Equal("12.3: // rot 2.5%  att  back ", CTopBarTooltips.Manpower(Text, germany, state).Text);
+
+		germany.ManpowerRecord.NeedLand = 12000;
+		germany.ManpowerRecord.NeedAir = 300;
+		germany.ManpowerRecord.NeedNavy = 45;
+		germany.ManpowerRecord.RotationToday = 400_000;
+		germany.ManpowerRecord.AttritionToday = 100_000;
+		germany.ManpowerRecord.TricklebackToday = 10_000;
+		germany.ManpowerRecord.CloseDay();
+		// The parts as the need is written, to one place; a month's figure to one place from 10 and two below.
+		Assert.Equal("12.3: 12.0/0.3/0.0 rot 2.5% 12.1 att 3.04 back 0.30", CTopBarTooltips.Manpower(Text, germany, state).Text);
+	}
+
+	[Fact]
 	public void A_small_need_for_manpower_is_written_to_two_places()
 	{
 		(CGameState state, CCountry germany) = State();

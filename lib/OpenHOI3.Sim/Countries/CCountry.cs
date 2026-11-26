@@ -810,6 +810,9 @@ public sealed class CCountry
 	/// <summary>The manpower reinforcement took today.</summary>
 	public CFixedPoint ReinforcementManpowerUsed { get; set; }
 
+	/// <summary>What an enhanced game keeps of its manpower for the top bar's tooltip; nothing in the game reads it.</summary>
+	public Economy.CManpowerRecord ManpowerRecord { get; } = new();
+
 	/// <summary>
 	/// The IC a day of re-equipping its units costs: the upgrade share's need. Worked out
 	/// afresh each day by <see cref="CUpgrades"/>.

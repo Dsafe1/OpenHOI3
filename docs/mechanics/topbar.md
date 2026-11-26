@@ -328,6 +328,27 @@ sources of `global_manpower`; then, where technology adds to manpower, a newline
 came before and `FROM_TECHNOLOGY` + `": §G+"` + it x 100 to two places + `"%§W\n"`; then the
 sources of `global_manpower_modifier`, with no newline between them and what came before.
 
+*An enhanced game's* (after BiceLib's `activateManpowerBreakdown`; `CManpowerRecord`): **seven places more in
+`MANPOWER_DETAILS_IRO`**, for a text that asks for them - BlackICE's does. Each is empty where there is nothing to
+say yet, never left as written; a faithful game fills none.
+
+| place | what | written |
+| --- | --- | --- |
+| `$LAND$`, `$AIR$`, `$NAVY$` | the need's part that is brigades', wings' and ships', counted by the reinforcement pass as it counts the need | as `NEED` is; all three empty where they do not come to it |
+| `$ROTATION$` | the country's `peacetime_manpower_rotation` x 100 [mod: a law's modifier] | to one place |
+| `$ROTATIONCOST$` | what troop rotation took on the last whole day, priced as putting it back is, x 365 / 12 | to one place from 10, two below; empty before a day is closed |
+| `$ATTRITION$` | the average day's attrition over the days kept, priced the same, x 365 / 12 | the same |
+| `$TRICKLEBACK$` | the average day's manpower come back from casualties, x 365 / 12 | the same |
+
+**Priced as putting it back is**: strength taken off a brigade times its own `build_cost_manpower` over its full
+strength. **Kept a thousand times finer than thousandths** - a day's rotation takes two thousandths of a brigade's
+strength, whose price cut to a thousandth of manpower would be nothing - and divided as it is read. A country's
+day is closed where its reinforcement begins; **thirty days** of attrition and trickleback are kept, and none of
+the days a new game runs before its first hour. Rotation is a rate, so one day says it; the other two hang on
+where units stand and who is fighting, so they start rough and settle. **The record is display only** - nothing
+in the game reads it, and it is not in the state's hash - **and in an enhanced save** (`savegame.md`, section
+21), where BiceLib's starts afresh at a load.
+
 **Spies.** `FREE_SPIES`, which says "Free Spies", and nothing else.
 
 **What is shown of a figure that is not built** is what the original shows of a zero: a line

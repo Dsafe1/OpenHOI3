@@ -307,6 +307,104 @@ public class UpkeepTests
 		Assert.Equal(CFixedPoint.Parse("0.199"), CProduction.SuppliesNeeded(state, country));
 	}
 
+	// ---- an enhanced game's manpower record
+
+	[Fact]
+	public void AnEnhancedGameKeepsWhatRotationCostsAndTheNeedByBranchAndAFaithfulOneNothing()
+	{
+		CCountry country = Country();
+		CGameState state = State(country);
+		CUnit unit = Unit(country);
+		CSubUnit brigade = Brigade(Infantry(), unit, strength: "20");
+
+		CUnitUpkeep.Rotate(state, country, unit);
+		CReinforcement.Run(state, country, CFixedPoint.FromInt(10), apply: true);
+		Assert.True(country.ManpowerRecord.IsEmpty);
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		CFixedPoint before = brigade.Strength;
+		CUnitUpkeep.Rotate(state, country, unit);
+		long removed = before.Raw - brigade.Strength.Raw;
+		Assert.True(removed > 0);
+		// Priced as putting it back is: the strength by the brigade's manpower over its full strength.
+		Assert.Equal(CManpowerRecord.Price(brigade, removed), country.ManpowerRecord.RotationToday);
+		Assert.True(country.ManpowerRecord.RotationToday > 0);
+		Assert.Null(country.ManpowerRecord.RotationAMonth);
+
+		// The reinforcement pass closes the day, and counts the need by branch as it counts the need.
+		long day = country.ManpowerRecord.RotationToday;
+		CReinforcement.Run(state, country, CFixedPoint.FromInt(10), apply: true);
+		Assert.Equal(0, country.ManpowerRecord.RotationToday);
+		Assert.Equal(day * 365 / 12 / CManpowerRecord.Fine, country.ManpowerRecord.RotationAMonth);
+		Assert.True(country.ManpowerRecord.RotationAMonth > 0);
+		Assert.Equal(country.ReinforcementManpowerNeeded.Raw, country.ManpowerRecord.NeedLand);
+		Assert.True(country.ManpowerRecord.NeedLand > 0);
+		Assert.Equal(0, country.ManpowerRecord.NeedAir + country.ManpowerRecord.NeedNavy);
+		// The look ahead that spends nothing counts the need and closes no day.
+		CReinforcement.Run(state, country, CFixedPoint.Zero, apply: false);
+		Assert.Equal(day, country.ManpowerRecord.RotationLastDay);
+		Assert.Single(country.ManpowerRecord.AttritionDays);
+	}
+
+	[Fact]
+	public void TheRecordKeepsThirtyDaysAndAveragesThemOverAMonth()
+	{
+		var record = new CManpowerRecord();
+		Assert.Null(record.AttritionAMonth);
+		for (int day = 1; day <= 31; day++)
+		{
+			record.AttritionToday = day * 1_000_000;
+			record.TricklebackToday = 120_000;
+			record.CloseDay();
+		}
+		// The first day has gone: 2 to 31, 16.5 a day, by 365 over 12.
+		Assert.Equal(CManpowerRecord.Days, record.AttritionDays.Count);
+		Assert.Equal(2_000_000, record.AttritionDays[0]);
+		Assert.Equal(495_000L * 365 / 12 / 30, record.AttritionAMonth);
+		Assert.Equal(3650, record.TricklebackAMonth);
+		Assert.Equal(0, record.AttritionToday);
+	}
+
+	[Fact]
+	public void AnEnhancedSaveHoldsTheManpowerRecordAndAFaithfulOneNone()
+	{
+		CCountry country = Country();
+		CGameState state = State(country);
+		CManpowerRecord record = country.ManpowerRecord;
+		record.NeedLand = 1500;
+		record.NeedNavy = 20;
+		record.RotationToday = 7;
+		record.AttritionToday = 300;
+		record.CloseDay();
+		record.AttritionToday = 400;
+		record.TricklebackToday = 55;
+		record.CloseDay();
+		record.RotationToday = 3;
+
+		var writer = new OpenHOI3.Content.Saves.CSaveTextWriter();
+		OpenHOI3.Content.Saves.CSaveManpowerRecord.Write(writer, state, country);
+		Assert.Equal("", writer.Text);
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		OpenHOI3.Content.Saves.CSaveManpowerRecord.Write(writer, state, country);
+		Assert.Contains("openhoi_manpower_record", writer.Text);
+		Assert.Contains("1500 0 20 3 0 0 1 0 2 300 400 0 55", writer.Text);
+
+		CCountry loaded = Country();
+		OpenHOI3.Content.Saves.CSaveManpowerRecord.Read(loaded, OpenHOI3.Content.Clausewitz.ClausewitzParser.Parse(writer.Text));
+		Assert.Equal(1500, loaded.ManpowerRecord.NeedLand);
+		Assert.Equal(20, loaded.ManpowerRecord.NeedNavy);
+		Assert.Equal(3, loaded.ManpowerRecord.RotationToday);
+		Assert.Equal(0, loaded.ManpowerRecord.RotationLastDay);
+		Assert.Equal(new long[] { 300, 400 }, loaded.ManpowerRecord.AttritionDays);
+		Assert.Equal(new long[] { 0, 55 }, loaded.ManpowerRecord.TricklebackDays);
+		// A list cut short is no record.
+		CCountry broken = Country();
+		OpenHOI3.Content.Saves.CSaveManpowerRecord.Read(broken,
+			OpenHOI3.Content.Clausewitz.ClausewitzParser.Parse("openhoi_manpower_record = { 1 2 3 4 5 6 1 7 2 300 }"));
+		Assert.True(broken.ManpowerRecord.IsEmpty);
+	}
+
 	// ---- rotation
 
 	[Fact]

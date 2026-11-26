@@ -84,6 +84,15 @@ public static class CReinforcement
 		long manpowerNeeded = 0;
 		long manpowerUsed = 0;
 
+		// An enhanced game's record for the manpower tooltip: the need by branch, counted as the need is, and the
+		// country's day closed where its reinforcement begins. Nothing here reads it.
+		Economy.CManpowerRecord? record = state.Rules.Enhanced ? country.ManpowerRecord : null;
+		if (record is not null && apply && !state.IsBeingMade)
+		{
+			record.CloseDay();
+		}
+		record?.StartNeed();
+
 		long reserveCost = Math.Max(CFixedPoint.Scale,
 			-country.Modifier[CUnits.ReservesPenaltySize].Raw * ReservePremium / CFixedPoint.Scale);
 		long startExperience = country.Modifier[CUnits.UnitStartExperience].Raw;
@@ -181,6 +190,7 @@ public static class CReinforcement
 
 				cost += ic;
 				manpowerNeeded += needed;
+				record?.AddNeed(subUnit.Type.Branch, needed);
 			}
 		}
 

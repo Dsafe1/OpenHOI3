@@ -83,6 +83,11 @@ public static class CUnitUpkeep
 			long most = CUnits.MaxStrength(state, owner, subUnit).Raw;
 			long lost = most * rate / CFixedPoint.Scale * CFixedPoint.Scale / (DaysInAYear * CFixedPoint.Scale);
 			long left = Math.Max(0, Math.Min(subUnit.Strength.Raw - lost, most));
+			if (state.Rules.Enhanced && !state.IsBeingMade)
+			{
+				// What the day's rotation costs to put back, for the manpower tooltip (CManpowerRecord).
+				owner.ManpowerRecord.RotationToday += Economy.CManpowerRecord.Price(subUnit, subUnit.Strength.Raw - left);
+			}
 			subUnit.Strength = new CFixedPoint(left);
 			if (subUnit.Strength > subUnit.Highest)
 			{

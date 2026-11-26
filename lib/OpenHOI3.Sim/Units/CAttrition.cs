@@ -153,6 +153,11 @@ public static class CAttrition
 				StrategicWarfare.CWarfareTally.Attrition(state, province, brigade, lost);
 			}
 			long left = Math.Max(0, Math.Min(brigade.Strength.Raw - lost, most));
+			if (state.Rules.Enhanced)
+			{
+				// What the day's attrition costs to put back, for the manpower tooltip (CManpowerRecord).
+				owner.ManpowerRecord.AttritionToday += Economy.CManpowerRecord.Price(brigade, brigade.Strength.Raw - left);
+			}
 			brigade.Strength = new CFixedPoint(left);
 			if (brigade.Strength > brigade.Highest)
 			{

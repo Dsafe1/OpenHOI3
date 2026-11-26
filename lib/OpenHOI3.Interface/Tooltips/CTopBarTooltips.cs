@@ -110,7 +110,7 @@ public static class CTopBarTooltips
 			"national_unity_number" => new CTooltip { Text = NationalUnityText(localise, country) },
 			"espionage_number" => new CTooltip { Text = localise("FREE_SPIES") },
 			"leadership_number" => new CTooltip { Text = Officers(localise, state, country) },
-			"manpower_number" => Manpower(localise, country),
+			"manpower_number" => Manpower(localise, country, state),
 			_ => CTooltip.Empty,
 		};
 	}
@@ -357,15 +357,50 @@ public static class CTopBarTooltips
 	}
 
 	/// <summary>
+	/// An enhanced game's seven places in <c>MANPOWER_DETAILS_IRO</c> (after BiceLib's <c>activateManpowerBreakdown</c>;
+	/// <c>docs/mechanics/topbar.md</c>, section 14), each empty where there is nothing to say yet and never left as
+	/// written: <c>$LAND$</c>, <c>$AIR$</c> and <c>$NAVY$</c>, the need's three parts, written as the need is and
+	/// only where they come to it; <c>$ROTATION$</c>, the country's <c>peacetime_manpower_rotation</c> times a hundred
+	/// to one place; <c>$ROTATIONCOST$</c>, the last whole day's rotation over a month; <c>$ATTRITION$</c> and
+	/// <c>$TRICKLEBACK$</c>, the average of the days kept over a month - each to one place from 10 and to two below.
+	/// </summary>
+	public static IEnumerable<(string, string)> ManpowerBreakdown(CCountry country, int needDecimals)
+	{
+		CManpowerRecord record = country.ManpowerRecord;
+		bool whole = record.NeedLand + record.NeedAir + record.NeedNavy == country.ReinforcementManpowerNeeded.Raw;
+		string Part(long part) => whole ? CNumberText.Format(new CFixedPoint(part), needDecimals) : "";
+		string AMonth(long? figure) => figure is { } value
+			? CNumberText.Format(new CFixedPoint(value), value < ManpowerInTenths.Raw ? 2 : 1)
+			: "";
+		yield return ("LAND", Part(record.NeedLand));
+		yield return ("AIR", Part(record.NeedAir));
+		yield return ("NAVY", Part(record.NeedNavy));
+		yield return ("ROTATION", CNumberText.Format(new CFixedPoint(country.Modifier[CUnitUpkeep.Rotation].Raw * 100), 1));
+		yield return ("ROTATIONCOST", AMonth(record.RotationAMonth));
+		yield return ("ATTRITION", AMonth(record.AttritionAMonth));
+		yield return ("TRICKLEBACK", AMonth(record.TricklebackAMonth));
+	}
+
+	/// <summary>
 	/// What reinforcing takes, and - to come - what a month brings in, what the manpower
 	/// before any modifier is, and the sources of both kinds of manpower modifier.
 	/// </summary>
-	public static CTooltip Manpower(Func<string, string> localise, CCountry country)
+	/// <param name="state">
+	/// The game: an enhanced one fills seven places more for a text that asks for them (<see cref="ManpowerBreakdown"/>).
+	/// </param>
+	public static CTooltip Manpower(Func<string, string> localise, CCountry country, CGameState? state = null)
 	{
 		int decimals = country.ReinforcementManpowerNeeded < ManpowerInTenths ? 2 : 1;
-		string text = CTextTemplate.Fill(localise("MANPOWER_DETAILS_IRO"),
+		var values = new List<(string, string)>
+		{
 			("NEED", CNumberText.Format(country.ReinforcementManpowerNeeded, decimals)),
-			("USED", CNumberText.Format(country.ReinforcementManpowerUsed, decimals)));
+			("USED", CNumberText.Format(country.ReinforcementManpowerUsed, decimals)),
+		};
+		if (state is { Rules.Enhanced: true })
+		{
+			values.AddRange(ManpowerBreakdown(country, decimals));
+		}
+		string text = CTextTemplate.Fill(localise("MANPOWER_DETAILS_IRO"), values.ToArray());
 
 		CFixedPoint technology = country.Technology[TechnologyManpower];
 		var delayed = new StringBuilder(CTextTemplate.Fill(localise("MANPOWER_DETAILS_DRO"),

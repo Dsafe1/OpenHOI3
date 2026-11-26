@@ -37,6 +37,8 @@ public static class CSaveLoader
 		CSaveConversions.EnergyKey, CSaveConversions.CrudeOilKey,
 		// And its candidate events (CSaveEventCandidates).
 		CSaveEventCandidates.Key,
+		// And what it keeps of its manpower for the tooltip (CSaveManpowerRecord).
+		CSaveManpowerRecord.Key,
 	};
 
 	private static readonly HashSet<string> ProvinceKeys = new(StringComparer.Ordinal)
@@ -556,6 +558,7 @@ public static class CSaveLoader
 		}
 		CSaveConversions.Read(country, node);
 		CSaveEventCandidates.Read(state, country, node, report);
+		CSaveManpowerRecord.Read(country, node);
 
 		foreach (ClausewitzNode child in node.Children)
 		{

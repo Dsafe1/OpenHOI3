@@ -980,6 +980,15 @@ game's lists empty until its month, as the original's are. **Two events of one n
 in `fired_events`. On BlackICE's 1936 start, 914 candidates in 80 countries, every country's list the same after a
 load (`OpenHOI3.SaveCheck enhancedstart`, 2026-11-26).
 
+**Its manpower record** (`CSaveManpowerRecord`; `topbar.md`, section 14), after that, for a country that has one:
+
+    openhoi_manpower_record = { 12000 300 45 222 0 0 1 4100 2 0 800 0 120 }
+
+The need for reinforcement by land, air and sea in thousandths; then, a thousand times finer, what rotation,
+attrition and trickleback have gathered today; whether a day has been closed, 1 or 0, and that day's rotation; how
+many days are kept, thirty at most; and so many days of attrition and so many of trickleback, the oldest first. A
+list cut short is no record. Display only: nothing in the game reads it, and it is not in the state's hash.
+
 ## 22. An enhanced save's record of finished battles
 
 **Ours** (`CSaveCombatReports`; `combatreports.md`). An enhanced game writes, at the top after `openhoi_engine`, one

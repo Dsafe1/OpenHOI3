@@ -103,7 +103,7 @@ public static class CCombatDamage
 			return men;
 		}
 
-		GiveBack(owner, unit, men);
+		GiveBack(owner, unit, men, state.Rules.Enhanced);
 		int count = unit.SubUnits.Count;
 		if (men > 0 && count != 0)
 		{
@@ -169,7 +169,8 @@ public static class CCombatDamage
 	/// What comes back to the manpower pool of the men a unit lost: they are priced as
 	/// replacing them is, and the country's trickleback says how much of that returns.
 	/// </summary>
-	private static void GiveBack(CCountry owner, CUnit unit, long men)
+	/// <param name="record">An enhanced game's: what comes back is counted for the manpower tooltip (<see cref="Economy.CManpowerRecord"/>).</param>
+	private static void GiveBack(CCountry owner, CUnit unit, long men, bool record)
 	{
 		long manpower = CUnitTotals.Sum(unit, CSubUnitStats.BuildCostManpower).Raw * men / CFixedPoint.Scale;
 		long full = CUnitTotals.Sum(unit, CSubUnitType.MaxStrength).Raw;
@@ -182,6 +183,10 @@ public static class CCombatDamage
 		long trickleback = TricklebackOf(owner).Raw;
 		manpower = trickleback * manpower / CFixedPoint.Scale;
 		manpower = manpower * CFixedPoint.Scale / (100L * CFixedPoint.Scale);
+		if (record && manpower > 0)
+		{
+			owner.ManpowerRecord.TricklebackToday += manpower * Economy.CManpowerRecord.Fine;
+		}
 		owner.Manpower = new CFixedPoint(Math.Max(0, owner.Manpower.Raw + manpower));
 	}
 }
