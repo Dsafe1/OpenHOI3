@@ -1,6 +1,6 @@
 name: Build
 
-# Builds the engine and its launcher and publishes them (docs/launcher.md, section 8):
+# Builds the engine and its launcher and publishes them (docs/launcher.md, section 7.1):
 #
 #   a tag v<x> is pushed   -> the release v<x>, which stays as it is: what a mod's release names and ships
 #   main is pushed          -> the release "latest", made again each time: for trying what is not released yet, and

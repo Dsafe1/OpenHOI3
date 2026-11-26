@@ -165,7 +165,42 @@ And since 2026-11-21 a fourth and a helper:
   the `git push` of the tag and the `gh release create` that would, which are its user's to run. `-AllowUntagged`
   packs a tree that is no release under its date-and-commit version, as a trial of the packaging.
 
-A release is made so: commit, `git tag v<x>`, `tools/build_release.ps1`, then the two commands it prints.
+A release is made so: commit, `git tag v<x>`, `tools/build_release.ps1`, then the two commands it prints - or, since
+the pipeline below, commit, `git tag v<x>` and `git push origin v<x>`, and GitHub builds and publishes it.
+
+### 7.1 The pipeline
+
+Asked for on 2026-11-26: "tagged releases which persist, and a 'latest' version which is always used when BlackICE
+builds a non-tagged version". `.github/workflows/build.yml`, one job on a Windows runner, by the same script a
+developer packs a release with:
+
+| started by | builds | publishes |
+| --- | --- | --- |
+| a tag `v<x>` pushed | the tag's tree as a release, `openhoi3-<x>` | the release `v<x>`, with the four files; it **stays as it is** - a release already there has its files replaced by a later run of the same tag |
+| `main` pushed | the tree as no release, `openhoi3-<date>-<commit>` | the release of the tag **`latest`**, a pre-release: the tag moved to the commit, the files replaced, the checksums last |
+| by hand | the branch it is started on, as `latest` is built | nothing; the archives are kept with the run for 14 days |
+
+**The rolling build's archives are named by the tag and not by the version** - `OpenHOI3-engine-latest.zip`,
+`OpenHOI3-launcher-latest.zip`, `OpenHOI3-latest.zip` (`build_release.ps1 -Latest`) - so that they are found at
+one address, `releases/download/latest/...`; the `engine.txt` inside says the version the build is, which is what a
+mod played on it names (section 2). A newer push to `main` overtakes the build of an older one; a tag's build is
+never cut short. `latest` is kept a pre-release so that the page's "latest release" stays the newest numbered one.
+
+**What the runner is given**: .NET 8 and 9; Godot's .NET editor and its Windows export templates, fetched from
+Godot's own releases by `tools/fetch_godot.ps1` and kept in the runner's cache by the version, `GODOT_VERSION` in the
+workflow; the Visual Studio C++ tools it has, for the two Lua interpreters. The tests are run before anything is
+built. **Breitkopf Fraktur is fetched only where the repository's variable `FETCH_FRAKTUR` is `true`** - its licence
+forbids publishing the file, and whether a published build may carry it is its owner's to decide, so by default the
+pipeline's builds draw the Axis names in Liberation Sans and leave that licence out, as any build without the
+file does (`fonts/readme.md`).
+
+`build_engine.ps1` imports the project first where the tree has never been imported, which a fresh clone has not.
+
+**Tried on 2026-11-26, as far as a developer's machine goes**: `fetch_godot.ps1` into an empty folder with an empty
+templates folder (25 s), then a fresh clone of the branch built with `build_release.ps1 -Latest` on that Godot alone:
+imported, exported and packed in 90 s, the three archives and the tree left with nothing changed. **Not run on
+GitHub**: the workflow's own steps - the cache, the publishing with `gh`, the moving of the tag - are untried until
+it is pushed.
 
 The launcher run by hand takes **`--engine=<folder>`** in place of its own `engine` folder.
 
@@ -196,7 +231,9 @@ each one naming an engine release that its tools fetch and package with it. **No
 BlackICE names no engine, being written for the original. Planned on 2026-11-21, for BlackICE's version 16
 (`blackice.md`): its release fetches a release of this engine (section 7) by the version it names, and its installer
 puts the engine in the mod's `engine` folder and the launcher in its `launcher` folder (section 2), the one copy
-playing the base game as well.
+playing the base game as well. **A test build of the mod takes the rolling build instead** (section 7.1; BlackICE's
+`installer/fetchEngine.py --latest`, 2026-11-26) and writes into its `.mod` the version that build's `engine.txt`
+says, so nobody names an engine for a test build and a release cannot ship one by accident.
 
 ## 10. Licence and trust
 

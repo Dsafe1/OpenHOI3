@@ -17,7 +17,7 @@
   Usage: tools/build_release.ps1 [-Godot <path to the Godot .NET editor>] [-Runtime win-x64] [-AllowUntagged] [-Latest]
     -AllowUntagged  builds the archives from a tree that is no release, under its date-and-commit version: a trial of
                     the packaging, never to be published.
-    -Latest         the rolling build of the main branch (docs/launcher.md, section 8): a tree that is no release,
+    -Latest         the rolling build of the main branch (docs/launcher.md, section 7.1): a tree that is no release,
                     its archives named OpenHOI3-engine-latest.zip and so on whatever its version, so that they are
                     found at one address. The engine.txt inside says the date-and-commit version it is. The pipeline
                     publishes them as the release of the tag latest, made again at every change.

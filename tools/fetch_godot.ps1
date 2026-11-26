@@ -1,5 +1,5 @@
 <#
-  Fetches what a build needs of Godot on a machine that has none of it - the pipeline's (docs/launcher.md, section 8):
+  Fetches what a build needs of Godot on a machine that has none of it - the pipeline's (docs/launcher.md, section 7.1):
   the .NET editor of one version, unpacked into a folder, and that version's export templates for Windows, put where
   the editor looks for them. Both from Godot's own releases on GitHub. What is already there is left alone.
 

@@ -2228,6 +2228,10 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   built*): `key_without_equals`, `unit_figure_decimals`, `yield_modifiers`. Each arm is tested; BlackICE's files hold
   none of the faulty lines today and no province yields fuel or money, so no run shows them. The first two are read
   with the files, by the folders' rules: a save of a faithful game loaded under an enhanced folder gets them.
+- **The pipeline is written and not run** (2026-11-26, `launcher.md`, section 7.1): `.github/workflows/build.yml`
+  publishes a release for each tag `v<x>` and a rolling `latest` from `main`, and BlackICE's test builds take
+  `latest`. Its build was tried from a fresh clone on a developer's machine; its steps on GitHub - the cache, `gh`,
+  the moving tag - wait for the first push, and **`FETCH_FRAKTUR` is the owner's to set**.
 - **Three things raised from play, 2026-11-26.** *The player's automatic deployment left its units under no
   headquarters*: the original's placing, for the played country alone, also attaches the unit to the headquarters
   of the province's theatre, which the findings had and the build had left out - built (`ministers.md`, section 6).

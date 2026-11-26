@@ -79,6 +79,9 @@ Editor*. Set the path of the Godot executable in the `godotTools.editorPath.godo
 `.vscode/settings.json` (git-ignored) or your user settings. The developer switches are listed above
 `RunDeveloperArguments` in [`src/CSession.cs`](src/CSession.cs).
 
+**Builds are published on GitHub**: a numbered release for each tag `v<x>`, and one called `latest` that is made
+again from the main branch at every change ([`.github/workflows/build.yml`](.github/workflows/build.yml)).
+
 **A standalone build** is made by [`tools/build_engine.ps1`](tools/build_engine.ps1) into `export/OpenHOI3/`. It
 needs the Godot 4.7.1 .NET export templates. An exported build plays the install it is placed in:
 copy the folder's contents beside `hoi3_tfh.exe`.
