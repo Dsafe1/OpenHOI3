@@ -28,6 +28,12 @@ public sealed class CScriptWords
 	/// <summary>The country the text is shown to, which a scope of effects does not name.</summary>
 	public CCountryTag? Player { get; }
 
+	/// <summary>
+	/// Whether a list a text would cut short is written whole: Alt held, where the text is shown. Asked as the text
+	/// is made, and nothing where nobody says.
+	/// </summary>
+	public Func<bool>? ShowAll { get; init; }
+
 	public const string Yellow = "§Y";
 	public const string White = "§W";
 	public const string Red = "§R";

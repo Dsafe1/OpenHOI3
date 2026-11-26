@@ -499,6 +499,17 @@ public static class CGameStateLoader
 			country.UnitNameCursors.Clear();
 		}
 		state.LoadOrderOfBattle = (country, file) => COrderOfBattleReader.ReadInto(directories, state, country, file);
+		// A file's summary for load_oob's own text, read once a game: a file changed as a game runs is seen by the next.
+		var summaries = new Dictionary<string, COrderOfBattleSummary>(StringComparer.OrdinalIgnoreCase);
+		state.SummariseOrderOfBattle = file =>
+		{
+			if (!summaries.TryGetValue(file, out COrderOfBattleSummary? known))
+			{
+				known = COrderOfBattleReader.Summarise(directories, file, state.Rules.Has(Sim.Rules.EFix.KeyWithoutEquals));
+				summaries[file] = known;
+			}
+			return known;
+		};
 		var unnamed = new List<(CCountry Country, CUnit Unit)>();
 		// Only a country that owns a province, or the rebels, has its order of battle read, as the original's new game reads
 		// it: at a later start Austria keeps its undated file and gets no units (bookmarks.md; FINDINGS-bookmarks.md, 2.4).

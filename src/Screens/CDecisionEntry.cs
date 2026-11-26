@@ -42,7 +42,10 @@ public sealed class CDecisionEntry
 				Text = CEventText.Localise(context.Localisation.Localise, state, decision.Name + "_desc", CDecisions.ScopeOf(_country)).Trim(),
 			};
 		}
-		var words = new CScriptWords(context.Localisation.Localise, state, country);
+		var words = new CScriptWords(context.Localisation.Localise, state, country)
+		{
+			ShowAll = () => Godot.Input.IsKeyPressed(Godot.Key.Alt),
+		};
 		_select = window.FindButton("select_button");
 		if (_select is not null)
 		{

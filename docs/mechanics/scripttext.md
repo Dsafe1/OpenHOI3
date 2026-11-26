@@ -160,6 +160,26 @@ None is mended. The plainest:
   localisation's, cut at 255 characters. A leader who commands nothing has all three empty, and a unit with no
   place the unit alone in its bracket. A faithful game fills the name alone and leaves the rest as written, as
   the original without the DLL does. No switch: only a text that asks shows anything.
+- **An enhanced game's `load_oob` says what its file would do** (`CLoadOobText`, after BiceLib's
+  `activateLoadOobDetails`), where the original's shows the bare path. On, in an enhanced game, where the
+  localisation has `OPENHOI_LOAD_OOB_UNITS`; every word is the mod's, some twenty keys `OPENHOI_LOAD_OOB_...`. The
+  path first, then a line each that has something to say:
+  - not found - no such file, or nothing in it - and nothing more;
+  - how many units, and the provinces they stand in, the one with the most first and the count beside one with
+    several; **four provinces** and then how many more;
+  - the brigades, ships and wings, those there are;
+  - the lines added to the build queue;
+  - the leaders it puts on units, in the file's order, **ten** and then how many more: each by name, the kind of
+    unit - a key a kind, `OPENHOI_LOAD_OOB_KIND_CORPS` and its like, so that an article is the mod's - and where he
+    is now, in red since that unit is about to lose him; a number that is none of the scope country's leaders is
+    said so. Under a leader whose rank is not the one the unit's level takes, a line: that the file makes it so,
+    where the game has the fix `oob_leader_ranks` and he is a land leader, and otherwise that it does not fit.
+  - **With Alt held both lists are whole**, and a line says so where one was cut.
+
+  The file is counted off its parse by the engine's own reader of unit files and not loaded
+  (`COrderOfBattleReader.Summarise`): a unit is a block of one of the seven kinds with a place - its own or, under
+  another, that one's - and a unit at the top with no place is left out with all under it, as a load leaves it
+  out. BiceLib's scans the characters and counts every block with a `location`. Read once a game for each path.
 
 ## Not established
 

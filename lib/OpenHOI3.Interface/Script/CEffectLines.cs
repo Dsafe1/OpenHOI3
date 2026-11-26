@@ -276,8 +276,8 @@ public static class CEffectLines
 				return leader is null ? "" : KillLeader(words, leader);
 			}
 			case "load_oob":
-				// The path asked for as a key, which shows it bare.
-				return words.Localise(value.Text);
+				// The path asked for as a key, which shows it bare; an enhanced game's says what the file would do.
+				return CLoadOobText.For(words, value.Text, country);
 			case "organisation":
 			case "popularity":
 			{

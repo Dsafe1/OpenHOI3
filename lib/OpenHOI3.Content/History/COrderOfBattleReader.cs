@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Construction;
@@ -216,6 +217,100 @@ public static class COrderOfBattleReader
 			}
 		}
 		state.ForgetPositions();
+	}
+
+	/// <summary>
+	/// What a file of units holds, counted off the file as it is parsed and without loading it: the units by where
+	/// they stand, the brigades, ships and wings, the lines for the build queue and the leaders put on units. A unit
+	/// at the file's top with no place is left out with all under it, as <see cref="ReadInto"/> leaves it out; a unit
+	/// under another with no place of its own counts where that one stands. Not found where there is no such file or
+	/// nothing in it. For <c>load_oob</c>'s own text (<c>docs/mechanics/scripttext.md</c>).
+	/// </summary>
+	public static COrderOfBattleSummary Summarise(CDirectorySettings directories, string file, bool wordAfterKey = false)
+	{
+		var summary = new COrderOfBattleSummary();
+		string path = directories.Resolve($"{Directory}/{file}");
+		if (!File.Exists(path))
+		{
+			return summary;
+		}
+		ClausewitzNode root = ClausewitzParser.ParseFile(path, wordAfterKey);
+		summary.Found = root.Children.Count != 0;
+		var places = new Dictionary<int, int>();
+		foreach (ClausewitzNode entry in Entries(root))
+		{
+			if (entry.Key is null || !entry.IsBlock)
+			{
+				continue;
+			}
+			if (UnitKinds.TryGetValue(entry.Key, out EUnitKind kind))
+			{
+				SummariseUnit(entry, kind, 0, summary, places);
+			}
+			else if (entry.Key.Equals(Construction, StringComparison.OrdinalIgnoreCase))
+			{
+				summary.Constructions++;
+			}
+		}
+		foreach (KeyValuePair<int, int> place in places.OrderByDescending(place => place.Value).ThenBy(place => place.Key))
+		{
+			summary.Places.Add(new COrderOfBattlePlace(place.Key, place.Value));
+		}
+		return summary;
+	}
+
+	private static void SummariseUnit(ClausewitzNode block, EUnitKind kind, int superiorsPlace, COrderOfBattleSummary summary,
+		Dictionary<int, int> places)
+	{
+		static int Number(string? text) =>
+			int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value) ? value : 0;
+
+		int place = block.Get("location") is { IsBlock: false } location ? Number(location.Value) : 0;
+		if (place <= 0)
+		{
+			place = superiorsPlace;
+		}
+		if (place <= 0)
+		{
+			return;
+		}
+		summary.Units++;
+		places[place] = places.GetValueOrDefault(place) + 1;
+		foreach (ClausewitzNode entry in Entries(block))
+		{
+			if (entry.Key is not { } key)
+			{
+				continue;
+			}
+			if (key.Equals("leader", StringComparison.OrdinalIgnoreCase))
+			{
+				int leader = entry.IsBlock ? entry.GetInt("id") : Number(entry.Value);
+				if (leader > 0)
+				{
+					summary.Leaders.Add(new COrderOfBattleLeader(leader, kind));
+				}
+			}
+			else if (!entry.IsBlock)
+			{
+				continue;
+			}
+			else if (UnitKinds.TryGetValue(key, out EUnitKind under))
+			{
+				SummariseUnit(entry, under, place, summary, places);
+			}
+			else if (key.Equals(Regiment, StringComparison.OrdinalIgnoreCase))
+			{
+				summary.Brigades++;
+			}
+			else if (key.Equals("ship", StringComparison.OrdinalIgnoreCase))
+			{
+				summary.Ships++;
+			}
+			else if (key.Equals("wing", StringComparison.OrdinalIgnoreCase))
+			{
+				summary.Wings++;
+			}
+		}
 	}
 
 	/// <summary>The fleets among units just read, each given its base as the original's loader leaves it (<see cref="CFleetBase"/>).</summary>

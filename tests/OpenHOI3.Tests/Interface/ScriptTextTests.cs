@@ -159,6 +159,88 @@ public class ScriptTextTests
 		Assert.Equal("Leader §YRommel§W (§R7. Panzer§W) dies [7. Panzer|].", Line());
 	}
 
+	private static readonly Dictionary<string, string> OobWords = new()
+	{
+		[CLoadOobText.MissingKey] = "§RNot in the mod or the game.§W",
+		[CLoadOobText.UnitsKey] = "§Y$COUNT$§W units in $PLACES$",
+		[CLoadOobText.PlaceKey] = "§Y$NAME$§W",
+		[CLoadOobText.PlaceManyKey] = "§Y$NAME$§W ($COUNT$)",
+		[CLoadOobText.PlacesMoreKey] = " and $COUNT$ more",
+		[CLoadOobText.BrigadesKey] = "$COUNT$ brigades",
+		[CLoadOobText.ShipsKey] = "$COUNT$ ships",
+		[CLoadOobText.WingsKey] = "$COUNT$ wings",
+		[CLoadOobText.ProductionKey] = "§Y$COUNT$§W added to production",
+		[CLoadOobText.LeadersKey] = "§Y$COUNT$§W leaders take command:",
+		[CLoadOobText.LeaderKey] = "  §Y$NAME$§W to $KIND$ - $WHERE$",
+		[CLoadOobText.LeaderUnknownKey] = "  §R$ID$ - not one of this country's leaders§W",
+		[CLoadOobText.LeadersMoreKey] = "  and $COUNT$ more",
+		[CLoadOobText.NoCommandKey] = "no command",
+		[CLoadOobText.CommandKey] = "§R$UNIT$§W",
+		[CLoadOobText.CommandAtKey] = "§R$UNIT$, $PROVINCE$§W",
+		[CLoadOobText.RankMadeKey] = "    rank $RANK$, made $WANTED$ for $KIND$",
+		[CLoadOobText.RankWrongKey] = "    §Rrank $RANK$, and $KIND$ wants $WANTED$§W",
+		[CLoadOobText.HoldAltKey] = "§Ghold Alt for the rest§W",
+		[CLoadOobText.KindKeyStem + "CORPS"] = "a corps",
+		[CLoadOobText.KindKeyStem + "ARMY"] = "an army",
+		[CLoadOobText.KindKeyStem + "NAVY"] = "a fleet",
+	};
+
+	[Fact]
+	public void An_enhanced_games_load_oob_says_what_its_file_would_do()
+	{
+		CGameState state = ScriptWorld.State();
+		OpenHOI3.Sim.Countries.CCountry germany = state.Country(ScriptWorld.Ger)!;
+		var summary = new OpenHOI3.Sim.Units.COrderOfBattleSummary { Found = true, Units = 7, Brigades = 9, Wings = 2, Constructions = 3 };
+		foreach ((int province, int units) in new[] { (1, 3), (2, 1), (3, 1), (4, 1), (5, 1) })
+		{
+			summary.Places.Add(new OpenHOI3.Sim.Units.COrderOfBattlePlace(province, units));
+		}
+		OpenHOI3.Sim.Leaders.CLeader Leader(int id, string name, int rank, OpenHOI3.Sim.Leaders.ELeaderType type = OpenHOI3.Sim.Leaders.ELeaderType.Land)
+		{
+			var leader = new OpenHOI3.Sim.Leaders.CLeader(id) { Name = name, Country = ScriptWorld.Ger, Rank = rank, Type = type };
+			state.Leaders[id] = leader;
+			germany.Leaders.Add(leader);
+			return leader;
+		}
+		OpenHOI3.Sim.Leaders.CLeader guderian = Leader(1, "Guderian", 2);
+		OpenHOI3.Sim.Leaders.CLeader rommel = Leader(2, "Rommel", 1);
+		Leader(3, "Raeder", 1, OpenHOI3.Sim.Leaders.ELeaderType.Sea);
+		var division = new OpenHOI3.Sim.Units.CUnit(OpenHOI3.Sim.Units.EUnitKind.Division, ScriptWorld.Ger) { Id = 900, Name = "7. Panzer", Location = 1 };
+		rommel.Unit = division;
+		summary.Leaders.Add(new OpenHOI3.Sim.Units.COrderOfBattleLeader(1, OpenHOI3.Sim.Units.EUnitKind.Corps));
+		summary.Leaders.Add(new OpenHOI3.Sim.Units.COrderOfBattleLeader(2, OpenHOI3.Sim.Units.EUnitKind.Army));
+		summary.Leaders.Add(new OpenHOI3.Sim.Units.COrderOfBattleLeader(3, OpenHOI3.Sim.Units.EUnitKind.Navy));
+		summary.Leaders.Add(new OpenHOI3.Sim.Units.COrderOfBattleLeader(99, OpenHOI3.Sim.Units.EUnitKind.Corps));
+		state.SummariseOrderOfBattle = file => file == "GER/new.txt" ? summary : new OpenHOI3.Sim.Units.COrderOfBattleSummary();
+		bool alt = false;
+		var words = new CScriptWords(key => OobWords.GetValueOrDefault(key, key), state, ScriptWorld.Ger) { ShowAll = () => alt };
+		string Line(string file) => CLoadOobText.For(words, file, germany);
+
+		// A faithful game's is the path, bare.
+		Assert.Equal("GER/new.txt", Line("GER/new.txt"));
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		Assert.Equal("GER/none.txt\n§RNot in the mod or the game.§W\n", Line("GER/none.txt"));
+		string head = "GER/new.txt\n§Y7§W units in §Yp1§W (3), §Yp2§W, §Yp3§W, §Yp4§W";
+		string rest = "\n9 brigades, 2 wings\n§Y3§W added to production\n§Y4§W leaders take command:"
+			+ "\n  §YGuderian§W to a corps - no command"
+			// He commands a division now, and an army wants rank 3: the game has the fix, so the file makes it so.
+			+ "\n  §YRommel§W to an army - §R7. Panzer, p1§W\n    rank 1, made 3 for an army"
+			+ "\n  §YRaeder§W to a fleet - no command"
+			+ "\n  §R99 - not one of this country's leaders§W";
+		// Four places and the rest counted, with the hint; Alt names them all.
+		Assert.Equal(head + " and 1 more" + rest + "\n§Ghold Alt for the rest§W\n\n", Line("GER/new.txt"));
+		alt = true;
+		Assert.Equal(head + ", §YSea§W" + rest + "\n", Line("GER/new.txt"));
+
+		// A game without the rank fix says he keeps a rank the unit does not take.
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(new[] { OpenHOI3.Sim.Rules.EFix.OobLeaderRanks }));
+		Assert.Contains("\n    §Rrank 1, and an army wants 3§W", Line("GER/new.txt"));
+		Assert.DoesNotContain("rank 2", Line("GER/new.txt"));      // Guderian's fits a corps
+		// A localisation without the lines leaves the path.
+		Assert.Equal("GER/new.txt", CLoadOobText.For(new CScriptWords(key => key, state, ScriptWorld.Ger), "GER/new.txt", germany));
+	}
+
 	[Fact]
 	public void Effects_that_say_nothing_write_nothing()
 	{

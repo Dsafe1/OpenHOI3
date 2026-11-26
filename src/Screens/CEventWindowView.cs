@@ -165,7 +165,10 @@ public sealed partial class CEventWindowView : Control
 
 	private CScriptWords Words()
 	{
-		return new CScriptWords(_context.Localisation.Localise, _simulation.State, Open.Country);
+		return new CScriptWords(_context.Localisation.Localise, _simulation.State, Open.Country)
+		{
+			ShowAll = () => Input.IsKeyPressed(Key.Alt),
+		};
 	}
 
 	/// <summary>

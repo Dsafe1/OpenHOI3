@@ -710,6 +710,12 @@ public sealed class CGameState
 	/// </summary>
 	public Action<Countries.CCountry, string>? LoadOrderOfBattle { get; set; }
 
+	/// <summary>
+	/// What a file of units holds, counted without loading it, for the text <c>load_oob</c> writes of itself in an
+	/// enhanced game; set by whoever loaded the game, as <see cref="LoadOrderOfBattle"/> is. Display only.
+	/// </summary>
+	public Func<string, Units.COrderOfBattleSummary>? SummariseOrderOfBattle { get; set; }
+
 	/// <summary>The game's own flags, which script sets: <c>docs/mechanics/effects.md</c>, section 3.</summary>
 	public Script.CFlags Flags { get; } = new();
 

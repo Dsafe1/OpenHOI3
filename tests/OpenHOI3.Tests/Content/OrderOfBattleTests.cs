@@ -143,6 +143,40 @@ public class OrderOfBattleTests : IDisposable
 	}
 
 	[Fact]
+	public void AFileOfUnitsIsCountedWithoutBeingLoaded()
+	{
+		Write("history/units/AAA/raised.txt", """
+			corps = {
+				name = "I Corps" location = 7 leader = 11
+				regiment = { type = staff_brigade name = "HQ" }
+				division = { name = "1st" location = 7 leader = { id = 12 type = 4 } regiment = { type = foot_brigade } regiment = { type = foot_brigade } }
+				division = { name = "2nd" regiment = { type = foot_brigade } }
+			}
+			division = { name = "nowhere" leader = 13 regiment = { type = foot_brigade } }
+			navy = { name = "Fleet" location = 3 base = 3 ship = { type = flat_top } air = { name = "CAG" wing = { type = deck_wing } } }
+			military_construction = { country = AAA foot_brigade = { name = "new" } cost = 1 progress = 0 duration = 10 }
+			""");
+
+		COrderOfBattleSummary summary = COrderOfBattleReader.Summarise(Directories, "AAA/raised.txt");
+
+		Assert.True(summary.Found);
+		// The corps and its two divisions at 7 - the second by its corps' place; the fleet and its air group at 3. The
+		// division with no place is left out, its brigade and its leader with it.
+		Assert.Equal(5, summary.Units);
+		Assert.Equal(new[] { new COrderOfBattlePlace(7, 3), new COrderOfBattlePlace(3, 2) }, summary.Places);
+		Assert.Equal(4, summary.Brigades);
+		Assert.Equal(1, summary.Ships);
+		Assert.Equal(1, summary.Wings);
+		Assert.Equal(1, summary.Constructions);
+		Assert.Equal(new[] { new COrderOfBattleLeader(11, EUnitKind.Corps), new COrderOfBattleLeader(12, EUnitKind.Division) },
+			summary.Leaders);
+		// No such file, or nothing in it, is not found.
+		Assert.False(COrderOfBattleReader.Summarise(Directories, "AAA/none.txt").Found);
+		Write("history/units/AAA/empty.txt", "# nothing\n");
+		Assert.False(COrderOfBattleReader.Summarise(Directories, "AAA/empty.txt").Found);
+	}
+
+	[Fact]
 	public void ALeaderNoFileDeclaresIsPassedOverAndReportedLeavingWhatAnEarlierLineGave()
 	{
 		var leaders = new Dictionary<int, OpenHOI3.Sim.Leaders.CLeader> { [77] = new(77) };
