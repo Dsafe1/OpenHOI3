@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Commands;
+using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Units;
 
@@ -124,6 +126,31 @@ public static class CLeaderWindowText
 		return template == SkillKey
 			? skill
 			: Text.CTextTemplate.Fill(template, ("SKILL", skill), ("MAX", leader.MaxSkill.ToString(CultureInfo.InvariantCulture)));
+	}
+
+	/// <summary>
+	/// What the "remove all" confirmation posts with Ctrl held, in a game that has the fix
+	/// (<see cref="OpenHOI3.Sim.Rules.EFix.CtrlUnassignSelected"/>): for each selected unit that is the player's own, not on loan
+	/// and has a leader, the command that leaves that one unit with none - which names its unit, so every machine and a
+	/// replay do the same; the key and the selection are read where the click is and nowhere else. An empty list is
+	/// nothing to post at all: the click does not fall back on everybody. Null where the fix is not the game's, and
+	/// the country's own command is posted as ever.
+	/// </summary>
+	public static List<CCommand>? RemoveFromSelected(CGameState state, CCountry player, IEnumerable<CUnit> selected)
+	{
+		if (!state.Rules.Has(OpenHOI3.Sim.Rules.EFix.CtrlUnassignSelected))
+		{
+			return null;
+		}
+		var commands = new List<CCommand>();
+		foreach (CUnit unit in selected)
+		{
+			if (unit.Owner == player.Tag && unit.Lender is null && unit.Leader is not null)
+			{
+				commands.Add(new CAssignLeaderCommand(player.Tag, unit.Id, null));
+			}
+		}
+		return commands;
 	}
 
 	/// <summary>The rank strip's frame, counted from one: the rank. The empty leader's 0 draws nothing.</summary>

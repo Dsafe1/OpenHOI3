@@ -202,6 +202,48 @@ public class LeaderWindowTextTests
 	}
 
 	[Fact]
+	public void CtrlOnRemoveAllTakesTheLeadersOffTheSelectedUnitsThatAreThePlayersOwnAndHaveOne()
+	{
+		var germany = new CCountry { Tag = Ger, Name = "Germany", DefinitionFile = "" };
+		var poland = new CCountry { Tag = Pol, Name = "Poland", DefinitionFile = "" };
+		var state = new CGameState(new CDate(1936, 1, 1), new[] { new CProvince(0, "", isSea: false) }, new[] { germany, poland });
+		CUnit Unit(CCountry owner, int id, bool led)
+		{
+			var unit = new CUnit(EUnitKind.Corps, owner.Tag) { Id = id };
+			owner.Units.Add(unit);
+			if (led)
+			{
+				var leader = new CLeader(100 + id) { Country = owner.Tag, Rank = 2 };
+				state.Leaders[leader.Id] = leader;
+				unit.Leader = leader;
+				leader.Unit = unit;
+			}
+			return unit;
+		}
+		CUnit led = Unit(germany, 1, true), unled = Unit(germany, 2, false), foreign = Unit(poland, 3, true);
+		CUnit borrowed = Unit(germany, 4, true), other = Unit(germany, 5, true);
+		borrowed.Lender = Pol;
+		CUnit[] selected = { led, unled, foreign, borrowed };
+
+		// A faithful game has no such click: the country's own command is posted.
+		Assert.Null(CLeaderWindowText.RemoveFromSelected(state, germany, selected));
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		List<OpenHOI3.Sim.Commands.CCommand> commands = CLeaderWindowText.RemoveFromSelected(state, germany, selected)!;
+		OpenHOI3.Sim.Commands.CCommand only = Assert.Single(commands);
+		Assert.True(only.MayExecute(state));
+		only.Execute(state);
+		Assert.Null(led.Leader);
+		Assert.NotNull(other.Leader);
+		Assert.NotNull(borrowed.Leader);
+		// Nothing to take a leader off is nothing posted, and not everybody's.
+		Assert.Empty(CLeaderWindowText.RemoveFromSelected(state, germany, new[] { unled, foreign })!);
+		// A game that goes without the fix has the original's.
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(new[] { OpenHOI3.Sim.Rules.EFix.CtrlUnassignSelected }));
+		Assert.Null(CLeaderWindowText.RemoveFromSelected(state, germany, selected));
+	}
+
+	[Fact]
 	public void TheHeadShowsTheEmptyLeaderForAUnitWithNone()
 	{
 		Assert.Equal("No Leader", CLeaderWindowText.Name(null, key => key == "NO_LEADER" ? "No Leader" : key));

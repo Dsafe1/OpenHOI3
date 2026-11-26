@@ -36,6 +36,7 @@ public static class CFixes
 		(EFix.OobLeaderRanks, "oob_leader_ranks"),
 		(EFix.HistoryLeaderRanks, "history_leader_ranks"),
 		(EFix.SavedEventCandidates, "saved_event_candidates"),
+		(EFix.CtrlUnassignSelected, "ctrl_unassign_selected"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

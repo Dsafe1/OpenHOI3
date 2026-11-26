@@ -297,7 +297,7 @@ names of keys and defines are proposals.
 **Interface**
 
 - Ctrl on the "unassign all leaders" confirmation unassigns the selected units' leaders alone, as commands that each
-  name their unit.
+  name their unit. **Built 2026-11-26**, `ctrl_unassign_selected`.
 - Game options of the engine's own: two more rotating autosaves, scrolling at the screen's edge, where an event's
   window comes up. **Built 2026-11-21**, as four rows on the game options' Game tab kept in `openhoi_settings.txt`
   (`mechanics/gameoptions.md`, section 5; `mechanics/savegame.md`, section 11.1).

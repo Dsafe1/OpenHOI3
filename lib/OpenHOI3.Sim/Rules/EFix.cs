@@ -151,4 +151,11 @@ public enum EFix
 	/// original's has none until its month turns (<c>docs/mechanics/events.md</c>, section 1).
 	/// </summary>
 	SavedEventCandidates,
+
+	/// <summary>
+	/// With Ctrl held, the confirmation of the leader window's "remove all" takes the leaders off the selected units
+	/// alone, a command a unit, and off nobody where none of them has one (<c>docs/mechanics/leaders.md</c>,
+	/// section 12). Changes which orders a player can give at once.
+	/// </summary>
+	CtrlUnassignSelected,
 }

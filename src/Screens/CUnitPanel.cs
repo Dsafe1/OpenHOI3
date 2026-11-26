@@ -31,6 +31,9 @@ public partial class CUnitPanel : Control
 	private CSimulation _simulation = null!;
 	private CCountry? _player;
 
+	/// <summary>The units selected, as the panels were last shown them: what Ctrl on "remove all" acts on.</summary>
+	private IReadOnlyList<CUnit> _selected = Array.Empty<CUnit>();
+
 	private CGuiWindow? _window;
 	private CGuiListBox? _list;
 
@@ -277,6 +280,7 @@ public partial class CUnitPanel : Control
 	/// </summary>
 	public void ShowSelection(IReadOnlyList<CUnit> units)
 	{
+		_selected = new List<CUnit>(units);
 		ShowUnit(units.Count == 1 ? units[0] : null);
 		_multi?.Show(units);
 		ShowPanels();
@@ -418,7 +422,20 @@ public partial class CUnitPanel : Control
 		{
 			_confirm.Agreed += () =>
 			{
-				if (_player is not null)
+				// With Ctrl held as the dialog is agreed to, the selected units' leaders alone - read here, where the
+				// click is, and posted as commands that each name their unit (leaders.md, section 12).
+				if (_player is not null && Input.IsKeyPressed(Key.Ctrl)
+					&& CLeaderWindowText.RemoveFromSelected(_simulation.State, _player, _selected) is { } single)
+				{
+					foreach (CCommand each in single)
+					{
+						if (each.MayExecute(_simulation.State))
+						{
+							_simulation.Post(each);
+						}
+					}
+				}
+				else if (_player is not null)
 				{
 					var command = new CRemoveAllLeadersCommand(_player.Tag);
 					if (command.MayExecute(_simulation.State))

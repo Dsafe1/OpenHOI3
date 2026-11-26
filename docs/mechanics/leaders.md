@@ -610,6 +610,13 @@ side whose leader has more skill has the arrow of initiative (`combatview.md`, s
   and `$MAX$` - his `max_skill`, which caps what experience brings him. BlackICE's is `$SKILL$ ($MAX$)`, `3 (5)`.
   With no such key the number stands alone, and the empty leader's is the plain 0 always. No switch: the words are
   the mod's, and a mod that gives none sees the original's.
+- **Ctrl on "remove all"** (the fix `ctrl_unassign_selected`, after BiceLib's `activateCtrlUnassignSelected`):
+  agreed to with Ctrl held, the confirmation takes the leaders off **the selected units alone** - those that are the
+  player's own, not on loan and have one - as a `CAssignLeaderCommand` with no leader for each, the command a
+  player's own taking off posts. **Where none of them has a leader nothing is posted**: the click does not fall
+  back on everybody. The key and the selection are read where the click is and nowhere else, so what is posted
+  names its units and is the same on every machine and in a replay. Without Ctrl it is the country's command as
+  ever. The selection is what the panels were last shown, which a leader window opened from a row of several keeps.
 
 ## 13. The window's tooltips
 
