@@ -273,6 +273,32 @@ public sealed class LuaPagesTests : IDisposable
 	}
 
 	[Fact]
+	public void APageDrawsATableSortedByTheHeadingClicked()
+	{
+		Page("sorted", "local ImGui = OpenHOI3.ImGui return { Draw = function() "
+			+ "if ImGui.BeginSortedTable('rows', 3) then ImGui.TableSetupColumn('name') "
+			+ "ImGui.TableSetupColumn('time', 80, 'start largest') ImGui.TableSetupColumn('note', 0, 'never') ImGui.TableHeadersRow() "
+			+ "local column, largest = ImGui.TableSort() ImGui.Text(column .. ' ' .. tostring(largest)) ImGui.EndTable() end end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			// A page counts the columns from one; nought is no column, which a canvas that sorts nothing answers.
+			var canvas = new CRecordingCanvas();
+			windows.Draw(windows.Pages[0], Ger, canvas);
+			Assert.Equal(new[]
+			{
+				"BeginTable rows 3 sorted", "TableSetupColumn name", "TableSetupColumn time 80 LargestFirst, Starts",
+				"TableSetupColumn note Never", "TableHeadersRow", "Text 0 false", "EndTable",
+			}, canvas.Calls);
+
+			var clicked = new CRecordingCanvas { Sort = (1, true) };
+			windows.Draw(windows.Pages[0], Ger, clicked);
+			Assert.Contains("Text 2 true", clicked.Calls);
+			Assert.Empty(_reports);
+		}
+	}
+
+	[Fact]
 	public void APageReadsAndSetsTheWindowsOwnSettings()
 	{
 		Page("options", "local ImGui, Window = OpenHOI3.ImGui, OpenHOI3.Window return { Draw = function() "

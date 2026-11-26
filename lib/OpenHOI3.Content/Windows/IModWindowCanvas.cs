@@ -82,14 +82,20 @@ public interface IModWindowCanvas
 	void EndTooltip();
 	void SetTooltip(string text);
 
-	/// <summary>
-	/// A table. With <paramref name="panes"/> it is no table of rows but columns side by side with a divider between
-	/// them that is dragged: no outer border, no striped rows, no heading.
-	/// </summary>
-	bool BeginTable(string id, int columns, bool panes);
+	/// <summary>A table, of the kind given.</summary>
+	bool BeginTable(string id, int columns, ETableKind kind);
 
-	/// <summary>A column; a width above nought is the width it begins at, which the player may then drag.</summary>
-	void TableSetupColumn(string label, float width);
+	/// <summary>
+	/// A column; a width above nought is the width it begins at, which the player may then drag. What it does about
+	/// sorting counts in a sorted table alone.
+	/// </summary>
+	void TableSetupColumn(string label, float width, ETableColumnSort sort);
+
+	/// <summary>
+	/// What the sorted table being drawn is sorted by, asked once its columns are set up: the column, counted from
+	/// nought, and whether the largest comes first. The column is -1 in any other table and outside one.
+	/// </summary>
+	(int Column, bool Descending) TableSort();
 
 	/// <summary>Whether the window being drawn, or a part of it, has the keyboard.</summary>
 	bool IsWindowFocused();

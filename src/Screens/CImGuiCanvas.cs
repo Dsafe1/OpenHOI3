@@ -204,21 +204,57 @@ public sealed class CImGuiCanvas : IModWindowCanvas
 
 	public void SetTooltip(string text) => ImGui.SetTooltip(Plain(text));
 
-	public bool BeginTable(string id, int columns, bool panes) =>
-		ImGui.BeginTable(id, columns, panes
-			? ImGuiTableFlags.Resizable | ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.NoSavedSettings
-			: ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable);
+	/// <summary>The tables open, the innermost on top: whether each is a sorted one, which alone has a sort to ask the library for.</summary>
+	private readonly Stack<bool> _tables = new();
 
-	public void TableSetupColumn(string label, float width)
+	public bool BeginTable(string id, int columns, ETableKind kind)
 	{
-		if (width > 0f)
+		const ImGuiTableFlags rows = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable;
+		bool open = ImGui.BeginTable(id, columns, kind switch
 		{
-			ImGui.TableSetupColumn(label, ImGuiTableColumnFlags.WidthFixed, width);
-		}
-		else
+			ETableKind.Panes => ImGuiTableFlags.Resizable | ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.NoSavedSettings,
+			ETableKind.Sorted => rows | ImGuiTableFlags.Sortable,
+			_ => rows,
+		});
+		if (open)
 		{
-			ImGui.TableSetupColumn(label);
+			_tables.Push(kind == ETableKind.Sorted);
 		}
+		return open;
+	}
+
+	public void TableSetupColumn(string label, float width, ETableColumnSort sort)
+	{
+		ImGuiTableColumnFlags flags = width > 0f ? ImGuiTableColumnFlags.WidthFixed : ImGuiTableColumnFlags.None;
+		if (sort.HasFlag(ETableColumnSort.LargestFirst))
+		{
+			flags |= ImGuiTableColumnFlags.PreferSortDescending;
+		}
+		if (sort.HasFlag(ETableColumnSort.Starts))
+		{
+			flags |= ImGuiTableColumnFlags.DefaultSort;
+		}
+		if (sort.HasFlag(ETableColumnSort.Never))
+		{
+			flags |= ImGuiTableColumnFlags.NoSort;
+		}
+		ImGui.TableSetupColumn(label, flags, width > 0f ? width : 0f);
+	}
+
+	public (int Column, bool Descending) TableSort()
+	{
+		// The library answers nothing for a table that is not sorted, so it is asked only in one that is.
+		if (_tables.Count == 0 || !_tables.Peek())
+		{
+			return (-1, false);
+		}
+		ImGuiTableSortSpecsPtr sort = ImGui.TableGetSortSpecs();
+		if (sort.SpecsCount <= 0)
+		{
+			return (-1, false);
+		}
+		ImGuiTableColumnSortSpecsPtr first = sort.Specs;
+		return (first.ColumnIndex, first.SortDirection == ImGuiSortDirection.Descending);
 	}
 
 	public bool IsWindowFocused() => ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows);
@@ -249,7 +285,14 @@ public sealed class CImGuiCanvas : IModWindowCanvas
 
 	public bool TableNextColumn() => ImGui.TableNextColumn();
 
-	public void EndTable() => ImGui.EndTable();
+	public void EndTable()
+	{
+		if (_tables.Count != 0)
+		{
+			_tables.Pop();
+		}
+		ImGui.EndTable();
+	}
 
 	public bool BeginTabBar(string id) => ImGui.BeginTabBar(id);
 

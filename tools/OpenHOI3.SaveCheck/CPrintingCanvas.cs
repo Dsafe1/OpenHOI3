@@ -15,6 +15,12 @@ public class CPrintingCanvas : DispatchProxy
 	/// <summary>The calls in the order made, each its name and its arguments.</summary>
 	public List<(string Name, object?[] Arguments)> Calls { get; } = new();
 
+	/// <summary>
+	/// What a sorted table answers it is sorted by. No heading is clicked here, so with nothing set it is no column,
+	/// and the table is in the order its page gives it unasked.
+	/// </summary>
+	public (int Column, bool Descending) Sort { get; set; } = (-1, false);
+
 	public static (IModWindowCanvas Canvas, CPrintingCanvas Kept) Create()
 	{
 		IModWindowCanvas canvas = Create<IModWindowCanvas, CPrintingCanvas>();
@@ -32,6 +38,10 @@ public class CPrintingCanvas : DispatchProxy
 		if (answer == typeof(bool))
 		{
 			return method.Name.StartsWith("Begin", StringComparison.Ordinal) || method.Name is "TableNextColumn" or "CollapsingHeader" or "TreeNode";
+		}
+		if (answer == typeof((int, bool)))
+		{
+			return Sort;
 		}
 		if (answer == typeof((float, float)))
 		{

@@ -177,13 +177,19 @@ public sealed class CRecordingCanvas : IModWindowCanvas
 	}
 	public void SetTooltip(string text) => Calls.Add("SetTooltip " + text);
 
-	public bool BeginTable(string id, int columns, bool panes)
+	public bool BeginTable(string id, int columns, ETableKind kind)
 	{
-		Calls.Add($"BeginTable {id} {columns}" + (panes ? " panes" : ""));
+		Calls.Add($"BeginTable {id} {columns}" + (kind == ETableKind.Panes ? " panes" : kind == ETableKind.Sorted ? " sorted" : ""));
 		return ScopesOpen;
 	}
 
-	public void TableSetupColumn(string label, float width) => Calls.Add("TableSetupColumn " + label + (width > 0f ? " " + width : ""));
+	public void TableSetupColumn(string label, float width, ETableColumnSort sort) =>
+		Calls.Add("TableSetupColumn " + label + (width > 0f ? " " + width : "") + (sort != ETableColumnSort.Plain ? " " + sort : ""));
+
+	/// <summary>What a table answers it is sorted by.</summary>
+	public (int Column, bool Descending) Sort { get; set; } = (-1, false);
+
+	public (int Column, bool Descending) TableSort() => Sort;
 
 	public bool Focused { get; set; }
 

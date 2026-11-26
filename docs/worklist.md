@@ -2230,7 +2230,8 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   with the files, by the folders' rules: a save of a faithful game loaded under an enhanced folder gets them.
 - **The engine's own timing for a mod's page is built and not looked at on screen** (2026-11-26, `modwindows.md`,
   section 6.5): `OpenHOI3.Profile`, the hours, the tick's steps with their parts, the orders drained by kind, and
-  Godot's own monitors; BlackICE's page for it, Engine Profiler under Debug, is in its working copy. Tried with
+  Godot's own monitors; BlackICE's page for it, Engine Profiler under Debug, is in its working copy, its table of
+  steps sorted by the heading clicked (`BeginSortedTable`, `modwindows.md`, section 4). Tried with
   `OpenHOI3.SaveCheck pages`. **Not in it**: the scripts' own methods (`CLuaState.Profile`, which the profile tool
   can set), a frame's parts - the map, the HUD - and anything of the screens' drawing but Godot's totals.
 - **The display lines after BiceLib's are built and not reviewed in play** (2026-11-26, `enhanced.md`, *What is

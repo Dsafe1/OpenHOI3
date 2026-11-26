@@ -15,9 +15,11 @@ using OpenHOI3.Sim.Countries;
 /// with the install's Lua at work, gathered again and drawn into a canvas that keeps what it was asked
 /// (<see cref="CPrintingCanvas"/>). Every Lua error is told.
 ///
-///   OpenHOI3.SaveCheck pages &lt;install folder&gt; [page] [hours] [tag] [mod=NAME]
+///   OpenHOI3.SaveCheck pages &lt;install folder&gt; [page] [hours] [tag] [sort=COLUMN] [mod=NAME]
 ///
-/// Germany for 30 hours with nothing given. Nothing is pressed, so a page is seen as it first stands.
+/// Germany for 30 hours with nothing given. Nothing is pressed, so a page is seen as it first stands - but a sorted
+/// table answers the heading given as the one clicked: <c>sort=4</c> the fourth column, the smallest first,
+/// <c>sort=-4</c> the largest first.
 /// </summary>
 internal static class CPagesLook
 {
@@ -25,9 +27,13 @@ internal static class CPagesLook
 	{
 		if (args.Length < 2)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck pages <install folder> [page] [hours] [tag] [mod=NAME]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck pages <install folder> [page] [hours] [tag] [sort=COLUMN] [mod=NAME]");
 			return 2;
 		}
+		const string sortWord = "sort=";
+		int sort = args.Where(arg => arg.StartsWith(sortWord, StringComparison.Ordinal))
+			.Select(arg => int.Parse(arg[sortWord.Length..], System.Globalization.CultureInfo.InvariantCulture)).FirstOrDefault();
+		args = args.Where(arg => !arg.StartsWith(sortWord, StringComparison.Ordinal)).ToArray();
 		string? wanted = args.Length > 2 ? args[2] : null;
 		int hours = args.Length > 3 ? int.Parse(args[3], System.Globalization.CultureInfo.InvariantCulture) : 30;
 		var tag = new CCountryTag(args.Length > 4 ? args[4].ToUpperInvariant() : "GER");
@@ -70,6 +76,10 @@ internal static class CPagesLook
 		simulation.Pump();
 		windows.Collect(state, page, tag);
 		(IModWindowCanvas canvas, CPrintingCanvas kept) = CPrintingCanvas.Create();
+		if (sort != 0)
+		{
+			kept.Sort = (Math.Abs(sort) - 1, sort < 0);
+		}
 		windows.Draw(page, tag, canvas);
 
 		Console.WriteLine();

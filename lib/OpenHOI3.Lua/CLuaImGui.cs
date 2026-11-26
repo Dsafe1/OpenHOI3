@@ -35,7 +35,7 @@ public sealed class CLuaImGui
 	{
 		"Text", "TextDisabled", "TextWrapped", "TextColored", "Separator", "SeparatorText", "SameLine", "Spacing", "NewLine",
 		"SetNextItemWidth", "Button", "SmallButton", "Selectable", "Checkbox", "InputText", "InputInt", "InputTextMultiline", "GetContentRegionAvail", "SliderInt", "SliderFloat",
-		"Combo", "CollapsingHeader", "IsItemHovered", "SetTooltip", "BeginTable", "BeginPanes", "TableSetupColumn", "TableHeadersRow",
+		"Combo", "CollapsingHeader", "IsItemHovered", "SetTooltip", "BeginTable", "BeginPanes", "BeginSortedTable", "TableSort", "TableSetupColumn", "TableHeadersRow",
 		"IsItemActive", "IsItemDeactivatedAfterEdit", "WindowSetting", "SetWindowSetting", "ProgressBar", "PlotLines", "PlotMany", "InputFloat", "IsWindowFocused", "IsKeyPressed", "SetScrollHereY", "SetClipboardText", "ImageSize", "Image",
 		"TableNextRow", "TableNextColumn", "EndTable", "BeginTabBar", "EndTabBar", "BeginTabItem", "EndTabItem",
 		"BeginChild", "EndChild", "TreeNode", "TreePop", "PushID", "PopID", "BeginDisabled", "EndDisabled", "BeginTooltip", "EndTooltip",
@@ -94,11 +94,20 @@ public sealed class CLuaImGui
 			["PlotLines"] = PlotLines,
 			["PlotMany"] = PlotMany,
 			["SetTooltip"] = call => Do(call, canvas => canvas.SetTooltip(call.String(1))),
-			["BeginTable"] = call => Begin(call, EScope.Table, canvas => canvas.BeginTable(call.String(1), call.Integer(2), false)),
+			["BeginTable"] = call => Begin(call, EScope.Table, canvas => canvas.BeginTable(call.String(1), call.Integer(2), ETableKind.Rows)),
 			// Columns side by side with a divider to drag; ended by EndTable, as a table is.
-			["BeginPanes"] = call => Begin(call, EScope.Table, canvas => canvas.BeginTable(call.String(1), call.Integer(2), true)),
+			["BeginPanes"] = call => Begin(call, EScope.Table, canvas => canvas.BeginTable(call.String(1), call.Integer(2), ETableKind.Panes)),
+			// Rows whose headings are clicked to sort: the page asks TableSort and gives its rows in that order.
+			["BeginSortedTable"] = call => Begin(call, EScope.Table, canvas => canvas.BeginTable(call.String(1), call.Integer(2), ETableKind.Sorted)),
+			["TableSort"] = call =>
+			{
+				// The column counted from one, as a page counts, and nought where nothing is sorted.
+				(int column, bool descending) = Canvas?.TableSort() ?? (-1, false);
+				return call.ReturnMany((double)(column < 0 ? 0 : column + 1), descending);
+			},
 			["TableSetupColumn"] = call => Do(call, canvas => canvas.TableSetupColumn(call.String(1),
-				call.ArgumentCount >= 2 ? (float)call.Number(2) : 0f)),
+				call.ArgumentCount >= 2 ? (float)call.Number(2) : 0f,
+				call.ArgumentCount >= 3 ? ColumnSort(call.String(3)) : ETableColumnSort.Plain)),
 			["IsWindowFocused"] = call => Ask(call, canvas => canvas.IsWindowFocused()),
 			["IsKeyPressed"] = call => Ask(call, canvas => canvas.IsKeyPressed(call.String(1))),
 			["SetScrollHereY"] = call => Do(call, canvas => canvas.SetScrollHereY(call.ArgumentCount >= 1 ? (float)call.Number(1) : 0.5f)),
@@ -227,6 +236,23 @@ public sealed class CLuaImGui
 				canvas.EndTooltip();
 				break;
 		}
+	}
+
+	/// <summary>A column's sorting by a page's words for it, any of them together: <c>start</c>, <c>largest</c>, <c>never</c>.</summary>
+	private static ETableColumnSort ColumnSort(string words)
+	{
+		var sort = ETableColumnSort.Plain;
+		foreach (string word in words.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+		{
+			sort |= word switch
+			{
+				"start" => ETableColumnSort.Starts,
+				"largest" => ETableColumnSort.LargestFirst,
+				"never" => ETableColumnSort.Never,
+				_ => ETableColumnSort.Plain,
+			};
+		}
+		return sort;
 	}
 
 	private int Do(CLuaCall call, Action<IModWindowCanvas> draw)
