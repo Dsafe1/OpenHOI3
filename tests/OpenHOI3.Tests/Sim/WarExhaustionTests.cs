@@ -88,6 +88,33 @@ public class WarExhaustionTests
 	}
 
 	[Fact]
+	public void AnEnhancedGamesDefineKeepsAMonthOfPeaceFromPayingNeutralityAndTheFigureStillGoesToNought()
+	{
+		CGameState state = State(new CDate(1936, 2, 1));
+		CCountry germany = state.Country(Ger)!;
+		germany.Modifier.Set(CWarExhaustion.MaxModifier, CFixedPoint.FromInt(100));
+		germany.Neutrality = CFixedPoint.FromInt(70);
+		state.Defines.Set(CWarExhaustion.DiplomacySection, CWarExhaustion.ToNeutralityDefine, CFixedPoint.Zero);
+
+		// A faithful game does not ask the define.
+		germany.WarExhaustion = CFixedPoint.Parse("1.5");
+		CWarExhaustion.RunMonthly(state);
+		Assert.Equal(CFixedPoint.Parse("71.5"), germany.Neutrality);
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		germany.WarExhaustion = CFixedPoint.Parse("1.5");
+		CWarExhaustion.RunMonthly(state);
+		Assert.Equal(CFixedPoint.Parse("71.5"), germany.Neutrality);
+		Assert.Equal(CFixedPoint.Zero, germany.WarExhaustion);
+
+		// Given as anything else, or not at all, the original's hand-over.
+		state.Defines.Set(CWarExhaustion.DiplomacySection, CWarExhaustion.ToNeutralityDefine, CFixedPoint.One);
+		germany.WarExhaustion = CFixedPoint.Parse("1.5");
+		CWarExhaustion.RunMonthly(state);
+		Assert.Equal(CFixedPoint.FromInt(73), germany.Neutrality);
+	}
+
+	[Fact]
 	public void TheEffectAddsAndNeverGoesBelowNothing()
 	{
 		var france = new CCountry { Tag = new CCountryTag("FRA"), Name = "France", DefinitionFile = "" };

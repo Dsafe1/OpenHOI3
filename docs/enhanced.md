@@ -248,7 +248,8 @@ names of keys and defines are proposals.
   and nothing left out of a save. Off in the mod today, so it may come last.
 - **War exhaustion** - *decided*: no payback into neutrality at peace, and nothing else. War exhaustion gathers and
   weighs as the original's; a define turns the hand-over off. BiceLib's patch does more - it sets the figure to nought
-  every month - and that is not wanted here.
+  every month - and that is not wanted here. **Built 2026-11-26**: `OPENHOI_WAR_EXHAUSTION_TO_NEUTRALITY` in the
+  section `diplomacy`, nought turning the hand-over off; the figure still goes back to nought at peace.
 - **The AI's lending of units** - *decided*: a define stops the AI lending a unit to another country; a unit on loan
   is still given back, which BiceLib's patch stops too.
 - **A country's own conversion of energy into crude oil and of crude oil into fuel** - *decided*: a native setting,

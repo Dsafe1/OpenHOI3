@@ -34,6 +34,14 @@ point of neutrality. Neutrality is held at 100 only by the next day's pass (`dip
 
 The month before a new game's first hour runs it too, where technology's decay is held back (`tick.md`, section 6).
 
+**An enhanced game's define** [mod: `defines.lua`, section `diplomacy`], a mod's choice after BiceLib's
+`disableWarExhaustionNeutralityReset`: with `OPENHOI_WAR_EXHAUSTION_TO_NEUTRALITY = 0` a month of peace adds
+**nothing to neutrality**, and the figure goes back to nought all the same. Everything else stands - the figure
+gathers at war under its maximum and weighs by the `war_exhaustion` static modifier. Not given, or given as anything
+else, it is the original's hand-over; a faithful game never asks. BiceLib's patch does more, setting the figure to
+nought every month, which was not wanted here (`docs/enhanced.md`). The new game's month runs under it too, so no
+country at peace starts with its history's wars paid into its neutrality.
+
 ## 3. A new game
 
 As a game is made, before its two days, every country is given [exe]:

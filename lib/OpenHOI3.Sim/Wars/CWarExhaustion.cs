@@ -16,6 +16,15 @@ public static class CWarExhaustion
 	public const string Modifier = "war_exhaustion";
 	public const string MaxModifier = "max_war_exhaustion";
 
+	public const string DiplomacySection = "diplomacy";
+
+	/// <summary>
+	/// An enhanced game's define, a mod's choice: given as nought, a month of peace hands nothing to neutrality - the
+	/// figure goes back to nought all the same. Not given, or anything else, is the original's hand-over
+	/// (<c>docs/mechanics/warexhaustion.md</c>, section 2).
+	/// </summary>
+	public const string ToNeutralityDefine = "OPENHOI_WAR_EXHAUSTION_TO_NEUTRALITY";
+
 	/// <summary>What a month of war adds to a new game's starting figure, and takes off it for a month of peace [exe].</summary>
 	public static readonly CFixedPoint PerMonth = new(50);
 
@@ -75,6 +84,7 @@ public static class CWarExhaustion
 	/// </summary>
 	public static void RunMonthly(CGameState state)
 	{
+		bool paysNeutrality = PaysNeutrality(state);
 		foreach (CCountry country in state.Countries)
 		{
 			if (country.Tag.Value == Rebels)
@@ -87,10 +97,20 @@ public static class CWarExhaustion
 			country.WarExhaustion = new CFixedPoint(banked);
 			if (!state.IsAtWar(country.Tag) && banked > 0)
 			{
-				CNeutrality.Change(state, country, country.WarExhaustion);
+				if (paysNeutrality)
+				{
+					CNeutrality.Change(state, country, country.WarExhaustion);
+				}
 				country.WarExhaustion = CFixedPoint.Zero;
 			}
 		}
+	}
+
+	/// <summary>Whether a month of peace hands a country's war exhaustion to its neutrality (<see cref="ToNeutralityDefine"/>).</summary>
+	public static bool PaysNeutrality(CGameState state)
+	{
+		return !state.Rules.Enhanced || !state.Defines.Has(DiplomacySection, ToNeutralityDefine)
+			|| state.Defines[DiplomacySection, ToNeutralityDefine].Raw != 0;
 	}
 
 	/// <summary>The war exhaustion effect: added, never below nothing, with no ceiling and nothing made again.</summary>
