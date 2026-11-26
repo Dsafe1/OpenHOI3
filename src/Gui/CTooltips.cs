@@ -36,6 +36,13 @@ public partial class CTooltips : CanvasLayer
 	/// <summary>Whether the box is kept off the left and the top of the screen too: an enhanced game's fix.</summary>
 	public System.Func<bool>? KeepOnScreen { get; set; }
 
+	/// <summary>Whether a tooltip taller than the screen is scrolled: an enhanced game's fix (<see cref="CTooltipScroll"/>).</summary>
+	public System.Func<bool>? Scrolls { get; set; }
+
+	private readonly CTooltipScroll _scroll = new();
+	private string _moreAbove = CTooltipScroll.NoWords;
+	private string _moreBelow = CTooltipScroll.NoWords;
+
 	public void Setup(CGuiContext context)
 	{
 		Name = "Tooltips";
@@ -47,6 +54,9 @@ public partial class CTooltips : CanvasLayer
 		}
 		// Rendered once and kept, as the original keeps it.
 		_shortcutLabel = context.Localisation.Localise("SHORTCUT");
+		// The two lines that stand for what a scrolled tooltip leaves out, the mod's words where it has any.
+		_moreAbove = context.Localisation.Find(CTooltipScroll.AboveKey) ?? CTooltipScroll.NoWords;
+		_moreBelow = context.Localisation.Find(CTooltipScroll.BelowKey) ?? CTooltipScroll.NoWords;
 		// The clock counts from the game being entered.
 		_entered = Time.GetTicksUsec();
 	}
@@ -60,6 +70,13 @@ public partial class CTooltips : CanvasLayer
 		if (@event is InputEventMouse mouse)
 		{
 			_mouse = mouse.Position;
+		}
+		// With Alt held the wheel is a scrollable tooltip's, and is kept from the list or the map under it.
+		if (@event is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.WheelUp or MouseButton.WheelDown } wheel
+			&& _box is { Visible: true } && _scroll.Scrollable && Scrolls?.Invoke() == true && Input.IsKeyPressed(Key.Alt))
+		{
+			_scroll.Wheel(wheel.ButtonIndex == MouseButton.WheelDown ? 1 : -1);
+			GetViewport().SetInputAsHandled();
 		}
 	}
 
@@ -79,6 +96,15 @@ public partial class CTooltips : CanvasLayer
 		if (text.Length == 0)
 		{
 			return;
+		}
+		if (Scrolls?.Invoke() == true)
+		{
+			bool alt = Input.IsKeyPressed(Key.Alt);
+			_scroll.Keys(alt && Input.IsKeyPressed(Key.Up), alt && Input.IsKeyPressed(Key.Down), delta);
+			CTooltipWindow window = _scroll.Window(text, _box.LineCount, _box.Room(screen.Y));
+			_box.ShowLines(window,
+				OpenHOI3.Interface.Text.CTextTemplate.Fill(_moreAbove, ("COUNT", window.Above.ToString(System.Globalization.CultureInfo.InvariantCulture))),
+				OpenHOI3.Interface.Text.CTextTemplate.Fill(_moreBelow, ("COUNT", window.Below.ToString(System.Globalization.CultureInfo.InvariantCulture))));
 		}
 		(int x, int y) = CTooltipPlacement.Place(tooltip, (int)_box.Size.X, (int)_box.Size.Y, (int)screen.X, (int)screen.Y,
 			KeepOnScreen?.Invoke() == true);

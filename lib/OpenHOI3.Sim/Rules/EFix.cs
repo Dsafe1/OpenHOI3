@@ -158,4 +158,11 @@ public enum EFix
 	/// section 12). Changes which orders a player can give at once.
 	/// </summary>
 	CtrlUnassignSelected,
+
+	/// <summary>
+	/// A tooltip with more lines than the screen is high shows as many as fit and is moved through with Alt and the
+	/// wheel or the arrow keys, where the original lets it run off the screen (<c>docs/mechanics/tooltips.md</c>,
+	/// section 8). Display only.
+	/// </summary>
+	TooltipScroll,
 }

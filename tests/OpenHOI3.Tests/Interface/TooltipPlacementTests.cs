@@ -8,6 +8,63 @@ namespace OpenHOI3.Tests.Interface;
 /// </summary>
 public class TooltipPlacementTests
 {
+	[Fact]
+	public void A_text_that_fits_is_shown_whole_and_one_that_does_not_is_moved_through_three_lines_a_notch()
+	{
+		var scroll = new CTooltipScroll();
+		Assert.Equal(CTooltipWindow.Whole(10), scroll.Window("short", 10, 10));
+		Assert.False(scroll.Scrollable);
+
+		// Forty lines in room for ten: nine and "more below".
+		Assert.Equal(new CTooltipWindow(0, 9, 0, 31), scroll.Window("long", 40, 10));
+		Assert.True(scroll.Scrollable);
+		// A notch down: a line each for what is above and below, eight of the text.
+		scroll.Wheel(1);
+		Assert.Equal(new CTooltipWindow(3, 8, 3, 29), scroll.Window("long", 40, 10));
+		// Far past the end stops where the last line shows: "more above" and nine lines.
+		scroll.Wheel(40);
+		Assert.Equal(new CTooltipWindow(31, 9, 31, 0), scroll.Window("long", 40, 10));
+		// And back past the top.
+		scroll.Wheel(-40);
+		Assert.Equal(new CTooltipWindow(0, 9, 0, 31), scroll.Window("long", 40, 10));
+	}
+
+	[Fact]
+	public void The_place_is_kept_while_the_text_is_the_same_and_starts_again_at_the_top_when_it_changes()
+	{
+		var scroll = new CTooltipScroll();
+		scroll.Window("long", 40, 10);
+		scroll.Wheel(2);
+		Assert.Equal(6, scroll.Window("long", 40, 10).First);
+		Assert.Equal(6, scroll.Window("long", 40, 10).First);
+		// Another text, and the steps taken before it was shown, count for nothing.
+		scroll.Wheel(1);
+		Assert.Equal(0, scroll.Window("another", 40, 10).First);
+		// A box with room for fewer than three lines is not scrolled at all.
+		Assert.Equal(CTooltipWindow.Whole(40), scroll.Window("another", 40, 2));
+	}
+
+	[Fact]
+	public void An_arrow_key_moves_a_line_at_its_press_and_another_each_130_ms_it_is_held_down_winning()
+	{
+		var scroll = new CTooltipScroll();
+		scroll.Window("long", 40, 10);
+		scroll.Keys(up: false, down: true, 0.016);
+		Assert.Equal(1, scroll.Window("long", 40, 10).First);
+		// Held 0.1 s more: nothing yet; 0.05 more, another line.
+		scroll.Keys(false, true, 0.1);
+		Assert.Equal(1, scroll.Window("long", 40, 10).First);
+		scroll.Keys(false, true, 0.05);
+		Assert.Equal(2, scroll.Window("long", 40, 10).First);
+		// Let go and pressed again, at once; both held is down.
+		scroll.Keys(false, false, 0.016);
+		scroll.Keys(true, true, 0.016);
+		Assert.Equal(3, scroll.Window("long", 40, 10).First);
+		scroll.Keys(false, false, 0.016);
+		scroll.Keys(true, false, 0.016);
+		Assert.Equal(2, scroll.Window("long", 40, 10).First);
+	}
+
 	private const int Width = 1920;
 	private const int Height = 1080;
 

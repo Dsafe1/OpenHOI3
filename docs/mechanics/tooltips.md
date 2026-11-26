@@ -209,6 +209,20 @@ line's top, where the original's place against the line was not read.
 
 Nothing keeps it off the left or the top edge.
 
+**And nothing shortens a tooltip taller than the screen**: it runs off the bottom, and what is below cannot be read.
+*An enhanced game's* (the fix `tooltip_scroll`, after BiceLib's `activateTriggerScroll`; `CTooltipScroll`): a box
+with more lines than the screen has room for shows as many as fit and is moved through -
+
+- **Alt and the wheel**, three lines a notch, and **Alt and the Up or Down key**, a line a press and another every
+  130 ms the key is held; Down wins over Up. Alt is asked because the wheel alone is the list's or the map's under
+  the tooltip; with Alt held over a scrollable tooltip the wheel is kept from them.
+- **A line stands for what is left out**, above and below, each taking one of the lines there is room for:
+  `OPENHOI_TOOLTIP_MORE_ABOVE` and `OPENHOI_TOOLTIP_MORE_BELOW` with `$COUNT$`, the mod's words; a yellow `...`
+  where the localisation has none. BiceLib's has none below.
+- **The place is kept while the text stays the same** and starts again at the top when it changes; it stops where
+  the text's last line shows.
+- **Any tooltip**, where BiceLib's is a requirement's alone. A box with room for fewer than three lines is left be.
+
 ## 9. The interface files' own keys
 
 Every element of a `.gui` file accepts `pdx_tooltip` and `pdx_tooltip_delayed`, and a button

@@ -37,6 +37,7 @@ public static class CFixes
 		(EFix.HistoryLeaderRanks, "history_leader_ranks"),
 		(EFix.SavedEventCandidates, "saved_event_candidates"),
 		(EFix.CtrlUnassignSelected, "ctrl_unassign_selected"),
+		(EFix.TooltipScroll, "tooltip_scroll"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

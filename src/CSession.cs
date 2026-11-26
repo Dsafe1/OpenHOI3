@@ -1336,6 +1336,7 @@ public partial class CSession : Node
 		_tooltips = tooltips;
 		tooltips.Setup(gui);
 		tooltips.KeepOnScreen = () => State.Rules.Has(Sim.Rules.EFix.TooltipsOnScreen);
+		tooltips.Scrolls = () => State.Rules.Has(Sim.Rules.EFix.TooltipScroll);
 		// Over a counter the map's tooltip is the unit's own, else the province's (tooltips.md, section 7.1).
 		tooltips.MapTooltip = _ => _mapView.HoveredBase is { } hoveredBase
 			? new CTooltip { Text = CBaseTooltip.Build(_localisation.Localise, State, hoveredBase.Province, hoveredBase.Kind, Player?.Tag) }

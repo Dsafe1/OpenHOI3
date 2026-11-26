@@ -27,6 +27,12 @@ public partial class CTooltipBox : Control
 	private CGuiContext _context = null!;
 	private string _text = "";
 	private readonly List<List<CTextRun>> _lines = new();
+	private CTooltipWindow _window;
+	private List<CTextRun>? _above;
+	private List<CTextRun>? _below;
+	private string _aboveText = "";
+	private string _belowText = "";
+	private float _widest;
 
 	/// <summary>The box the install declares, or null - said once - where it declares none.</summary>
 	public static CTooltipBox? Create(CGuiContext context)
@@ -75,6 +81,7 @@ public partial class CTooltipBox : Control
 		}
 		_text = text;
 		_lines.Clear();
+		_sized = false;
 		// The original lays the text out at the box's most less three borders and sets what that gives into the box, whose
 		// font draws it as one text: no line is broken again there, and a colour runs on over a break.
 		float wrap = CTooltipText.WrapWidth(_type.MaxWidth, _type.BorderSize.X);
@@ -87,13 +94,64 @@ public partial class CTooltipBox : Control
 			widest = Mathf.Max(widest, Width(runs));
 		}
 
+		_widest = widest;
+		ShowLines(CTooltipWindow.Whole(_lines.Count), "", "");
+	}
+
+	/// <summary>How many lines the text shown is laid out in.</summary>
+	public int LineCount => _lines.Count;
+
+	/// <summary>How many lines a box of at most this height has room for.</summary>
+	public int Room(float height)
+	{
+		float lineHeight = _font?.LineHeight ?? 0f;
+		return lineHeight <= 0f ? int.MaxValue : (int)((height - 2 * _type.BorderSize.Y) / lineHeight);
+	}
+
+	/// <summary>
+	/// Shows some of the text's lines: an enhanced game's scrolling of a text taller than the screen
+	/// (<see cref="CTooltipScroll"/>). Where lines are left out above or below, the line given stands for them.
+	/// </summary>
+	public void ShowLines(CTooltipWindow window, string above, string below)
+	{
+		if (window.Above == 0)
+		{
+			above = "";
+		}
+		if (window.Below == 0)
+		{
+			below = "";
+		}
+		if (window == _window && above == _aboveText && below == _belowText && _above is null == (above.Length == 0)
+			&& _below is null == (below.Length == 0) && _sized)
+		{
+			return;
+		}
+		_window = window;
+		_aboveText = above;
+		_belowText = below;
+		_above = above.Length == 0 ? null : CColouredText.Parse(above);
+		_below = below.Length == 0 ? null : CColouredText.Parse(below);
+		float widest = _widest;
+		int shown = window.Count;
+		foreach (List<CTextRun>? extra in new[] { _above, _below })
+		{
+			if (extra is not null)
+			{
+				widest = Mathf.Max(widest, Width(extra));
+				shown++;
+			}
+		}
 		// Ours: the box is its text with the border all round. Where the original puts the
 		// text inside its box was not read.
 		float lineHeight = _font?.LineHeight ?? 0f;
 		Size = new Vector2(Mathf.Ceil(widest) + 2 * _type.BorderSize.X,
-			Mathf.Ceil(_lines.Count * lineHeight) + 2 * _type.BorderSize.Y);
+			Mathf.Ceil(shown * lineHeight) + 2 * _type.BorderSize.Y);
+		_sized = true;
 		QueueRedraw();
 	}
+
+	private bool _sized;
 
 	/// <summary>How wide a text is in the box's font, a flag counting 24 and a counter 30.</summary>
 	private float Measure(string text)
@@ -124,7 +182,20 @@ public partial class CTooltipBox : Control
 			return;
 		}
 		float top = _type.BorderSize.Y;
-		foreach (List<CTextRun> line in _lines)
+		var drawn = new List<List<CTextRun>>();
+		if (_above is not null)
+		{
+			drawn.Add(_above);
+		}
+		for (int index = _window.First; index < _window.First + _window.Count && index < _lines.Count; index++)
+		{
+			drawn.Add(_lines[index]);
+		}
+		if (_below is not null)
+		{
+			drawn.Add(_below);
+		}
+		foreach (List<CTextRun> line in drawn)
 		{
 			float x = _type.BorderSize.X;
 			Color colour = _font.Color;
