@@ -282,8 +282,11 @@ public static class CAgentArea
 
 	/// <summary>
 	/// The original's <c>ClassifyOpsAreaFrontier</c>: the frontier is at war where a province of the area is beside land
-	/// whose controller the country is at war with - which is also a war candidate's - and a war candidate's where it is
-	/// beside a war candidate's land.
+	/// whose controller is the country's enemy - at war with it, the rebels, or in a war nobody declared that covers the
+	/// province - which is also a war candidate's - and a war candidate's where it is beside a war candidate's land.
+	/// <b>The rebels' land counts</b>: it is what lets a country at peace attack a rising at all
+	/// (<see cref="CLandAttack"/> does nothing for a frontier not at war). It asked a declared war alone until
+	/// 2026-11-26, and a country at peace stood round the rebels' land and never went in.
 	/// </summary>
 	private static void Classify(CGameState state, CCountry country, CAgent agent)
 	{
@@ -302,7 +305,8 @@ public static class CAgentArea
 				{
 					continue;
 				}
-				if (CCountryLists.AtWar(state, country.Tag, holder))
+				if (holder != country.Tag && (CCountryLists.IsEnemy(state, country, holder)
+					|| Wars.CUndeclaredWars.Covers(state, country.Tag, holder, beside.Id)))
 				{
 					agent.FrontierAtWar = true;
 					agent.FrontierWarCandidate = true;

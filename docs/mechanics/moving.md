@@ -493,7 +493,8 @@ province where nobody fights yet is taken away with the order.
 
 ## 11. The attack (`CAIUnit_ManageLandUnits`, `FINDINGS-aiconsumer.md`, `FINDINGS-moving.md` B)
 
-Nothing for an agent with no committed division or whose frontier is not at war.
+Nothing for an agent with no committed division or whose frontier is not at war - which the rebels' land beside the
+area makes it, and a war nobody declared, as a declared war does (`agents.md`, section 8.2, step 6).
 
 ### 11.1 The targets
 

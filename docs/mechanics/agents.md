@@ -474,8 +474,13 @@ Nothing unless the agent has a theatre's headquarters.
    plus the country's antagonism of it is above 100 gives **every** province with infrastructure at least 200 in a real
    area.
 6. The area is set - empty too, which clears it - and the plan's min padded to the types. **The frontier is at war**
-   where a province of the area has a neighbour, by an edge not impassable, on land, whose controller the country is at
-   war with (`CAIUnit::ClassifyOpsAreaFrontier`, one of the replan calls; `FINDINGS-opsarea.md`).
+   where a province of the area has a neighbour, by an edge not impassable, on land, whose controller is another and
+   **the country's enemy: at war with it, the rebels, or in a war nobody declared that covers the neighbour**
+   (`CAIUnit::ClassifyOpsAreaFrontier`, one of the replan calls; `FINDINGS-opsarea.md`, `FINDINGS-setarea.md`). It
+   asked a declared war alone until 2026-11-26, as the findings' summary had it; the listing has the whole enemy
+   test, and without the rebels in it a country at peace never attacked a rising - the attack (`moving.md`,
+   section 11) does nothing for a frontier not at war, so its divisions stood round the rebels' province and none
+   went in, which is how it was found in play.
 
 ### 8.3 The focus areas
 

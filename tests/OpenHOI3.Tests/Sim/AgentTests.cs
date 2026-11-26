@@ -38,7 +38,7 @@ public class AgentTests
 		return type;
 	}
 
-	private static CGameState World()
+	private static CGameState World(bool withRebels = false)
 	{
 		CCountry Country(CCountryTag tag, int capital) => new()
 		{
@@ -47,6 +47,11 @@ public class AgentTests
 		CCountry germany = Country(Ger, 6);
 		germany.Faction = "axis";
 		var countries = new List<CCountry> { germany, Country(Pol, 25), Country(Hol, 32) };
+		if (withRebels)
+		{
+			// The rebels are a country with no land of its own and no capital.
+			countries.Add(Country(new CCountryTag(OpenHOI3.Sim.Revolts.CRebelFactions.Rebels), 0));
+		}
 		var neighbours = new Dictionary<int, List<int>>();
 		void Join(int a, int b)
 		{
@@ -541,6 +546,24 @@ public class AgentTests
 		Drain(state);
 		CObjective objective = Assert.Single(headquarters.Plan.Objectives);
 		Assert.Equal(new CObjective(25, 100), objective);
+		Assert.True(agent.FrontierAtWar);
+	}
+
+	[Fact]
+	public void A_frontier_beside_the_rebels_land_is_at_war_for_a_country_at_peace()
+	{
+		CGameState quiet = World(withRebels: true);
+		(CAgent idle, _) = Bound(quiet);
+		CAgentArea.Set(quiet, quiet.Country(Ger)!, idle);
+		Assert.False(idle.FrontierAtWar);
+
+		// The rebels hold a province inside the country: no war was declared, and the frontier is at war all the same.
+		CGameState state = World(withRebels: true);
+		CProvinceHands.SetController(state, state.Province(8), new CCountryTag(OpenHOI3.Sim.Revolts.CRebelFactions.Rebels));
+		(CAgent agent, _) = Bound(state);
+		CAgentArea.Set(state, state.Country(Ger)!, agent);
+		Assert.Contains(7, agent.Area);
+		Assert.Contains(9, agent.Area);
 		Assert.True(agent.FrontierAtWar);
 	}
 

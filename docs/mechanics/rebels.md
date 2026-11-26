@@ -322,7 +322,7 @@ April 1936**, which is what the roll's one in 365 on top of the risk's one in th
 2026-11-19 has three disgruntled rabbles risen by 16 March 1936 - in Spain, the Soviet Union and Australia, one to
 three brigades each - which a load reads and the writer gives back byte for byte; nothing yet sets their rising beside
 ours.) There is nothing to
-set a rising beside, so `OpenHOI3.SaveCheck rebels <install> [occupier] [occupied] [days] [seed]` is a trial, as the
+set a rising beside, so `OpenHOI3.SaveCheck rebels <install> [occupier] [occupied] [days] [seed] [peace]` is a trial, as the
 battles' are: the occupier at war with the occupied and holding ten of its provinces away from its capital, a rising
 of three in the first of them and another in the occupier's own land where no unit stands, and the days run.
 
@@ -332,6 +332,17 @@ holds; at Cranz, nobody there, the "Disgruntled Rabble" take the province, and t
 nationalists freeing the German Democratic Republic, whose original capital it is. The roll makes nothing in thirty
 days. Both armies are at nought organisation after their first hour (section 13), and the rabble's march to its
 first target does not begin.
+
+**With `peace` there is no war and no occupied land**, only the rising in the country's own land, and each day told
+says, for each province the rebels hold, how many of its owner's land units stand beside it and how many are bound
+for it: the trial of a country at peace putting a rising down. On 2026-11-26, Germany for thirty days: before the unit AI's
+frontier counted the rebels' land as a war (`agents.md`, section 8.2, step 6) four German divisions stood beside
+Cranz to the end and none was ever bound for it, the rabble holding it with an army at nought organisation; since,
+the rabble's army is gone by the second day and Cranz is Germany's again between 11 and 16 January. The trial with
+its war gives the same at Cranz. On BlackICE (`mod="BlackICE GitHub"`, 45 days, the same day), where the mod's events
+raise risings of their own: Germany has Cranz back by 6 January, Japan its three Korean provinces by 26 January and
+the United States Bryan within ten days of its rising, each with units bound for the province while the rebels held
+it; a Chinese rising of 10 February still stands at the end, a unit on its way.
 
 ## What looks wrong and is built so
 

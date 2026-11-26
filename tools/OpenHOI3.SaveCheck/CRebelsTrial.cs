@@ -19,9 +19,12 @@ using OpenHOI3.Sim.Wars;
 /// brigades is made in the first province it holds of the occupied's, and another in its own land where nobody stands; and
 /// the days are run, telling each faction's armies and land, and every rising the roll makes:
 ///
-///   OpenHOI3.SaveCheck rebels &lt;install folder&gt; [occupier] [occupied] [days] [seed]
+///   OpenHOI3.SaveCheck rebels &lt;install folder&gt; [occupier] [occupied] [days] [seed] [peace]
 ///
-/// Germany and Poland for thirty days with nothing given. See <c>docs/mechanics/rebels.md</c>.
+/// Germany and Poland for thirty days with nothing given. With <c>peace</c> there is no war and no occupied land:
+/// the one rising in the country's own land, which a country at peace has to put down. Each day told also says, for
+/// every province the rebels hold, how many of the country's land units stand beside it and how many are bound for
+/// it. See <c>docs/mechanics/rebels.md</c>.
 /// </summary>
 internal static class CRebelsTrial
 {
@@ -32,7 +35,7 @@ internal static class CRebelsTrial
 	{
 		if (args.Length < 2)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck rebels <install folder> [occupier] [occupied] [days] [seed]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck rebels <install folder> [occupier] [occupied] [days] [seed] [peace]");
 			return 2;
 		}
 		string[] tags = args.Skip(2).Where(a => a.Length == 3 && !int.TryParse(a, out _)).ToArray();
@@ -40,6 +43,7 @@ internal static class CRebelsTrial
 		CCountryTag occupierTag = new(tags.Length > 0 ? tags[0] : "GER");
 		CCountryTag occupiedTag = new(tags.Length > 1 ? tags[1] : "POL");
 		int days = numbers.Length > 0 ? numbers[0] : 30;
+		bool peace = args.Skip(2).Contains("peace");
 
 		var warnings = new List<string>();
 		CDirectorySettings directories = CToolDirectories.At(args[1]);
@@ -63,18 +67,22 @@ internal static class CRebelsTrial
 		Console.WriteLine($"rebel types: {string.Join(", ", state.RebelTypes.Select(Describe))}");
 
 		// The war, the occupied's units gone, and its land held but for the capital and the land beside it.
-		CDeclarations.Apply(state, occupier, occupied, true, null);
-		foreach (CUnit unit in occupied.UnitsInOrder())
+		var held = new List<CProvince>();
+		if (!peace)
 		{
-			OpenHOI3.Sim.Combat.CCombatRetreat.RemoveFromGame(state, unit);
-		}
-		CProvince capital = state.Province(occupied.Capital);
-		var kept = new HashSet<int>(capital.Edges.Select(edge => edge.To)) { capital.Id };
-		// Ten of them, so that the occupied does not surrender.
-		var held = state.Provinces.Where(p => p.Owner == occupiedTag && !kept.Contains(p.Id)).Take(Held).ToList();
-		foreach (CProvince province in held)
-		{
-			CProvinceHands.SetController(state, province, occupierTag, consequences: true);
+			CDeclarations.Apply(state, occupier, occupied, true, null);
+			foreach (CUnit unit in occupied.UnitsInOrder())
+			{
+				OpenHOI3.Sim.Combat.CCombatRetreat.RemoveFromGame(state, unit);
+			}
+			CProvince capital = state.Province(occupied.Capital);
+			var kept = new HashSet<int>(capital.Edges.Select(edge => edge.To)) { capital.Id };
+			// Ten of them, so that the occupied does not surrender.
+			held = state.Provinces.Where(p => p.Owner == occupiedTag && !kept.Contains(p.Id)).Take(Held).ToList();
+			foreach (CProvince province in held)
+			{
+				CProvinceHands.SetController(state, province, occupierTag, consequences: true);
+			}
 		}
 		OpenHOI3.Sim.Modifiers.CProvinceModifiers.Rebuild(state);
 		Console.WriteLine($"{occupierTag} holds {held.Count} of {occupiedTag}'s provinces, at {OpenHOI3.Sim.Occupation.COccupationPolicies.Of(state, occupier, occupied).Name}");
@@ -120,6 +128,16 @@ internal static class CRebelsTrial
 					var armies = faction.Armies.Select(id => CRebelFactions.FindUnit(state, id)).Where(u => u is not null)
 						.Select(u => $"{u!.Name} at {u.Location}{(u.IsMoving ? $" to {string.Join(",", u.Path)} ({u.MovementProgress})" : "")} org {u.SubUnits[0].Organisation}{(u.IsFighting ? " fighting" : "")} ({u.SubUnits.Count})");
 					Console.WriteLine($"   {faction.Name}: holds {(faction.Provinces.Count == 0 ? "nothing" : string.Join(" ", faction.Provinces))}; {string.Join("; ", armies)}");
+				}
+				// What its owner has beside each province the rebels hold, and how much of it is on its way in.
+				foreach (CProvince lost in state.Provinces.Where(p => CRebelFactions.IsRebels(p.Controller)))
+				{
+					CCountryTag? loser = lost.Owner;
+					var beside = lost.Edges.SelectMany(edge => state.UnitsIn(edge.To))
+						.Where(u => u.Owner == loser && OpenHOI3.Sim.Theatres.CTheatres.IsLand(u) && u.SubUnits.Count > 0).Distinct().ToList();
+					int bound = state.Provinces.SelectMany(p => state.UnitsIn(p.Id))
+						.Count(u => u.Owner == loser && u.IsMoving && u.Path.Count > 0 && u.Path[^1] == lost.Id);
+					Console.WriteLine($"   the rebels hold {lost.Id} {lost.Name}: {beside.Count} of {loser}'s land units beside it, {bound} bound for it");
 				}
 			}
 		}
