@@ -36,13 +36,35 @@ public partial class CTooltipBox : Control
 
 	/// <summary>
 	/// How wide a text is in the font tooltips are drawn in, for a text that makes columns of spaces
-	/// (<see cref="CTextTable"/>); each character one where the box or its font is not to be had.
+	/// (<see cref="CTextTable"/>); each character one where the box or its font is not to be had. The measure is the
+	/// one the box advances a line's runs by, so where such a text reckons a cell to start is where it is drawn. What
+	/// it has measured it keeps: a tooltip's text is made again every frame the mouse rests on it.
 	/// </summary>
 	public static System.Func<string, float> MeasureFor(CGuiContext context)
 	{
 		CGuiFont? font = context.Types.Find(TypeName) is CGuiTextBoxType type ? context.Fonts.Find(type.Font) : null;
-		return font is null ? text => text.Length : text => CTextIcons.Measure(text, font.Width);
+		if (font is null)
+		{
+			return text => text.Length;
+		}
+		var measured = new Dictionary<string, float>();
+		return text =>
+		{
+			if (!measured.TryGetValue(text, out float width))
+			{
+				if (measured.Count >= MostMeasured)
+				{
+					measured.Clear();
+				}
+				width = CTextIcons.Measure(text, font.Width);
+				measured[text] = width;
+			}
+			return width;
+		};
 	}
+
+	/// <summary>How many texts a measure keeps before it starts again.</summary>
+	private const int MostMeasured = 4096;
 
 	/// <summary>The box the install declares, or null - said once - where it declares none.</summary>
 	public static CTooltipBox? Create(CGuiContext context)

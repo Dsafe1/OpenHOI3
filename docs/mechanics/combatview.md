@@ -532,8 +532,12 @@ and taken, over **the battle** and over **the last hour** in which it dealt or t
 - **Land battles only**, as BiceLib's. What bombs take off a unit that has figures counts as taken, by nobody.
 
 **Columns** are made of spaces measured in the tooltip's own font (`CTextTable`): a column starts two spaces after
-the widest cell before it, reached by the nearest whole number of spaces, so it lands within half a space; the
-damage table's two figure columns end together.
+the widest cell before it, reached by the number of spaces that brings the line nearest, so it lands within half a
+space; the damage table's two figure columns end together. **Every width is measured on the line as it is drawn** -
+cut into its runs of one colour, each measured whole, as the box advances along a line - and never by multiplying
+one space's width: the typefaces here are placed to a fraction of a pixel, so one space measures 5 where twelve
+together measure 51, and a table reckoned by single spaces came out up to nine pixels apart between its rows
+(seen in play, 2026-11-26).
 
 **The damage is display only** - nothing in the game reads it, and it is not in the state's hash - **and in an
 enhanced save** (`savegame.md`, section 21), so a loaded game's battle says what it said, where BiceLib's starts
