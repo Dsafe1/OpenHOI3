@@ -519,6 +519,11 @@ base.
 its base - "You can only unload at an airbase." Off the list, no supplies moved, and **it looks for a battle where it
 stands**.
 
+**An enhanced game** with the fix `plane_passenger_march` (2026-11-27) gets a passenger off by itself when it is given a
+way - a move, or an order that routes it - where the two tests above hold, and refuses it the way where they do not: aboard
+an air unit in the air it cannot be sent. The original sends it anyway and it walks, still aboard (*Ours*, below;
+`moving.md`, section 9.1).
+
 **An air unit removed** - shot down, disbanded - **takes its passengers with it**; a land unit removed leaves its air
 unit's list.
 

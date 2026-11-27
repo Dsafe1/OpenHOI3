@@ -89,6 +89,8 @@ public sealed class CMoveUnitCommand : CCommand
 		{
 			// A unit ordered away from a battle leaves it, and falls back if it was holding ground.
 			CCombats.LeaveForMarch(state, unit);
+			// An enhanced game's fix plane_passenger_march: a land unit aboard an air unit gets off before it marches.
+			Transport.CAirTransport.LeaveForMarch(state, unit);
 			CMovement.SetPath(unit, route, clear: !append);
 			// A landing on a player's ground is noted for the warning (transport.md, section 11).
 			Transport.CInvasionWarnings.Note(state, unit);

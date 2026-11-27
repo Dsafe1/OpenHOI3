@@ -317,4 +317,12 @@ public enum EFix
 	/// 11.3).
 	/// </summary>
 	GarrisonRating,
+
+	/// <summary>
+	/// A land unit aboard an air unit that is given a way gets off first, as getting off does, and is given none while
+	/// its air unit is in the air; the original's march asks nothing of the plane, so the unit walks off still on its
+	/// list and pointing at it - as the AI's paradrop planner marches a passenger to its staging base
+	/// (docs/mechanics/moving.md, section 9.1; transport.md, section 13.3).
+	/// </summary>
+	PlanePassengerMarch,
 }

@@ -461,6 +461,55 @@ public class AirTransportTests
 		Assert.Equal(Border, division.Location);
 		Assert.Same(plane, division.Plane);
 		Assert.Equal(new[] { division }, plane.Passengers);
+
+		// A move command leaves it aboard too.
+		CUnit second = Paratroops(state, germany);
+		CAirTransport.Board(plane, second);
+		new CMoveUnitCommand(Ger, second.Id, Border).Execute(state);
+		Assert.True(second.IsMoving);
+		Assert.Same(plane, second.Plane);
+	}
+
+	[Fact]
+	public void InAnEnhancedGameAPassengerGivenAWayGetsOffFirstAndIsGivenNoneInTheAir()
+	{
+		CGameState state = State(out CCountry germany, out _, paved: true);
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		CUnit plane = Planes(state, germany);
+		CUnit division = Paratroops(state, germany);
+		CAirTransport.Board(plane, division);
+
+		// On the ground, at the plane's base: the move takes it off the plane and it marches as a plain unit.
+		var move = new CMoveUnitCommand(Ger, division.Id, Border);
+		Assert.True(CMovementRules.MayMoveTo(state, germany, division, state.Province(Border)));
+		Assert.True(move.MayExecute(state));
+		move.Execute(state);
+		Assert.Null(division.Plane);
+		Assert.Empty(plane.Passengers);
+		Assert.True(division.IsMoving);
+
+		// An order that gives a way does the same.
+		CUnit second = Paratroops(state, germany);
+		CAirTransport.Board(plane, second);
+		CUnitOrders.Give(state, germany, second, EUnitOrder.StrategicRedeployment, Border);
+		Assert.Null(second.Plane);
+		Assert.Empty(plane.Passengers);
+		Assert.True(second.IsMoving);
+
+		// In the air it may not get off, so it is given no way.
+		CUnit third = Paratroops(state, germany);
+		CAirTransport.Board(plane, third);
+		CMovement.SetPath(plane, new[] { Kiel }, clear: true);
+		RunHours(state, germany, plane, 1);
+		Assert.Equal(Kiel, third.Location);
+		Assert.False(CAirTransport.MayGetOff(state, third));
+		Assert.False(CMovementRules.MayMoveTo(state, germany, third, state.Province(Berlin)));
+		Assert.False(new CMoveUnitCommand(Ger, third.Id, Berlin).MayExecute(state));
+		Assert.Same(plane, third.Plane);
+
+		// A game without the fix sends it as the original does.
+		state.Rules.Set(OpenHOI3.Sim.Rules.EFix.PlanePassengerMarch, false);
+		Assert.True(CMovementRules.MayMoveTo(state, germany, third, state.Province(Berlin)));
 	}
 
 	// --- the AI's paradrop targets ---

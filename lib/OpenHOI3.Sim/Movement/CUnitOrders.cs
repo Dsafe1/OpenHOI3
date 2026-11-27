@@ -325,6 +325,8 @@ public static class CUnitOrders
 		}
 		if (route is not null)
 		{
+			// An enhanced game's fix plane_passenger_march: a land unit aboard an air unit gets off before it marches.
+			Transport.CAirTransport.LeaveForMarch(state, unit);
 			CMovement.SetPath(unit, route, clear: true);
 		}
 		else if (order == EUnitOrder.Rebase)

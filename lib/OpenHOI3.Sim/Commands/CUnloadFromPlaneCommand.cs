@@ -1,5 +1,4 @@
 using OpenHOI3.Sim.Countries;
-using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Transport;
 using OpenHOI3.Sim.Units;
 
@@ -23,8 +22,7 @@ public sealed class CUnloadFromPlaneCommand : CCommand
 
 	public override bool MayExecute(CGameState state)
 	{
-		return state.Country(_country) is { } country && Find(country) is { Plane: { } plane } unit
-			&& unit.Location > 0 && !state.Province(unit.Location).IsSea && CAirMissions.IsAtOwnBase(plane);
+		return state.Country(_country) is { } country && Find(country) is { } unit && CAirTransport.MayGetOff(state, unit);
 	}
 
 	public override void Execute(CGameState state)

@@ -430,6 +430,11 @@ as its base, and the planner marches the division there by strategic redeploymen
 military access; it walks, still aboard. So nothing here holds a plane's passenger back from a way of its own
 (`transport.md`, *Ours*, struck through; `enhanced.md`).
 
+**An enhanced game** with the fix `plane_passenger_march` (2026-11-27): a land unit aboard an air unit that is given a way
+gets off first - where it may get off, standing on land with its air unit at its base - and is given none otherwise,
+the move test refusing it. So the planner's march of step 2 lands the army at its staging base as a plain unit, and step 3
+boards it there; an army whose air unit is in the air is left alone until it is down (`docs/enhanced.md`).
+
 ## 10. Moving a unit (`CEU3AI::MoveUnit`)
 
 To a province: a retreating unit is not moved; **nor one the click's test refuses there** (`movement.md`, section

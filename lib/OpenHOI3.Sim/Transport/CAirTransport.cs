@@ -118,6 +118,30 @@ public static class CAirTransport
 	}
 
 	/// <summary>
+	/// Whether a passenger may get off: aboard an air unit, standing on land, its air unit at its base - "You can only
+	/// unload at an airbase."
+	/// </summary>
+	public static bool MayGetOff(CGameState state, CUnit unit)
+	{
+		return unit.Plane is { } plane && unit.Location > 0 && !state.Province(unit.Location).IsSea
+			&& Missions.CAirMissions.IsAtOwnBase(plane);
+	}
+
+	/// <summary>
+	/// An enhanced game's fix <c>plane_passenger_march</c>: a land unit aboard an air unit that is given a way gets off
+	/// first, as getting off does, where the original's walks off still aboard - on its air unit's list and pointing at
+	/// it. Nothing for a unit aboard none, and nothing without the fix. Whether it may be given a way at all - not
+	/// while its air unit is in the air - is the move test's to say (<c>CMovementRules.MayMoveTo</c>).
+	/// </summary>
+	public static void LeaveForMarch(CGameState state, CUnit unit)
+	{
+		if (unit.Plane is not null && state.Rules.Has(Rules.EFix.PlanePassengerMarch))
+		{
+			Release(state, unit, parachuted: false);
+		}
+	}
+
+	/// <summary>
 	/// The drop over the province the air unit is in: each passenger in order marked dropped where the air unit's
 	/// country is at war with the province's holder, given an attack delay there, and let go with its days of supplies.
 	/// </summary>

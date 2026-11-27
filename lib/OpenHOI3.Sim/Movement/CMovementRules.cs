@@ -262,7 +262,14 @@ public static class CMovementRules
 		{
 			return false;
 		}
-		// A land unit aboard an air unit is not held back: it walks, still aboard (FINDINGS-liveread.md, section 127).
+		// A land unit aboard an air unit is not held back: it walks, still aboard (FINDINGS-liveread.md, section 127) -
+		// and under an enhanced game's fix plane_passenger_march it is sent only where it may get off, which the giving
+		// of the way then does for it: not while its air unit is in the air.
+		if (IsLandUnit(unit) && unit.Plane is not null && state.Rules.Has(Rules.EFix.PlanePassengerMarch)
+			&& !Transport.CAirTransport.MayGetOff(state, unit))
+		{
+			return false;
+		}
 		if (IsLandUnit(unit) && state.Country(unit.Owner) is { } owner
 			&& IsEnemyIn(state, province.Controller, unit.Owner, province.Id))
 		{
