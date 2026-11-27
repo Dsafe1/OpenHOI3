@@ -529,6 +529,12 @@ public partial class CMapView : Node2D
 	/// </summary>
 	public Func<int, bool>? PlaceBuilding { get; set; }
 
+	/// <summary>
+	/// Given the province under a left click while a unit is being placed, to place it there. The click selects no
+	/// province (provinceview.md, section 1).
+	/// </summary>
+	public Action<int>? PlaceUnit { get; set; }
+
 	public MapMode Mode
 	{
 		get => _mode;
@@ -1732,9 +1738,9 @@ public partial class CMapView : Node2D
 		int province = ProvinceAtScreen(click.Position);
 		if (_places is not null)
 		{
-			// While a unit is being placed each click on a province places the next.
+			// While a unit is being placed each click on a province places the next, and selects no province.
 			SelectUnit(null);
-			Select(province);
+			PlaceUnit?.Invoke(province);
 			return;
 		}
 		bool sea = province > 0 && province < _state.Provinces.Count && _state.Province(province).IsSea;
