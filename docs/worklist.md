@@ -2262,8 +2262,11 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   order, so **no invasion across water ever loaded a division** - none in 45 days from the December 1941 start, and
   with the three stages by the listing Italy's, Japan's and the Allies' load, sail and land there
   (`OpenHOI3.SaveCheck profile <install> 45 IRE from=1941.12.11`). The `agents` check against the 4 January save
-  is as before, figure for figure, and `replaycheck` 31 of 31 days. **Owed**: tests of stages 1 and 3 - stage 2 has
-  three, the other two were tried in that run alone; a run in which a fleet with a carrier gets its invasion
+  is as before, figure for figure, and `replaycheck` 31 of 31 days. All three stages have their tests
+  (`AirTransportTests` for the second, `InvasionTickTests` for the first and third) - and the third's, written the
+  same day after it had landed, **found it dividing weights and capacity by a thousand twice**, so that its fleet
+  never waited for troops still walking to it; mended with them. **Owed**: stage 1's arm for a neighbouring
+  friend's port, which no test reaches; a run in which a fleet with a carrier gets its invasion
   order, none of the 45 days' fleets having one; the landing beside an objective no enemy holds any more
   (section 20); and a look at a whole war with invasions in it, which every headless run before this lacked.
 - **Six fixes of the AI are built and were played only without anybody watching** (2026-11-27, `enhanced.md`,

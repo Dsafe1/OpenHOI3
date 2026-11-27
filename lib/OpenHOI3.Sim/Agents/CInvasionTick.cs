@@ -416,7 +416,7 @@ public static class CInvasionTick
 	/// the landing picked again in an enemy's area - none left, and the area fails for the month - and a transport to an
 	/// objective no enemy holds. Nothing asks whether anything is aboard.
 	/// </summary>
-	private static void Sail(CGameState state, CCountry country, CInvasion invasion)
+	public static void Sail(CGameState state, CCountry country, CInvasion invasion)
 	{
 		int rendezvous = invasion.Rendezvous;
 		foreach (CUnit fleet in invasion.Fleets)
@@ -476,14 +476,14 @@ public static class CInvasionTick
 		}
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
 		CSupplyArea? area = network.AreaOf(invasion.Objective);
-		// Whole weights, each cut, as the original counts them.
-		long capacity = CTransport.Capacity(lone) / Whole;
+		// Whole weights, each cut, as the original counts them - which is how CTransport gives them.
+		long capacity = CTransport.Capacity(lone);
 		long aboard = 0;
 		foreach (CUnit passenger in lone.Passengers)
 		{
 			if (CMovementRules.IsLandUnit(passenger))
 			{
-				aboard += CTransport.Weight(passenger) / Whole;
+				aboard += CTransport.Weight(passenger);
 			}
 		}
 		long walking = 0;
@@ -499,7 +499,7 @@ public static class CInvasionTick
 			{
 				continue;
 			}
-			long weight = CTransport.Weight(unit) / Whole;
+			long weight = CTransport.Weight(unit);
 			if (bound != unit.Location)
 			{
 				walking += weight;
