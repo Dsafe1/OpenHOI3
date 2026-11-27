@@ -117,10 +117,13 @@ It is given the **very safe** way there at once (`movement.md`, section 3). Then
 - in the province: done;
 - otherwise **its attack delay is started again, every hour of the journey** - a draw of the game's generator each hour
   for each unit redeploying - so it always arrives with a fresh delay. **An enhanced game's fix
-  `redeploy_delay_once`** (2026-11-27): nothing is started on the way and the delay is started once, in the hour
-  the unit is found in the province - one draw, and the same whole delay on arrival. An order that ends short of
-  its province, for an enemy or a battle ahead, then leaves no delay behind, where the original's leaves the last
-  hour's;
+  `redeploy_delay_once`** (2026-11-27): each hour of the way the delay is **held** at no less than the one an attack
+  starts with no roll in it - `UNIT_ATTACK_DELAY` with the officers' and the doctrine's terms, twelve hours at the
+  least - and nothing is drawn; the delay is drawn once, in the hour the unit is found in the province. So the unit
+  arrives with a whole delay, and one whose redeployment is cut short - halted by the player, given another order,
+  stopped by an enemy or a battle ahead - keeps the held one, as the original's keeps its last hour's. Without the
+  hold a redeployment at its twenty times the roads' speed, halted a province short, would have left a unit free to
+  attack at once (the user's question the day it was built);
 - where the next province of its way is held by an enemy **or has a battle in it**: if that is the target, the order
   ends with the way taken away; otherwise the way is taken away and the very safe way found again, the order ending if
   there is none - **given as any way is, so a unit in a battle leaves it**, falling back where it was holding ground

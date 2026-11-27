@@ -216,7 +216,8 @@ public enum EFix
 	CombinedArmsCondition,
 
 	/// <summary>
-	/// A strategic redeployment starts its unit's attack delay once, as the unit arrives, where the original starts it
+	/// A strategic redeployment draws its unit's attack delay once, as the unit arrives, and on the way holds it at the
+	/// one with no roll in it, so that one cut short still leaves a delay - where the original starts it
 	/// afresh every hour of the way with a draw of the generator each time (<c>docs/mechanics/landorders.md</c>,
 	/// section 8).
 	/// </summary>

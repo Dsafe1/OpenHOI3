@@ -111,14 +111,29 @@ public static class CAttackDelay
 	/// </summary>
 	public static void Start(CGameState state, CCountry country, CUnit unit)
 	{
+		long modify = state.Defines[CManpower.MilitarySection, DelayModify].Raw / CFixedPoint.Scale;
+		unit.AttackDelay = Of(state, country, unit, state.Random.Next((int)modify));
+	}
+
+	/// <summary>
+	/// Holds a unit's delay at no less than the one an attack starts with no roll in it, and draws nothing: what an
+	/// enhanced game's strategic redeployment does each hour of its way under the fix <c>redeploy_delay_once</c>, so
+	/// that a redeployment cut short still leaves its unit a delay (<c>docs/mechanics/landorders.md</c>, section 8).
+	/// </summary>
+	public static void Hold(CGameState state, CCountry country, CUnit unit)
+	{
+		unit.AttackDelay = CFixedPoint.Max(unit.AttackDelay, Of(state, country, unit, 0));
+	}
+
+	private static CFixedPoint Of(CGameState state, CCountry country, CUnit unit, long roll)
+	{
 		country = state.Country(unit.FiguresOwner) ?? country;
 		long hours = state.Defines[CManpower.MilitarySection, unit.WasParadropped ? ParadropDelay : Delay].Raw / CFixedPoint.Scale;
-		long modify = state.Defines[CManpower.MilitarySection, DelayModify].Raw / CFixedPoint.Scale;
-		hours += state.Random.Next((int)modify);
+		hours += roll;
 
 		long delay = hours * CFixedPoint.Scale;
 		delay += (CFixedPoint.Scale - country.OfficerRatio.Raw) * (HoursForNoOfficers * CFixedPoint.Scale) / CFixedPoint.Scale;
 		delay -= country.Technology[TechnologyAttackDelay].Raw / CFixedPoint.Scale * CFixedPoint.Scale;
-		unit.AttackDelay = CFixedPoint.Max(new CFixedPoint(delay), Least);
+		return CFixedPoint.Max(new CFixedPoint(delay), Least);
 	}
 }

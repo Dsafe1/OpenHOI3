@@ -624,19 +624,34 @@ public class MovingTests
 		CUnit division = Division(state, Ger, 1, "infantry_brigade");
 		CUnitOrders.Give(state, germany, division, EUnitOrder.StrategicRedeployment, 6);
 
-		// On the way nothing is started and nothing drawn: a delay it had runs down as any does.
+		// On the way the delay is held at the one with no roll in it - twelve hours at the least - and nothing is drawn:
+		// so a redeployment cut short leaves its unit a delay, as the original's does.
+		long draws = state.Random.Draws;
 		CUnitOrders.RunHour(state, germany, division);
-		Assert.Equal(CFixedPoint.Zero, division.AttackDelay);
+		Assert.Equal(CFixedPoint.FromInt(12), division.AttackDelay);
 		division.AttackDelay = CFixedPoint.FromInt(3);
 		CUnitOrders.RunHour(state, germany, division);
-		Assert.Equal(CFixedPoint.FromInt(3), division.AttackDelay);
+		Assert.Equal(CFixedPoint.FromInt(12), division.AttackDelay);
 		Assert.Equal(EUnitOrder.StrategicRedeployment, division.Order);
+		Assert.Equal(draws, state.Random.Draws);
+		// A longer delay it had is left alone.
+		division.AttackDelay = CFixedPoint.FromInt(40);
+		CUnitOrders.RunHour(state, germany, division);
+		Assert.Equal(CFixedPoint.FromInt(40), division.AttackDelay);
 
-		// Arrived, it has one whole delay, as the original's unit arrives with.
+		// Halted on the way, the delay stands.
+		new OpenHOI3.Sim.Commands.CCancelMovementCommand(Ger, division.Id).Execute(state);
+		Assert.Equal(EUnitOrder.None, division.Order);
+		Assert.Equal(CFixedPoint.FromInt(40), division.AttackDelay);
+
+		// Arrived, it has one whole delay, drawn once.
+		CUnitOrders.Give(state, germany, division, EUnitOrder.StrategicRedeployment, 6);
 		division.Location = 6;
+		draws = state.Random.Draws;
 		CUnitOrders.RunHour(state, germany, division);
 		Assert.Equal(EUnitOrder.None, division.Order);
-		Assert.Equal(CFixedPoint.FromInt(12), division.AttackDelay);
+		Assert.True(division.AttackDelay >= CFixedPoint.FromInt(12));
+		Assert.True(state.Random.Draws - draws <= 1);
 	}
 
 	[Fact]

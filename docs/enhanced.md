@@ -281,7 +281,8 @@ Begun 2026-11-21; as of 2026-11-25.
   - ✅ `combined_arms_condition`: the condition `has_combined_arms` asks what was written after it, so `= no` holds
     where no unit of the side has combined arms. Neither the base game nor BlackICE writes `= no` today
     (`mechanics/leaders.md`, oddity 17).
-  - ✅ `redeploy_delay_once`: a strategic redeployment starts its unit's attack delay once, as the unit arrives - the
+  - ✅ `redeploy_delay_once`: a strategic redeployment holds its unit's attack delay at the one with no roll in it on
+    the way, drawing nothing, so that one cut short still leaves a delay, and draws it once, as the unit arrives - the
     same whole delay on arrival for one draw, where the original draws every hour of the way
     (`mechanics/landorders.md`, section 8). Fewer draws, so every later roll of the game falls otherwise.
 
@@ -518,7 +519,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - ✅ **Two traits do nothing in a land battle.** **Given a meaning by the fixes `trait_fort_defence` and `trait_surprise_chance`, 2026-11-26.** `fort_defence` is reached only for an attacker, and `surprise_chance` is read and thrown away. `landcombat.md`; `leaders.md`, oddity 12. *Dead.* Risk: moderate.
 - ❌ ~~**Support attack counts its hours twice,** in its own hour as well as the battle's.~~ **Withdrawn 2026-11-27: not so.** The unit's own hourly count asks for progress along its way, which a support attack never has, so the order's hour is its only count - found when this was to be mended, and nothing is to mend. `landorders.md`, 10.
 - ❌ **AI support attack dropped.** The way into a province with no battle goes with the order, so a support attack where nobody fights yet is lost. `landorders.md`, 10. *Oversight.* Risk: AI attacks.
-- ✅ **Strategic redeployment restarts its attack delay** **Mended by the fix `redeploy_delay_once`, 2026-11-27.** every hour on the way, drawing on the generator each time. `landorders.md`, 10. *Oversight.* Risk: small; rolls move.
+- ✅ **Strategic redeployment restarts its attack delay** every hour on the way, drawing on the generator each time. **Mended by the fix `redeploy_delay_once`, 2026-11-27.** `landorders.md`, 10. *Oversight.* Risk: small; rolls move.
 - ❌ **A redeployed brigade never loses organisation in its hour.** `STRAT_REDEP_ORG_LOSS` is taken off the hour's gain and what is left held at nothing, so a division on a strategic redeployment with no supplies keeps all it has where every other unit loses it. `organisation.md`, 3. *Bug.* Risk: small; unsupplied redeployments.
 - ❌ **Redeployment offered where impossible.** The row asks nothing about distance or a way, so it is open for a province it cannot reach and the order drops the hour it is given. Confirmed. `landorders.md`, 10. *Display.* Risk: none.
 - ❌ **Amphibious defence dead, landing penalty a hundredth off.** `extra_amphibious_defence` is asked of a fleet's summed table, which never holds a ship's, and with no landing craft the penalty is -70.70%. `transport.md`, section 9 and "What looks wrong", 6. The tables are kept on each type since 2026-11-14 and `CLanding.FleetExtraDefence` is the one place to sum the ships' instead. *Dead.* Risk: moderate.
@@ -531,7 +532,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
   several countries is bombarded by the first one's enemies alone, and a mod whose `SHORE_BOMBARDMENT_CAP` is above
   nothing puts that much on every unit of every land battle, with no fleet anywhere. `landcombat.md`, 4. *Oversight.*
   Risk: none in Their Finest Hour, whose cap is negative.
-- ✅ **The attacker picks its tactic with the defender's aggressiveness,** **Mended by the fix `tactic_aggressiveness`, 2026-11-27.** and the defender always with none. One value is written from each side's leader in turn and only the attacker's pick is given it. `landcombat.md`, 11. *Bug.* Risk: small; which tactics come up.
+- ✅ **The attacker picks its tactic with the defender's aggressiveness,** and the defender always with none. **Mended by the fix `tactic_aggressiveness`, 2026-11-27.** One value is written from each side's leader in turn and only the attacker's pick is given it. `landcombat.md`, 11. *Bug.* Risk: small; which tactics come up.
 
 ## Sea
 
@@ -632,8 +633,8 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - ❌ **The null faction's progress overflows.** `factions.md`, 7 and oddity 10. *Bug.* Risk: none.
 - ❌ **The join dialog prints the alliance's costs.** The faction's action charges nothing. `factions.md`, oddity 1. *Display.* Risk: none.
 - ✅ **Debt is repaid for ever.** **Mended by the fix `debt_repaid`, 2026-11-27.** It is never lowered, and one under 18.250 is never repaid. `aid.md`, 1 and 5. *Bug.* Risk: moderate.
-- ✅ **Revoking debt charges the debtor,** **Mended by the fix `debt_revoke_cost`, 2026-11-27.** and the message names the wrong party. `aid.md`, 5. *Bug.* Risk: small.
-- ✅ **The lend-lease cap is enforced by nothing;** **Mended by the fix `lend_lease_partial`, 2026-11-27.** over it the receiver gets nothing that day. `aid.md`, 5. *Oversight.* Risk: small.
+- ✅ **Revoking debt charges the debtor,** and the message names the wrong party. **Mended by the fix `debt_revoke_cost`, 2026-11-27.** `aid.md`, 5. *Bug.* Risk: small.
+- ✅ **The lend-lease cap is enforced by nothing;** over it the receiver gets nothing that day. **Mended by the fix `lend_lease_partial`, 2026-11-27.** `aid.md`, 5. *Oversight.* Risk: small.
 - ❌ **Sharing theories collapses wholesale.** A new sharer of one theory ends every theory the old one gave. `aid.md`, 5. *Oversight.* Risk: small.
 - ❌ **A Retrieve's date disagrees with its delay.** `expeditions.md`, 1. *Display.* Risk: none.
 - ❌ **An empty expedition offer.** Clearing a fleet's box leaves Accept up, posting nothing useful. `expeditions.md`, 1. *Bug.* Risk: none.
