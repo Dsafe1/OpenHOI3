@@ -275,6 +275,30 @@ public class MovingTests
 	}
 
 	[Fact]
+	public void A_support_attack_counts_an_hour_of_attacking_once_in_its_own_hour_and_not_again_in_the_battles()
+	{
+		CGameState state = World();
+		CCountry germany = state.Country(Ger)!;
+		CUnit division = Division(state, Ger, 3, "infantry_brigade");
+		division.Order = EUnitOrder.SupportAttack;
+		division.OrderProvince = 4;
+		CMovement.SetPath(division, new[] { 4 }, clear: true);
+		var combat = new OpenHOI3.Sim.Combat.CCombat(4);
+		state.Combats.Add(combat);
+		combat.Attacker.Add(division);
+
+		// The order's hour starts the delay and counts the hour...
+		CUnitOrders.RunHour(state, germany, division);
+		Assert.Equal(1, division.HoursAttacking);
+		// ...and the hour's own count asks for progress along the way, which a support attack never has
+		// (landorders.md, section 10): it is in a battle with a way and is still not "attacking".
+		CMovement.Advance(state, germany, division, addSpeed: true);
+		Assert.False(OpenHOI3.Sim.Combat.CAttackDelay.IsAttacking(division));
+		OpenHOI3.Sim.Combat.CAttackDelay.RunHour(state, germany, division);
+		Assert.Equal(1, division.HoursAttacking);
+	}
+
+	[Fact]
 	public void A_unit_marching_into_a_battle_is_neither_halted_nor_sent_anywhere_by_the_AI()
 	{
 		CGameState state = World();

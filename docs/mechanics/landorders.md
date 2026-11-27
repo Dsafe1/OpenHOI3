@@ -148,7 +148,12 @@ Each looks wrong and is built so - do not tidy them:
 - **A strategic redeployment's test asks nothing about distance or a way**; one with no way there is dropped the hour
   it is given. Confirmed on 2026-11-04, on its row being open for a province it cannot reach: "The
   availability of the strategic redeploy to unreachable provinces is the same in the original."
-- **A support attack counts its hours of attacking in its own hour as well as the battle's.**
+- ~~**A support attack counts its hours of attacking in its own hour as well as the battle's.**~~ **Not so**, found
+  on 2026-11-27 when this was to be mended: the unit's own hourly count is made only for a land unit in a battle
+  with a way **and progress above nought** along it (read again on the listing, the test before the count in
+  `CUnit::CheckOrderAndCombat`), and a support attack's progress never grows (section 7). So the order's hour is
+  the **only** count a support attacker gets, and without it its delay would never be cut after a short battle.
+  The findings said only that the figure has a second writer; "twice" was this file's.
 - **A support attack's way into a province with no battle is taken away with the order**, so the AI's support attack on
   a province where nobody fights yet is dropped.
 - **No row has a tooltip.**
