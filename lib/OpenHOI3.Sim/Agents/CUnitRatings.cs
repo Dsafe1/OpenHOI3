@@ -11,6 +11,10 @@ namespace OpenHOI3.Sim.Agents;
 /// on a province's ground, its own terrain figures. The original's slots 88 and 89,
 /// <c>CAIUnit::RateUnitAsGarrison</c> and <c>CAIUnit::GetUnitTerrainModifier</c>. See <c>docs/mechanics/moving.md</c>,
 /// section 11.3.
+///
+/// The original's garrison rating is its brigades' score times two less the unit's mean strength share, so the same
+/// unit rates up to twice as high when worn. Under an enhanced game's fix <c>garrison_rating</c> it is the brigades'
+/// score alone: what a unit is decides it, and its losses do not.
 /// </summary>
 public static class CUnitRatings
 {
@@ -38,7 +42,9 @@ public static class CUnitRatings
 				_ => 1,
 			};
 		}
-		long rating = (score * Whole / n + (2 - n) * 20 * Whole) * (2 * Whole - fill / n) / Whole;
+		// The original's rating grows as the unit is worn, up to twice; an enhanced game's fix garrison_rating leaves that out.
+		long worn = state.Rules.Has(Rules.EFix.GarrisonRating) ? Whole : 2 * Whole - fill / n;
+		long rating = (score * Whole / n + (2 - n) * 20 * Whole) * worn / Whole;
 		return System.Math.Clamp(rating, Whole, 100 * Whole);
 	}
 
@@ -75,7 +81,8 @@ public static class CUnitRatings
 		}
 		float mean = (float)((double)score / n);
 		float meanFill = (float)((double)fill / n);
-		float rating = (float)(((double)mean + (2 - n) * 20) * (2.0 - meanFill));
+		double worn = state.Rules.Has(Rules.EFix.GarrisonRating) ? 1.0 : 2.0 - meanFill;
+		float rating = (float)(((double)mean + (2 - n) * 20) * worn);
 		return System.Math.Clamp(rating, 1f, 100f);
 	}
 

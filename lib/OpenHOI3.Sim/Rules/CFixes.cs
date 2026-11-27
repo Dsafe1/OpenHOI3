@@ -58,6 +58,7 @@ public static class CFixes
 		(EFix.TheatreAlignmentDistance, "theatre_alignment_distance"),
 		(EFix.AiAirLocalSunset, "ai_air_local_sunset"),
 		(EFix.AiTerrainNeighbour, "ai_terrain_neighbour"),
+		(EFix.GarrisonRating, "garrison_rating"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

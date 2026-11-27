@@ -174,6 +174,33 @@ public class MovingTests
 	}
 
 	[Fact]
+	public void A_worn_unit_rates_higher_as_a_garrison_and_in_an_enhanced_game_as_it_does_whole()
+	{
+		CGameState state = World();
+		var types = (Dictionary<string, CSubUnitType>)state.SubUnitTypes;
+		types["militia_brigade"] = Type("militia_brigade");
+		// Two militia brigades: (90 + 0) x (2 - share). Whole 90, under the 95 the attack holds a garrison back at; at
+		// nine tenths 99, over it.
+		CUnit militia = Division(state, Ger, 1, "militia_brigade", brigades: 2);
+		Assert.Equal(90_000, CUnitRatings.Garrison(state, militia));
+		Assert.Equal(90f, CUnitRatings.GarrisonExact(state, militia));
+		militia.SubUnits.ForEach(brigade => brigade.Strength = CFixedPoint.FromInt(9));
+		Assert.Equal(99_000, CUnitRatings.Garrison(state, militia));
+		Assert.Equal(99f, CUnitRatings.GarrisonExact(state, militia), 3);
+
+		// An enhanced game rates it by what it is, worn or whole.
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		Assert.Equal(90_000, CUnitRatings.Garrison(state, militia));
+		Assert.Equal(90f, CUnitRatings.GarrisonExact(state, militia));
+		militia.SubUnits.ForEach(brigade => brigade.Strength = CFixedPoint.FromInt(1));
+		Assert.Equal(90_000, CUnitRatings.Garrison(state, militia));
+		Assert.Equal(90f, CUnitRatings.GarrisonExact(state, militia));
+
+		state.Rules.Set(OpenHOI3.Sim.Rules.EFix.GarrisonRating, false);
+		Assert.Equal(100_000, CUnitRatings.Garrison(state, militia));
+	}
+
+	[Fact]
 	public void A_units_terrain_figure_beside_an_enemy_reads_its_own_ground_twice_and_in_an_enhanced_game_the_enemys()
 	{
 		CGameState state = World();

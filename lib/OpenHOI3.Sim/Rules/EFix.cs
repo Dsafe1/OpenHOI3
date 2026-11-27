@@ -309,4 +309,12 @@ public enum EFix
 	/// second time (docs/mechanics/moving.md, section 11.3).
 	/// </summary>
 	AiTerrainNeighbour,
+
+	/// <summary>
+	/// The AI's rating of a unit as a garrison is its brigades' score alone, so what a unit is decides it and its
+	/// losses do not; the original multiplies it by two less the unit's mean strength share, so a worn unit rates up to
+	/// twice as high and is held back from an attack it would join at full strength (docs/mechanics/moving.md, section
+	/// 11.3).
+	/// </summary>
+	GarrisonRating,
 }

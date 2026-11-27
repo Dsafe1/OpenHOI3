@@ -354,6 +354,10 @@ Begun 2026-11-21; as of 2026-11-27.
     and the Americas too.
   - ✅ `ai_terrain_neighbour`: A unit's terrain figure beside a country it may fight adds its attack and movement on
     that neighbour's ground, the best of several (`CUnitRatings.Terrain`, `moving.md`, section 11.3).
+  - ✅ `garrison_rating`: The garrison rating is the brigades' score alone, without the factor of two less the mean
+    strength share (`CUnitRatings.Garrison` and `GarrisonExact`, `moving.md`, section 11.3); the pick of which
+    division goes to garrison keeps its own term of 1.5 less the strength share, and the sealift's choice reads the
+    same rating.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -788,7 +792,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - ❌ **A submarine in a mixed fleet always ends alone.** `agents.md`, 11. *Bug.* Risk: AI fleets.
 - ❌ **A division over 1000 from a theatre's fronts can never be sent there.** The distance's first best is set against a square, so it caps at 1000, and a capped candidate scores nothing; a theatre with no fronts gets no one. `agents.md`, 10.2. *Bug.* Risk: AI land, where every overseas garrison stays short.
 - ❌ **Any AI unit on the land of a country with no faction is lent to it, where its own country has none either.** The test is one shared "no faction". `agents.md`, 10.5. *Oversight.* Risk: AI land; the USA's division in the Philippines goes this way on the first day.
-- ❌ **A garrison is rated higher the weaker it is.** `moving.md`, 18. *Bug.* Risk: AI land.
+- ✅ **A garrison is rated higher the weaker it is.** **Mended by the fix `garrison_rating`, 2026-11-27.** `moving.md`, 18. *Bug.* Risk: AI land.
 - ❌ **The line's pull can pick the same division twice and leave a position short.** It counts its picks on a count of its own, and nothing refuses a division it has already sent to the position, so a second pick of it books it off the position and back on, orders the move again and uses up the pick: Smolensk HQ's 2390 wanted four on 16 July 1941 and got three. `moving.md`, 7.3, step 7; `reversing/findings/FINDINGS-liveread.md`, section 110. *Bug.* Risk: AI land; the fix is to pass over a division already bound for the position.
 - ✅ **What one country's AI sees of an ally's orders depends on thread timing.** The countries' passes run side by side and a unit's destination is written the moment it is sent, so a line counting an ally's divisions sees that hour's orders or not as the threads fall; two runs of one save can differ by it. Ours reads an ally as the hour began, which both July 1941 recordings agree with, but Germany - first on the main thread - as its orders stand, which the recordings agree with too. `moving.md`, 7.3, step 3; `reversing/findings/FINDINGS-liveread.md`, sections 111 and 143. *Bug.* Risk: none for the normal engine, which is already deterministic; an enhanced engine could keep ours on purpose.
 - ✅ **The countries' unit AI passes could run side by side, as the original's do, and stay deterministic.** **Built 2026-11-21, for every game** (`agents.md`, section 12). Chosen on

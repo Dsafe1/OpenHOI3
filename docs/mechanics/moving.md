@@ -570,6 +570,10 @@ bound for p, not retreating, **stands down**.
 - **Garrison rating** (`RateUnitAsGarrison`): over its brigades, score 100 police or garrison, 90 militia, 75 paratroops or marines,
   20 infantry, 10 mountain, 1 else; r = (score / n + (2 - n) x 20) x (2 - mean strength share), between 1 and 100; nought
   with no brigades.
+  **An enhanced game** with the fix `garrison_rating` (2026-11-27) leaves the last factor out: r = score / n + (2 - n) x 20,
+  so that a unit rates as what it is, worn or whole - two militia brigades 90 at any strength, where the original's rate
+  99 at nine tenths and are held back from the attack as a garrison (section 11.2). The pick of a garrison (section 7.2)
+  keeps its own factor of 1.5 less the strength share, which sends the worn first (`docs/enhanced.md`).
 - **Terrain figure** (`GetUnitTerrainModifier`): its type's terrain figures for p's terrain - attacking, attack + movement; otherwise its
   defence, + the same attack + movement where a land neighbour is held by a war candidate.
   **An enhanced game** with the fix `ai_terrain_neighbour` (2026-11-27) reads that second term on the neighbour's ground,
