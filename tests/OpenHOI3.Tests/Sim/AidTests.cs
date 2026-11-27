@@ -113,6 +113,43 @@ public class AidTests
 		Assert.Equal(0, CDebts.DailyRepay(state, CGameState.Status(germany, poland)));
 	}
 
+	[Fact]
+	public void An_enhanced_games_debt_comes_down_with_each_payment_and_a_small_one_is_paid_too()
+	{
+		CGameState state = World();
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		CCountry germany = C(state, Ger);
+		CCountry poland = C(state, Pol);
+		CGameState.Status(germany, poland).Debt = 36500;                 // 0.002 a day
+		state.Stockpile(germany)![EGoods.Money] = CFixedPoint.FromInt(1);
+		state.Stockpile(poland)![EGoods.Money] = CFixedPoint.Zero;
+
+		CDebts.RepayDaily(state);
+		Assert.Equal(36498, CGameState.Status(germany, poland).Debt);
+		Assert.Equal(new CFixedPoint(2), state.Stockpile(poland)![EGoods.Money]);
+
+		// The last payment is what is left, and the debt and its figure are then gone.
+		CGameState.Status(germany, poland).Debt = 1;
+		CDebts.RepayDaily(state);
+		Assert.Equal(0, CGameState.Status(germany, poland).Debt);
+		Assert.Equal(0, CGameState.Status(germany, poland).DailyRepay);
+		Assert.Equal(new CFixedPoint(3), state.Stockpile(poland)![EGoods.Money]);
+		CDebts.RepayDaily(state);
+		Assert.Equal(new CFixedPoint(3), state.Stockpile(poland)![EGoods.Money]);
+
+		// A debt under 18.250 is paid a thousandth a day, where the original's is never paid.
+		CGameState.Status(germany, poland).Debt = 18249;
+		Assert.Equal(1, CDebts.DailyRepay(state, CGameState.Status(germany, poland)));
+
+		// Without the fix an enhanced game's debt stands as the original's.
+		CGameState other = World();
+		other.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(new[] { OpenHOI3.Sim.Rules.EFix.DebtRepaid }));
+		CGameState.Status(C(other, Ger), C(other, Pol)).Debt = 36500;
+		other.Stockpile(C(other, Ger))![EGoods.Money] = CFixedPoint.FromInt(1);
+		CDebts.RepayDaily(other);
+		Assert.Equal(36500, CGameState.Status(C(other, Ger), C(other, Pol)).Debt);
+	}
+
 	private const string Theory = "infantry_theory";
 
 	private static COffer Share(CGameState state, CCountryTag actor, CCountryTag recipient, string category, bool value = true) =>

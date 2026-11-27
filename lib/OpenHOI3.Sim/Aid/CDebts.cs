@@ -9,7 +9,7 @@ namespace OpenHOI3.Sim.Aid;
 /// country it owes, a figure a day worked out from the debt where none is held, paid where the debtor is at
 /// peace and has more money than it, else set to nought for the day. **The debt is never lowered**, so a
 /// debt is repaid for ever. Only a country owning provinces repays. See <c>docs/mechanics/aid.md</c>,
-/// section 1.
+/// section 1. An enhanced game's fix <c>debt_repaid</c> takes each payment off the debt.
 /// </summary>
 public static class CDebts
 {
@@ -42,6 +42,12 @@ public static class CDebts
 			{
 				continue;
 			}
+			bool lowers = state.Rules.Has(Rules.EFix.DebtRepaid);
+			if (lowers && repay > status.Debt)
+			{
+				// The last payment is what is left of the debt.
+				repay = status.Debt;
+			}
 			if (state.IsAtWar(debtor.Tag) || pool[EGoods.Money].Raw <= repay)
 			{
 				status.DailyRepay = 0;
@@ -55,12 +61,22 @@ public static class CDebts
 			}
 			debtor.RepaidAway += paid;
 			creditor.IncomeFromDebt += paid;
+			if (lowers)
+			{
+				status.Debt -= repay;
+				if (status.Debt <= 0)
+				{
+					status.Debt = 0;
+					status.DailyRepay = 0;
+				}
+			}
 		}
 	}
 
 	/// <summary>
 	/// The figure a day: the status's own, or where that is nought or less and there is a debt,
-	/// <c>debt * 1000 / (YEARS_TO_REPAY_DEBT * 365000 / 1000)</c>, truncated - -1 where that is no days.
+	/// <c>debt * 1000 / (YEARS_TO_REPAY_DEBT * 365000 / 1000)</c>, truncated - -1 where that is no days. Under the fix
+	/// <c>debt_repaid</c> it is at least a thousandth, so that a small debt is paid too.
 	/// </summary>
 	public static long DailyRepay(CGameState state, CDiplomacyStatus status)
 	{
@@ -68,6 +84,10 @@ public static class CDebts
 		{
 			long days = state.Defines[Agreements.COfferRules.Section, YearsDefine].Raw * 365000 / 1000;
 			status.DailyRepay = days == 0 ? -1 : status.Debt * 1000 / days;
+			if (status.DailyRepay == 0 && state.Rules.Has(Rules.EFix.DebtRepaid))
+			{
+				status.DailyRepay = 1;
+			}
 		}
 		return status.DailyRepay;
 	}

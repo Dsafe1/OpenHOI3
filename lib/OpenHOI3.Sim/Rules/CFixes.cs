@@ -39,6 +39,7 @@ public static class CFixes
 		(EFix.CtrlUnassignSelected, "ctrl_unassign_selected"),
 		(EFix.TooltipScroll, "tooltip_scroll"),
 		(EFix.AirRegroupAgrees, "air_regroup_agrees"),
+		(EFix.DebtRepaid, "debt_repaid"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

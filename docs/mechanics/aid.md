@@ -194,7 +194,11 @@ dialog, `LicenceDialog`: section 6.
 
 ## 5. Kept as read, though they look odd
 
-1. A debt is never lowered, so it is repaid for ever; one under 18.250 is never repaid.
+1. A debt is never lowered, so it is repaid for ever; one under 18.250 is never repaid. **An enhanced game's fix
+   `debt_repaid`** (2026-11-27, *ours*): each payment comes off the debt and the last is what is left; the day's
+   figure is at least a thousandth, so a small debt is paid too; a debt paid off has no figure. The figure is
+   still worked out from the debt as it stands whenever it has been set to nought - by a war, or a day without
+   the money - so a debt interrupted so is paid in smaller parts afterwards.
 2. Revoking a debt permission charges the debtor; its message `DEBTREVOKE` names the one told as
    RECIPIENT.
 3. The Allow Debt dialog names the recipient's faction, not the recipient.

@@ -265,6 +265,12 @@ Begun 2026-11-21; as of 2026-11-25.
   the mod's: on in every enhanced game, a saved one too - a save names the fixes it goes without, and no save
   written before a fix names it. Tested both ways; on that save 5 transfers a day.
 
+- ✅ **Fixes from the worklist of 2026-11-27**, the points the user chose from this file's list (`worklist-enhanced.md` of that day), each a
+  name a mod may go without and each arm tested:
+  - ✅ `debt_repaid`: each payment on a debt comes off it, the last being what is left, and the day's figure is at
+    least a thousandth, so a debt is gone after `YEARS_TO_REPAY_DEBT` years of peace with money in hand
+    (`mechanics/aid.md`, section 1).
+
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
 
@@ -611,7 +617,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - ❌ **A proposal made while a diplomat travels is lost without a word.** The post throws it away, but the tests the AI's scripts ask before posting - a call to arms', a guarantee's, an influence's, a trade's - do not look for a diplomat, so the AI makes it, posts it and never learns it went nowhere: in July 1941 Germany calls Italy into its war on Mongolia every few days and Italy comes only once an earlier offer's diplomat has arrived. `agreements.md`, 1. *Oversight.* Risk: moderate - when the AI's allies come into its wars.
 - ❌ **The null faction's progress overflows.** `factions.md`, 7 and oddity 10. *Bug.* Risk: none.
 - ❌ **The join dialog prints the alliance's costs.** The faction's action charges nothing. `factions.md`, oddity 1. *Display.* Risk: none.
-- ❌ **Debt is repaid for ever.** It is never lowered, and one under 18.250 is never repaid. `aid.md`, 1 and 5. *Bug.* Risk: moderate.
+- ✅ **Debt is repaid for ever.** **Mended by the fix `debt_repaid`, 2026-11-27.** It is never lowered, and one under 18.250 is never repaid. `aid.md`, 1 and 5. *Bug.* Risk: moderate.
 - ❌ **Revoking debt charges the debtor,** and the message names the wrong party. `aid.md`, 5. *Bug.* Risk: small.
 - ❌ **The lend-lease cap is enforced by nothing;** over it the receiver gets nothing that day. `aid.md`, 5. *Oversight.* Risk: small.
 - ❌ **Sharing theories collapses wholesale.** A new sharer of one theory ends every theory the old one gave. `aid.md`, 5. *Oversight.* Risk: small.

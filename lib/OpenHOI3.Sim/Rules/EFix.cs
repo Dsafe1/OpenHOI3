@@ -173,4 +173,11 @@ public enum EFix
 	/// hour after, and the two go round for the whole game (<c>docs/mechanics/agents.md</c>, section 5.3).
 	/// </summary>
 	AirRegroupAgrees,
+
+	/// <summary>
+	/// A payment on a debt comes off the debt, the last one being what is left, and the day's figure is at least a
+	/// thousandth, so a debt is paid off - where the original never lowers it and never pays one under 18.250
+	/// (<c>docs/mechanics/aid.md</c>, section 1).
+	/// </summary>
+	DebtRepaid,
 }
