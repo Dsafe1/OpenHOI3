@@ -50,6 +50,7 @@ public static class CFixes
 		(EFix.AirRaidWaits, "air_raid_waits"),
 		(EFix.MinisterIntel, "minister_intel"),
 		(EFix.WeightedSongs, "weighted_songs"),
+		(EFix.OccupationPolicyChecked, "occupation_policy_checked"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

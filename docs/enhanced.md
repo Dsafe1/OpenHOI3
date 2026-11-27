@@ -313,6 +313,10 @@ Begun 2026-11-21; as of 2026-11-25.
   - ✅ `weighted_songs`: the next song is drawn among those that may play, each as likely as its chance, so a factor of
     3 is three times as likely and not always first (`mechanics/music.md`, section 2.2). Nothing of the game hangs
     on it.
+  - ✅ `occupation_policy_checked`: the command that sets an occupation policy asks the policy's `allow` as the button
+    does, and at a change of a country's wars the policy it holds towards a country it is not at war with goes back
+    to none (`mechanics/occupation.md`, *What looks wrong*). Left as it was: a policy applying to land held from an
+    owner with no war between the two.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -679,7 +683,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - ❌ **Winning partisans hand land straight back.** `rebels.md`, "What looks wrong". *Oversight.* Risk: small.
 - ❌ **Underground figures unused:** `UNDERGROUND_PARTISAN_STRENGTH` and `local_underground`. `undergrounds.md`, 1. *Dead.* Risk: none.
 - ❌ **Organized Revolt uses a different threshold** from the day and the buttons. `undergrounds.md`, "What looks wrong". *Oversight.* Risk: small.
-- ❌ **Occupation policy is barely checked,** and outlives the war and the peace. `occupation.md`, "What looks wrong". *Oversight.* Risk: small.
+- ✅ **Occupation policy is barely checked,** **Mended by the fix `occupation_policy_checked`, 2026-11-27.** and outlives the war and the peace. `occupation.md`, "What looks wrong". *Oversight.* Risk: small.
 - ❌ **A new game's laws read `enemy_ic_ratio` as false while any enemy is set up later** - its IC not worked out yet - so a country at war at a later start stops short of `service_by_requirement` and `total_economic_mobilisation` by where it stands in the countries' order. `politics.md`, 13. *Ordering artefact.* Risk: moderate - every later start's laws, and its units with them.
 - ❌ **Spy bands short-change countries.** The cursor never wraps within a day, and a presence in a country that does not exist thins everyone else's share. `espionage.md`, "What looks wrong". *Bug.* Risk: moderate.
 - ❌ **Missions at home run every mission,** and threat raised at home is everybody's threat from the country itself. `espionage.md`, "What looks wrong". *Oversight.* Risk: moderate.

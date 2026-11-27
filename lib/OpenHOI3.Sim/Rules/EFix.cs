@@ -251,4 +251,12 @@ public enum EFix
 	/// (<c>docs/mechanics/music.md</c>, section 2.2). Nothing of the game hangs on it.
 	/// </summary>
 	WeightedSongs,
+
+	/// <summary>
+	/// The command that sets an occupation policy asks the policy's <c>allow</c>, as the button does, and at a change
+	/// of a country's wars the policy it holds towards a country it is not at war with goes back to none - where the
+	/// original's command tests nothing and a policy outlives the war and the peace
+	/// (<c>docs/mechanics/occupation.md</c>, <i>What looks wrong</i>).
+	/// </summary>
+	OccupationPolicyChecked,
 }

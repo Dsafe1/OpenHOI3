@@ -137,6 +137,44 @@ public class OccupationTests
 	}
 
 	[Fact]
+	public void An_enhanced_games_command_asks_allow_and_a_policy_goes_back_to_none_at_peace()
+	{
+		CGameState state = World();
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		CCountry germany = state.Country(ScriptWorld.Ger)!;
+
+		// The command asks what the button asks: a policy whose allow fails, and a name no policy has, are refused.
+		var civilWar = new CChangeOccupationPolicyCommand(ScriptWorld.Ger, ScriptWorld.Pol, "civil_war");
+		Assert.True(civilWar.MayExecute(state));
+		state.OccupationPolicies.Last().Allow = ScriptWorld.Condition("always = no");
+		Assert.False(civilWar.MayExecute(state));
+		Assert.False(new CChangeOccupationPolicyCommand(ScriptWorld.Ger, ScriptWorld.Pol, "no_such_policy").MayExecute(state));
+		var military = new CChangeOccupationPolicyCommand(ScriptWorld.Ger, ScriptWorld.Pol, "military_government");
+		Assert.True(military.MayExecute(state));
+		military.Execute(state);
+		int set = PolicyOf(state, ScriptWorld.Ger, ScriptWorld.Pol);
+		Assert.NotEqual(0, set);
+
+		// While the two are at war a change of Germany's wars leaves it; entering a game never sets it back.
+		OpenHOI3.Sim.Wars.CWarSides.BringUpToDate(state, germany);
+		Assert.Equal(set, PolicyOf(state, ScriptWorld.Ger, ScriptWorld.Pol));
+		state.Wars.Clear();
+		OpenHOI3.Sim.Wars.CWarSides.BringUpToDate(state, germany, allowDemobilise: true);
+		Assert.Equal(set, PolicyOf(state, ScriptWorld.Ger, ScriptWorld.Pol));
+		// At peace, the next change of its wars sets it back to none.
+		OpenHOI3.Sim.Wars.CWarSides.BringUpToDate(state, germany);
+		Assert.Equal(0, PolicyOf(state, ScriptWorld.Ger, ScriptWorld.Pol));
+
+		// Without the fix the policy outlives the peace, as the original's.
+		CGameState other = World();
+		other.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(new[] { OpenHOI3.Sim.Rules.EFix.OccupationPolicyChecked }));
+		new CChangeOccupationPolicyCommand(ScriptWorld.Ger, ScriptWorld.Pol, "military_government").Execute(other);
+		other.Wars.Clear();
+		OpenHOI3.Sim.Wars.CWarSides.BringUpToDate(other, other.Country(ScriptWorld.Ger)!);
+		Assert.NotEqual(0, PolicyOf(other, ScriptWorld.Ger, ScriptWorld.Pol));
+	}
+
+	[Fact]
 	public void The_history_sets_one_with_no_allow_asked_and_annexation_forgets_it()
 	{
 		CGameState state = World();

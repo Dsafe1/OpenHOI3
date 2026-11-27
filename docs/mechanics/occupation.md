@@ -166,9 +166,18 @@ against N's whole part times 1000, strictly greater. On a country it reads no pr
 ## What looks wrong and is built so
 
 - A capture keys by the old controller while a province reads its controller towards its owner.
-- The command checks nothing, and `allow` only greys the button - the current policy's included.
-- The policy applies with no war test, while the screen lists only the countries at war with the player.
-- A policy outlives the war and the peace.
+- The command checks nothing, and `allow` only greys the button - the current policy's included. **An enhanced
+  game's fix `occupation_policy_checked`** (2026-11-27): the command asks the policy's `allow` as the button does,
+  with the occupied country as FROM, and refuses a name no policy has - so a client between machines sets nothing
+  its button would not.
+- The policy applies with no war test, while the screen lists only the countries at war with the player. Left so
+  by the fix: land held from an owner the holder is not at war with - a friend's, freed - still reads the holder's
+  policy, which the fix's second half has set back to none by then.
+- A policy outlives the war and the peace. **Under the same fix**: whenever a country's wars change - the original's
+  `UpdateAtWarAndEnemies`, and not as a game is entered - the policy it holds towards any country it is not at war
+  with goes back to `no_occupation`, its provinces' modifiers and its own made again as the command makes them. So
+  the next war's first capture sets its first policy afresh, and the history's policy lines stand until its wars
+  first change.
 - Nationalism is set again by a change of owner to the same owner.
 
 ## Ours

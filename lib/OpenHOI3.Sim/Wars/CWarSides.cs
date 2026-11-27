@@ -150,6 +150,14 @@ public static class CWarSides
 				atWar = true;
 				CGameState.Status(country, other).LastWar = state.TotalHours;
 			}
+			else if (other != country && !allowDemobilise && CGameState.Status(country, other).OccupationPolicy != 0
+				&& state.OccupationPolicies.Count > 0 && state.Rules.Has(Rules.EFix.OccupationPolicyChecked))
+			{
+				// An enhanced game's fix: at a change of the country's wars, the policy it holds towards a country it is
+				// not at war with goes back to none, where the original's outlives the war and the peace
+				// (occupation.md, "What looks wrong"). Not as a game is entered, which sets nothing back.
+				Occupation.COccupationPolicies.Change(state, country, other, state.OccupationPolicies[0]);
+			}
 		}
 		Ai.CAiStrategies.Remake(state, country);
 		if (atWar && !country.Mobilised)
