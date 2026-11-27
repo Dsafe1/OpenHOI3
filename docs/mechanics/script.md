@@ -179,9 +179,10 @@ An effect block is a list of `key = value`, done in order. Each key is, in this 
 
 **`limit` does nothing inside a scope.** It is a key of the iterating effects, of a region and of
 nothing else; inside a country's or a province's block it is step 3's scope that never runs, so
-**its conditions are not asked and the effects beside it are done anyway**. BlackICE writes it 63
-times - `1389 = { limit = { has_global_flag = ... } naval_base = 10 }` builds the base whatever the
-flag. Kept so, and a problem.
+**its conditions are not asked and the effects beside it are done anyway**. BlackICE writes it 66
+times (2026-11-27) - `1389 = { limit = { has_global_flag = ... } naval_base = 10 }` builds the base whatever the
+flag. Kept so, and a problem. **Confirmed in the running game on 2026-11-27**, by the user's own test; read from
+the bytes and inferred until then (`reversing/findings/FINDINGS-effectgrammar.md`, section 3).
 
 | keyword | value | notes |
 | --- | --- | --- |

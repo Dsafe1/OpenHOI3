@@ -574,7 +574,8 @@ line that was shown.)
 
 1. **An interceptor goes out once.** After its first return to base it lies in port under its
    order and does nothing (section 5).
-2. **A patrol sinks convoys**, every twelve hours, like a raider (section 3).
+2. **A patrol sinks convoys**, every twelve hours, like a raider (section 3). Not a bug, by the user's word of
+   2026-11-27.
 3. **A sortie ordered from anywhere but the fleet's base** is given a path that does not begin
    where it is, and stops (section 6); and one that turns aside for an enemy does not go on.
 4. **A reserve never sees to a fleet of priority 4**, and treats an aggressive fleet as a
