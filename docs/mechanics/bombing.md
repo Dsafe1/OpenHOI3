@@ -151,7 +151,11 @@ mission looks only at the provinces its own test of section 1 lets on. `confirme
   score count: the province with the most enemy land strength in it, of those its country
   sees into and three wings are not already bound for.
 - **Interdiction: the last province of its list that its country sees into** and that is not
-  the strike, whether or not an enemy is in it. One it does not see is never flown at.
+  the strike, whether or not an enemy is in it. One it does not see is never flown at. **An enhanced game's
+  fix `interdiction_target`** (2026-11-27): of those provinces, the one worth most to interdiction by its own
+  score - the enemy's land units on the move weighing a hundred times those holding ground - the first of equals;
+  and with no enemy in any of them **one of them by a draw** of the game's generator, the user's rule: "fly to a
+  random province". One province seen is taken undrawn.
 - **Naval strike: `next`**, and for a list of one the same "last it sees" as interdiction's.
 - **Strategic bombing: the most industry and resources for the fewest guns** - its `ic` and
   its day's crude oil, metal, energy and rare materials, over its anti-aircraft level where it

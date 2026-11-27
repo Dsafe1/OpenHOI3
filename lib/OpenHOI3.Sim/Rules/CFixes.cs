@@ -46,6 +46,7 @@ public static class CFixes
 		(EFix.FriendlyFireTarget, "friendly_fire_target"),
 		(EFix.CombinedArmsCondition, "combined_arms_condition"),
 		(EFix.RedeployDelayOnce, "redeploy_delay_once"),
+		(EFix.InterdictionTarget, "interdiction_target"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

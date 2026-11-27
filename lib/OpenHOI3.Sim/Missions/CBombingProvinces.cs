@@ -137,8 +137,48 @@ public static class CBombingProvinces
 	{
 		CMission mission = unit.Mission;
 		int next = Next(mission);
-		int best = LastSeen(state, unit, province => LandScore(state, unit, province, countsWings: false));
+		int best = state.Rules.Has(Rules.EFix.InterdictionTarget)
+			? MostOnTheMove(state, unit)
+			: LastSeen(state, unit, province => LandScore(state, unit, province, countsWings: false));
 		return next != mission.Destination && unit.NoBombingHours > 0 ? next : best;
+	}
+
+	/// <summary>
+	/// An enhanced game's fix <c>interdiction_target</c>: of the mission's provinces the unit's country sees into, but
+	/// the one it is flying at, the one worth most to interdiction - the enemy's land units on the move weighing a
+	/// hundred times those holding ground (<see cref="LandScore"/>) - the first of equals; and with no enemy in any of
+	/// them one of them by a draw of the game's generator, the user's rule of 2026-11-27, where the original takes the
+	/// last of them whoever is there. None seen is none, as before.
+	/// </summary>
+	private static int MostOnTheMove(CGameState state, CUnit unit)
+	{
+		var seen = new System.Collections.Generic.List<int>();
+		int best = 0;
+		long most = 0;
+		foreach (int id in unit.Mission.Provinces)
+		{
+			CProvince province = state.Province(id);
+			if (!CBombingOrders.MayList(state, unit, unit.Order, province))
+			{
+				continue;
+			}
+			long worth = LandScore(state, unit, province, countsWings: false);
+			if (worth <= Least)
+			{
+				continue;
+			}
+			seen.Add(id);
+			if (worth > most)
+			{
+				most = worth;
+				best = id;
+			}
+		}
+		if (best != 0 || seen.Count == 0)
+		{
+			return best;
+		}
+		return seen.Count == 1 ? seen[0] : seen[state.Random.Next(seen.Count)];
 	}
 
 	private static int PickForNavalStrike(CGameState state, CUnit unit)

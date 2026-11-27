@@ -662,6 +662,44 @@ public class BombingTests
 		Assert.Equal(Warsaw, CBombingProvinces.Pick(state, bombers));
 	}
 
+	[Fact]
+	public void AnEnhancedGamesInterdictionFliesAtTheMostOnTheMoveAndWithNobodyAnywhereAtOneByADraw()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit bombers = Air(state, germany, Berlin, Tactical);
+		bombers.Order = EUnitOrder.Interdiction;
+		bombers.Mission.Provinces.AddRange(new[] { Field, Warsaw, East });
+		state.Province(Field).Intel[germany.Index] = 9;
+		state.Province(Warsaw).Intel[germany.Index] = 9;
+		CUnit marching = Unit(state, poland, EUnitKind.Division, Field, Infantry);
+		OpenHOI3.Sim.Movement.CMovement.SetPath(marching, new[] { Warsaw }, clear: true);
+		Unit(state, poland, EUnitKind.Division, Warsaw, Infantry);         // holding ground: a hundredth of its worth
+
+		// The original's: the last province it sees into, whoever is there.
+		Assert.Equal(Warsaw, CBombingProvinces.Pick(state, bombers));
+
+		// The fix: where the enemy is on the move; East, unseen, never.
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		long draws = state.Random.Draws;
+		Assert.Equal(Field, CBombingProvinces.Pick(state, bombers));
+		Assert.Equal(draws, state.Random.Draws);
+
+		// With no enemy in any of them, one of those it sees by a draw - and with one such province, that one undrawn.
+		CGameState empty = State(out CCountry ours, out _);
+		empty.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		CUnit others = Air(empty, ours, Berlin, Tactical);
+		others.Order = EUnitOrder.Interdiction;
+		others.Mission.Provinces.AddRange(new[] { Field, Warsaw, East });
+		empty.Province(Field).Intel[ours.Index] = 9;
+		empty.Province(Warsaw).Intel[ours.Index] = 9;
+		draws = empty.Random.Draws;
+		Assert.Contains(CBombingProvinces.Pick(empty, others), new[] { Field, Warsaw });
+		Assert.Equal(draws + 1, empty.Random.Draws);
+		others.Mission.Destination = Field;
+		Assert.Equal(Warsaw, CBombingProvinces.Pick(empty, others));
+		Assert.Equal(draws + 1, empty.Random.Draws);
+	}
+
 	// --- who is in it ---
 
 	[Fact]

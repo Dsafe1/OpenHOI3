@@ -223,4 +223,11 @@ public enum EFix
 	/// section 8).
 	/// </summary>
 	RedeployDelayOnce,
+
+	/// <summary>
+	/// Interdiction flies at the province of its list where the most of the enemy is on the move, and with no enemy in
+	/// any of them at one of them by a draw, where the original takes the last province its country sees into whoever
+	/// is there (<c>docs/mechanics/bombing.md</c>, section 2).
+	/// </summary>
+	InterdictionTarget,
 }
