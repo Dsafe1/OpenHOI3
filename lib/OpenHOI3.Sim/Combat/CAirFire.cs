@@ -27,6 +27,16 @@ public static class CAirFire
 	public const string CagOrganisationDamage = "AIR_COMBAT_CAG_ORG_DAMAGE_MOD";
 	public const string CagStrengthDamage = "AIR_COMBAT_CAG_STR_DAMAGE_MOD";
 
+	/// <summary>A wing's own figure of defence in the air, which the original works out and never uses.</summary>
+	public const string AirDefence = "air_defence";
+
+	/// <summary>
+	/// An enhanced game's define, in the section <c>military</c>: the chance in a hundred that a shot a wing can still
+	/// meet with its defence is avoided, under the fix <c>air_defence_counts</c>. Where a mod gives none it is the land
+	/// battle's <c>BASE_CHANCE_TO_AVOID_HIT</c>.
+	/// </summary>
+	public const string DefendedAvoidChance = "OPENHOI_AIR_CHANCE_TO_AVOID_HIT";
+
 	public const string BomberTargeting = "bomber_targeting";
 	public const string FighterTargeting = "fighter_targeting";
 	public const string Priority = "priority";
@@ -66,6 +76,13 @@ public static class CAirFire
 		long avoid = Math.Min(defines[military, AvoidChance].Raw, MostAvoided) / CFixedPoint.Scale;
 		int organisationDie = (int)(defines[military, OrganisationDie].Raw / CFixedPoint.Scale);
 		int strengthDie = (int)(defines[military, StrengthDie].Raw / CFixedPoint.Scale);
+		// An enhanced game's fix air_defence_counts: a wing meets as many of the hour's shots as its defence is whole, as a
+		// unit does on land, each of those avoided at the better chance. The shots it has met are counted here and kept
+		// nowhere: this side fires once an hour.
+		bool defended = state.Rules.Has(Rules.EFix.AirDefenceCounts);
+		long better = defines[military, defines.Has(military, DefendedAvoidChance) ? DefendedAvoidChance : CLandFire.ChanceToAvoid].Raw;
+		better = Math.Min(better, MostAvoided) / CFixedPoint.Scale;
+		Dictionary<CSubUnit, long>? met = defended ? new Dictionary<CSubUnit, long>() : null;
 
 		foreach (CUnit unit in new List<CUnit>(side.Units))
 		{
@@ -89,8 +106,9 @@ public static class CAirFire
 					{
 						break;
 					}
-					state.Random.Next();                           // a roll nothing uses
-					if (state.Random.Next(100) < avoid)
+					int spare = state.Random.Next();               // a roll nothing uses - but the fix, for the defence's part
+					long chance = met is not null && Meets(target, met, spare) ? better : avoid;
+					if (state.Random.Next(100) < chance)
 					{
 						continue;
 					}
@@ -112,6 +130,29 @@ public static class CAirFire
 				}
 			}
 		}
+	}
+
+	/// <summary>
+	/// Whether a wing can still meet a shot with its defence this hour, and the shot spent where it can: its
+	/// <c>air_defence</c> by what the hour made of its defence, the whole part so many shots and the rest a chance in a
+	/// hundred of one more, judged by <paramref name="spare"/> - the roll the original makes for each shot and reads
+	/// nowhere, so the fix draws nothing more.
+	/// </summary>
+	public static bool Meets(CSubUnit target, Dictionary<CSubUnit, long> met, int spare)
+	{
+		long defence = target.Stats[AirDefence].Raw * target.CombatDefence.Raw / CFixedPoint.Scale;
+		long slots = defence / CFixedPoint.Scale;
+		if ((spare & int.MaxValue) % 100 < defence % CFixedPoint.Scale * 100 / CFixedPoint.Scale)
+		{
+			slots++;
+		}
+		long used = met.TryGetValue(target, out long before) ? before : 0;
+		if (slots <= used)
+		{
+			return false;
+		}
+		met[target] = used + 1;
+		return true;
 	}
 
 	/// <summary>A wing's strength less what this hour has rolled against it so far, as it will be settled.</summary>

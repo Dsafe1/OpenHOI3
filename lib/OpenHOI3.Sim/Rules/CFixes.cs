@@ -53,6 +53,7 @@ public static class CFixes
 		(EFix.OccupationPolicyChecked, "occupation_policy_checked"),
 		(EFix.AmphibiousDefence, "amphibious_defence"),
 		(EFix.SouthernSeasons, "southern_seasons"),
+		(EFix.AirDefenceCounts, "air_defence_counts"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

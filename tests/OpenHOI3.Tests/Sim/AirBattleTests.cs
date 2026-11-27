@@ -695,6 +695,73 @@ public class AirBattleTests
 	}
 
 	[Fact]
+	public void AnEnhancedGamesWingMeetsAsManyShotsAsItsDefenceIsWholeAndTheRestAChanceOfOneMore()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CSubUnit wing = Air(state, germany, Field, Fighter).SubUnits[0];
+		wing.Stats.Values.Set(CAirFire.AirDefence, CFixedPoint.Parse("2.5"));
+		wing.CombatDefence = CFixedPoint.One;
+
+		// Two and a half: two shots met, and a third where the shot's spare roll falls under fifty.
+		var met = new Dictionary<CSubUnit, long>();
+		Assert.True(CAirFire.Meets(wing, met, spare: 99));
+		Assert.True(CAirFire.Meets(wing, met, spare: 99));
+		Assert.False(CAirFire.Meets(wing, met, spare: 99));
+		Assert.True(CAirFire.Meets(wing, met, spare: 49));
+		Assert.False(CAirFire.Meets(wing, met, spare: 49));
+
+		// What the hour made of its defence scales it: at a half, one shot and a quarter's chance of a second.
+		wing.CombatDefence = CFixedPoint.Parse("0.5");
+		met.Clear();
+		Assert.True(CAirFire.Meets(wing, met, spare: 99));
+		Assert.False(CAirFire.Meets(wing, met, spare: 25));
+		Assert.True(CAirFire.Meets(wing, met, spare: 24));
+
+		// A wing with no defence meets nothing, and is shot at as before.
+		wing.Stats.Values.Set(CAirFire.AirDefence, CFixedPoint.Zero);
+		met.Clear();
+		Assert.False(CAirFire.Meets(wing, met, spare: 0));
+	}
+
+	[Fact]
+	public void AnEnhancedGamesShotsAtADefendedWingAreAvoidedAtTheBetterChanceAndDrawNothingMore()
+	{
+		long Damage(bool mended, out long draws)
+		{
+			CGameState state = State(out CCountry germany, out CCountry poland);
+			if (mended)
+			{
+				state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+			}
+			state.Defines.Set(CManpower.MilitarySection, CAirFire.AvoidChance, CFixedPoint.Zero);
+			state.Defines.Set(CManpower.MilitarySection, CAirFire.CriticalChance, CFixedPoint.Zero);
+			state.Defines.Set(CManpower.MilitarySection, CAirFire.DefendedAvoidChance, CFixedPoint.FromInt(200));   // held at 99
+			CUnit fighters = Air(state, germany, Field, Fighter);
+			CUnit raid = Air(state, poland, Field, Transport);
+			raid.SubUnits[0].Stats.Values.Set(CAirFire.AirDefence, CFixedPoint.FromInt(100));
+			var combat = new CCombat(Field, ECombatKind.Air);
+			CAirBattle.Join(combat.Attacker, fighters);
+			CAirBattle.Join(combat.Defender, raid);
+			state.SeedHour();
+			CAirModifiers.Apply(state, combat, combat.Attacker);
+			CAirModifiers.Apply(state, combat, combat.Defender);
+			long before = state.Random.Draws;
+			CAirFire.Attack(state, combat, combat.Attacker);
+			draws = state.Random.Draws - before;
+			return raid.SubUnits[0].PendingStrengthDamage;
+		}
+
+		// The original's: four shots land, the wing's defence of a hundred doing nothing.
+		long faithful = Damage(mended: false, out long faithfulDraws);
+		Assert.InRange(faithful, 4 * 10000, 4 * 40000);
+		// The fix: every shot is one it can meet, avoided 99 times in a hundred - fewer land, and no shot draws more
+		// than it did (one that is avoided draws less, its dice not thrown).
+		long mended = Damage(mended: true, out long mendedDraws);
+		Assert.True(mended < faithful);
+		Assert.True(mendedDraws <= faithfulDraws);
+	}
+
+	[Fact]
 	public void TheBestTargetIsByPriorityAndTheStrengthItHasLostAndTheTargetingOfItsKind()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);

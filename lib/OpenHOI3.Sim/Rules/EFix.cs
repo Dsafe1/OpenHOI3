@@ -274,4 +274,11 @@ public enum EFix
 	/// cold of its high latitudes and days that lengthen and shorten (<c>docs/mechanics/weather.md</c>, section 1).
 	/// </summary>
 	SouthernSeasons,
+
+	/// <summary>
+	/// A wing's defence counts in an air battle as a unit's does on land: the whole part of its <c>air_defence</c>, by
+	/// what the hour makes of it, is how many shots it can meet that hour, each avoided at the better chance, where the
+	/// original works the defence out and reads it nowhere (<c>docs/mechanics/aircombat.md</c>, section 8).
+	/// </summary>
+	AirDefenceCounts,
 }

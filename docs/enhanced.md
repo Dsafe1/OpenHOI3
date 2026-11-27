@@ -324,6 +324,10 @@ Begun 2026-11-21; as of 2026-11-25.
   - ✅ `southern_seasons`: a province's latitude is its distance from the map's middle either way, so the south takes
     the season table's own southern column, the cold of its high latitudes and days that lengthen and shorten
     (`mechanics/weather.md`, section 1). Large for the southern theatres; BlackICE starts with it under `without`.
+  - ✅ `air_defence_counts`: a wing meets as many of an hour's shots as its `air_defence`, by what the hour makes of
+    it, is whole, each avoided at `OPENHOI_AIR_CHANCE_TO_AVOID_HIT` - the land's `BASE_CHANCE_TO_AVOID_HIT` where a
+    mod gives none - and no draw is added (`mechanics/aircombat.md`, section 8). Changes every air battle; BlackICE
+    starts with it under `without`.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -602,7 +606,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 
 - ✅ **A unit once joined is never reinforced by a reserve again.** A unit another is ordered to join is marked so that a reserve's exchange passes over it, and the order's end sets the mark again where it was meant to clear it; a join-fleet order's end marks its fleet too. Nothing saves the mark, so a load clears it. Here the air reserve passes over a unit only while a join towards it stands. `fleetsandair.md`, 5.1. *Bug.* Risk: small.
 - ❌ **An air reserve's top-up never runs, and its message has no type.** Besides swapping wings one for one, the reserve was meant to send wings off as a new unit to join a unit short of them; the two counts by type it needs are each made into a copy that is thrown away, so both are always nought and the step is never reached - the same slip leaves every air order's count by type nought in every save. And the day's exchange posts `REINFORCE_AIR`, which `interface/messagetypes.txt` does not declare, so the player is told through no message type. `fleetsandair.md`, 5.1. *Bug.* Risk: small.
-- ❌ **A wing's defence does nothing.** Neither its defence nor `air_defence` counts. Confirmed: "Yes thats a bug in the original." `aircombat.md`, 8 and 9. *Bug.* Risk: large.
+- ✅ **A wing's defence does nothing.** **Mended by the fix `air_defence_counts`, 2026-11-27.** Neither its defence nor `air_defence` counts. Confirmed: "Yes thats a bug in the original." `aircombat.md`, 8 and 9. *Bug.* Risk: large.
 - ❌ **Nothing defends a bombing target.** No air defence, fort or screen protects it. `bombing.md`, 12. *Bug.* Risk: large.
 - ❌ **A worn air superiority unit shuttles,** an hour out and an hour home, and can be fought while out. `aircombat.md`, 3 and 9. *Bug.* Risk: small.
 - ❌ **A beaten air unit flies out to sea,** to the water with the most ports around it, not to its base. Whether it is so is not known from play. `aircombat.md`, 8 and 9. *Bug.* Risk: small.

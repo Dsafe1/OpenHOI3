@@ -323,6 +323,23 @@ no trait here. The difficulty is built since 2026-11-06 (`frontend.md`, section 
 added on 2026-10-10 with `bombing.md`, when the reading for it named their technology keys.
 **A wing's defence is worked out and nothing uses it**: only its attack decides anything.
 
+**An enhanced game's fix `air_defence_counts`** (2026-11-27) uses it, as the land battle uses a unit's
+(`landcombat.md`, section 5):
+
+    defence = the target wing's air_defence x what the hour made of its defence
+    a shot it can still meet this hour - the whole part of the defence so many, and one more where the shot's
+        spare roll, taken by a hundred, falls under the rest - is avoided at OPENHOI_AIR_CHANCE_TO_AVOID_HIT,
+        and one is spent;
+    every shot after, at CHANCE_TO_AVOID_HIT_AT_NO_DEF, as before.
+
+`OPENHOI_AIR_CHANCE_TO_AVOID_HIT` is a define of ours in the section `military` [mod]; where a mod gives none it is
+the land battle's `BASE_CHANCE_TO_AVOID_HIT` (70 in Their Finest Hour), and it is held at 99 like the other. The
+shots a wing has met are counted through one side's fire and kept nowhere, each side firing once an hour. **No draw
+is added**: the part of a shot is judged by the roll the original makes for every shot and reads nowhere. It changes
+every air battle - a wing with a high `air_defence` lasts longer - and nothing of a bombing, whose targets are still
+defended by nothing. BlackICE starts with it under its `without`, by the user's word of that day, its air figures
+having been balanced with the value dead.
+
 **The shot.** Every wing of the side with an `air_attack`, in the order of the side's units
 and of each unit's wings:
 
