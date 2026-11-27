@@ -2269,6 +2269,14 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   their tests and by `scripttext` on BlackICE; **nothing of them has been looked at on screen**, the columns of
   the battle tooltip and the leader window's skill column - whether `3 (5)` fits it - first. **Left of BiceLib's**:
   what the mod leaves off - the trait's command limit, the screen penalty, rank-specific traits.
+- **The enhanced worklist's second batch, the display points, built and not looked at on a screen**
+  (2026-11-27, `enhanced.md`, *What is built*), each its own commit and each added to a fix that stood:
+  to `shown_figures` tribute sent to a master as a loss, a leader's share at the table's last skill and the
+  ground's own attrition in the designer's line; to `fresh_screens` the air map's colours each midnight and on
+  a change of base with its count held at 127, and the decision list made again each hour. **One fix of
+  2026-11-25 was found wrong and taken back with them**: attrition written times a hundred - the figure is a
+  percentage as it stands (`builders.md`, section 11). Tried by their tests and a build of the client; no
+  screen was opened on them.
 - **The enhanced worklist of 2026-11-27, its first batch: seven fixes built and not reviewed in play**
   (`enhanced.md`, *What is built*), each its own commit: `debt_repaid`, `debt_revoke_cost`, `lend_lease_partial`,
   `tactic_aggressiveness`, `friendly_fire_target`, `combined_arms_condition` and `redeploy_delay_once`. One point
