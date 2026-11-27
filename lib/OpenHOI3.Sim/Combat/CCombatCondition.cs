@@ -66,7 +66,10 @@ public sealed class CCombatCondition
 			case ECombatCondition.ProvinceTemperature:
 				return state.Province(combat.Province).Weather.Temperature.Raw < Amount * (long)CFixedPoint.Scale;
 			case ECombatCondition.HasCombinedArms:
-				return HasCombinedArms(state, combat, side, leader);
+				// The original reads nothing after the key, so "= no" holds where "= yes" does; the fix asks what was written.
+				return state.Rules.Has(Rules.EFix.CombinedArmsCondition)
+					? HasCombinedArms(state, combat, side, leader) == Wanted
+					: HasCombinedArms(state, combat, side, leader);
 			case ECombatCondition.HasCombatModifier:
 				return HadModifier(side, Name);
 			case ECombatCondition.IsConvoy:

@@ -706,7 +706,8 @@ in the box over a row's trait icon.
     battle, cannot be earned by raiding** - `inferred`, since the battle's own end was not
     read to the last call. An enhanced game's fix `raid_trait_hours` counts them as the raid ends, 2026-11-26.
 17. **`has_combined_arms` reads nothing after it**: `has_combined_arms = no` holds where a
-    unit has combined arms, as `= yes` does.
+    unit has combined arms, as `= yes` does. An enhanced game's fix `combined_arms_condition` asks what was
+    written, 2026-11-27: `= no` holds where no unit of the side the leader leads has combined arms.
 18. **`is_winner` holds for both sides of a battle broken off**: nobody lost it.
 19. **A ship gains no experience in an hour it has no target**, and a bombing of a province
     with no units in it gives the bombers none - there is no enemy to measure.

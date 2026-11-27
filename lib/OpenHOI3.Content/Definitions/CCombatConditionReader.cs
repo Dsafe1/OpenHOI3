@@ -70,8 +70,10 @@ public static class CCombatConditionReader
 					group.Children.Add(new CCombatCondition(ECombatCondition.IsWinner, wanted));
 					break;
 				case "has_combined_arms":
-					// The original never reads what follows the key.
-					group.Children.Add(new CCombatCondition(ECombatCondition.HasCombinedArms));
+					// The original never reads what follows the key; what was written is kept for an enhanced game's fix
+					// combined_arms_condition, which asks it - anything but "no" is a yes.
+					group.Children.Add(new CCombatCondition(ECombatCondition.HasCombinedArms,
+						!value.Equals("no", StringComparison.OrdinalIgnoreCase)));
 					break;
 				case "skill_advantage" when isNumber:
 					group.Children.Add(new CCombatCondition(ECombatCondition.SkillAdvantage, amount: (int)amount.ToInt()));

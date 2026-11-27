@@ -269,6 +269,26 @@ public class CombatTacticTests
 	}
 
 	[Fact]
+	public void Has_combined_arms_holds_whatever_was_written_and_an_enhanced_game_asks_it()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland, Tactic(1, "tactic_assault", attacker: true));
+		CCombat combat = Battle(state, germany, poland);                 // a brigade a side: nobody has combined arms
+		var yes = new CCombatCondition(ECombatCondition.HasCombinedArms);
+		var no = new CCombatCondition(ECombatCondition.HasCombinedArms, wanted: false);
+
+		// The original's: what follows the key is not read, so "= no" is "= yes" - and nobody has it.
+		Assert.False(yes.Holds(state, combat, combat.Attacker));
+		Assert.False(no.Holds(state, combat, combat.Attacker));
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		Assert.False(yes.Holds(state, combat, combat.Attacker));
+		Assert.True(no.Holds(state, combat, combat.Attacker));
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(new[] { OpenHOI3.Sim.Rules.EFix.CombinedArmsCondition }));
+		Assert.False(no.Holds(state, combat, combat.Attacker));
+	}
+
+	[Fact]
 	public void The_attacker_picks_with_the_defenders_aggressiveness_and_an_enhanced_games_sides_each_with_their_own()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland, Tactic(1, "tactic_assault", attacker: true));

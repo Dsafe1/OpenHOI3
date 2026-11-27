@@ -207,4 +207,11 @@ public enum EFix
 	/// (<c>docs/mechanics/navalcombat.md</c>, section 4).
 	/// </summary>
 	FriendlyFireTarget,
+
+	/// <summary>
+	/// The condition <c>has_combined_arms</c> of a tactic's or a gainable trait's trigger asks what was written after
+	/// it, so that <c>= no</c> holds where no unit has combined arms - where the original reads nothing after the key
+	/// (<c>docs/mechanics/leaders.md</c>, oddity 17).
+	/// </summary>
+	CombinedArmsCondition,
 }

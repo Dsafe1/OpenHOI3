@@ -44,6 +44,7 @@ public static class CFixes
 		(EFix.LendLeasePartial, "lend_lease_partial"),
 		(EFix.TacticAggressiveness, "tactic_aggressiveness"),
 		(EFix.FriendlyFireTarget, "friendly_fire_target"),
+		(EFix.CombinedArmsCondition, "combined_arms_condition"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

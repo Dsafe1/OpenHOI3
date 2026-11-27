@@ -59,6 +59,7 @@ public class GainableTraitReaderTests
 
 		IList<CCombatCondition> conditions = gainable.All[0].Condition!.Children;
 		Assert.Equal(ECombatCondition.HasCombinedArms, conditions[0].Kind);
+		Assert.False(conditions[0].Wanted);                              // kept for an enhanced game, which asks it
 		Assert.Equal(ECombatCondition.Never, conditions[1].Kind);
 		Assert.Equal(-4, conditions[2].Amount);
 		Assert.Contains(_warnings, warning => warning.Contains("BM_NOTHING"));

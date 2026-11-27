@@ -278,6 +278,9 @@ Begun 2026-11-21; as of 2026-11-25.
     with none where it has no leader (`mechanics/landcombat.md`, section 11).
   - ✅ `friendly_fire_target`: a ship that takes one of its own side for the enemy shoots at the ship its roll points
     to, so friendly fire is spread over the side (`mechanics/navalcombat.md`, section 4).
+  - ✅ `combined_arms_condition`: the condition `has_combined_arms` asks what was written after it, so `= no` holds
+    where no unit of the side has combined arms. Neither the base game nor BlackICE writes `= no` today
+    (`mechanics/leaders.md`, oddity 17).
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -587,7 +590,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - ❌ **A tactic's `trait` condition ignores the chain.** `leaders.md`, oddity 13. *Oversight.* Risk: small.
 - ✅ **`dissent_impact` works on land only.** **Mended by the fix `trait_dissent_impact`, 2026-11-26.** `leaders.md`, 10 and oddity 15. *Dead.* Risk: small.
 - ✅ **`seawolf` cannot be earned by raiding** (*inferred*). **Mended by the fix `raid_trait_hours`, 2026-11-26.** `leaders.md`, 11 and oddity 16. *Bug.* Risk: small.
-- ❌ **`has_combined_arms = no` holds where `= yes` does.** `leaders.md`, oddity 17. *Bug.* Risk: conditions change.
+- ✅ **`has_combined_arms = no` holds where `= yes` does.** **Mended by the fix `combined_arms_condition`, 2026-11-27.** `leaders.md`, oddity 17. *Bug.* Risk: conditions change.
 - ❌ **`is_winner` holds for both sides** of a battle broken off. `leaders.md`, oddity 18. *Oversight.* Risk: small.
 - ❌ **The portrait bypasses the greyed button** (*inferred*), so a leader can be changed in a battle by clicking his picture. `leaders.md`, 12 and oddity 20. *Bug.* Risk: none.
 - ❌ **Other countries' leaders can be changed** from their units' panels. `leaders.md`, 12 and oddity 21. *Oversight.* Risk: none.
