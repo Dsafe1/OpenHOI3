@@ -2256,6 +2256,16 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   just surround them and wait" - the unit AI's frontier was at war beside a declared war's land alone, where the
   original's asks its whole enemy test, the rebels and a war nobody declared with it. Tried with
   `OpenHOI3.SaveCheck rebels ... peace`; not looked at in play since.
+- **The AI's invasions sail since 2026-11-27, and nobody has watched one** (`moving.md`, section 16). The
+  invasion's hour was read on the listing again while its second stage, the carrier aircraft over the beach, was
+  built: as first built here its troops had no way to a port across water and its fleet kept a finished transport
+  order, so **no invasion across water ever loaded a division** - none in 45 days from the December 1941 start, and
+  with the three stages by the listing Italy's, Japan's and the Allies' load, sail and land there
+  (`OpenHOI3.SaveCheck profile <install> 45 IRE from=1941.12.11`). The `agents` check against the 4 January save
+  is as before, figure for figure, and `replaycheck` 31 of 31 days. **Owed**: tests of stages 1 and 3 - stage 2 has
+  three, the other two were tried in that run alone; a run in which a fleet with a carrier gets its invasion
+  order, none of the 45 days' fleets having one; the landing beside an objective no enemy holds any more
+  (section 20); and a look at a whole war with invasions in it, which every headless run before this lacked.
 - **Six fixes of the AI are built and were played only without anybody watching** (2026-11-27, `enhanced.md`,
   the worklist's fixes; `moving.md`, sections 9.1, 11.3, 11.4 and 17.4; `theatres.md`, section 4.4): a garrison's
   rating, the odds' defence product, the terrain figure's neighbour, the local sunset, a plane's passenger given a

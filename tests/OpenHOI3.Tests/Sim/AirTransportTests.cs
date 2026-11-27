@@ -512,6 +512,161 @@ public class AirTransportTests
 		Assert.True(CMovementRules.MayMoveTo(state, germany, third, state.Province(Berlin)));
 	}
 
+	// --- the invasion's carrier aircraft over the beach ---
+
+	/// <summary>
+	/// An invasion of Lodz, defended by a Polish division, with its one fleet of two carriers in the Bight under the
+	/// invasion order, and four air groups aboard: two on each carrier, in the order made.
+	/// </summary>
+	private static OpenHOI3.Sim.Agents.CInvasion Invasion(CGameState state, CCountry germany, CCountry poland, out CUnit fleet,
+		out CUnit[] groups)
+	{
+		fleet = Unit(state, germany, EUnitKind.Navy, Bight, 2, Carrier, based: Kiel);
+		fleet.Order = EUnitOrder.Invasion;
+		fleet.OrderProvince = Lodz;
+		groups = new CUnit[4];
+		for (int index = 0; index < groups.Length; index++)
+		{
+			groups[index] = Unit(state, germany, EUnitKind.Air, Bight, 1, Cag, based: Bight);
+			CCarriers.BaseOn(state, groups[index], fleet.SubUnits[index / 2]);
+		}
+		Unit(state, poland, EUnitKind.Division, Lodz, 1, Infantry);
+		var invasion = new OpenHOI3.Sim.Agents.CInvasion(Ger, Lodz);
+		invasion.Add(fleet);
+		state.Outbox.Clear();
+		return invasion;
+	}
+
+	private static List<string> Orders(CGameState state)
+	{
+		var orders = new List<string>();
+		foreach (CCommand command in state.Outbox)
+		{
+			orders.Add(command.ToString()!);
+		}
+		return orders;
+	}
+
+	[Fact]
+	public void AnInvasionsFleetSendsItsThreeBestCarrierGroupsOverTheBeachTillSunset()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		OpenHOI3.Sim.Agents.CInvasion invasion = Invasion(state, germany, poland, out CUnit fleet, out CUnit[] groups);
+		// The second group is worn: organisation and strength together under the others'.
+		groups[1].SubUnits[0].Strength = CFixedPoint.FromInt(60);
+
+		OpenHOI3.Sim.Agents.CInvasionTick.AirSupport(state, germany, invasion);
+
+		// Three of the four, the best first and the first of equals before the next: the first carrier's whole group,
+		// then the second carrier's two. Each on close support over the objective.
+		Assert.Equal(new[]
+		{
+			$"order GroundAttack to unit {groups[0].Id} at {Lodz}",
+			$"order GroundAttack to unit {groups[2].Id} at {Lodz}",
+			$"order GroundAttack to unit {groups[3].Id} at {Lodz}",
+		}, Orders(state));
+
+		// The order holds as the AI's every order does, and ends at the sunset over the fleet: at midnight on the equator,
+		// eighteen hours on.
+		CCommand first = state.Outbox[0];
+		Assert.True(first.MayExecute(state));
+		first.Execute(state);
+		Assert.Equal(EUnitOrder.GroundAttack, groups[0].Order);
+		Assert.Equal(state.TotalHours + 18, groups[0].Mission!.EndHour);
+		Assert.Equal(CMission.Defensive, groups[0].Mission!.Stance);
+	}
+
+	[Fact]
+	public void ACarrierGroupIsSentOnlyFromItsFleetsProvinceIdleAndFitEnough()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		OpenHOI3.Sim.Agents.CInvasion invasion = Invasion(state, germany, poland, out CUnit fleet, out CUnit[] groups);
+		// Organisation under a half of its most; strength under a third; on its way somewhere; and not where the fleet is.
+		groups[0].SubUnits[0].Organisation = CFixedPoint.Parse("14.9");
+		groups[1].SubUnits[0].Strength = CFixedPoint.Parse("32.9");
+		CMovement.SetPath(groups[2], new[] { Kiel }, clear: true);
+		groups[3].Location = Kiel;
+		state.ForgetPositions();
+		OpenHOI3.Sim.Agents.CInvasionTick.AirSupport(state, germany, invasion);
+		Assert.Empty(state.Outbox);
+
+		// Exactly a half and exactly a third are enough, whatever order the group has.
+		groups[0].SubUnits[0].Organisation = CFixedPoint.FromInt(15);
+		groups[0].Order = EUnitOrder.CarrierProtection;
+		groups[1].SubUnits[0].Strength = CFixedPoint.FromInt(33);
+		OpenHOI3.Sim.Agents.CInvasionTick.AirSupport(state, germany, invasion);
+		// The stronger of the two first: 1 + 0.5 against 0.33 + 1.
+		Assert.Equal(new[]
+		{
+			$"order GroundAttack to unit {groups[0].Id} at {Lodz}",
+			$"order GroundAttack to unit {groups[1].Id} at {Lodz}",
+		}, Orders(state));
+
+		// A ship that is no carrier is not asked, whatever it holds.
+		state.Outbox.Clear();
+		foreach (CSubUnit ship in fleet.SubUnits)
+		{
+			ship.Stats.Values.Set(CShipCensus.CarrierSize, CFixedPoint.Zero);
+		}
+		OpenHOI3.Sim.Agents.CInvasionTick.AirSupport(state, germany, invasion);
+		Assert.Empty(state.Outbox);
+	}
+
+	[Fact]
+	public void NoCarrierGroupIsSentWithoutTheInvasionOrderAnEnemyOnTheBeachOrThreeHoursOfDaylight()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		OpenHOI3.Sim.Agents.CInvasion invasion = Invasion(state, germany, poland, out CUnit fleet, out CUnit[] groups);
+
+		// Not yet under its invasion order.
+		fleet.Order = EUnitOrder.Transport;
+		OpenHOI3.Sim.Agents.CInvasionTick.AirSupport(state, germany, invasion);
+		Assert.Empty(state.Outbox);
+		fleet.Order = EUnitOrder.Invasion;
+
+		// Two fleets still to be merged.
+		CUnit second = Unit(state, germany, EUnitKind.Navy, Bight, 1, EscortCarrier, based: Kiel);
+		invasion.Add(second);
+		OpenHOI3.Sim.Agents.CInvasionTick.AirSupport(state, germany, invasion);
+		Assert.Empty(state.Outbox);
+		invasion.Remove(second);
+
+		// The objective no enemy's.
+		state.Province(Lodz).Controller = Ger;
+		OpenHOI3.Sim.Agents.CInvasionTick.AirSupport(state, germany, invasion);
+		Assert.Empty(state.Outbox);
+		state.Province(Lodz).Controller = Pol;
+
+		// Nobody of the enemy's on it.
+		foreach (CUnit unit in poland.Units)
+		{
+			unit.Location = Warsaw;
+		}
+		state.ForgetPositions();
+		OpenHOI3.Sim.Agents.CInvasionTick.AirSupport(state, germany, invasion);
+		Assert.Empty(state.Outbox);
+		foreach (CUnit unit in poland.Units)
+		{
+			unit.Location = Lodz;
+		}
+		state.ForgetPositions();
+
+		// At fifteen, three hours to the sunset at eighteen: sent, for those three hours. At sixteen, no more.
+		for (int hour = 0; hour < 15; hour++)
+		{
+			state.AdvanceOneHour();
+		}
+		OpenHOI3.Sim.Agents.CInvasionTick.AirSupport(state, germany, invasion);
+		Assert.Equal(3, state.Outbox.Count);
+		state.Outbox[0].Execute(state);
+		Assert.Equal(EUnitOrder.GroundAttack, groups[0].Order);
+		Assert.Equal(state.TotalHours + 3, groups[0].Mission!.EndHour);
+		state.Outbox.Clear();
+		state.AdvanceOneHour();
+		OpenHOI3.Sim.Agents.CInvasionTick.AirSupport(state, germany, invasion);
+		Assert.Empty(state.Outbox);
+	}
+
 	// --- the AI's paradrop targets ---
 
 	[Fact]

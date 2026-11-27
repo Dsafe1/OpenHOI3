@@ -993,13 +993,45 @@ cannot carry the smallest, the objective is in nobody's hands it may enter, or i
 **the embarkation port** while it has none or a stranger holds it: of the side's ports reaching the objective by an open
 sea within 2000 (1000 with the capital's area bordering hostile land), the least (1.5 - its level / 10) x 10 on a front x
 0.3 the country's own x 0.75 the capital's area, x 2 or 4 where its area borders hostile land, x the distance, x 3 where
-the troops stand nowhere in that area - none, and it is over. Then **the troops** ashore march to the rendezvous; **the
-empty fleets** sail there and merge - **one under an order first has it taken away, its way kept, and sails an hour
-later**, the order's taking writing the rendezvous as where the AI sends it so that the sailing passes it over that hour
-(`reversing/findings/FINDINGS-liveread.md`, section 139: the Soviet Cernoje Flote, on a patrol, taken for an invasion at
-04:00 on 18 July 1941, sails for 1218 at 06:00); the one fleet, there and idle, **loads** the troops standing there and waits for
-those still coming; then sails to the port, and there is given the **invasion** on the landing picked again - none left,
-and the area fails for the month.
+the troops stand nowhere in that area - none, and it is over. Then three stages, in order, every hour
+(`CInvasionTick`; read on the listing again on 2026-11-27, when the stages as first built here were found to leave
+every invasion across water waiting in port for good - `OpenHOI3.SaveCheck profile <install> 45 IRE from=1941.12.11`
+had no division aboard a fleet in 45 days, and has since).
+
+**Stage 1, the troops** (`MarchLandForceToPort`), each unit ashore: one that can walk to the objective is **let go**.
+Its bound - where it is going, else where it stands - being **the embarkation port**, the port is its staging; being
+its staging already, it is on its way. Any other marches (the AI's move, very safe) **to the port where a way by land
+leads there**; and **where none does, to a port it can reach**: of its own area, else of a neighbouring area a friend
+holds, the nearest to the embarkation port by sea with the straits between them open, the first of equals - that port
+is its staging, and **where the fleets were to meet at the embarkation port they meet there instead**. With every unit
+settled and the meeting place still the embarkation port, it becomes the staging of the last unit found on its way.
+
+**Stage 2, the carrier aircraft** (`SendCarrierAirSupport`, built 2026-11-27): only with the one fleet under its
+`invasion` order, the objective held by an enemy with an enemy land unit in it, and **at least three hours to the
+sunset over the fleet's province** (17.4's sunset, and an enhanced game's `ai_air_local_sunset` with it). Up to three
+times the best air unit not yet chosen is taken: over the fleet's carriers in order and each one's air units in order,
+one standing in the fleet's province, in no battle and going nowhere, its **mean organisation at least 0.5 and mean
+strength 0.33** of their most, the largest of the two together, the first of equals. Each gets `ground_attack` on the
+objective from now till that sunset, at the defensive stance. **Nothing asks what order it has, its range or the
+weather.** *Exe-hardcoded*: 3 hours, 3 units, 0.5 and 0.33. *Mod-able*: which ships carry (`carrier_size`).
+
+**Stage 3, the fleets** (`SailAndIssueInvasionOrder`). *Each fleet's order first*: **an empty fleet under any order has
+it taken away, its way kept, and sails an hour later**, the order's taking writing the meeting place as where the AI
+sends it so that the sailing passes it over that hour (`reversing/findings/FINDINGS-liveread.md`, section 139: the
+Soviet Cernoje Flote, on a patrol, taken for an invasion at 04:00 on 18 July 1941, sails for 1218 at 06:00) - which is
+also what brings back a fleet that has put its troops off, a transport's or an invasion's order still on it; a fleet
+carrying, not sent anywhere this hour, under no order a halt would cancel (any but a support attack and carrier
+protection) and away from the meeting place is given a `transport` there where a land unit aboard is as free. *Then each
+empty fleet* in no battle it defends and not falling back: at the meeting place, arrived; bound there, left alone; else
+sent there by **the AI's own move, which asks no range**. Two or more arrived that may be merged are merged, and the
+hour ends. *Then only with one fleet, at the meeting place, not sent anywhere this hour and under no order a halt would
+cancel*: every unit of the force standing there, outside the objective's area, that the fleet can carry is **loaded**;
+while others are still walking there and **the smallest of them would still fit**, it waits (weights and capacity in
+whole units, cut). Otherwise, **the same hour**: away from the embarkation port, a `transport` there, which becomes the
+meeting place - the troops are put off in that port by the transport and loaded again the hour after the fleet's order
+is taken away; at the port, the **invasion** on the landing picked again where an enemy holds the objective - none
+left, and the area fails for the month - and a `transport` to an objective no enemy holds. **Nothing asks whether
+anything is aboard.**
 
 **Given up** when its area is neither ranked nor beside a ranked one: its fleets sent home, troops aboard a fleet in port
 put off.
@@ -1235,13 +1267,13 @@ where the original's daylight missions keep one set of hours from Lisbon to Vlad
 - ~~The Allies' Baltic ban on patrols and intercepts (`CAIUnit_IsBalticBarredToAllies`), and the four provinces the raid
   passes over.~~ Built 2026-11-21 (section 14, *The Allies' Baltic ban*).
 - Of invasions: ~~the reinforcement of a friend's area by sea (the ranking's second list and the planner's friendly branch)~~ - built (section 9, `CInvasionPlanner`);
-  the tallies of transports and brigades short it leaves for the production minister; the carrier aircraft sent over the
-  beach; a landed division put under a theatre's headquarters; and the played country's invasions over its own units.
-  **The carrier aircraft's order runs till sunset by the same test as 17.4's** - the invasion's second stage,
-  `SendCarrierAirSupport`, gives up to three carrier air units `ground_attack` on the objective from now to the sunset
-  with at least three hours of daylight left (`reversing/findings/FINDINGS-moving.md`) - so when it is built it asks
-  `CDaylight.HoursToAiSunset`, and an enhanced game's fix `ai_air_local_sunset` holds for it too. Until then the fix
-  has nothing to mend there.
+  the tallies of transports and brigades short it leaves for the production minister; ~~the carrier aircraft sent over the
+  beach~~ - built 2026-11-27 (section 16, stage 2), on `CDaylight.HoursToAiSunset`, so an enhanced game's fix
+  `ai_air_local_sunset` holds for it too; a landed division put under a theatre's headquarters; the played country's
+  invasions over its own units; and, of stage 3, **the landing beside an objective no enemy holds any more** - where
+  its area has under four provinces and more than ten friendly land units a province the original gives the `invasion`
+  on the nearest neighbour province it may invade (`PickNearestInvadableNeighbourProvince`), and here the fleet is given
+  the `transport` to the objective as in every other such case.
 - ~~The enemy's war industry handed to the agents whose air bases are nearest (section 12): so no strategic bombing or nuke
   mission (17.4; `nukes.md`, *Ours*), and the strategic list (17.1) measures against the objectives.~~ Built 2026-11-21
   (section 12, step 4a; 17.1; 17.4).
