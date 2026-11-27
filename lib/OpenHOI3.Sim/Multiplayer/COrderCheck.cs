@@ -21,6 +21,11 @@ public static class COrderCheck
 	/// <summary>Whether a player of <paramref name="country"/> may give the order; a player with no country only one that names none.</summary>
 	public static bool MayGive(CCommand command, CCountryTag? country)
 	{
+		// An order that is the host's alone - a change of the game's rules - is nobody else's to give.
+		if (command is IHostOrder)
+		{
+			return false;
+		}
 		FieldInfo? field = s_fields.GetOrAdd(command.GetType(), Find);
 		if (field is null)
 		{

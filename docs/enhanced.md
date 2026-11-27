@@ -81,7 +81,7 @@ is `blackice.md`.
 
 ### What is built
 
-Begun 2026-11-21; as of 2026-11-25.
+Begun 2026-11-21; as of 2026-11-27.
 
 - ✅ **The file is `common/openhoi_enhanced.txt`** (`CRulesReader`), in any layer; its being there makes every game made
   from those folders an enhanced one. The name carries the prefix everything of this engine's in a mod carries, or
@@ -96,6 +96,19 @@ Begun 2026-11-21; as of 2026-11-25.
 - ✅ **One line says them** (`CRules.Text`): empty for the faithful game, `enhanced`, or `enhanced without a b`. That
   line is hashed into the play checksum (`mechanics/checksum.md`, section 8) and is the last part of the state's hash,
   `rules` (`replay.md`).
+- ✅ **A fix is switched in a running game by an order** (`CSetFixCommand`, 2026-11-27, asked for that day: a page
+  "in which we can enable/disable each patch individually"). The game's rules change, and with them the save's
+  line and the hash's last part. **It is the host's alone** between machines - "Host only." - an `IHostOrder`,
+  which `COrderCheck` refuses from anybody else (`multiplayer.md`, section 4.1), and it runs on every machine and
+  goes into a recording as every order does. Refused in a faithful game, for a name that is no fix, and for a fix
+  that acts only as the files are read - `unit_figure_decimals` and `tech_repair_cost`
+  (`CFixes.IsReadWithTheFiles`), which are in the unit types and technologies a game is made from. A rule asked
+  from then on answers by the new state, also while the game is paused; a figure made once a day or once a month
+  follows at its next making, and **`OpenHOI3.Fixes` in the mod's scripts stays what the folders said when the
+  scripts were loaded** - no script of BlackICE's asks it yet. A page reads the rules with `OpenHOI3.Rules()` and
+  gives the order with `OpenHOI3.SetFix` (`mechanics/modwindows.md`, section 6.6); BlackICE's is Engine Fixes,
+  under its Debug tab. It is for trying a fix against the game without it: `common/openhoi_enhanced.txt` stays
+  what a new game starts with.
 - ✅ **An enhanced save holds two keys of ours** at its top, after `gameplaysettings`: `openhoi_rules`, that line, and
   `openhoi_engine`, the version of the engine that wrote it (`launcher.md`, section 8). A faithful game writes
   neither, so its save stays the original's key for key. **A loaded save's rules stand**, whatever the folders it is

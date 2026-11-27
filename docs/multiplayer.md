@@ -292,6 +292,10 @@ hands the lines across in lists never has it do.
   loaded them (`r`). Making the save and loading it are the caller's, the simulation knowing neither.
 - **The host drops an order that is not its sender's country's** (`COrderCheck`), by the field a command names its
   country in - `_owner` or `_country`, which 68 of the 107 commands have; one with neither is let through.
+- **An order that is the host's alone is no client's to give** (`IHostOrder`, 2026-11-27): the same check drops
+  it whoever sent it, and the host's own orders are posted without passing that check. The one such order is
+  `CSetFixCommand`, a fix of an enhanced game switched while it runs (`enhanced.md`, *What is built*) - decided
+  with it, "Host only." A client's screen does not offer it either (`CLuaWindows.MayGiveHostOrders`).
 
 **A machine joining a running game, checked**: `OpenHOI3.SaveCheck joinmachines <install> <date joined> <until>` -
 a host plays alone to the first date, saves, the save is sent to a second machine line by line, **both load it, each

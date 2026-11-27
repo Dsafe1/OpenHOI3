@@ -61,6 +61,17 @@ public static class CFixes
 	public static IEnumerable<EFix> All => Table.OrderBy(entry => entry.Name, StringComparer.Ordinal).Select(entry => entry.Fix);
 
 	/// <summary>A fix's name.</summary>
+	/// <summary>
+	/// Whether a fix acts only as the files are read, before there is a game - by the folders' rules
+	/// (<c>CRulesReader.Has</c>) and not a game's own: a unit figure cut to three decimals and a technology's repair
+	/// cost are in the types and technologies a game is made from. A running game cannot switch such a fix, and a
+	/// save's rules do not move it either.
+	/// </summary>
+	public static bool IsReadWithTheFiles(EFix fix)
+	{
+		return fix is EFix.UnitFigureDecimals or EFix.TechRepairCost;
+	}
+
 	public static string Name(EFix fix)
 	{
 		foreach ((EFix candidate, string name) in Table)

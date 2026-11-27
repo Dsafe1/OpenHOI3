@@ -50,6 +50,17 @@ public sealed class CLuaWindows : IModPages
 		"OpenHOI3.SetConversion = function(tag, which, own, per_day, keep, target) " +
 		"return setconversion(tostring(tag), tostring(which), own and true or false, " +
 		"tonumber(per_day) or 0, tonumber(keep) or 0, tonumber(target) or 0) end " +
+		// An enhanced game's rules as a page reads them, and the order that switches one fix (enhanced.md).
+		"local rules, setfix = __ohoi_w_rules, __ohoi_w_setfix " +
+		"__ohoi_w_rules, __ohoi_w_setfix = nil, nil " +
+		"OpenHOI3.Rules = function() local enhanced, may_change, joined = rules() " +
+		"if enhanced == nil then return nil end " +
+		"local fixes = {} " +
+		"for line in string.gmatch(joined or '', '[^\\n]+') do " +
+		"local name, on, at_load = string.match(line, '^(.*)\\t(.*)\\t(.*)$') " +
+		"fixes[#fixes + 1] = { name = name, on = on == '1', at_load = at_load == '1' } end " +
+		"return { enhanced = enhanced, may_change = may_change, fixes = fixes } end " +
+		"OpenHOI3.SetFix = function(name, on) return setfix(tostring(name), on and true or false) end " +
 		"local pages, data = {}, {} " +
 		"local function lines(joined) local list = {} " +
 		"for line in string.gmatch(joined or '', '[^\\n]+') do list[#list + 1] = line end return list end " +
@@ -171,6 +182,9 @@ public sealed class CLuaWindows : IModPages
 	private readonly CAiScripts _scripts;
 	private readonly Func<string, string> _localise;
 	private readonly Action<string> _report;
+
+	/// <summary>The rules the folders give a new game, which a fix that acts as the files are read went by.</summary>
+	private readonly Sim.Rules.CRules _foldersRules;
 	private readonly CLuaImGui _widgets = new();
 	private readonly CLuaGui _gui = new();
 	private readonly List<CModPage> _pages = new();
@@ -188,12 +202,15 @@ public sealed class CLuaWindows : IModPages
 		_scripts = scripts;
 		_localise = localise;
 		_report = report ?? CDiagnostics.Warn;
+		_foldersRules = Content.Rules.CRulesReader.Read(directories, _ => { });
 		CLuaState lua = scripts.Lua;
 		lua.SetGlobal("__ohoi_w_localise", (CLuaFunction)(call => call.Return(_localise(call.String(1)))));
 		lua.SetGlobal("__ohoi_w_countryflags", (CLuaFunction)CountryFlags);
 		lua.SetGlobal("__ohoi_w_globalflags", (CLuaFunction)GlobalFlags);
 		lua.SetGlobal("__ohoi_w_conversion", (CLuaFunction)Conversion);
 		lua.SetGlobal("__ohoi_w_setconversion", (CLuaFunction)SetConversion);
+		lua.SetGlobal("__ohoi_w_rules", (CLuaFunction)Rules);
+		lua.SetGlobal("__ohoi_w_setfix", (CLuaFunction)SetFix);
 		lua.SetGlobal("__ohoi_w_countryvariables", (CLuaFunction)CountryVariables);
 		lua.SetGlobal("__ohoi_w_countrymodifiers", (CLuaFunction)CountryModifiers);
 		lua.SetGlobal("__ohoi_w_refresh", (CLuaFunction)(call => { _refresh = true; return 0; }));
@@ -803,6 +820,52 @@ public sealed class CLuaWindows : IModPages
 		}
 		_posted.Add(new Sim.Commands.CSetConversionCommand(new CCountryTag(tag.ToUpperInvariant()), conversion, call.Boolean(3),
 			Fixed(call.Number(4)), Fixed(call.Number(5)), Fixed(call.Number(6))));
+		return call.Return(true);
+	}
+
+	/// <summary>
+	/// Whether this machine may give an order that is the host's alone (<see cref="Sim.Commands.IHostOrder"/>): the
+	/// host of a game between machines, and anybody in a game on one. The screen says which; a tool's game is its own.
+	/// </summary>
+	public Func<bool> MayGiveHostOrders { get; set; } = () => true;
+
+	/// <summary>
+	/// The game's rules, for a page: whether it is an enhanced game, whether this machine may switch a fix, and every
+	/// fix by its name, a line each - the name, whether it is on, and whether it acts only as the files are read and so
+	/// cannot be switched in a running game - in the names' order. Nothing with no game to ask.
+	///
+	/// A fix that acts as the files are read is on by the folders' rules, which decided it, whatever the game's own
+	/// line says: a save made without it still plays with it where the folders have it.
+	/// </summary>
+	private int Rules(CLuaCall call)
+	{
+		if (_state is not { } state)
+		{
+			return 0;
+		}
+		var lines = new List<string>();
+		foreach (Sim.Rules.EFix fix in Sim.Rules.CFixes.All)
+		{
+			bool atLoad = Sim.Rules.CFixes.IsReadWithTheFiles(fix);
+			bool on = state.Rules.Enhanced && (atLoad ? _foldersRules.Has(fix) : state.Rules.Has(fix));
+			lines.Add(Sim.Rules.CFixes.Name(fix) + "\t" + (on ? "1" : "0") + "\t" + (atLoad ? "1" : "0"));
+		}
+		return call.ReturnMany(state.Rules.Enhanced, state.Rules.Enhanced && MayGiveHostOrders(), string.Join("\n", lines));
+	}
+
+	/// <summary>
+	/// An order to switch one fix on or off, kept for the screen to post. It asks no game, so a page may give it as it
+	/// draws; the command itself refuses what may not be switched. Answers whether the order was taken: not for a name
+	/// that is no fix, and not on a machine that is not the host's.
+	/// </summary>
+	private int SetFix(CLuaCall call)
+	{
+		string name = call.String(1);
+		if (Sim.Rules.CFixes.Named(name) is null || !MayGiveHostOrders())
+		{
+			return call.Return(false);
+		}
+		_posted.Add(new Sim.Commands.CSetFixCommand(name, call.Boolean(2)));
 		return call.Return(true);
 	}
 

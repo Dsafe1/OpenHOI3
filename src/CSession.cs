@@ -1939,7 +1939,12 @@ public partial class CSession : Node
 		{
 			if (State.DisplayScripts?.Invoke() is CAiScripts scripts)
 			{
-				_modWindows = new CLuaWindows(scripts, _directories, _localisation.Localise) { EngineFigures = EngineFigures };
+				_modWindows = new CLuaWindows(scripts, _directories, _localisation.Localise)
+				{
+					EngineFigures = EngineFigures,
+					// Between machines only the host changes the game's rules (docs/multiplayer.md, section 4.1).
+					MayGiveHostOrders = () => Net is null or { IsHost: true },
+				};
 			}
 			else
 			{

@@ -97,6 +97,19 @@ public sealed class CRules
 	}
 
 	/// <summary>These rules set to another's.</summary>
+	/// <summary>
+	/// Switches one fix of an enhanced game on or off, as <see cref="Commands.CSetFixCommand"/> does in a running
+	/// game. Nothing in a faithful one, which has no fixes. Answers whether anything changed.
+	/// </summary>
+	public bool Set(EFix fix, bool on)
+	{
+		if (!Enhanced)
+		{
+			return false;
+		}
+		return on ? _without.Remove(fix) : _without.Add(fix);
+	}
+
 	public void CopyFrom(CRules other)
 	{
 		Enhanced = other.Enhanced;

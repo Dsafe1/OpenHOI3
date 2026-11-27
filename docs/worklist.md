@@ -2256,6 +2256,12 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   just surround them and wait" - the unit AI's frontier was at war beside a declared war's land alone, where the
   original's asks its whole enemy test, the rebels and a war nobody declared with it. Tried with
   `OpenHOI3.SaveCheck rebels ... peace`; not looked at in play since.
+- **A fix switched in a running game is built and no box of its page was ticked by hand** (2026-11-27,
+  `enhanced.md`, *What is built*; `modwindows.md`, section 6.6): `CSetFixCommand`, the host's alone, with
+  `OpenHOI3.Rules()` and `OpenHOI3.SetFix` for a page; BlackICE's page, Engine Fixes under Debug, is in its
+  working copy. Drawn in the client and the order seen to change a paused game's rules; the ticking by the mouse
+  and a client's greyed page between two machines are to be tried by hand. `OpenHOI3.Fixes` in the mod's scripts
+  is not made again when a fix is switched - nothing asks it yet.
 - **The engine's own timing for a mod's page is built and not looked at on screen** (2026-11-26, `modwindows.md`,
   section 6.5): `OpenHOI3.Profile`, the hours, the tick's steps with their parts, the orders drained by kind, and
   Godot's own monitors; BlackICE's page for it, Engine Profiler under Debug, is in its working copy, its table of

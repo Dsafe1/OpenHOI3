@@ -201,6 +201,39 @@ public class MultiplayerJoinTests
 		Assert.False(COrderCheck.MayGive(new CAutomateUnitCommand(Ger, 5), null));
 		// One that names no country is let through.
 		Assert.True(COrderCheck.MayGive(new CFogOfWarCommand(true), null));
+		// An order that is the host's alone - a change of the game's rules - is no client's to give, whoever it plays.
+		Assert.False(COrderCheck.MayGive(new CSetFixCommand("southern_seasons", false), Ger));
+		Assert.False(COrderCheck.MayGive(new CSetFixCommand("southern_seasons", false), null));
+	}
+
+	[Fact]
+	public void AFixIsSwitchedInARunningEnhancedGameAndNotOneThatActsAsTheFilesAreRead()
+	{
+		var state = new CGameState(new CDate(1936, 1, 1), new[] { new CProvince(0, "", isSea: false) }, System.Array.Empty<CCountry>());
+		// A faithful game has no fixes to switch.
+		Assert.False(new CSetFixCommand("southern_seasons", true).MayExecute(state));
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(new[] { OpenHOI3.Sim.Rules.EFix.SouthernSeasons }));
+		var on = new CSetFixCommand("southern_seasons", true);
+		Assert.True(on.MayExecute(state));
+		on.Execute(state);
+		Assert.True(state.Rules.Has(OpenHOI3.Sim.Rules.EFix.SouthernSeasons));
+		Assert.Equal("enhanced", state.Rules.Text);
+		new CSetFixCommand("air_defence_counts", false).Execute(state);
+		Assert.Equal("enhanced without air_defence_counts", state.Rules.Text);
+
+		// It goes as every order goes - to the other machines and into a recording - and does there what it did here.
+		CCommand sent = CWire.Read(CWire.Write(new CSetFixCommand("air_defence_counts", true)), state);
+		Assert.IsType<CSetFixCommand>(sent);
+		Assert.True(sent.MayExecute(state));
+		sent.Execute(state);
+		Assert.Equal("enhanced", state.Rules.Text);
+		new CSetFixCommand("air_defence_counts", false).Execute(state);
+
+		// A name that is no fix, and a fix a running game cannot take back, are refused.
+		Assert.False(new CSetFixCommand("no_such_fix", true).MayExecute(state));
+		Assert.False(new CSetFixCommand("tech_repair_cost", false).MayExecute(state));
+		Assert.False(new CSetFixCommand("unit_figure_decimals", false).MayExecute(state));
 	}
 
 	[Fact]

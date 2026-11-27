@@ -671,6 +671,66 @@ public sealed class LuaPagesTests : IDisposable
 	}
 
 	[Fact]
+	public void APageReadsTheGamesRulesAndSwitchesAFixWhereItsMachineMay()
+	{
+		Page("fixes", "local ImGui = OpenHOI3.ImGui return { "
+			+ "Collect = function(player) return OpenHOI3.Rules() end, "
+			+ "Draw = function(data, player) "
+			+ "ImGui.Text(tostring(data.enhanced) .. ' ' .. tostring(data.may_change) .. ' ' .. #data.fixes) "
+			+ "for _, fix in ipairs(data.fixes) do "
+			+ "if fix.name == 'southern_seasons' or fix.name == 'tech_repair_cost' then "
+			+ "ImGui.Text(fix.name .. ' ' .. tostring(fix.on) .. ' ' .. tostring(fix.at_load)) end end "
+			+ "if ImGui.Button('Off') then "
+			+ "ImGui.Text(tostring(OpenHOI3.SetFix('southern_seasons', false))) "
+			+ "ImGui.Text(tostring(OpenHOI3.SetFix('no_such_fix', false))) end end }");
+		(CAiScripts scripts, CLuaWindows windows) = Load();
+		using (scripts)
+		{
+			CGameState state = State();
+			state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+			CModPage page = windows.Pages[0];
+			windows.Collect(state, page, Ger);
+			var canvas = new CRecordingCanvas();
+			windows.Draw(page, Ger, canvas);
+			int fixes = OpenHOI3.Sim.Rules.CFixes.All.Count();
+			// Every fix by its name, in the names' order: on, and whether it acts only as the files are read. One that
+			// does is on by the folders' rules and not the game's own - and these folders have no rules file.
+			Assert.Equal(new[] { $"Text true true {fixes}", "Text southern_seasons true false", "Text tech_repair_cost false true" },
+				canvas.Calls.Take(3));
+
+			// The order is kept for the screen to post; a name that is no fix is none.
+			canvas.Calls.Clear();
+			canvas.Pressed.Add("Off");
+			windows.Draw(page, Ger, canvas);
+			Assert.Equal(new[] { "Text true", "Text false" }, canvas.Calls.TakeLast(2));
+			var posted = windows.TakePosted();
+			Assert.Single(posted);
+			Assert.True(posted[0].MayExecute(state));
+			posted[0].Execute(state);
+			Assert.False(state.Rules.Has(OpenHOI3.Sim.Rules.EFix.SouthernSeasons));
+			Assert.Equal("enhanced without southern_seasons", state.Rules.Text);
+
+			// Gathered again, the page sees it off.
+			windows.Collect(state, page, Ger);
+			canvas.Calls.Clear();
+			canvas.Pressed.Clear();
+			windows.Draw(page, Ger, canvas);
+			Assert.Contains("Text southern_seasons false false", canvas.Calls);
+
+			// On a machine that is not the host's the page is told so and its order is not taken.
+			windows.MayGiveHostOrders = () => false;
+			windows.Collect(state, page, Ger);
+			canvas.Calls.Clear();
+			canvas.Pressed.Add("Off");
+			windows.Draw(page, Ger, canvas);
+			Assert.StartsWith("Text true false ", canvas.Calls[0]);
+			Assert.Equal("Text false", canvas.Calls[^2]);
+			Assert.Empty(windows.TakePosted());
+			Assert.Empty(_reports);
+		}
+	}
+
+	[Fact]
 	public void APageReadsACountrysOffMapIcAndItsTrickleback()
 	{
 		Page("figures", "local ImGui = OpenHOI3.ImGui return { "

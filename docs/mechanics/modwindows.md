@@ -202,7 +202,8 @@ Under the global `OpenHOI3`, beside `Files`, `Enhanced` and `Fixes` (`mods.md`, 
   applies; nil for no country or no game;
 - `OpenHOI3.SetConversion(tag, which, own, per_day, keep, target)` - **an order**, section 6.1: `which` is `energy`
   or `crude_oil`. Answers whether it was understood;
-- `OpenHOI3.Profile` - the engine's own timing, section 6.5.
+- `OpenHOI3.Profile` - the engine's own timing, section 6.5;
+- `OpenHOI3.Rules()` and `OpenHOI3.SetFix(name, on)` - an enhanced game's fixes, read and switched, section 6.6.
 
 ### 6.1 A page that changes the game
 
@@ -321,6 +322,34 @@ two readings of a clock a step and an order, so it is left running once asked fo
 Checked with `OpenHOI3.SaveCheck pages`, which draws a mod's page with no screen: on BlackICE's first three days
 the page's steps come to all but a hair of the hours' time, 44% of it the orders drained and 36% the AI's
 decisions among them. Not looked at on screen.
+
+### 6.6 The game's rules: `OpenHOI3.Rules` and `OpenHOI3.SetFix`
+
+For a page that switches the enhanced mode's fixes one by one in the game being played - asked for on 2026-11-27,
+"a page to the debug section of the utility in which we can enable/disable each patch individually", and "Host
+only." BlackICE's is Engine Fixes, under its Debug tab. Nothing like it is in the original or in BiceLib.
+
+- **`OpenHOI3.Rules()`**, asked in `Collect`: nil with no game, else `enhanced`, whether the game is an enhanced
+  one; `may_change`, whether this machine may switch a fix - an enhanced game's host, or whoever plays alone
+  (`CLuaWindows.MayGiveHostOrders`, which the session sets); and `fixes`, every fix in the names' order as
+  `{ name, on, at_load }`. `at_load` marks a fix that acts only as the files are read
+  (`CFixes.IsReadWithTheFiles`): it cannot be switched, and its `on` is the folders' answer, which decided it,
+  and not the game's own line - a save made without it still plays with it where the folders have it.
+- **`OpenHOI3.SetFix(name, on)`** - **an order**, section 6.1: `CSetFixCommand`, which may be given while
+  drawing. Answers whether it was taken: not for a name that is no fix, and not on a machine that may not change
+  the rules. The command itself refuses the rest (`enhanced.md`, *What is built*).
+
+A switched fix is seen at the page's next gathering. BlackICE's page shows a tick as asked until then, and says
+what each fix does by a text of its localisation, `OPENHOI_FIX_` and the name in capitals.
+
+Checked by `LuaPagesTests` - a page reading the rules, giving the order, the order run and seen at the next
+gathering, and a machine that may not - and `MultiplayerJoinTests`: the order refused from a client, and written
+for the wire and read back. `OpenHOI3.SaveCheck pages <install> engine/fixes mod="BlackICE GitHub"` draws the
+page with no screen. And on 2026-11-27 in the client, on BlackICE's working copy with
+`--screen=modwindows:fixes`: the page under Debug, 41 of 43 fixes on - the two the mod's file goes without - and,
+with a line put into the page for the run and taken out again that gave the order for `air_defence_counts`, 42 of
+43, the game paused. **No box was ticked by the mouse** - a scripted click does not reach the library's window
+(section 8) - so the ticking is to be tried by hand, and so is what a client sees between two machines.
 
 ## 7. How it is drawn
 
