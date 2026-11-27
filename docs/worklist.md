@@ -2256,6 +2256,13 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   just surround them and wait" - the unit AI's frontier was at war beside a declared war's land alone, where the
   original's asks its whole enemy test, the rebels and a war nobody declared with it. Tried with
   `OpenHOI3.SaveCheck rebels ... peace`; not looked at in play since.
+- **Six fixes of the AI are built and were played only without anybody watching** (2026-11-27, `enhanced.md`,
+  the worklist's fixes; `moving.md`, sections 9.1, 11.3, 11.4 and 17.4; `theatres.md`, section 4.4): a garrison's
+  rating, the odds' defence product, the terrain figure's neighbour, the local sunset, a plane's passenger given a
+  way and the alignment distance. Each has its tests; set beside the same games without them at the base game's
+  1939 and 1941 starts (`headless.md`, the trial's `enhanced` and `without=`) they move a campaign less than
+  another seed does. Not played on BlackICE at war, and nobody has looked at an AI paradrop or a Far East air
+  mission with them on. BlackICE's file leaves all six on.
 - **A fix switched in a running game is built and no box of its page was ticked by hand** (2026-11-27,
   `enhanced.md`, *What is built*; `modwindows.md`, section 6.6): `CSetFixCommand`, the host's alone, with
   `OpenHOI3.Rules()` and `OpenHOI3.SetFix` for a page; BlackICE's page, Engine Fixes under Debug, is in its

@@ -35,7 +35,7 @@ internal static class CHeadlessTrial
 	{
 		if (args.Length < 2)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck headless <install folder> [until year or date] [from=DATE] [savegame ...] [inspect=TAG] [hash] [inturn] [record=FILE | replay=FILE]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck headless <install folder> [until year or date] [from=DATE] [savegame ...] [inspect=TAG] [hash] [inturn] [enhanced] [without=FIX ...] [record=FILE | replay=FILE]");
 			return 2;
 		}
 		// from=1941.6.22: the new game made at that date, as the lobby's bookmark of it makes it (bookmarks.md, section 3).
@@ -86,6 +86,9 @@ internal static class CHeadlessTrial
 		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts, date: from);
 		state.Played.Clear();
 		state.ScriptReport = new CScriptReport();
+		// enhanced, without=NAME: the game played by other rules than its folders' from its first hour on - the new game
+		// itself is made by the folders' (CToolRules).
+		CToolRules.Apply(state, args);
 		// inturn: the AI's passes that run their countries side by side run them in turn, which should come out the same.
 		state.AiInTurn = args.Contains("inturn");
 		// statistics: every country's figures kept each day, and the record's size told at the end.

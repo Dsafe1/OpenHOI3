@@ -21,6 +21,31 @@ prints every message whose actor or recipient is one of them and every event fir
 each hour that one's national unity, capital, exile, faction or enemies change, what they now are. The same `from=`
 is taken by `OpenHOI3.SaveCheck profile`.
 
+**`enhanced` and `without=FIX` play it by other rules than its folders'** (2026-11-27, `CToolRules`; both are
+`profile`'s too): `enhanced` plays a game of folders with no rules file - Their Finest Hour's own - as an enhanced
+one from its first hour on, every fix a game asks of its rules on, so that a fix can be tried at the base game's
+later starts; `without=NAME`, as often as wanted, plays an enhanced game without that fix. The new game itself is
+made by the folders' rules either way, so two such runs begin from one start. **A fix of the AI's is set beside
+the game without it this way, and beside a run of another `seed=`**: one run each way says nothing by itself.
+
+*The six AI fixes of 2026-11-27* (`docs/enhanced.md`, the worklist's fixes: `garrison_rating`,
+`ai_odds_fresh_defence`, `ai_terrain_neighbour`, `ai_air_local_sunset`, `plane_passenger_march`,
+`theatre_alignment_distance`), all on against all six off, nobody playing:
+
+| run | with the six | without | with, `seed=7` |
+| --- | --- | --- | --- |
+| `from=1939.9.1` to 1 December: Poland surrenders | 28 September | 26 September | |
+| the same: Germany declares on Denmark, Denmark surrenders | 4 and 17 October | 6 and 18 October | |
+| `from=1941.6.22`, 14 September: provinces Germany holds | 1283 | 1279 | 1333 |
+| the same: provinces the Soviet Union holds | 2646 | 2629 | 2581 |
+| the same: the Soviet Union's surrender progress, in thousandths | 120 | 177 | 334 |
+
+No Lua error, nothing below nought and no run stopped in any of the five. **The six move a campaign less than
+another seed does**: the two 1941 runs end 17 Soviet provinces apart, the same rules on another seed 65 from the
+first. So these runs show that nothing breaks and no front changes its course; they do not measure what each fix is
+worth, which would want many seeds. On BlackICE itself the fixes were not played at war - it has only its 1936
+start; six days of it with `without=ai_odds_fresh_defence` are the game before the fix, hash for hash.
+
 What acts on its own is what is built: the tick's hourly, daily, monthly and yearly passes; the events and decisions
 of the base game, the AI's choice of an option on the game's generator; the AI's answers to offers and the install's
 Lua for every country nobody plays - trading, its politics minister and its intelligence minister, and since the same

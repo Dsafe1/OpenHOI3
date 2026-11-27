@@ -59,13 +59,8 @@ internal static class CProfileTrial
 			state.Played.Add(new CCountryTag(tag));
 		}
 		// without=NAME: an enhanced game played without that fix, whatever its save says - to set a speed-up beside
-		// the same play as before a fix was built.
-		const string withoutWord = "without=";
-		if (state.Rules.Enhanced && args.Where(a => a.StartsWith(withoutWord, StringComparison.Ordinal))
-			.Select(a => OpenHOI3.Sim.Rules.CFixes.Named(a[withoutWord.Length..])).Where(f => f is not null).Select(f => f!.Value).ToList() is { Count: > 0 } off)
-		{
-			state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(state.Rules.Without.Concat(off)));
-		}
+		// the same play as before a fix was built. enhanced: a game of folders with no rules file played as one.
+		CToolRules.Apply(state, args);
 		// inturn: the AI's passes that run their countries side by side run them in turn, to time the one beside the other.
 		state.AiInTurn = args.Contains("inturn");
 		var simulation = new CSimulation(state);
