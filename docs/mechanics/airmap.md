@@ -213,8 +213,10 @@ drawn at every height of the camera, where the buildings are not drawn from far 
 ## Kept as read, though they look odd
 
 1. **The colours are not made again each day**, nor when an order's provinces fall out of reach
-   as its unit moves base - only when an order of the two kinds starts or goes.
-2. **A count of battles is a signed byte**: 128 of a kind in a week hides the icon.
+   as its unit moves base - only when an order of the two kinds starts or goes. An enhanced game's fix
+   `fresh_screens` makes them again each midnight and when one of those units changes its base, 2026-11-27.
+2. **A count of battles is a signed byte**: 128 of a kind in a week hides the icon. Under the same fix a count
+   stops at 127.
 3. **A beaten side is named by nobody**, so a battle lost by the player's enemies over a
    stranger's ground counts by who attacked alone.
 4. **A province the player knows little of shows its air base at the size of a level 1.**

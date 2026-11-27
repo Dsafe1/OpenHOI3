@@ -2275,7 +2275,10 @@ public partial class CSession : Node
 			// And the revolt map mode by the day's revolt risk (ours: when the original colours it again was not read), and the
 			// intel mode by the day's intelligence (ours: the original follows the edge of what the player's units see, by a
 			// pass whose caller was not found - mapmodes.md, section 9).
-			if (_mapView.Mode is CMapView.MapMode.Supply or CMapView.MapMode.Revolt or CMapView.MapMode.Intel)
+			// And the air mode each day too under an enhanced game's fix fresh_screens, where the original's colours are
+			// made only as a fighter order starts or goes (airmap.md, oddity 1).
+			if (_mapView.Mode is CMapView.MapMode.Supply or CMapView.MapMode.Revolt or CMapView.MapMode.Intel
+				|| (_mapView.Mode == CMapView.MapMode.Air && State.Rules.Has(Sim.Rules.EFix.FreshScreens)))
 			{
 				_mapView.RefreshColours();
 			}

@@ -73,7 +73,9 @@ public static class CAirMapColours
 	/// <summary>
 	/// What the player's fighter missions are now - which unit, which order, which provinces -
 	/// as one figure, so that the map is coloured again when an order of the two kinds starts
-	/// or goes. Ours: the original colours it at those moments; this sees them from outside.
+	/// or goes. Ours: the original colours it at those moments; this sees them from outside. An enhanced game's fix
+	/// <c>fresh_screens</c> counts each such unit's base in, so that the map is coloured again when one moves base and
+	/// its reach with it.
 	/// </summary>
 	public static long Figure(CGameState state, CCountryTag? player)
 	{
@@ -82,6 +84,7 @@ public static class CAirMapColours
 		{
 			return figure;
 		}
+		bool withBases = state.Rules.Has(OpenHOI3.Sim.Rules.EFix.FreshScreens);
 		foreach (CUnit unit in country.AllUnits())
 		{
 			if (unit.Order != EUnitOrder.AirIntercept && unit.Order != EUnitOrder.AirSuperiority)
@@ -90,6 +93,10 @@ public static class CAirMapColours
 			}
 			figure = figure * 31 + unit.Id;
 			figure = figure * 31 + (int)unit.Order;
+			if (withBases)
+			{
+				figure = figure * 31 + unit.Base;
+			}
 			foreach (int id in unit.Mission.Provinces)
 			{
 				figure = figure * 31 + id;

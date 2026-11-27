@@ -295,6 +295,9 @@ Begun 2026-11-21; as of 2026-11-25.
   - ✅ `shown_figures`: added to it - the division designer's terrain summary counts the ground's own attrition in
     its line, as its attack and defence are; **and taken out of it** - the hundredfold on attrition it had since
     2026-11-25, attrition being a percentage as it stands (`mechanics/builders.md`, section 11). Display only.
+  - ✅ `fresh_screens`: added to it - the air map's green and red are made again each midnight and when one of the
+    player's intercept or air superiority units changes its base, and a count of battles stops at 127, where 128 hid
+    the icon (`mechanics/airmap.md`, oddities 1 and 2). Display only.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -836,7 +839,7 @@ All of these are risk-free but for what the entry says.
 - ✅ ~~**Attrition is shown a hundred times too small,**~~ and **a terrain's own attrition is left out** of the designer's line. **The first half was no fault and its fix is taken back, 2026-11-27**: attrition is a percentage as it stands - a terrain's `attrition = 2` is 2% a month, a technology's `attrition = -1` a point less, and the day takes the figure times a hundredth of a brigade's strength over thirty (`upkeep.md`) - so the original's plain figure with a `%` is right, and `shown_figures` wrote a hundred times it from 2026-11-25 until then, a level of BlackICE's mountain training as -150%. Found when the technology's text was to be given the same hundredfold. **The second half is mended by the fix `shown_figures`, 2026-11-27**: the designer's terrain summary counts the ground's own attrition in its line, as its attack and defence. `builders.md`; `brigadecard.md`, 6. *Display.*
 - ✅ **The positioning penalty lacks its hundredfold.** **Mended by the fix `shown_figures`, 2026-11-25.** `reorganise.md`, 7. *Display.*
 - ✅ **Tooltips can leave the screen** at the left or top. **Mended by the fix `tooltips_on_screen`, 2026-11-25.** `tooltips.md`, oddity 2. *Oversight.*
-- ❌ **The air map misses updates,** and a count of 128 battles hides the icon. `airmap.md`, oddities 1 and 2. *Bug.*
+- ✅ **The air map misses updates,** **Mended by the fix `fresh_screens`, 2026-11-27.** and a count of 128 battles hides the icon. `airmap.md`, oddities 1 and 2. *Bug.*
 - ❌ **The second-target hint is backwards.** `fleetsandair.md`, "The air window". *Display.*
 - ❌ **Script text errors.** REMOVE_SPIES_EFFECT says "Add", SPIES_INFILTRATED says "Grk", about fifty keys show as their names. `scripttext.md`, 5. *Display.* Mods may ship their own.
 - ✅ **A fleet's passenger list goes stale.** **Mended by the fix `fresh_screens`, 2026-11-25.** `transport.md`, "What looks wrong", 2. *Display.*

@@ -30,10 +30,12 @@ public static class CAirMapIcons
 
 	/// <summary>
 	/// The three counts of every province, by its id, out of the list of finished battles'
-	/// air battles and bombings. Province 0 has none.
+	/// air battles and bombings. Province 0 has none. A count is a byte read back signed, so 128 of a kind read below
+	/// one and take the icon away; an enhanced game's fix <c>fresh_screens</c> stops a count at 127.
 	/// </summary>
 	public static CAirMapCount[] Count(CGameState state, CCountryTag? player)
 	{
+		bool held = state.Rules.Has(OpenHOI3.Sim.Rules.EFix.FreshScreens);
 		var bombedUs = new byte[state.Provinces.Count];
 		var bombedThem = new byte[state.Provinces.Count];
 		var battles = new byte[state.Provinces.Count];
@@ -54,6 +56,10 @@ public static class CAirMapIcons
 				counts = bombing ? bombedThem : battles;
 			}
 			else
+			{
+				continue;
+			}
+			if (held && counts[entry.Province] >= sbyte.MaxValue)
 			{
 				continue;
 			}

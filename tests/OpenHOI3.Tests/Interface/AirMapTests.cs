@@ -213,6 +213,28 @@ public class AirMapTests
 		}
 
 		Assert.Equal(-128, CAirMapIcons.Count(state, Ger)[Berlin].BombedUs);
+
+		// An enhanced game's fix fresh_screens stops the count where the byte still reads above nought.
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		Assert.Equal(127, CAirMapIcons.Count(state, Ger)[Berlin].BombedUs);
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(new[] { OpenHOI3.Sim.Rules.EFix.FreshScreens }));
+		Assert.Equal(-128, CAirMapIcons.Count(state, Ger)[Berlin].BombedUs);
+	}
+
+	[Fact]
+	public void AnEnhancedGamesColoursAreMadeAgainWhenAFighterUnitChangesItsBase()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit fighters = Fighters(state, germany, Berlin, order: EUnitOrder.AirIntercept, provinces: new[] { Warszawa });
+		long before = CAirMapColours.Figure(state, Ger);
+		fighters.Base = Breslau;
+
+		// The original's colours are made only when such an order starts or goes: a new base changes nothing.
+		Assert.Equal(before, CAirMapColours.Figure(state, Ger));
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		long enhanced = CAirMapColours.Figure(state, Ger);
+		fighters.Base = Berlin;
+		Assert.NotEqual(enhanced, CAirMapColours.Figure(state, Ger));
 	}
 
 	[Fact]
