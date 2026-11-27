@@ -58,9 +58,18 @@ public static class CCombatTactics
 	/// The one aggressiveness a pick is made with: the defender's leader's unit's, or with none the attacker's leader's unit's, or
 	/// nought - and only the attacker's pick is given it, the defender picking with nought (FINDINGS-liveread.md, section 28). The
 	/// original's: the second leader's unit overwrites the first's in one local and the defender's call passes nought. Kept so.
+	/// An enhanced game's fix <c>tactic_aggressiveness</c> gives each side its own leader's unit's, and nought with no leader.
 	/// </summary>
-	private static long Aggressiveness(CCombat combat)
+	public static long Aggressiveness(CGameState state, CCombat combat, CCombatSide side)
 	{
+		if (state.Rules.Has(Rules.EFix.TacticAggressiveness))
+		{
+			return CCombatLeaders.HighestRanked(side)?.Unit is { } own ? Units.CUnitAggression.Of(own) : 0;
+		}
+		if (side != combat.Attacker)
+		{
+			return 0;
+		}
 		if (CCombatLeaders.HighestRanked(combat.Defender)?.Unit is { } defending)
 		{
 			return Units.CUnitAggression.Of(defending);
@@ -76,24 +85,25 @@ public static class CCombatTactics
 		{
 			int attack = LeaderSkill(combat.Attacker);
 			int defence = LeaderSkill(combat.Defender);
-			long aggressiveness = Aggressiveness(combat);
+			long aggressiveness = Aggressiveness(state, combat, combat.Attacker);
+			long defending = Aggressiveness(state, combat, combat.Defender);
 			if (defence < attack)
 			{
-				PickFor(state, combat, combat.Defender, 0, 0, 0);
+				PickFor(state, combat, combat.Defender, defending, 0, 0);
 				PickSecond(state, combat, combat.Attacker, aggressiveness, combat.Defender.Tactic?.CounteredByNumber ?? 0, attack - defence,
 					SurpriseChance(state, combat.Attacker));
 			}
 			else if (attack < defence)
 			{
 				PickFor(state, combat, combat.Attacker, aggressiveness, 0, 0);
-				PickSecond(state, combat, combat.Defender, 0, combat.Attacker.Tactic?.CounteredByNumber ?? 0, defence - attack,
+				PickSecond(state, combat, combat.Defender, defending, combat.Attacker.Tactic?.CounteredByNumber ?? 0, defence - attack,
 					SurpriseChance(state, combat.Defender));
 			}
 			else
 			{
 				PickFor(state, combat, combat.Attacker, aggressiveness, 0, 0);
 				// With equal skill the defender favours nothing, and may still surprise.
-				PickSecond(state, combat, combat.Defender, 0, 0, 0, SurpriseChance(state, combat.Defender),
+				PickSecond(state, combat, combat.Defender, defending, 0, 0, SurpriseChance(state, combat.Defender),
 					combat.Attacker.Tactic?.CounteredByNumber ?? 0);
 			}
 		}

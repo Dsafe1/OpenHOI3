@@ -752,7 +752,8 @@ unit's, else nothing; the attacker picks with it and the defender always with no
 `confirmed` on the instructions and in the running game
 (`reversing/findings/FINDINGS-liveread.md`, section 28). The original's, and it looks like a
 slip - one local written twice and one side's call given nought - kept so
-(`docs/enhanced.md`).
+(`docs/enhanced.md`). **An enhanced game's fix `tactic_aggressiveness`** (2026-11-27): each side picks with
+its own leader's unit's, and with nothing where it has no leader; the rolls are the same.
 
 **A pick**, for each tactic whose `trigger` holds of the side:
 

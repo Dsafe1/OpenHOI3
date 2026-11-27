@@ -274,6 +274,8 @@ Begun 2026-11-21; as of 2026-11-25.
     names the creditor to the debtor it is told to (`mechanics/aid.md`, section 1).
   - ✅ `lend_lease_partial`: a lend-lease receiver whose share of the day is more than the giver's stockpile pays for
     is given what it does pay for, and the giver charged that much (`mechanics/aid.md`, section 3).
+  - ✅ `tactic_aggressiveness`: each side of a land battle picks its tactic with its own leader's aggressiveness, and
+    with none where it has no leader (`mechanics/landcombat.md`, section 11).
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -521,7 +523,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
   several countries is bombarded by the first one's enemies alone, and a mod whose `SHORE_BOMBARDMENT_CAP` is above
   nothing puts that much on every unit of every land battle, with no fleet anywhere. `landcombat.md`, 4. *Oversight.*
   Risk: none in Their Finest Hour, whose cap is negative.
-- ❌ **The attacker picks its tactic with the defender's aggressiveness,** and the defender always with none. One value is written from each side's leader in turn and only the attacker's pick is given it. `landcombat.md`, 11. *Bug.* Risk: small; which tactics come up.
+- ✅ **The attacker picks its tactic with the defender's aggressiveness,** **Mended by the fix `tactic_aggressiveness`, 2026-11-27.** and the defender always with none. One value is written from each side's leader in turn and only the attacker's pick is given it. `landcombat.md`, 11. *Bug.* Risk: small; which tactics come up.
 
 ## Sea
 

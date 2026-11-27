@@ -193,4 +193,11 @@ public enum EFix
 	/// pay for, where the original gives it nothing that day (<c>docs/mechanics/aid.md</c>, section 3).
 	/// </summary>
 	LendLeasePartial,
+
+	/// <summary>
+	/// Each side of a land battle picks its tactic with its own leader's aggressiveness, and with none where it has no
+	/// leader - where the original gives the attacker's pick the defender's leader's and the defender's nothing
+	/// (<c>docs/mechanics/landcombat.md</c>, section 11).
+	/// </summary>
+	TacticAggressiveness,
 }

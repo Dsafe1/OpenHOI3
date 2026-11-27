@@ -269,6 +269,37 @@ public class CombatTacticTests
 	}
 
 	[Fact]
+	public void The_attacker_picks_with_the_defenders_aggressiveness_and_an_enhanced_games_sides_each_with_their_own()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland, Tactic(1, "tactic_assault", attacker: true));
+		CCombat combat = Battle(state, germany, poland);
+		CUnit attacking = combat.Attacker.Units[0];
+		CUnit defending = combat.Defender.Units[0];
+		attacking.Leader = new OpenHOI3.Sim.Leaders.CLeader(1) { Skill = 2, Rank = 1, Name = "attacker", Unit = attacking };
+		defending.Leader = new OpenHOI3.Sim.Leaders.CLeader(2) { Skill = 2, Rank = 1, Name = "defender", Unit = defending };
+		attacking.HasOwnAggression = true;
+		attacking.Aggression = new CFixedPoint(1000);
+		defending.HasOwnAggression = true;
+		defending.Aggression = new CFixedPoint(-500);
+
+		// The original's: one value, the defender's leader's, and only the attacker's pick is given it.
+		Assert.Equal(-500, CCombatTactics.Aggressiveness(state, combat, combat.Attacker));
+		Assert.Equal(0, CCombatTactics.Aggressiveness(state, combat, combat.Defender));
+
+		// The fix: each side its own leader's, and nought with no leader.
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		Assert.Equal(1000, CCombatTactics.Aggressiveness(state, combat, combat.Attacker));
+		Assert.Equal(-500, CCombatTactics.Aggressiveness(state, combat, combat.Defender));
+		defending.Leader = null;
+		Assert.Equal(0, CCombatTactics.Aggressiveness(state, combat, combat.Defender));
+
+		// An enhanced game without it keeps the original's.
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(new[] { OpenHOI3.Sim.Rules.EFix.TacticAggressiveness }));
+		Assert.Equal(1000, CCombatTactics.Aggressiveness(state, combat, combat.Attacker));
+		Assert.Equal(0, CCombatTactics.Aggressiveness(state, combat, combat.Defender));
+	}
+
+	[Fact]
 	public void Two_tactics_that_do_not_counter_each_other_both_count()
 	{
 		CCombatTactic shock = Tactic(1, "tactic_shock", attacker: true, defence: "-0.25");
