@@ -153,15 +153,21 @@ was seen of the running game on 2026-10-08.
 - **A save keeps it for the played country alone**, `slider_locks = { 0 0 0 0 0 0 }` before `alignment` - every reference
   save has the one block, in the `player=` country - and a load reads it from any block. So a production lock
   lasts the session and a save and a load. Where the key falls beside `mobilize` no save shows; here it is after it.
-- **The technology screen keeps no locks of its own**: its sliders start locked as the production screen's first four
-  entries say - research by upgrades, espionage by reinforcement, diplomacy by supplies, officers by production - and it
-  never writes them, so a lock set there lasts only while the screen stands. The original's, kept (`docs/enhanced.md`).
+- **The technology screen keeps no locks of its own**: **as it is built** its sliders start locked as the production
+  screen's first four entries say - research by upgrades, espionage by reinforcement, diplomacy by supplies, officers
+  by production - and it never writes them, so a lock set there lasts only while the screen stands. The original's,
+  kept (`docs/enhanced.md`). **It is built once, as a game is entered, and again when the played country changes** -
+  so a lock set on the production screen in play never shows on the technology screen (the user's check of the
+  original, 2026-11-27: "it does not happen there"); only a loaded save's locks, or another country's on a change of
+  the played one, are there to be read. *Not seen in the original*: that loaded case; it is the reading's.
 - New countries start with every entry 0.
 
-*Ours:* the screens are made the first time they are opened, and read the mirror then, where the original makes them
-as a game is entered; nothing but the production screen writes the mirror, so the production screen comes up the same,
-and the technology screen takes the production entries as they stand at its first opening rather than at the game's
-start. The original writes the mirror straight from its screen and sends no command, it being one client's; here it is
+*Ours:* the screens are made the first time they are opened, where the original makes them as a game is entered;
+nothing but the production screen writes the mirror, so the production screen, reading it then, comes up the same.
+**The technology screen is given the mirror as it stood when the game was entered** (`CTechnologyView.LocksAsEntered`,
+kept by the session as it is made) and starts its sliders by that, as the original's does. Until 2026-11-27 it read
+the mirror at its first opening, so that a lock set on the production screen before then came up on it - a
+regression of ours, found by the user in play, and mended in every game. The original writes the mirror straight from its screen and sends no command, it being one client's; here it is
 `CSetSliderLocksCommand`, posted when the locks differ from the country's, as nothing changes the game otherwise.
 
 `confirmed` **`ic_need_button` puts the slider at its need and half a step and locks it there**; pressed on a slider

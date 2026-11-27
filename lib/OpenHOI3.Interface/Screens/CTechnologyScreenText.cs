@@ -34,6 +34,19 @@ public static class CTechnologyScreenText
 	/// <summary>A project given at least this much of a point, in thousandths, is fully manned.</summary>
 	private const long FullyManned = 990;
 
+	/// <summary>
+	/// Whether a leadership share's slider starts locked. The original's screen keeps no locks of its own: as it is built
+	/// - once, as a game is entered, and again when the played country changes - it reads the first four entries of the
+	/// production screen's locks by its own list places, the shares' order turned round, so research goes by the
+	/// first and officers by the fourth. <paramref name="locksAsEntered"/> is that list as it stood then: a lock set on
+	/// the production screen afterwards never reaches this screen (<c>docs/mechanics/sliders.md</c>, section 3).
+	/// </summary>
+	public static bool StartsLocked(System.Collections.Generic.IReadOnlyList<int> locksAsEntered, int share)
+	{
+		int entry = OpenHOI3.Sim.Economy.CLeadership.CategoryCount - 1 - share;
+		return entry >= 0 && entry < locksAsEntered.Count && locksAsEntered[entry] > 0;
+	}
+
 	/// <summary>The heading over the four sliders: the words and the country's leadership to two decimals.</summary>
 	public static string LeadershipLabel(Func<string, string> localise, CCountry country)
 	{

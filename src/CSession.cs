@@ -744,7 +744,9 @@ public partial class CSession : Node
 			_production = new CProductionView();
 			_production.Setup(gui, _simulation, Player);
 			layer.AddChild(_production);
-			_technology = new CTechnologyView();
+			// Its sliders start by the production screen's locks as they stand now, the game being entered, and not as they
+			// stand when it is first opened (sliders.md, section 3).
+			_technology = new CTechnologyView { LocksAsEntered = (int[])(Player?.SliderLocks ?? System.Array.Empty<int>()).Clone() };
 			_technology.Setup(gui, _simulation, Player);
 			layer.AddChild(_technology);
 			_diplomacy = new CDiplomacyView();

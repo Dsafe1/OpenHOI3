@@ -234,4 +234,19 @@ public class TechnologyScreenTextTests
 	{
 		Assert.Equal(text, CRomanNumerals.Format(value));
 	}
+
+	[Fact]
+	public void ASliderStartsLockedByTheProductionScreensFirstFourLocksAsTheGameWasEntered()
+	{
+		// The production screen's list order - upgrades, reinforcement, supplies, production, consumer goods, lend-lease -
+		// read by this screen's own places: research by the first, espionage, diplomacy, officers by the fourth.
+		int[] entered = { 1, 0, 0, 1, 1, 1 };
+		Assert.True(CTechnologyScreenText.StartsLocked(entered, (int)OpenHOI3.Sim.Economy.ELeadershipCategory.Research));
+		Assert.True(CTechnologyScreenText.StartsLocked(entered, (int)OpenHOI3.Sim.Economy.ELeadershipCategory.Officers));
+		Assert.False(CTechnologyScreenText.StartsLocked(entered, (int)OpenHOI3.Sim.Economy.ELeadershipCategory.Espionage));
+		Assert.False(CTechnologyScreenText.StartsLocked(entered, (int)OpenHOI3.Sim.Economy.ELeadershipCategory.Diplomacy));
+		// A new game's are all open, whatever is locked on the production screen later: the list asked is the one kept.
+		Assert.False(CTechnologyScreenText.StartsLocked(new int[6], 0));
+		Assert.False(CTechnologyScreenText.StartsLocked(System.Array.Empty<int>(), 3));
+	}
 }

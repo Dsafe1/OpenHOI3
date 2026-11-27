@@ -25,6 +25,12 @@ public partial class CTechnologyView : CCountryView
 {
 	private const string PositionSuffix = "_position";
 
+	/// <summary>
+	/// The played country's production slider locks as they stood when this view was made for it - as a game is entered
+	/// or the played country changes, which is when the original builds the screen and reads them.
+	/// </summary>
+	public int[] LocksAsEntered { get; init; } = System.Array.Empty<int>();
+
 	/// <summary>The four sliders down the screen, from the top: the shares in the reverse of their own order.</summary>
 	private static readonly int[] SliderOrder =
 	{
@@ -125,9 +131,12 @@ public partial class CTechnologyView : CCountryView
 			"leadership_slider_offset", SliderOrder,
 			share => Context.Localisation.Localise(CSliderText.TitleKey((ELeadershipCategory)share)));
 		_sliders.NeedPressed += share => _sliders.PinAtNeed(share, Need((ELeadershipCategory)share));
-		// The screen keeps no locks of its own: its sliders start locked as the production screen's first four entries say,
-		// officers by the fourth and research by the first, and it never writes them - the original's (sliders.md, section 3).
-		_sliders.LoadLocks(share => CProductionView.MirrorLocked(Player, CLeadership.CategoryCount - 1 - share));
+		// The screen keeps no locks of its own: its sliders start locked as the production screen's first four entries said
+		// when the game was entered - when the original builds this screen - officers by the fourth and research by the
+		// first, and it never writes them (sliders.md, section 3). Not as they stand now: this is made at its first
+		// opening, and read the list then until 2026-11-27, so that a lock set on the production screen in play came up
+		// here, which the original's never does.
+		_sliders.LoadLocks(share => CTechnologyScreenText.StartsLocked(LocksAsEntered, share));
 
 		Func<string, string> localise = Context.Localisation.Localise;
 		_sliders.SetTooltips(

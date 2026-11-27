@@ -2269,11 +2269,13 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   their tests and by `scripttext` on BlackICE; **nothing of them has been looked at on screen**, the columns of
   the battle tooltip and the leader window's skill column - whether `3 (5)` fits it - first. **Left of BiceLib's**:
   what the mod leaves off - the trait's command limit, the screen penalty, rank-specific traits.
-- **The enhanced worklist's third batch: six fixes built and not reviewed in play** (2026-11-27, `enhanced.md`,
+- **The enhanced worklist's third batch: five fixes built and not reviewed in play** (2026-11-27, `enhanced.md`,
   *What is built*), each its own commit: `interdiction_target` - with no enemy on its list a province by a draw,
-  the user's rule - `air_raid_waits`, `minister_intel`, `weighted_songs`, `occupation_policy_checked` and
-  `technology_slider_locks`, the last with a command and an enhanced save key of its own. Tried by their tests and
-  forty-five days of BlackICE; no screen was opened on the slider locks. **Left of the user's list**: the
+  the user's rule - `air_raid_waits`, `minister_intel`, `weighted_songs` and `occupation_policy_checked`. Tried by
+  their tests and forty-five days of BlackICE. **The sixth point was no fault of the original's but a regression
+  of ours**, mended in every game: the technology screen read the production screen's slider locks at its first
+  opening, where the original reads them as the game is entered (`sliders.md`, section 3) - found by the user in
+  play; a fix `technology_slider_locks` built for it first was taken out again unmerged. **Left of the user's list**: the
   amphibious defence, a wing's defence, the southern seasons, the six AI points, and the two held for his word -
   a message's text on the map and the title theme.
 - **The enhanced worklist's second batch, the display points, built and not looked at on a screen**
