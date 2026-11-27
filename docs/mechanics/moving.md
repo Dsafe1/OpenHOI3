@@ -1237,6 +1237,11 @@ where the original's daylight missions keep one set of hours from Lisbon to Vlad
 - Of invasions: ~~the reinforcement of a friend's area by sea (the ranking's second list and the planner's friendly branch)~~ - built (section 9, `CInvasionPlanner`);
   the tallies of transports and brigades short it leaves for the production minister; the carrier aircraft sent over the
   beach; a landed division put under a theatre's headquarters; and the played country's invasions over its own units.
+  **The carrier aircraft's order runs till sunset by the same test as 17.4's** - the invasion's second stage,
+  `SendCarrierAirSupport`, gives up to three carrier air units `ground_attack` on the objective from now to the sunset
+  with at least three hours of daylight left (`reversing/findings/FINDINGS-moving.md`) - so when it is built it asks
+  `CDaylight.HoursToAiSunset`, and an enhanced game's fix `ai_air_local_sunset` holds for it too. Until then the fix
+  has nothing to mend there.
 - ~~The enemy's war industry handed to the agents whose air bases are nearest (section 12): so no strategic bombing or nuke
   mission (17.4; `nukes.md`, *Ours*), and the strategic list (17.1) measures against the objectives.~~ Built 2026-11-21
   (section 12, step 4a; 17.1; 17.4).
