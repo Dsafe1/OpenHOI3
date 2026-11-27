@@ -2269,6 +2269,14 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   their tests and by `scripttext` on BlackICE; **nothing of them has been looked at on screen**, the columns of
   the battle tooltip and the leader window's skill column - whether `3 (5)` fits it - first. **Left of BiceLib's**:
   what the mod leaves off - the trait's command limit, the screen penalty, rank-specific traits.
+- **The enhanced worklist's fourth batch: four fixes built and not reviewed in play** (2026-11-27, `enhanced.md`,
+  *What is built*), each its own commit: `amphibious_defence`, `southern_seasons`, `air_defence_counts` - with a
+  define of ours, `OPENHOI_AIR_CHANCE_TO_AVOID_HIT` - and `map_text_by_time`. **BlackICE goes without the two that
+  move its balance**, `air_defence_counts` and `southern_seasons`, by the user's word, in its
+  `common/openhoi_enhanced.txt`; a save made before a fix existed names no fix it goes without, so such a save
+  loaded now plays with both. Tried by their tests and forty-five days of BlackICE, which with the two off saw
+  no landing and so nothing of the first. **Left of the user's list**: the six AI points, and the title theme,
+  which waits for somebody to listen to the original's menu.
 - **The enhanced worklist's third batch: five fixes built and not reviewed in play** (2026-11-27, `enhanced.md`,
   *What is built*), each its own commit: `interdiction_target` - with no enemy on its list a province by a draw,
   the user's rule - `air_raid_waits`, `minister_intel`, `weighted_songs` and `occupation_policy_checked`. Tried by
