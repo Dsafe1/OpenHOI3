@@ -216,9 +216,13 @@ public static class CBuilderTooltips
 	/// has something to say. Each is the brigades' own adjuster averaged, with a terrain's own
 	/// attack and defence, or the define's penalty to the attack, counted once in the average.
 	/// </summary>
-	/// <param name="attritionHundred">An enhanced game's fix: attrition times a hundred, as the other three are.</param>
+	/// <param name="terrainsAttrition">
+	/// An enhanced game's fix <c>shown_figures</c>: a terrain's own attrition is counted in its line as its attack and
+	/// defence are, where the original leaves it out. Attrition is a percentage as it stands - a terrain's 2 is 2% a
+	/// month, a technology's -1 a point less - so it is written without a hundredfold, as the original writes it.
+	/// </param>
 	public static string TerrainSummary(Func<string, string> localise, CDefines defines, IReadOnlyList<CTerrain> terrains,
-		IReadOnlyList<CSubUnitStats> brigades, bool attritionHundred = false)
+		IReadOnlyList<CSubUnitStats> brigades, bool terrainsAttrition = false)
 	{
 		if (brigades.Count == 0)
 		{
@@ -230,13 +234,17 @@ public static class CBuilderTooltips
 			long[] sum = Sum(brigades, terrain.Name);
 			sum[0] += terrain.Attack.Raw * brigades.Count;
 			sum[1] += terrain.Defence.Raw * brigades.Count;
-			Line(text, localise(terrain.Name), Describe(localise, Averaged(sum, brigades.Count), attritionHundred));
+			if (terrainsAttrition)
+			{
+				sum[3] += terrain.Attrition.Raw * brigades.Count;
+			}
+			Line(text, localise(terrain.Name), Describe(localise, Averaged(sum, brigades.Count)));
 		}
 		foreach ((string adjuster, string penalty, string label) in Circumstances)
 		{
 			long[] sum = Sum(brigades, adjuster);
 			sum[0] += defines[CManpower.MilitarySection, penalty].Raw * brigades.Count;
-			Line(text, localise(label), Describe(localise, Averaged(sum, brigades.Count), attritionHundred));
+			Line(text, localise(label), Describe(localise, Averaged(sum, brigades.Count)));
 		}
 		return text.ToString();
 	}
@@ -282,16 +290,16 @@ public static class CBuilderTooltips
 
 	/// <summary>
 	/// An adjuster's four figures in one line: attack, defence and movement times a hundred,
-	/// and attrition as it is, each left out at nothing.
+	/// and attrition as it is, each left out at nothing. Attrition is a percentage as it stands, the other three
+	/// shares of one; from 2026-11-25 to 2026-11-27 an enhanced game's fix wrote it times a hundred too, wrongly.
 	/// </summary>
-	public static string Describe(Func<string, string> localise, IReadOnlyList<long> figures, bool attritionHundred = false)
+	public static string Describe(Func<string, string> localise, IReadOnlyList<long> figures)
 	{
 		var text = new StringBuilder();
 		for (int index = 0; index < Figures.Length; index++)
 		{
 			(string _, string label, bool hundred, bool turned) = Figures[index];
-			// `turned` marks attrition, the one figure the original leaves without its hundred.
-			long value = hundred || (turned && attritionHundred) ? figures[index] * 100 : figures[index];
+			long value = hundred ? figures[index] * 100 : figures[index];
 			if (value == 0)
 			{
 				continue;

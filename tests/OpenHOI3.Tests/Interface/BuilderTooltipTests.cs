@@ -230,10 +230,8 @@ public class BuilderTooltipTests
 		Assert.Equal("Attrition §R+0.5%§W", CBuilderTooltips.Describe(Localise, new long[] { 0, 0, 0, 500 }));
 		Assert.Equal("Attrition §G-0.5%§W", CBuilderTooltips.Describe(Localise, new long[] { 0, 0, 0, -500 }));
 		Assert.Equal("", CBuilderTooltips.Describe(Localise, new long[] { 0, 0, 0, 0 }));
-		// An enhanced game's fix: attrition times a hundred as the other three are, and they as before.
-		Assert.Equal("Attrition §R+50.0%§W", CBuilderTooltips.Describe(Localise, new long[] { 0, 0, 0, 500 }, attritionHundred: true));
-		Assert.Equal("Attack §G+5.0%§W, Attrition §G-50.0%§W",
-			CBuilderTooltips.Describe(Localise, new long[] { 50, 0, 0, -500 }, attritionHundred: true));
+		// Attrition is a percentage as it stands: a technology's -1 a level is a point less a month.
+		Assert.Equal("Attack §G+5.0%§W, Attrition §G-1.0%§W", CBuilderTooltips.Describe(Localise, new long[] { 50, 0, 0, -1000 }));
 	}
 
 	private static CSubUnitStats Brigade(params (string Adjuster, string Kind, string Value)[] figures)
@@ -278,6 +276,17 @@ public class BuilderTooltipTests
 			"Amphibious: Attack §R-70.0%§W\n",
 			summary);
 		Assert.Equal("", CBuilderTooltips.TerrainSummary(Localise, defines, terrains, System.Array.Empty<CSubUnitStats>()));
+
+		// An enhanced game's fix shown_figures counts the ground's own attrition in its line, as its attack is: the
+		// mountain's 2% a month, less the half point one of the four brigades has a technology for.
+		armour.Adjusters["mountain"].Set("attrition", CFixedPoint.Parse("-2"));
+		Assert.StartsWith(
+			"Mountain: Attack §R-47.5%§W, Defence §R-17.5%§W, Movement §R-10.0%§W, Attrition §R+1.5%§W\n",
+			CBuilderTooltips.TerrainSummary(Localise, defines, terrains, brigades, terrainsAttrition: true));
+		// The original's line has the brigades' own alone.
+		Assert.StartsWith(
+			"Mountain: Attack §R-47.5%§W, Defence §R-17.5%§W, Movement §R-10.0%§W, Attrition §G-0.5%§W\n",
+			CBuilderTooltips.TerrainSummary(Localise, defines, terrains, brigades));
 	}
 
 	private static (CGameState State, CCountry Country) Practicals(string ability)

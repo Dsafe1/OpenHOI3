@@ -110,9 +110,10 @@ public static class CBrigadeCardText
 		CCountry owner, CSubUnit subUnit)
 	{
 		var rows = new List<(string Label, string Value)> { (localise("UNIT_STATS"), "") };
-		// Attrition is written as it is where the other three are times a hundred - the original's; times a hundred too
-		// with the fix.
-		int attritionScale = state.Rules.Has(OpenHOI3.Sim.Rules.EFix.ShownFigures) ? 100 : 1;
+		// Attrition is written as it is where the other three are times a hundred: it is a percentage as it stands, a
+		// technology's -1 a point less a month. An enhanced game's fix wrote it times a hundred from 2026-11-25 to
+		// 2026-11-27, which was wrong and is taken back.
+		const int attritionScale = 1;
 		CSubUnitStats stats = subUnit.Stats;
 		bool isLand = subUnit.Type.Branch == EUnitBranch.Land;
 		string Fig(string statistic, int places) => CNumberText.Format(stats[statistic], places);

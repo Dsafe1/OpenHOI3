@@ -54,7 +54,7 @@ From `sunk` alone, another on each press. `label` is `SUNK_SHIP_LABEL`. `list` h
 
 ## 6. What is the original's and looks wrong
 
-Attrition's row is not times 100; a pride's 2 dissent on the dialog is a literal in the table and `PRIDE_SUNK_DISSENT_IMPACT` is read by nothing; `KM` has no text in the tables and reads as its key; a wing has no range row, where a brigade's summary gives one; the command tests nothing.
+~~Attrition's row is not times 100~~ - no fault: the figure is a percentage as it stands (`builders.md`, section 11; corrected 2026-11-27, the enhanced fix that wrote it times 100 taken back); a pride's 2 dissent on the dialog is a literal in the table and `PRIDE_SUNK_DISSENT_IMPACT` is read by nothing; `KM` has no text in the tables and reads as its key; a wing has no range row, where a brigade's summary gives one; the command tests nothing.
 
 *Unbuilt:* the `+*` that marks a model not the one the country builds today, as in a brigade's summary (`unitpanel.md`).
 

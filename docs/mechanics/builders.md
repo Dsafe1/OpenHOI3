@@ -459,10 +459,13 @@ and movement are times a hundred and attrition is not, and attrition's colour go
 Three infantry brigades and an armoured one in the mountains: "Mountain: Attack §R-47.5%§W,
 Defence §R-17.5%§W, Movement §R-10.0%§W", by the base game's files and no technology.
 
-**Kept as read**, though they look odd: attrition written without its hundred, so `0.5` reads
-`+0.5%`; attrition above nothing red and with a `+`; a terrain's own attrition left out of its
-line where its attack and defence are in; and nothing but the headers, the steps and the
-designer's few saying anything.
+**Kept as read**, though they look odd: attrition above nothing red and with a `+`; a terrain's own
+attrition left out of its line where its attack and defence are in - counted in under an enhanced
+game's fix `shown_figures`, 2026-11-27; and nothing but the headers, the steps and the designer's few
+saying anything. **Attrition written without a hundredfold is no oddity**, though this said so until
+2026-11-27: the figure is a percentage as it stands, a terrain's 2 being 2% a month and a technology's
+-1 a point less (`upkeep.md`), where the other three are shares of one. The enhanced fix that wrote it
+times a hundred from 2026-11-25 was wrong and is taken back.
 
 *Ours:* the summary is worked out when it is asked for, where the original keeps it from the last
 change to the design; it differs only if the country's technology moves while the window is up. A

@@ -39,9 +39,10 @@ public enum EFix
 	TooltipsOnScreen,
 
 	/// <summary>
-	/// Figures the original shows a hundred times too small or too large are shown as they are: a circumstance's
-	/// attrition, a fleet's positioning penalty, a share with nothing needed, and a fleet's hourly regain of
-	/// organisation at sea (<c>docs/enhanced.md</c>, <i>Interface</i>). Display only.
+	/// Figures the original shows wrongly are shown as they are: a fleet's positioning penalty, a share with nothing
+	/// needed, a fleet's hourly regain of organisation at sea, tribute sent to a master, a leader's share at the
+	/// table's last skill, and a terrain's own attrition in the designer's line (<c>docs/enhanced.md</c>,
+	/// <i>Interface</i>). Display only. It wrote attrition times a hundred until 2026-11-27, which was wrong.
 	/// </summary>
 	ShownFigures,
 

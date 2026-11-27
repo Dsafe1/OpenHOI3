@@ -160,8 +160,10 @@ Begun 2026-11-21; as of 2026-11-25.
   - ✅ `menu_resumes`: closing the in-game menu starts the clock again where the menu stopped it, whichever of its
     windows was opened meanwhile.
   - ✅ `tooltips_on_screen`: a tooltip is kept off the left and the top of the screen too. Display only.
-  - ✅ `shown_figures`: a circumstance's attrition times a hundred as its other three figures are, on the brigade card
-    and the designer's terrain summary; a fleet's positioning penalty in the reorganise window with its
+  - ✅ `shown_figures`: ~~a circumstance's attrition times a hundred as its other three figures are, on the brigade card
+    and the designer's terrain summary~~ (**taken back on 2026-11-27**: attrition is a percentage as it stands, so
+    the hundredfold showed it a hundred times too large - the entry under *Interface*, below); a fleet's positioning
+    penalty in the reorganise window with its
     hundredfold; a production, reinforcement or upgrade share with nothing needed written as covering 100%; and a
     fleet's hourly regain of organisation at sea without the roads. Display only.
   - ✅ `unit_ordinals`: a new unit's number takes the ending of its last two digits, 111th and not 111st. Changes the
@@ -290,6 +292,9 @@ Begun 2026-11-21; as of 2026-11-25.
   - ✅ `shown_figures`: added to it - a leader at the last skill of the table shows no share towards the next, in his
     tooltip and on the browser's dragged row, where the original reads the word after the table
     (`mechanics/unitpanel.md`, section 10.5). Display only.
+  - ✅ `shown_figures`: added to it - the division designer's terrain summary counts the ground's own attrition in
+    its line, as its attack and defence are; **and taken out of it** - the hundredfold on attrition it had since
+    2026-11-25, attrition being a percentage as it stands (`mechanics/builders.md`, section 11). Display only.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -828,7 +833,7 @@ All of these are risk-free but for what the entry says.
 - ✅ **Closing the menu leaves the game paused** after opening any of its windows. **Mended by the fix `menu_resumes`, 2026-11-25.** `ingamemenu.md`, 2. *Bug.*
 - ❌ **Message settings half-work.** A click on a name does nothing, no tab starts ticked, and Reset leaves the rows. `ingamemenu.md`, 4. *Oversight.*
 - 🟡 **A right click with several fleets or air units moves nobody.** **The window it brings up offers several air units what every one may fly, by the fix `air_orders_for_all`, 2026-11-25; fleets were so already. The click still asks and moves nobody, as for one unit.** `selection.md`, 8. *Oversight.*
-- 🟡 **Attrition is shown a hundred times too small,** and a terrain's own is left out. **The hundredfold mended by the fix `shown_figures`, 2026-11-25; a terrain's own attrition is still left out, and a technology's effects still write it without.** `builders.md`; `brigadecard.md`, 6. *Display.*
+- ✅ ~~**Attrition is shown a hundred times too small,**~~ and **a terrain's own attrition is left out** of the designer's line. **The first half was no fault and its fix is taken back, 2026-11-27**: attrition is a percentage as it stands - a terrain's `attrition = 2` is 2% a month, a technology's `attrition = -1` a point less, and the day takes the figure times a hundredth of a brigade's strength over thirty (`upkeep.md`) - so the original's plain figure with a `%` is right, and `shown_figures` wrote a hundred times it from 2026-11-25 until then, a level of BlackICE's mountain training as -150%. Found when the technology's text was to be given the same hundredfold. **The second half is mended by the fix `shown_figures`, 2026-11-27**: the designer's terrain summary counts the ground's own attrition in its line, as its attack and defence. `builders.md`; `brigadecard.md`, 6. *Display.*
 - ✅ **The positioning penalty lacks its hundredfold.** **Mended by the fix `shown_figures`, 2026-11-25.** `reorganise.md`, 7. *Display.*
 - ✅ **Tooltips can leave the screen** at the left or top. **Mended by the fix `tooltips_on_screen`, 2026-11-25.** `tooltips.md`, oddity 2. *Oversight.*
 - ❌ **The air map misses updates,** and a count of 128 battles hides the icon. `airmap.md`, oddities 1 and 2. *Bug.*
