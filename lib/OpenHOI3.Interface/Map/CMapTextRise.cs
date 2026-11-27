@@ -29,10 +29,19 @@ public sealed class CMapTextRise
 	/// <summary>Its height has passed the most: it is taken away, and not drawn that frame.</summary>
 	public bool Done { get; private set; }
 
+	/// <summary>The frames a second the original's count is taken to be of, where the fix counts by time.</summary>
+	public const float FramesASecond = 60f;
+
 	/// <summary>A frame: the game's speed, nought to four, and one more of its time.</summary>
-	public void Advance(int gameSpeed)
+	/// <param name="frames">
+	/// How many frames this one counts for: one in the original, whatever the machine. An enhanced game's fix
+	/// <c>map_text_by_time</c> passes the frame's seconds by <see cref="FramesASecond"/>, so that a text lives as long on
+	/// every machine as the original's does at sixty frames a second - 3.3 seconds at the slowest speed, 0.67 at the
+	/// fastest.
+	/// </param>
+	public void Advance(int gameSpeed, float frames = 1f)
 	{
-		Time += gameSpeed + 1f;
+		Time += (gameSpeed + 1f) * frames;
 		Height = _speed * MaxHeight * Time;
 		if (Height > MaxHeight)
 		{

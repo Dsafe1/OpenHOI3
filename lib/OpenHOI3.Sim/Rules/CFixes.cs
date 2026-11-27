@@ -54,6 +54,7 @@ public static class CFixes
 		(EFix.AmphibiousDefence, "amphibious_defence"),
 		(EFix.SouthernSeasons, "southern_seasons"),
 		(EFix.AirDefenceCounts, "air_defence_counts"),
+		(EFix.MapTextByTime, "map_text_by_time"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

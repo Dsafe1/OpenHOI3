@@ -31,6 +31,32 @@ public class MapTextTests
 	}
 
 	[Fact]
+	public void AnEnhancedGamesTextLivesByTheSecondWhateverTheFramesAre()
+	{
+		// The same 3.33 seconds at the slowest speed, drawn at thirty frames a second or at a hundred and twenty.
+		float Seconds(int gameSpeed, float framesASecond)
+		{
+			var rise = new CMapTextRise(0.005f);
+			int drawn = 0;
+			while (true)
+			{
+				rise.Advance(gameSpeed, CMapTextRise.FramesASecond / framesASecond);
+				if (rise.Done)
+				{
+					return drawn / framesASecond;
+				}
+				drawn++;
+			}
+		}
+
+		Assert.Equal(200 / 60f, Seconds(0, 30f), 1);
+		Assert.Equal(200 / 60f, Seconds(0, 120f), 1);
+		Assert.Equal(200 / 60f, Seconds(0, 60f), 1);
+		// And still shorter the faster the game runs, as the original's.
+		Assert.Equal(40 / 60f, Seconds(4, 120f), 1);
+	}
+
+	[Fact]
 	public void ItIsWholeForThreeQuartersOfItsRiseThenFadesAndGrowsToTwiceItsSize()
 	{
 		var rise = new CMapTextRise(0.005f);

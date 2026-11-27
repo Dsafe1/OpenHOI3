@@ -281,4 +281,11 @@ public enum EFix
 	/// original works the defence out and reads it nowhere (<c>docs/mechanics/aircombat.md</c>, section 8).
 	/// </summary>
 	AirDefenceCounts,
+
+	/// <summary>
+	/// A message's text on the map lives by the second and not by the frame: as long on every machine as the original's
+	/// at sixty frames a second, and still shorter the faster the game runs (<c>docs/mechanics/messages.md</c>, section
+	/// 6). Display only.
+	/// </summary>
+	MapTextByTime,
 }

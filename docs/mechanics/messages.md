@@ -163,7 +163,11 @@ struck through was written off the wrong file). The player's "Show on map" in a 
   block's colour and not the font's own.
 - **Its life is counted in frames** [exe]: each frame its time grows by the game's speed, nought to four, and one -
   the clock running or paused - its height is `speed x 2 x time`, and it is gone the frame its height passes 2:
-  drawn 200 frames at the slowest speed, 100, 66, 50, and 40 at the fastest.
+  drawn 200 frames at the slowest speed, 100, 66, 50, and 40 at the fastest. **An enhanced game's fix
+  `map_text_by_time`** (2026-11-27): each frame counts for its own length, a sixtieth of a second being one - so a
+  text lives 3.3 seconds at the slowest speed down to 0.67 at the fastest on every machine, as the original's does at
+  sixty frames a second. It still ages while paused, and still faster the faster the game runs. Built on the user's
+  word of that day, over his earlier one of 2026-11-25 that kept the timed texts by the frame.
 - **Drawn** [exe]: 3 world units up for each unit of height, so six in all; whole for three quarters of the rise,
   then fading evenly to nothing while it grows from its size to twice it; a font pixel is 0.05 world units, half a
   map pixel to the world unit, so it is sized in the world and grows with the zoom; it faces the screen and nothing

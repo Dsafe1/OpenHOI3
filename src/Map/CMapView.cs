@@ -242,7 +242,11 @@ public partial class CMapView : Node2D
 		_names.Setup(_map, _state, gui.Fonts);
 		_provinceNames = new CProvinceNames { Name = "ProvinceNames" };
 		_provinceNames.Setup(_map, _state, gui.Fonts);
-		_mapTexts = new CMapTexts { Name = "MapTexts", GameSpeed = () => MapTextSpeed() };
+		_mapTexts = new CMapTexts
+		{
+			Name = "MapTexts", GameSpeed = () => MapTextSpeed(),
+			ByTime = () => _state.Rules.Has(Sim.Rules.EFix.MapTextByTime),
+		};
 		_mapTexts.Setup(_map, gui.Fonts, CAnimatedMapTextTypes.Load(directories));
 		_projectionTypes = CProjectionTypes.Load(directories);
 	}

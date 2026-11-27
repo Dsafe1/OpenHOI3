@@ -328,6 +328,9 @@ Begun 2026-11-21; as of 2026-11-25.
     it, is whole, each avoided at `OPENHOI_AIR_CHANCE_TO_AVOID_HIT` - the land's `BASE_CHANCE_TO_AVOID_HIT` where a
     mod gives none - and no draw is added (`mechanics/aircombat.md`, section 8). Changes every air battle; BlackICE
     starts with it under `without`.
+  - ✅ `map_text_by_time`: a message's text on the map lives by the second, as long on every machine as the original's
+    at sixty frames a second - 3.3 seconds at the slowest speed, 0.67 at the fastest (`mechanics/messages.md`,
+    section 6). Display only.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -805,7 +808,7 @@ All of these are risk-free but for what the entry says.
 
 - ❌ **F12's picture of the map shows every province's true controller**, whatever the player knows and with the fog of war on, in a game between machines too - and with Shift every player's land. `screenshots.md`, 3. *Oversight.* Not risk-free between machines: a switch would be the host's.
 - ❌ **The two pictures' notices and the wait between two pictures are counted in frames**, fifteen and ten, so both hang on the frame rate. `screenshots.md`, 1. *Oversight.*
-- ❌ **A message's text on the map lives by frames, not time**: its time grows by the game's speed and one each drawn frame, paused or not, so it is shorter on a faster machine. `messages.md`, 6. *Oversight.*
+- ✅ **A message's text on the map lives by frames, not time** **Mended by the fix `map_text_by_time`, 2026-11-27.**: its time grows by the game's speed and one each drawn frame, paused or not, so it is shorter on a faster machine. `messages.md`, 6. *Oversight.*
 - ❌ **A bombing's end has no short account of its damage.** `DAMAGE_SHORT` is given the whole text `DAMAGE` has; the original makes a one-line copy for it and hands over the long one. `messages.md`, 9.2. *Bug.*
 - ❌ **A land battle's message says nothing of exhaustion.** `OUREXHAUSTION` and `ENEMYEXHAUSTION` are one constant text, a nought, whatever happened. `messages.md`, 9.1. *Dead rule.*
 - ❌ **A long text on the map is measured in lines and drawn in one row**, starting half its widest line left of its point and running off to the right. `messages.md`, 6. *Bug.*

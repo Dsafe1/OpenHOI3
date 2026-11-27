@@ -36,6 +36,9 @@ public partial class CMapTexts : Node2D
 	/// <summary>The game's speed, nought to four: what a frame adds to every text's time, and one.</summary>
 	public Func<int> GameSpeed { get; set; } = () => 0;
 
+	/// <summary>Whether a text's life is counted in seconds and not in frames: an enhanced game's fix map_text_by_time.</summary>
+	public Func<bool> ByTime { get; set; } = () => false;
+
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	public void Setup(CMap map, CGuiFonts fonts, CAnimatedMapTextTypes types)
 	{
@@ -71,9 +74,11 @@ public partial class CMapTexts : Node2D
 			return;
 		}
 		int speed = GameSpeed();
+		// An enhanced game's fix map_text_by_time: the frame counts for its own length, a sixtieth of a second being one.
+		float frames = ByTime() ? (float)GetProcessDeltaTime() * CMapTextRise.FramesASecond : 1f;
 		foreach (Shown text in _texts)
 		{
-			text.Rise.Advance(speed);
+			text.Rise.Advance(speed, frames);
 		}
 		_texts.RemoveAll(text => text.Rise.Done);
 		QueueRedraw();
