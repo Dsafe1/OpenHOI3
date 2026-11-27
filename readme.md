@@ -64,8 +64,10 @@ the base game does.
 ## What you need
 
 - **Hearts of Iron 3: Their Finest Hour**, a legitimate copy, installed.
-- **Windows.** It is developed and tested there; the Lua interpreter is built with the Visual Studio
-  C++ tools.
+- **Windows 10 or later, 64-bit.** It is developed and tested there; the Lua interpreter is built with the
+  Visual Studio C++ tools. Windows 7 and 8 cannot start it - the Godot 4.7 it runs on needs Windows 8.1's
+  system libraries - and .NET 8 does not support 8.1 either. Any graphics card with Direct3D 12, Vulkan or OpenGL 3.3
+  will do - Godot tries them in that order, and over Direct3D 11 as a last resort.
 - To build it: **Godot 4.7.1 .NET** (the plain build cannot run C#), the **.NET SDK 9.x** and the
   **Visual Studio C++ build tools**. The projects target `net8.0`, which an SDK 9 builds fine.
 

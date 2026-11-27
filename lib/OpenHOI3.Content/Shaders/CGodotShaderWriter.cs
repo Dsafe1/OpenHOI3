@@ -451,7 +451,9 @@ public sealed class CGodotShaderWriter
 	/// <summary>
 	/// Helpers every translation carries: HLSL's <c>fmod</c>, which keeps the sign of the dividend where Godot's
 	/// <c>mod</c> keeps the divisor's, and the conversion of a colour from the gamma space Direct3D 9 draws in to the
-	/// linear space Godot's 3D draws in.
+	/// linear space Godot's 3D draws in - under the Forward+ and Mobile renderers. The Compatibility renderer, OpenGL 3,
+	/// which a machine with neither Direct3D 12 nor Vulkan falls back to, does not convert its output to sRGB, so there the
+	/// colour is written as it is, in gamma space as Direct3D 9 draws (<c>docs/mechanics/shaders.md</c>, item 9).
 	/// </summary>
 	private const string Helpers =
 		"float fx_fmod(float a, float b) { return a - b * trunc(a / b); }\n" +
@@ -460,7 +462,11 @@ public sealed class CGodotShaderWriter
 		"vec4 fx_fmod4(vec4 a, vec4 b) { return a - b * trunc(a / b); }\n" +
 		"vec3 fx_to_linear(vec3 c) {\n" +
 		"\tc = clamp(c, vec3(0.0), vec3(1.0));\n" +
+		"#if CURRENT_RENDERER == RENDERER_COMPATIBILITY\n" +
+		"\treturn c;\n" +
+		"#else\n" +
 		"\treturn mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), c));\n" +
+		"#endif\n" +
 		"}\n\n";
 
 	private void WriteGlobals(StringBuilder code, HashSet<string> names, List<CShaderUniform> uniforms)

@@ -110,6 +110,14 @@ translated.
    textures are sampled as they are (no `source_color`), and the colour written is converted from sRGB to linear
    (`fx_to_linear`), which the renderer's own conversion undoes. Blending happens in linear space here and in gamma space
    in the original - a difference for blended passes, not yet measured.
+   **Under the Compatibility renderer the colour is written as it is**: that renderer - OpenGL 3, natively or through
+   ANGLE over Direct3D 11 - does not convert its output to sRGB, so `fx_to_linear` is the identity there
+   (`#if CURRENT_RENDERER == RENDERER_COMPATIBILITY`), and its blending is in gamma space as the original's. Godot falls
+   back to it by itself on a machine with neither Direct3D 12 nor Vulkan - D3D12, then Vulkan, then native OpenGL, then
+   ANGLE, every `fallback_to_*` project setting at its default of on, and ANGLE linked into the official export
+   template, so no file ships for it. Seen 2026-11-27, `--rendering-method gl_compatibility` with `--rendering-driver
+   opengl3` and `opengl3_angle`: before the change the surface came out near black (the conversion never undone);
+   after it the far and near views as the default renderer's, but for the sea zones' borders a shade stronger.
 
 10. **The canvas** (`EShaderTarget.Canvas`), for the interface: Godot's 2D renderer places the element, so the effect's
     vertex shader runs for what else it gives - its texture coordinates, `buttonstate.fx`'s frame offset - its position

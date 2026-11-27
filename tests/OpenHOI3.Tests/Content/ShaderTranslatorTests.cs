@@ -134,6 +134,8 @@ technique t { pass p { PixelShader = compile ps_2_0 PS(); } }");
 		// The colour written into Godot's linear space, with no alpha where the pass does not blend.
 		Assert.Contains("ALBEDO = fx_to_linear(fx_colour.rgb);", shader.Code);
 		Assert.DoesNotContain("ALPHA =", shader.Code);
+		// Converted only where the renderer converts back: the Compatibility renderer, OpenGL, writes it as it is.
+		Assert.Contains("#if CURRENT_RENDERER == RENDERER_COMPATIBILITY\n\treturn c;\n#else\n", shader.Code);
 	}
 
 	[Fact]
