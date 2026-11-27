@@ -133,6 +133,13 @@ public class TopBarTooltipTests
 			+ "§G+3.00§W sent to master.\n"
 			+ "\n",
 			For(state, germany, "money_number").Text);
+
+		// An enhanced game's fix shown_figures writes it as the loss it is.
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		Assert.Contains("§R-3.00§W sent to master.\n", For(state, germany, "money_number").Text);
+		Assert.DoesNotContain("§G+3.00§W sent to master.", For(state, germany, "money_number").Text);
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(new[] { OpenHOI3.Sim.Rules.EFix.ShownFigures }));
+		Assert.Contains("§G+3.00§W sent to master.\n", For(state, germany, "money_number").Text);
 	}
 
 	[Fact]

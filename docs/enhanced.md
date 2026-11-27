@@ -285,6 +285,8 @@ Begun 2026-11-21; as of 2026-11-25.
     the way, drawing nothing, so that one cut short still leaves a delay, and draws it once, as the unit arrives - the
     same whole delay on arrival for one draw, where the original draws every hour of the way
     (`mechanics/landorders.md`, section 8). Fewer draws, so every later roll of the game falls otherwise.
+  - ✅ `shown_figures`: added to it - the ledger tooltip's tribute sent to a master is written red and below nought, as
+    the loss it is (`mechanics/topbar.md`, section 14). Display only.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -797,7 +799,7 @@ All of these are risk-free but for what the entry says.
 - ❌ **Only the wheel's sign counts, one notch a frame.** A quick turn is one notch. `reversing/findings/FINDINGS-camerazoom.md`, 1. *Oversight.*
 
 - ❌ **Influence's colour never reaches the screen.** `topbar.md`, 7. *Bug.*
-- ❌ **Tribute sent to a master shows green with a plus.** `topbar.md`, 14. *Display.*
+- ✅ **Tribute sent to a master shows green with a plus.** **Mended by the fix `shown_figures`, 2026-11-27.** `topbar.md`, 14. *Display.*
 - ❌ **What governments in exile hand over has no line in a resource's tooltip.** The change at its head counts their supplies and fuel, and no line under it says where they came from, so the lines do not add up to the change. `topbar.md`, 14. *Display.*
 - ❌ **The top bar's and the country screens' pictures are set once, as the game is entered**, so a played country changed in play - the console's `tag` - keeps the first one's: the bar's `topbar_TAG` and the six screens' `country_bg_TAG` over another country's name and figures. Built so since 2026-11-15 (`CSessionCarry.EnteredAs`). The enhanced engine would give them again with the country. `topbar.md`, 1; `console.md`, 3. *Oversight.*
 - ❌ **The technology screen's sliders take the production screen's locks:** it reads the first four entries of the production screen's mirror for its own four - research locked where upgrades were - and never writes it, so its own locks last only while the screen stands. `sliders.md`, 3. *Bug.*

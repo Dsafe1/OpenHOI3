@@ -231,7 +231,8 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 		{
 			if (window.TryFindElement(name) is { } element)
 			{
-				element.Tooltip = () => CProductionTooltips.For(localise, Player, name);
+				element.Tooltip = () => CProductionTooltips.For(localise, Player, name,
+					Simulation.State.Rules.Has(Sim.Rules.EFix.ShownFigures));
 			}
 		}
 

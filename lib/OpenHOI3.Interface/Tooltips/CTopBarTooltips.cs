@@ -100,7 +100,7 @@ public static class CTopBarTooltips
 		{
 			// A government in exile's supplies and fuel, shown as a dash, say nothing.
 			return country.InExile && goods is EGoods.Supplies or EGoods.Fuel ? CTooltip.Empty
-				: new CTooltip { Text = Ledger(localise, country, goods) };
+				: new CTooltip { Text = Ledger(localise, country, goods, state.Rules.Has(OpenHOI3.Sim.Rules.EFix.ShownFigures)) };
 		}
 		return element.ToLowerInvariant() switch
 		{
@@ -119,7 +119,11 @@ public static class CTopBarTooltips
 	/// A good's day: what it changed by, a line for each thing that moved it, and the
 	/// sources of its global modifier.
 	/// </summary>
-	public static string Ledger(Func<string, string> localise, CCountry country, EGoods goods)
+	/// <param name="tributeAsLoss">
+	/// An enhanced game's fix <c>shown_figures</c>: tribute sent to a master is written red and below nought, as the
+	/// loss it is, where the original writes it green with a plus.
+	/// </param>
+	public static string Ledger(Func<string, string> localise, CCountry country, EGoods goods, bool tributeAsLoss = false)
 	{
 		CFixedPoint convoyedIn = ConvoyedIn(country, goods);
 		CFixedPoint change = DayChange(country, goods);
@@ -138,7 +142,11 @@ public static class CTopBarTooltips
 		Loss(text, localise, "RES_REPAID_AWAY", goods == EGoods.Money ? country.RepaidAway : CFixedPoint.Zero);
 		Loss(text, localise, "RES_CONVOYED_OUT", country.ConvoyedOut[goods]);
 		// Tribute sent is held below nought and written green with a plus though it is a loss - the original's.
-		if (country.TributeSent[goods].Raw < 0)
+		if (tributeAsLoss)
+		{
+			Loss(text, localise, "RES_SENT_TO_MASTER", -country.TributeSent[goods]);
+		}
+		else if (country.TributeSent[goods].Raw < 0)
 		{
 			text.Append(Line(localise, "RES_SENT_TO_MASTER", GreenPlus + CNumberText.Format(-country.TributeSent[goods], 2)));
 		}

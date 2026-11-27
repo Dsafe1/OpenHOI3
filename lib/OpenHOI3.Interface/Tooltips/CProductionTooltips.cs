@@ -52,13 +52,14 @@ public static class CProductionTooltips
 	}
 
 	/// <summary>The tooltip of an element of <see cref="Elements"/>, or an empty one.</summary>
-	public static CTooltip For(Func<string, string> localise, CCountry country, string element)
+	/// <param name="tributeAsLoss">The top bar's ledger's, an enhanced game's fix <c>shown_figures</c>.</param>
+	public static CTooltip For(Func<string, string> localise, CCountry country, string element, bool tributeAsLoss = false)
 	{
 		int cut = element.LastIndexOf('_');
 		if (cut > 0 && Ledgers.TryGetValue(element[..cut], out EGoods goods)
 			&& element[(cut + 1)..] is "icon" or "label" or "value")
 		{
-			return new CTooltip { Text = CTopBarTooltips.Ledger(localise, country, goods) };
+			return new CTooltip { Text = CTopBarTooltips.Ledger(localise, country, goods, tributeAsLoss) };
 		}
 		return element.ToLowerInvariant() switch
 		{

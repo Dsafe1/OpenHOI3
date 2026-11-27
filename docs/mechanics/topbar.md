@@ -265,7 +265,8 @@ then one line for each of these that is not nothing, in this order, each its key
 `RES_TRADED_FOR`, `RES_INC_DEBT`, `RES_FROM_PUPPETS` (each `§G+`), `RES_CONVERTED` twice - first
 what converting used, negated, `§R`; then what it made, `§G+` - `RES_TRADED_AWAY`,
 `RES_REPAID_AWAY`, `RES_CONVOYED_OUT` (each `§R` and negated), `RES_SENT_TO_MASTER` (**`§G+` and
-negated, green though it is a loss**), `RES_INTO_NET` and `RES_USED` (`§R`, negated),
+negated, green though it is a loss** - `§R` and below nought under an enhanced game's fix `shown_figures`,
+2026-11-27), `RES_INTO_NET` and `RES_USED` (`§R`, negated),
 `RES_SHIPPED_BACK` (`§G+`). **What governments in exile hand over is in the change and has no line of
 its own.** Each key ends in its own newline. Last, a newline and the sources
 of the good's global kind - `global_energy`, `global_metal`, `global_rare_materials`,
