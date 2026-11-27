@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
@@ -170,13 +171,35 @@ public static class CAiCombatModel
 	/// </summary>
 	private static long Crowding(CGameState state, CCountry owner, CUnit unit, long n)
 	{
+		long raw = RawCrowding(state, n) - owner.Technology[CCombatModifiers.FreeStacking].Raw - CCombatModifiers.TheatreSkill(unit) * 10;
+		return raw > 0 ? raw : 0;
+	}
+
+	/// <summary>The crowding of n brigades before anything of a unit's own comes off it.</summary>
+	private static long RawCrowding(CGameState state, long n)
+	{
 		long each = Scale + state.Defines[CManpower.MilitarySection, CPositionCap.BaseStackingPenalty].Raw;
 		long left = Scale;
 		for (long counted = 1; counted < n && counted <= MostCrowd; counted++)
 		{
 			left = left * each / Scale;
 		}
-		long raw = Scale - left - owner.Technology[CCombatModifiers.FreeStacking].Raw - CCombatModifiers.TheatreSkill(unit) * 10;
-		return raw > 0 ? raw : 0;
+		return Scale - left;
+	}
+
+	/// <summary>
+	/// What the battle the AI weighs would hold for every unit of one side, for the defence product of a unit no battle
+	/// has worked out (an enhanced game's fix <c>ai_odds_fresh_defence</c>, <c>docs/mechanics/moving.md</c>, section
+	/// 11.4): the provinces the attackers stand in, the side's crowding as the AI counts it - brigades over three a
+	/// province for the attackers, and for the defenders what <see cref="Defence"/> is handed, held to a hundred - the
+	/// night and the cut-off land over the target, what enemy fleets beside it do to the side, and whether an attacker
+	/// stands at sea.
+	/// </summary>
+	public static CCombatModifiers.Setting Setting(CGameState state, IReadOnlyList<CUnit> side, bool attacking, CProvince target,
+		long crowd, int attackersProvinces, bool fromTheSea)
+	{
+		long n = attacking ? crowd - PerProvince * attackersProvinces : System.Math.Min(crowd, 100);
+		return new CCombatModifiers.Setting(attackersProvinces, RawCrowding(state, n), CDaylight.IsNight(state, target),
+			CCombatModifiers.IsIsolatedLand(state, target), CCombatModifiers.ShoreBombardment(state, target, side), fromTheSea);
 	}
 }

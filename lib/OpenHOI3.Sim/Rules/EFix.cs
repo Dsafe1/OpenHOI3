@@ -325,4 +325,12 @@ public enum EFix
 	/// (docs/mechanics/moving.md, section 9.1; transport.md, section 13.3).
 	/// </summary>
 	PlanePassengerMarch,
+
+	/// <summary>
+	/// The AI's odds of an attack count the toughness of a unit no battle is working out by the defence product the
+	/// battle weighed would give it, made as the odds are asked; the original reads the product the unit's last battle
+	/// hour left - nought for a unit that has never fought or was just loaded, stale for one whose battle is over. A
+	/// unit in a battle keeps the battle's (docs/mechanics/moving.md, section 11.4).
+	/// </summary>
+	AiOddsFreshDefence,
 }

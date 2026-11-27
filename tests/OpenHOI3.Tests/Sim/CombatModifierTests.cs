@@ -303,6 +303,39 @@ public class CombatModifierTests
 	}
 
 	[Fact]
+	public void TheDefenceProductAskedForABattleNotFoughtIsTheOneTheBattleGivesAndTouchesNothing()
+	{
+		var hills = new CTerrain("hills", isWater: false, default)
+		{
+			Attack = CFixedPoint.Parse("-0.3"), Defence = CFixedPoint.Parse("0.1"),
+		};
+		CGameState state = State(out CCountry germany, out CCountry poland, hills, berlinToPosen: EProvinceEdgeKind.River);
+		germany.Dissent = CFixedPoint.FromInt(5);
+		CUnit attacker = Division(state, germany, Berlin);
+		CUnit defender = Division(state, poland, Posen);
+		Adjust(defender, "hills", CCombatModifiers.DefenceOf, "0.05");
+		defender.DigIn = CFixedPoint.FromInt(4);
+		attacker.SuppliesReceived = CFixedPoint.Parse("0.5");
+		CProvince posen = state.Province(Posen);
+
+		// Asked before any battle: nothing on either unit is made or changed.
+		var setting = new CCombatModifiers.Setting(Directions: 1, Stacking: 0, IsNight: false, IsCutOff: false, Shore: 0, FromTheSea: false);
+		long attackers = CCombatModifiers.DefenceProduct(state, posen, attacker, isAttacker: true, setting);
+		long defenders = CCombatModifiers.DefenceProduct(state, posen, defender, isAttacker: false, setting);
+		Assert.False(attacker.HasCombatProducts);
+		Assert.Empty(attacker.CombatModifiers);
+		Assert.Empty(defender.CombatModifiers);
+		Assert.Equal(CFixedPoint.One, attacker.CombatDefence);
+
+		// The battle, at noon, gives each the same.
+		Battle(state, attacker, defender, Noon);
+		Assert.NotEqual(CFixedPoint.One, attacker.CombatDefence);
+		Assert.NotEqual(CFixedPoint.One, defender.CombatDefence);
+		Assert.Equal(attacker.CombatDefence.Raw, attackers);
+		Assert.Equal(defender.CombatDefence.Raw, defenders);
+	}
+
+	[Fact]
 	public void ABrokenSupportBrigadeTakesItsShareOfTheGroundAwayAndStillDividesIt()
 	{
 		var hills = new CTerrain("hills", isWater: false, default) { Defence = CFixedPoint.Zero };

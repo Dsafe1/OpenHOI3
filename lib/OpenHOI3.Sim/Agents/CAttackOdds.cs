@@ -49,9 +49,9 @@ public static class CAttackOdds
 			theirBrigades += unit.SubUnits.Count;
 			theirProvinces.Add(unit.Location);
 		}
-		Side(state, ours, attacking: true, target, followCombats, ourBrigades, provinces.Count,
+		Side(state, ours, ours, attacking: true, target, followCombats, ourBrigades, provinces.Count,
 			out long softOurs, out long hardOurs, out long softnessOurs, out long toughOurs, out _);
-		Side(state, theirs, attacking: false, target, followCombats, theirBrigades - 3 * provinces.Count, provinces.Count,
+		Side(state, theirs, ours, attacking: false, target, followCombats, theirBrigades - 3 * provinces.Count, provinces.Count,
 			out long softTheirs, out long hardTheirs, out long softnessTheirs, out long toughTheirs, out bool theirsNotANumber);
 		long theirDamage = (Scale - toughOurs / 100) * (softTheirs * softnessOurs + hardTheirs * (Scale - softnessOurs)) / Scale / Scale;
 		long ourDamage = (Scale - toughTheirs / 100) * (softOurs * softnessTheirs + hardOurs * (Scale - softnessTheirs)) / Scale / Scale;
@@ -65,14 +65,19 @@ public static class CAttackOdds
 	}
 
 	/// <summary>One side's soft and hard attack, mean softness and mean toughness (defensiveness for defenders), in thousandths.</summary>
-	private static void Side(CGameState state, IReadOnlyList<CUnit> units, bool attacking, CProvince target, bool followCombats,
-		long crowd, int enemyProvinces, out long soft, out long hard, out long softness, out long tough, out bool notANumber)
+	private static void Side(CGameState state, IReadOnlyList<CUnit> units, IReadOnlyList<CUnit> attackers, bool attacking,
+		CProvince target, bool followCombats, long crowd, int enemyProvinces, out long soft, out long hard, out long softness,
+		out long tough, out bool notANumber)
 	{
 		soft = 0;
 		hard = 0;
 		softness = 0;
 		tough = 0;
 		notANumber = false;
+		// An enhanced game's fix ai_odds_fresh_defence: a unit no battle is working out has its defence product made here,
+		// for the battle weighed, where the original reads what its last battle left - nought before its first.
+		bool fresh = state.Rules.Has(Rules.EFix.AiOddsFreshDefence);
+		CCombatModifiers.Setting? setting = null;
 		foreach (CUnit unit in units)
 		{
 			long engagement = attacking ? Pinned(unit, followCombats) : Elsewhere(state, unit, target, followCombats);
@@ -93,9 +98,16 @@ public static class CAttackOdds
 			softness += CUnitTotals.AverageSoftness(unit).Raw;
 			// A unit no battle has worked out yet has defence products of nought, and so counts no toughness at all;
 			// one whose battle is over keeps its last hour's.
-			if (unit.HasCombatProducts)
+			string kind = attacking ? CSubUnitStats.Toughness : CUnitTotals.Defensiveness;
+			if (fresh && !(unit.HasCombatProducts && unit.Combats.Count > 0))
 			{
-				string kind = attacking ? CSubUnitStats.Toughness : CUnitTotals.Defensiveness;
+				setting ??= CAiCombatModel.Setting(state, units, attacking, target, crowd, enemyProvinces,
+					!attacking && CCombatModifiers.FromTheSea(state, attackers));
+				long product = CCombatModifiers.DefenceProduct(state, target, unit, attacking, setting.Value);
+				tough += CUnitTotals.Sum(unit, kind).Raw * product / Scale * unit.LandingDefence.Raw / Scale;
+			}
+			else if (unit.HasCombatProducts)
+			{
 				tough += CUnitTotals.Sum(unit, kind).Raw * unit.CombatDefence.Raw / Scale * unit.LandingDefence.Raw / Scale;
 			}
 		}

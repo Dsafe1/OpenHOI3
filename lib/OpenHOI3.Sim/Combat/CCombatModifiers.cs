@@ -75,15 +75,43 @@ public static class CCombatModifiers
 	/// <summary>A defender attacked from more directions than this is enveloped.</summary>
 	private const int DirectionsBeforeEnvelopment = 2;
 
+	/// <summary>
+	/// What a battle's hour holds for every unit of a side alike, worked out once for the side: how many provinces the
+	/// attackers come from, the side's crowding before anything of a unit's own comes off it, the night and whether the
+	/// province is cut off, what enemy fleets beside it do to the side, and whether an attacker comes from the sea.
+	/// </summary>
+	public readonly record struct Setting(int Directions, long Stacking, bool IsNight, bool IsCutOff, long Shore, bool FromTheSea);
+
+	/// <summary>What the terms of one unit's hour are put on: its list, where one is kept, and the two products.</summary>
+	private sealed class CTerms
+	{
+		private readonly List<CCombatModifier>? _list;
+
+		public CTerms(List<CCombatModifier>? list)
+		{
+			_list = list;
+		}
+
+		public long Attack { get; private set; } = CFixedPoint.Scale;
+
+		public long Defence { get; private set; } = CFixedPoint.Scale;
+
+		/// <summary>Puts one thing on the list and multiplies it into what the unit fights with.</summary>
+		public void Add(ECombatModifier kind, long attack, long defence)
+		{
+			_list?.Add(new CCombatModifier(kind, new CFixedPoint(attack), new CFixedPoint(defence)));
+			Attack = Math.Max(attack + CFixedPoint.Scale, LeastFactor) * Attack / CFixedPoint.Scale;
+			Defence = Defence * Math.Max(defence + CFixedPoint.Scale, LeastFactor) / CFixedPoint.Scale;
+		}
+	}
+
 	public static void Apply(CGameState state, CCombat combat, CCombatSide side)
 	{
 		CProvince province = state.Province(combat.Province);
 		int directions = Directions(combat);
-		long stacking = Stacking(state, side, directions);
-		bool isNight = CDaylight.IsNight(state, province);
-		bool isCutOff = IsIsolatedLand(state, province);
-		long shore = ShoreBombardment(state, province, side);
-		CDefines defines = state.Defines;
+		var setting = new Setting(directions, Stacking(state, side, directions), CDaylight.IsNight(state, province),
+			IsIsolatedLand(state, province), ShoreBombardment(state, province, side),
+			!side.IsAttacker && state.Rules.Has(Rules.EFix.TraitFortDefence) && FromTheSea(state, combat.Attacker.Units));
 
 		foreach (CUnit unit in side.Units)
 		{
@@ -98,133 +126,173 @@ public static class CCombatModifiers
 			{
 				continue;
 			}
+			var terms = new CTerms(unit.CombatModifiers);
+			Terms(state, province, unit, owner, side.IsAttacker, setting, terms);
+			unit.CombatAttack = new CFixedPoint(terms.Attack);
+			unit.CombatDefence = new CFixedPoint(terms.Defence);
+		}
+	}
 
-			if (side.IsAttacker)
-			{
-				Assault(state, province, unit);
-			}
-			else if (state.Rules.Has(Rules.EFix.TraitFortDefence))
-			{
-				FortDefence(state, province, combat, unit);
-			}
+	/// <summary>
+	/// The defence product a battle's hour over a province would give a unit, with nothing of the unit touched: every
+	/// term <see cref="Apply"/> gives it, multiplied as there. For the AI's odds of a battle not yet fought, under an
+	/// enhanced game's fix <c>ai_odds_fresh_defence</c> (<c>docs/mechanics/moving.md</c>, section 11.4). One for a unit
+	/// whose figures are nobody's.
+	/// </summary>
+	public static long DefenceProduct(CGameState state, CProvince province, CUnit unit, bool isAttacker, Setting setting)
+	{
+		if (state.Country(unit.FiguresOwner) is not { } owner)
+		{
+			return CFixedPoint.Scale;
+		}
+		var terms = new CTerms(null);
+		Terms(state, province, unit, owner, isAttacker, setting, terms);
+		return terms.Defence;
+	}
 
-			if (shore != 0)
+	/// <summary>Whether any of the units stands at sea: an attack from there meets the coastal fort.</summary>
+	public static bool FromTheSea(CGameState state, IReadOnlyList<CUnit> attackers)
+	{
+		foreach (CUnit attacker in attackers)
+		{
+			if (attacker.Location > 0 && state.Province(attacker.Location).IsSea)
 			{
-				Add(unit, ECombatModifier.ShoreBombardment, shore);
+				return true;
 			}
+		}
+		return false;
+	}
 
-			if (!side.IsAttacker && unit.Combats.Count > 1)
+	/// <summary>Every term of one unit's hour, in the battle's order. It reads the unit and changes nothing of it.</summary>
+	private static void Terms(CGameState state, CProvince province, CUnit unit, CCountry owner, bool isAttacker,
+		Setting setting, CTerms terms)
+	{
+		CDefines defines = state.Defines;
+		if (isAttacker)
+		{
+			Assault(state, province, unit, terms);
+		}
+		else if (state.Rules.Has(Rules.EFix.TraitFortDefence))
+		{
+			FortDefence(state, province, setting.FromTheSea, unit, terms);
+		}
+
+		if (setting.Shore != 0)
+		{
+			Add(terms, ECombatModifier.ShoreBombardment, setting.Shore);
+		}
+
+		if (!isAttacker && unit.Combats.Count > 1)
+		{
+			Add(terms, ECombatModifier.MultipleCombats, -defines[CManpower.MilitarySection, MultipleCombatsPenalty].Raw);
+		}
+
+		// A played country's unit, by the difficulty (frontend.md, section 4).
+		long difficulty = Settings.CDifficulty.Combat(state, owner);
+		if (difficulty != 0)
+		{
+			Add(terms, ECombatModifier.Difficulty, difficulty);
+		}
+
+		// A tenth of a hundredth for each point of average experience.
+		long experience = CUnitTotals.AverageExperienceWithPride(state, unit).Raw * 10 / CFixedPoint.Scale;
+		if (experience != 0)
+		{
+			Add(terms, ECombatModifier.Experience, Scaled(experience, Trait(state, unit, ETraitEffect.ExperienceBonus)));
+		}
+
+		// How good the country is at the unit's order - a plain move counting on land, where at sea and in the air it does
+		// not (reversing/findings/FINDINGS-combatmods.md, BM_MISSION_EFFICIENCY; landcombat.md, section 4).
+		long mission = Missions.CMissionEfficiency.Of(state, owner, unit.Order);
+		if (mission != 0)
+		{
+			Add(terms, ECombatModifier.MissionEfficiency, mission);
+		}
+
+		long combinedArms = CombinedArms(state, owner, unit);
+		if (combinedArms != 0)
+		{
+			Add(terms, ECombatModifier.CombinedArms, combinedArms);
+		}
+
+		if (owner.Dissent != CFixedPoint.Zero)
+		{
+			long dissent = owner.Dissent.Raw * 10 / CFixedPoint.Scale;
+			dissent = defines[CManpower.MilitarySection, DissentImpact].Raw * dissent / CFixedPoint.Scale;
+			Add(terms, ECombatModifier.Dissent, -Scaled(dissent, Trait(state, unit, ETraitEffect.DissentImpact)));
+		}
+
+		// A dropped unit is spared the lack (transport.md, section 13.4).
+		if (unit.SuppliesReceived != CFixedPoint.One && !unit.WasParadropped)
+		{
+			long missing = CFixedPoint.Scale - unit.SuppliesReceived.Raw;
+			long lack = defines[CManpower.MilitarySection, SupplyLackImpact].Raw * missing / CFixedPoint.Scale;
+			Add(terms, ECombatModifier.LackOfSupplies, -Scaled(lack, Trait(state, unit, ETraitEffect.OutOfSupplyModifier)));
+		}
+
+		if (!isAttacker && unit.DigIn > CFixedPoint.Zero)
+		{
+			long dug = unit.DigIn.Raw * defines[CManpower.MilitarySection, DigInFactor].Raw / CFixedPoint.Scale;
+			Add(terms, ECombatModifier.DugIn, Scaled(dug, Trait(state, unit, ETraitEffect.DiginBonus)));
+		}
+
+		// The country's unit_cooperation comes off it, and the theatre's commander takes a hundredth off for each
+		// point of his skill, however far off he is (reversing/findings/FINDINGS-combatmods.md, BM_DIVISION_PENALTY).
+		long crowded = setting.Stacking - owner.Technology[FreeStacking].Raw - TheatreSkill(unit) * StackingPerSkill;
+		if (crowded > 0)
+		{
+			Add(terms, ECombatModifier.Stacking, -crowded);
+		}
+
+		if (province.Terrain is { } terrain)
+		{
+			string kind = isAttacker ? AttackOf : DefenceOf;
+			long ground = (isAttacker ? terrain.Attack : terrain.Defence).Raw
+				+ CUnitTotals.Adjuster(unit, terrain.Name, kind);
+			if (ground != 0)
 			{
-				Add(unit, ECombatModifier.MultipleCombats, -defines[CManpower.MilitarySection, MultipleCombatsPenalty].Raw);
+				Add(terms, ECombatModifier.Terrain, ground);
 			}
+		}
 
-			// A played country's unit, by the difficulty (frontend.md, section 4).
-			long difficulty = Settings.CDifficulty.Combat(state, owner);
-			if (difficulty != 0)
+		// The weather and the night are against a unit's attack and leave its defence alone.
+		long weather = CWeatherEffects.LandCombat(state, province.Weather, province.Terrain, owner);
+		if (weather != 0)
+		{
+			terms.Add(ECombatModifier.Weather, -weather, 0);
+		}
+
+		if (setting.IsNight)
+		{
+			long night = defines[CManpower.MilitarySection, NightPenalty].Raw
+				+ CUnitTotals.Adjuster(unit, NightAdjuster, AttackOf)
+				+ Trait(state, unit, ETraitEffect.NightAttack);
+			if (night < 0)
 			{
-				Add(unit, ECombatModifier.Difficulty, difficulty);
+				terms.Add(ECombatModifier.Night, night, 0);
 			}
+		}
 
-			// A tenth of a hundredth for each point of average experience.
-			long experience = CUnitTotals.AverageExperienceWithPride(state, unit).Raw * 10 / CFixedPoint.Scale;
-			if (experience != 0)
-			{
-				Add(unit, ECombatModifier.Experience, Scaled(experience, Trait(state, unit, ETraitEffect.ExperienceBonus)));
-			}
+		LeaderBonus(state, province, isAttacker, owner, unit, terms);
 
-			// How good the country is at the unit's order - a plain move counting on land, where at sea and in the air it does
-			// not (reversing/findings/FINDINGS-combatmods.md, BM_MISSION_EFFICIENCY; landcombat.md, section 4).
-			long mission = Missions.CMissionEfficiency.Of(state, owner, unit.Order);
-			if (mission != 0)
-			{
-				Add(unit, ECombatModifier.MissionEfficiency, mission);
-			}
+		if (!isAttacker && setting.Directions > DirectionsBeforeEnvelopment && !setting.IsCutOff)
+		{
+			long envelopment = (setting.Directions - DirectionsBeforeEnvelopment) * (long)CFixedPoint.Scale
+				* defines[CManpower.MilitarySection, EnvelopmentPenalty].Raw / CFixedPoint.Scale;
+			envelopment = Scaled(envelopment, Trait(state, unit, ETraitEffect.EnvelopmentBonus));
+			Add(terms, ECombatModifier.Envelopment, -Math.Max(envelopment, 0));
+		}
 
-			long combinedArms = CombinedArms(state, owner, unit);
-			if (combinedArms != 0)
-			{
-				Add(unit, ECombatModifier.CombinedArms, combinedArms);
-			}
+		if (!isAttacker && !province.IsSea && IsEncircled(state, province, unit.Owner))
+		{
+			long encircled = Scaled(defines[CManpower.MilitarySection, EncircledPenalty].Raw,
+				Trait(state, unit, ETraitEffect.EncirclementBonus));
+			Add(terms, ECombatModifier.Encirclement, -Math.Max(encircled, 0));
+		}
 
-			if (owner.Dissent != CFixedPoint.Zero)
-			{
-				long dissent = owner.Dissent.Raw * 10 / CFixedPoint.Scale;
-				dissent = defines[CManpower.MilitarySection, DissentImpact].Raw * dissent / CFixedPoint.Scale;
-				Add(unit, ECombatModifier.Dissent, -Scaled(dissent, Trait(state, unit, ETraitEffect.DissentImpact)));
-			}
-
-			// A dropped unit is spared the lack (transport.md, section 13.4).
-			if (unit.SuppliesReceived != CFixedPoint.One && !unit.WasParadropped)
-			{
-				long missing = CFixedPoint.Scale - unit.SuppliesReceived.Raw;
-				long lack = defines[CManpower.MilitarySection, SupplyLackImpact].Raw * missing / CFixedPoint.Scale;
-				Add(unit, ECombatModifier.LackOfSupplies, -Scaled(lack, Trait(state, unit, ETraitEffect.OutOfSupplyModifier)));
-			}
-
-			if (!side.IsAttacker && unit.DigIn > CFixedPoint.Zero)
-			{
-				long dug = unit.DigIn.Raw * defines[CManpower.MilitarySection, DigInFactor].Raw / CFixedPoint.Scale;
-				Add(unit, ECombatModifier.DugIn, Scaled(dug, Trait(state, unit, ETraitEffect.DiginBonus)));
-			}
-
-			// The country's unit_cooperation comes off it, and the theatre's commander takes a hundredth off for each
-			// point of his skill, however far off he is (reversing/findings/FINDINGS-combatmods.md, BM_DIVISION_PENALTY).
-			long crowded = stacking - owner.Technology[FreeStacking].Raw - TheatreSkill(unit) * StackingPerSkill;
-			if (crowded > 0)
-			{
-				Add(unit, ECombatModifier.Stacking, -crowded);
-			}
-
-			if (province.Terrain is { } terrain)
-			{
-				string kind = side.IsAttacker ? AttackOf : DefenceOf;
-				long ground = (side.IsAttacker ? terrain.Attack : terrain.Defence).Raw
-					+ CUnitTotals.Adjuster(unit, terrain.Name, kind);
-				if (ground != 0)
-				{
-					Add(unit, ECombatModifier.Terrain, ground);
-				}
-			}
-
-			// The weather and the night are against a unit's attack and leave its defence alone.
-			long weather = CWeatherEffects.LandCombat(state, province.Weather, province.Terrain, owner);
-			if (weather != 0)
-			{
-				Add(unit, ECombatModifier.Weather, -weather, 0);
-			}
-
-			if (isNight)
-			{
-				long night = defines[CManpower.MilitarySection, NightPenalty].Raw
-					+ CUnitTotals.Adjuster(unit, NightAdjuster, AttackOf)
-					+ Trait(state, unit, ETraitEffect.NightAttack);
-				if (night < 0)
-				{
-					Add(unit, ECombatModifier.Night, night, 0);
-				}
-			}
-
-			LeaderBonus(state, province, side, owner, unit);
-
-			if (!side.IsAttacker && directions > DirectionsBeforeEnvelopment && !isCutOff)
-			{
-				long envelopment = (directions - DirectionsBeforeEnvelopment) * (long)CFixedPoint.Scale
-					* defines[CManpower.MilitarySection, EnvelopmentPenalty].Raw / CFixedPoint.Scale;
-				envelopment = Scaled(envelopment, Trait(state, unit, ETraitEffect.EnvelopmentBonus));
-				Add(unit, ECombatModifier.Envelopment, -Math.Max(envelopment, 0));
-			}
-
-			if (!side.IsAttacker && !province.IsSea && IsEncircled(state, province, unit.Owner))
-			{
-				long encircled = Scaled(defines[CManpower.MilitarySection, EncircledPenalty].Raw,
-					Trait(state, unit, ETraitEffect.EncirclementBonus));
-				Add(unit, ECombatModifier.Encirclement, -Math.Max(encircled, 0));
-			}
-
-			if (province.Cores.Contains(unit.Owner))
-			{
-				Add(unit, ECombatModifier.TerritorialPride, owner.Modifier[TerritorialPride].Raw);
-			}
+		if (province.Cores.Contains(unit.Owner))
+		{
+			Add(terms, ECombatModifier.TerritorialPride, owner.Modifier[TerritorialPride].Raw);
 		}
 	}
 
@@ -237,11 +305,17 @@ public static class CCombatModifiers
 	/// </summary>
 	public static long ShoreBombardment(CGameState state, CProvince province, CCombatSide side)
 	{
-		if (side.Units.Count == 0)
+		return ShoreBombardment(state, province, side.Units);
+	}
+
+	/// <summary>The same for the units a side would be, the first of them standing for it.</summary>
+	public static long ShoreBombardment(CGameState state, CProvince province, IReadOnlyList<CUnit> units)
+	{
+		if (units.Count == 0)
 		{
 			return 0;
 		}
-		CCountryTag first = side.Units[0].Owner;
+		CCountryTag first = units[0].Owner;
 		CDefines defines = state.Defines;
 		long factor = defines[CManpower.MilitarySection, ShoreBombardmentMod].Raw;
 		long shore = 0;
@@ -274,7 +348,7 @@ public static class CCombatModifiers
 	/// from aboard a fleet has its penalty cut by the fleet's invasion defence
 	/// (<c>transport.md</c>, section 9).
 	/// </summary>
-	private static void Assault(CGameState state, CProvince province, CUnit unit)
+	private static void Assault(CGameState state, CProvince province, CUnit unit, CTerms terms)
 	{
 		CDefines defines = state.Defines;
 		// Standing in the sea is a landing, unless it is the rebels'; otherwise the edge it attacks over says.
@@ -290,7 +364,7 @@ public static class CCombatModifiers
 				+ Trait(state, unit, ETraitEffect.RiverAttack);
 			if (river < 0)
 			{
-				Add(unit, ECombatModifier.River, river);
+				Add(terms, ECombatModifier.River, river);
 			}
 		}
 		else if (edge is { Kind: EProvinceEdgeKind.Crossing })
@@ -305,7 +379,7 @@ public static class CCombatModifiers
 				+ Trait(state, unit, ETraitEffect.ParadropMission);
 			if (paradrop < 0)
 			{
-				Add(unit, ECombatModifier.Paratroop, paradrop);
+				Add(terms, ECombatModifier.Paratroop, paradrop);
 			}
 			isLanding = false;
 		}
@@ -322,7 +396,7 @@ public static class CCombatModifiers
 			landing = Math.Max(landing, WorstLanding);
 			if (landing < 0)
 			{
-				Add(unit, ECombatModifier.Amphibious, landing);
+				Add(terms, ECombatModifier.Amphibious, landing);
 			}
 		}
 
@@ -336,7 +410,7 @@ public static class CCombatModifiers
 			fort = Math.Min(fort, 0);
 			if (fort != 0)
 			{
-				Add(unit, ECombatModifier.Fort, fort);
+				Add(terms, ECombatModifier.Fort, fort);
 			}
 		}
 	}
@@ -346,20 +420,14 @@ public static class CCombatModifiers
 	/// of the coastal fort where an attacker comes from the sea - has its leaders' <c>fort_defence</c> on its attack and
 	/// its defence, under the fort's own name. The original reaches the trait only for an attacker, where it does nothing.
 	/// </summary>
-	private static void FortDefence(CGameState state, CProvince province, CCombat combat, CUnit unit)
+	private static void FortDefence(CGameState state, CProvince province, bool fromTheSea, CUnit unit, CTerms terms)
 	{
-		bool behind = province.Modifier[FortLevel].Raw >= CFixedPoint.Scale;
-		if (!behind && province.Modifier[CoastalFortLevel].Raw >= CFixedPoint.Scale)
-		{
-			foreach (CUnit attacker in combat.Attacker.Units)
-			{
-				behind |= state.Province(attacker.Location).IsSea;
-			}
-		}
+		bool behind = province.Modifier[FortLevel].Raw >= CFixedPoint.Scale
+			|| (fromTheSea && province.Modifier[CoastalFortLevel].Raw >= CFixedPoint.Scale);
 		long trait = behind ? Trait(state, unit, ETraitEffect.FortDefence) : 0;
 		if (trait != 0)
 		{
-			Add(unit, ECombatModifier.Fort, trait);
+			Add(terms, ECombatModifier.Fort, trait);
 		}
 	}
 
@@ -371,7 +439,8 @@ public static class CCombatModifiers
 	/// <c>leader_defence</c>, when it defends. Only a leader with the rank for the unit and
 	/// some skill counts; without him, his commanders' traits count for nothing here either.
 	/// </summary>
-	private static void LeaderBonus(CGameState state, CProvince province, CCombatSide side, CCountry owner, CUnit unit)
+	private static void LeaderBonus(CGameState state, CProvince province, bool isAttacker, CCountry owner, CUnit unit,
+		CTerms terms)
 	{
 		if (!CLeaders.HasRankFor(state, unit) || unit.Leader is not { Skill: > 0 } leader)
 		{
@@ -380,7 +449,7 @@ public static class CCombatModifiers
 		long skill = leader.Skill * CFixedPoint.Scale * state.Defines[CManpower.MilitarySection, LeaderImpact].Raw / CFixedPoint.Scale;
 		string ground = province.Terrain?.Name ?? "";
 		long bonus;
-		if (side.IsAttacker)
+		if (isAttacker)
 		{
 			bonus = CCommandReach.TerrainEffect(state, unit, ETraitEffect.TerrainAttack, ground)
 				+ Trait(state, unit, ETraitEffect.OffenceModifier) + skill;
@@ -391,7 +460,7 @@ public static class CCombatModifiers
 				+ CCommandReach.TerrainEffect(state, unit, ETraitEffect.TerrainDefence, ground) + skill;
 			bonus = bonus * (CFixedPoint.Scale + owner.Modifier[LeaderDefence].Raw) / CFixedPoint.Scale;
 		}
-		Add(unit, ECombatModifier.Leader, bonus);
+		Add(terms, ECombatModifier.Leader, bonus);
 	}
 
 	/// <summary>The skill of the leader of the theatre a unit is under, or is: nothing where there is none.</summary>
@@ -545,16 +614,9 @@ public static class CCombatModifiers
 		return true;
 	}
 
-	private static void Add(CUnit unit, ECombatModifier kind, long both)
+	/// <summary>One thing that counts for a unit's attack and its defence alike.</summary>
+	private static void Add(CTerms terms, ECombatModifier kind, long both)
 	{
-		Add(unit, kind, both, both);
-	}
-
-	/// <summary>Puts one thing on a unit's list and multiplies it into what the unit fights with.</summary>
-	private static void Add(CUnit unit, ECombatModifier kind, long attack, long defence)
-	{
-		unit.CombatModifiers.Add(new CCombatModifier(kind, new CFixedPoint(attack), new CFixedPoint(defence)));
-		unit.CombatAttack = new CFixedPoint(Math.Max(attack + CFixedPoint.Scale, LeastFactor) * unit.CombatAttack.Raw / CFixedPoint.Scale);
-		unit.CombatDefence = new CFixedPoint(unit.CombatDefence.Raw * Math.Max(defence + CFixedPoint.Scale, LeastFactor) / CFixedPoint.Scale);
+		terms.Add(kind, both, both);
 	}
 }

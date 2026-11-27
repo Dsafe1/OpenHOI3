@@ -611,6 +611,16 @@ was taken off.* So the Soviet Union's estimates that stood about 4% high in sect
 load, were most likely its units' cached halves still nought there (*inferred*: nothing differs once they are fresh). Nothing holds the odds above
 nought: an attacker whose modifier is below -1 weighs negative, and the odds with it (`FINDINGS-liveread.md`, section 46).
 
+**An enhanced game** with the fix `ai_odds_fresh_defence` (2026-11-27) does not read what a unit's last battle left. For a
+unit **no battle is working out** - in none, or in one whose first hour has not come - D counts the defence product
+**the battle weighed would give it**: every term of a battle's hour (`landcombat.md`, section 4), multiplied as there,
+over the target province, an attacker from where it stands; the directions are the provinces the attackers stand in, the
+crowding the AI's own count of brigades over three a province (the defenders' held to a hundred), with the night, the
+cut-off land, the fleets beside the province and a coastal fort met from the sea as a battle there would have them. **A
+unit in a battle keeps the battle's product.** So a fresh attacker counts its toughness and a fresh defender its
+defensiveness, where the original's count none, and a veteran is not judged by a battle long over. *Ours*: the
+original has no such rule. The landing's defence scale is the unit's as it stands (`docs/enhanced.md`).
+
 The original keeps the half of each modifier that hangs on the unit alone - for attackers everything before the stacking,
 for defenders everything but the stacking and envelopment - from the unit's hour to the next, and **never initialises that
 cache**: after a load each unit's first look counts the real half or nought, by what memory held, a quarter of them nought

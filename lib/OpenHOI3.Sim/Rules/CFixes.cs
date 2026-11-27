@@ -60,6 +60,7 @@ public static class CFixes
 		(EFix.AiTerrainNeighbour, "ai_terrain_neighbour"),
 		(EFix.GarrisonRating, "garrison_rating"),
 		(EFix.PlanePassengerMarch, "plane_passenger_march"),
+		(EFix.AiOddsFreshDefence, "ai_odds_fresh_defence"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

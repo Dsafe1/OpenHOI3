@@ -518,6 +518,37 @@ public class MovingTests
 	}
 
 	[Fact]
+	public void In_an_enhanced_game_a_unit_in_no_battle_counts_the_toughness_the_battle_weighed_would_give_it()
+	{
+		CGameState state = World();
+		CUnit ours = Division(state, Ger, 12, "infantry_brigade");
+		CUnit theirs = Division(state, Pol, 21, "infantry_brigade");
+		CProvince target = state.Province(21);
+		var attackers = new List<CUnit> { ours };
+		var defenders = new List<CUnit> { theirs };
+		Assert.Equal(1_000, CAttackOdds.Of(state, attackers, defenders, target));
+
+		// Neither has fought. Three brigades' toughness of 3, which a unit counts twice, cuts their damage by 18 in a
+		// hundred, three brigades' defensiveness of 5 ours by 15: 850 to 820.
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		Assert.Equal(1_036, CAttackOdds.Of(state, attackers, defenders, target));
+
+		// What an old battle left on a unit is not read: the product is made for the battle weighed.
+		ours.HasCombatProducts = true;
+		ours.CombatDefence = CFixedPoint.Parse("0.2");
+		Assert.Equal(1_036, CAttackOdds.Of(state, attackers, defenders, target));
+		// A unit in a battle keeps the battle's: a fifth of its toughness, 850 to 964.
+		var battle = new CCombat(21);
+		battle.Attacker.Add(ours);
+		Assert.NotEmpty(ours.Combats);
+		Assert.Equal(880, CAttackOdds.Of(state, attackers, defenders, target, followCombats: false));
+
+		// Without the fix the unit that has not fought counts none, and the other its old battle's.
+		state.Rules.Set(OpenHOI3.Sim.Rules.EFix.AiOddsFreshDefence, false);
+		Assert.True(CAttackOdds.Of(state, attackers, defenders, target, followCombats: false) > 1_000);
+	}
+
+	[Fact]
 	public void An_areas_enemy_strength_is_its_fighting_brigades_in_thirds_less_a_quarter_of_its_enemies_brigades_held_to_ten()
 	{
 		CGameState state = World();
