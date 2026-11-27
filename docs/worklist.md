@@ -2269,6 +2269,13 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   their tests and by `scripttext` on BlackICE; **nothing of them has been looked at on screen**, the columns of
   the battle tooltip and the leader window's skill column - whether `3 (5)` fits it - first. **Left of BiceLib's**:
   what the mod leaves off - the trait's command limit, the screen penalty, rank-specific traits.
+- **The enhanced worklist of 2026-11-27, its first batch: seven fixes built and not reviewed in play**
+  (`enhanced.md`, *What is built*), each its own commit: `debt_repaid`, `debt_revoke_cost`, `lend_lease_partial`,
+  `tactic_aggressiveness`, `friendly_fire_target`, `combined_arms_condition` and `redeploy_delay_once`. One point
+  was withdrawn as no fault: a support attack counts its hours of attacking once (`landorders.md`, section 10).
+  **Left of that list**: the display points, the air and sea rules, the occupation policy, the minister's two
+  intelligence keys, the southern seasons, the music and the six AI points - the user's own file,
+  `worklist-enhanced.md`, has each with its proposal. Tried by their tests alone; no game was run on them.
 - **Six fixes and two defines after BiceLib's are built and not reviewed in play** (2026-11-26, `enhanced.md`, *What
   is built*): which historical model is shown, a queued brigade's model, a building placed unresearched, the two
   leader ranks, the event candidates in the save, and the defines for war exhaustion's hand-over and the AI's
