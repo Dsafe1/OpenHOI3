@@ -298,6 +298,9 @@ Begun 2026-11-21; as of 2026-11-25.
   - ✅ `fresh_screens`: added to it - the air map's green and red are made again each midnight and when one of the
     player's intercept or air superiority units changes its base, and a count of battles stops at 127, where 128 hid
     the icon (`mechanics/airmap.md`, oddities 1 and 2). Display only.
+  - ✅ `fresh_screens`: added to it - the diplomacy screen's decision list is made again each hour of the game where
+    the decisions offered are others or one may now be taken that might not, where the original's rows only ever
+    grey until the screen is opened again (`mechanics/events.md`, section 12). Display only.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -870,7 +873,7 @@ All of these are risk-free but for what the entry says.
 - ❌ **The south has no season.** Latitude is nought everywhere south of the equator. `weather.md`. *Oversight.* Risk: large for southern theatres.
 - ❌ **Season 5's doubling is dead** while `TEMPERATURECHANGESPEED` is positive. `weather.md`, "What looks wrong", 3. *Dead.* Risk: small.
 - ✅ **A loaded game fires no event until its month turns.** Each country's candidate events are made only by the month's pass, the save keeps none and a load does not make them, so after a load nothing with a mean time to happen fires until the 2nd of the next month, when every candidate has its first roll at once. BlackICE's DLL has the month's making run once after a load with `rebuildCandidates`. `events.md`, 1; `reversing/findings/FINDINGS-events.md`. *Oversight.* Risk: events fire sooner after a load, and the generator moves a draw. **Mended 2026-11-26**, `saved_event_candidates`: the enhanced save keeps the lists.
-- ❌ **Decision rows are never re-enabled** until the screen is reopened. `events.md`, 12. *Oversight.* Risk: none.
+- ✅ **Decision rows are never re-enabled** **Mended by the fix `fresh_screens`, 2026-11-27.** until the screen is reopened. `events.md`, 12. *Oversight.* Risk: none.
 
 ## Music and the loading screen
 

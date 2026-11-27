@@ -44,6 +44,28 @@ public static class CDecisions
 		return taken;
 	}
 
+	/// <summary>
+	/// Whether two lists of offered decisions are the same decisions, in the same order, each taken or not as before:
+	/// what an enhanced game's fix <c>fresh_screens</c> asks each hour to know whether the list on the screen is still
+	/// the one to show (<c>docs/mechanics/events.md</c>, section 12).
+	/// </summary>
+	public static bool SameOffer(IReadOnlyList<(CDecision Decision, bool MayTake)> shown,
+		IReadOnlyList<(CDecision Decision, bool MayTake)> offered)
+	{
+		if (shown.Count != offered.Count)
+		{
+			return false;
+		}
+		for (int index = 0; index < shown.Count; index++)
+		{
+			if (shown[index].Decision != offered[index].Decision || shown[index].MayTake != offered[index].MayTake)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
 	/// <summary>The scope a country's decisions are asked and taken in: the country, nothing else, a seed of nought.</summary>
 	public static CEventScope ScopeOf(CCountryTag country)
 	{

@@ -358,6 +358,14 @@ public class EventTests
 		Assert.Equal(new[] { "second", "first", "refused" }, offered.Select(o => o.Decision.Name));
 		Assert.Equal(new[] { true, true, false }, offered.Select(o => o.MayTake));
 		Assert.Same(political, CDecisions.Find(state, "political"));
+
+		// What an enhanced game's list asks each hour: the same decisions, in order, each taken or not as before.
+		Assert.True(CDecisions.SameOffer(offered, CDecisions.Offered(state, Ger)));
+		refused.Allow.Children.Clear();                                // it may be taken now, and moves up the list
+		Assert.False(CDecisions.SameOffer(offered, CDecisions.Offered(state, Ger)));
+		offered = CDecisions.Offered(state, Ger);
+		hidden.Potential.Children.Clear();                             // and one more is offered
+		Assert.False(CDecisions.SameOffer(offered, CDecisions.Offered(state, Ger)));
 	}
 
 	[Fact]

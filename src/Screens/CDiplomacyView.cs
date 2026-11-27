@@ -45,6 +45,9 @@ public sealed partial class CDiplomacyView : CCountryView
 	};
 
 	private readonly List<CDecisionEntry> _decisions = new();
+
+	/// <summary>The decisions the list was last made from, each taken or not as it then was.</summary>
+	private List<(CDecision Decision, bool MayTake)> _offered = new();
 	private CGuiListBox? _decisionList;
 
 	// The actions towards the chosen country, and the request dialog one of them opened.
@@ -385,6 +388,12 @@ public sealed partial class CDiplomacyView : CCountryView
 		foreach (CDiplomacyActionEntry row in _actions)
 		{
 			row.Refresh();
+		}
+		// An enhanced game's fix fresh_screens: each hour the list is made again where the decisions offered are others,
+		// or one may now be taken that might not - the original's rows only ever grey, until the screen is opened again.
+		if (again && !CDecisions.SameOffer(_offered, CDecisions.Offered(Simulation.State, Player.Tag)))
+		{
+			FillDecisions();
 		}
 		foreach (CDecisionEntry row in _decisions)
 		{
@@ -821,7 +830,8 @@ public sealed partial class CDiplomacyView : CCountryView
 			return;
 		}
 		_decisionList.Clear();
-		foreach ((CDecision decision, bool mayTake) in CDecisions.Offered(Simulation.State, Player.Tag))
+		_offered = CDecisions.Offered(Simulation.State, Player.Tag);
+		foreach ((CDecision decision, bool mayTake) in _offered)
 		{
 			if (CDecisionEntry.Create(Context, Simulation, decision, Player.Tag, mayTake) is { } row)
 			{

@@ -286,7 +286,10 @@ file order, then those that may not, in file order**. Each row is a `diplomatic_
 
 **While the screen is up**, each row asks again `allow` and then `potential`, and disables its button
 where either fails - **and never enables it again** until the screen is opened again; a row whose
-`potential` fails stays listed until then. Pressing the button takes the decision (section 9) - the
+`potential` fails stays listed until then. **An enhanced game's fix `fresh_screens`** (2026-11-27): each hour of
+the game the list is made again where the decisions offered are others, or one may now be taken that might not
+or the other way round - so a row comes, goes, lights and moves as the list of a newly opened screen would have
+it. Pressing the button takes the decision (section 9) - the
 button does not ask `allow` itself; the command does when it runs. The rest of the diplomacy screen is
 `diplomacyscreen.md`.
 
