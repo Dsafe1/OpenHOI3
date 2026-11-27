@@ -200,4 +200,11 @@ public enum EFix
 	/// (<c>docs/mechanics/landcombat.md</c>, section 11).
 	/// </summary>
 	TacticAggressiveness,
+
+	/// <summary>
+	/// A ship at sea that takes one of its own side for the enemy shoots at the ship its roll points to, where the
+	/// original's walk never stops and ends on the last ship of the side's last fleet
+	/// (<c>docs/mechanics/navalcombat.md</c>, section 4).
+	/// </summary>
+	FriendlyFireTarget,
 }

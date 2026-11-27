@@ -251,7 +251,9 @@ organisation picks a target each hour:
   its own side. The original's walk to pick which ship does
   not stop where its roll points: it ends on **the last ship of the side's last fleet** (the
   shooter left out), unless the roll pointed past every ship, and then there is no target. It
-  is built so. Such a target is kept a quarter of the time each hour.
+  is built so. Such a target is kept a quarter of the time each hour. **An enhanced game's fix
+  `friendly_fire_target`** (2026-11-27): the walk stops at the ship the roll points to, so the shots are
+  spread over the side; the roll is the same one, and one past every ship is still no target.
 
 ## 5. The shot, the damage, and the distance
 

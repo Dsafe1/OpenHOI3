@@ -163,6 +163,31 @@ public class NavalCombatTests
 		return combat;
 	}
 
+	[Fact]
+	public void FriendlyFireEndsOnTheSidesLastShipAndAnEnhancedGamesOnTheShipItsRollPointsTo()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit first = Fleet(state, germany, Bight, Destroyer, Destroyer);
+		CUnit second = Fleet(state, germany, Bight, Destroyer, Destroyer);
+		CCombat combat = Battle(state, first, Fleet(state, poland, Bight, Destroyer));
+		CNavalBattle.Join(state, combat, combat.Attacker, second);
+		CSubUnit shooter = first.SubUnits[0];
+		CSubUnit last = second.SubUnits[1];
+
+		// The original's walk: whatever the roll, the last ship of the last fleet - but a roll past every ship, which is none.
+		Assert.Same(last, CNavalTargets.Friend(combat.Attacker, shooter, 0, stopsAtItsRoll: false));
+		Assert.Same(last, CNavalTargets.Friend(combat.Attacker, shooter, 2, stopsAtItsRoll: false));
+		Assert.Null(CNavalTargets.Friend(combat.Attacker, shooter, 3, stopsAtItsRoll: false));
+		// The shooter himself last: the ship before him.
+		Assert.Same(second.SubUnits[0], CNavalTargets.Friend(combat.Attacker, last, 0, stopsAtItsRoll: false));
+
+		// The fix: the ship the roll points to, the shooter passed over.
+		Assert.Same(first.SubUnits[1], CNavalTargets.Friend(combat.Attacker, shooter, 0, stopsAtItsRoll: true));
+		Assert.Same(second.SubUnits[0], CNavalTargets.Friend(combat.Attacker, shooter, 1, stopsAtItsRoll: true));
+		Assert.Same(last, CNavalTargets.Friend(combat.Attacker, shooter, 2, stopsAtItsRoll: true));
+		Assert.Null(CNavalTargets.Friend(combat.Attacker, shooter, 3, stopsAtItsRoll: true));
+	}
+
 	// --- what starts one ---
 
 	[Fact]

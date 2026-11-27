@@ -276,6 +276,8 @@ Begun 2026-11-21; as of 2026-11-25.
     is given what it does pay for, and the giver charged that much (`mechanics/aid.md`, section 3).
   - ✅ `tactic_aggressiveness`: each side of a land battle picks its tactic with its own leader's aggressiveness, and
     with none where it has no leader (`mechanics/landcombat.md`, section 11).
+  - ✅ `friendly_fire_target`: a ship that takes one of its own side for the enemy shoots at the ship its roll points
+    to, so friendly fire is spread over the side (`mechanics/navalcombat.md`, section 4).
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -531,7 +533,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - ✅ **A technology's `radar_efficiency` does nothing.** **Made to lengthen a radar's reach by the fix `radar_efficiency`, 2026-11-26.** It is loaded, summed for the country and shown in the technology's tooltip, and nothing in the simulation reads it: the radar takes the station's level and `radio_strength`, not this (`reversing/findings/FINDINGS-fleetbasehour.md`, section 4, a static search with a positive control). Their Finest Hour gives it once, BlackICE five times. Making it scale a radar's reach would make the effect mean what it says. `intelligence.md`, 4. *Dead.* Risk: small - what countries with it see.
 - ❌ **An interceptor goes out once,** then lies in port under its order. On the "may be bugs" list. `navalmissions.md`, 5 and 12. *Bug.* Risk: moderate.
 - ❌ **A sortie from away from base stalls,** given a path that does not begin where the fleet is. `navalmissions.md`, 6 and 12. *Bug.* Risk: small.
-- ❌ **Friendly fire always ends on the last ship.** The walk that picks a friend does not stop at its roll; a raider's fleet of nine lost about a tenth of its strength in a month. `navalcombat.md`, 4; `navalmissions.md`, 12. *Bug.* Risk: moderate.
+- ✅ **Friendly fire always ends on the last ship.** **Mended by the fix `friendly_fire_target`, 2026-11-27.** The walk that picks a friend does not stop at its roll; a raider's fleet of nine lost about a tenth of its strength in a month. `navalcombat.md`, 4; `navalmissions.md`, 12. *Bug.* Risk: moderate.
 - ❌ **Reserve ignores priority 4,** and treats an aggressive fleet as a defensive one. `navalmissions.md`, 2 and 12. *Oversight.* Risk: small.
 - ❌ **A patrol sinks convoys** every twelve hours, like a raider. **Kept: not a bug, by the user's word of 2026-11-27.** It was on the "may be bugs" list. `navalmissions.md`, 3 and 12. *Oversight.* Risk: moderate.
 - ❌ **An escort hesitates an hour** at the first end of its beat, the first time. `navalmissions.md`, 7 and 12. *Oversight.* Risk: negligible.

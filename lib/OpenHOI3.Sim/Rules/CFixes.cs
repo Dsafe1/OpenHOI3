@@ -43,6 +43,7 @@ public static class CFixes
 		(EFix.DebtRevokeCost, "debt_revoke_cost"),
 		(EFix.LendLeasePartial, "lend_lease_partial"),
 		(EFix.TacticAggressiveness, "tactic_aggressiveness"),
+		(EFix.FriendlyFireTarget, "friendly_fire_target"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

@@ -108,6 +108,36 @@ public static class CNavalTargets
 		return null;
 	}
 
+	/// <summary>
+	/// Which ship of its own side a ship takes for the enemy, by a roll over the side's ships: the walk passes the shooter
+	/// over and counts the roll down. The original's does not stop at the ship it drew - once the count is spent every ship
+	/// after overwrites the pick, so it ends on the last ship of the side's last fleet - and a roll past every ship is no
+	/// target. An enhanced game's fix <c>friendly_fire_target</c> stops at the ship drawn.
+	/// </summary>
+	public static CSubUnit? Friend(CCombatSide side, CSubUnit ship, int countdown, bool stopsAtItsRoll)
+	{
+		CSubUnit? friend = null;
+		foreach (CUnit unit in side.Units)
+		{
+			foreach (CSubUnit candidate in unit.SubUnits)
+			{
+				if (candidate != ship)
+				{
+					if (countdown < 1)
+					{
+						if (stopsAtItsRoll)
+						{
+							return candidate;
+						}
+						friend = candidate;
+					}
+					countdown--;
+				}
+			}
+		}
+		return friend;
+	}
+
 	/// <summary>A target for a ship that has none: an enemy in reach, nothing, or a friend.</summary>
 	private static CSubUnit? Fresh(CGameState state, CCombatSide side, CCombatSide other, CSubUnit ship, int pNight)
 	{
@@ -124,24 +154,7 @@ public static class CNavalTargets
 				ships += unit.SubUnits.Count;
 			}
 			int countdown = state.Random.Next(ships);
-			CSubUnit? friend = null;
-			// The original's walk does not stop at the ship it drew: once the count is
-			// spent every ship after overwrites the pick, so it ends on the side's last.
-			foreach (CUnit unit in side.Units)
-			{
-				foreach (CSubUnit candidate in unit.SubUnits)
-				{
-					if (candidate != ship)
-					{
-						if (countdown < 1)
-						{
-							friend = candidate;
-						}
-						countdown--;
-					}
-				}
-			}
-			return friend;
+			return Friend(side, ship, countdown, state.Rules.Has(Rules.EFix.FriendlyFireTarget));
 		}
 
 		Collect(state, other, side, ship);
