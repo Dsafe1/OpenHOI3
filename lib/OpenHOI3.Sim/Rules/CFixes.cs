@@ -47,6 +47,7 @@ public static class CFixes
 		(EFix.CombinedArmsCondition, "combined_arms_condition"),
 		(EFix.RedeployDelayOnce, "redeploy_delay_once"),
 		(EFix.InterdictionTarget, "interdiction_target"),
+		(EFix.AirRaidWaits, "air_raid_waits"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

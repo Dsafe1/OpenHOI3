@@ -230,4 +230,11 @@ public enum EFix
 	/// is there (<c>docs/mechanics/bombing.md</c>, section 2).
 	/// </summary>
 	InterdictionTarget,
+
+	/// <summary>
+	/// A unit raiding convoys from the air waits at its base until its hours to the next try are no more than the
+	/// flight out takes, where the original's flies out again at once and finds its hours not run every other time
+	/// (<c>docs/mechanics/navalmissions.md</c>, section 8.1).
+	/// </summary>
+	AirRaidWaits,
 }

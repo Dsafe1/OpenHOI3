@@ -135,6 +135,10 @@ public static class CBombingMissions
 
 		if (strike.Id != unit.Location || unit.Base == 0)
 		{
+			if (RaidWaitsAtItsBase(state, country, unit, strike))
+			{
+				return;
+			}
 			FlyOut(state, country, unit, strike);
 			return;
 		}
@@ -150,6 +154,39 @@ public static class CBombingMissions
 		{
 			CAirMissions.ReturnToBase(state, country, unit);
 		}
+	}
+
+	/// <summary>
+	/// An enhanced game's fix <c>air_raid_waits</c>: a unit raiding convoys from the air stays at its base while its
+	/// hours to the next try are more than the flight out takes, so that it arrives as they run out. The original's
+	/// flies out again at once and, with a base near its water, arrives every other time with its hours not run
+	/// (<c>docs/mechanics/navalmissions.md</c>, section 8.1). A unit away from its base, or with no way, never waits.
+	/// </summary>
+	public static bool RaidWaitsAtItsBase(CGameState state, CCountry country, CUnit unit, CProvince strike)
+	{
+		if (!state.Rules.Has(Rules.EFix.AirRaidWaits) || !CBombingOrders.RaidsConvoys(unit.Order)
+			|| unit.Base == 0 || unit.Location != unit.Base)
+		{
+			return false;
+		}
+		if (CRouteFinder.Find(state, country, unit, unit.Location, strike.Id) is not { } route)
+		{
+			return false;
+		}
+		long hours = 0;
+		CProvince here = state.Province(unit.Location);
+		foreach (int id in route)
+		{
+			CProvince next = state.Province(id);
+			long speed = CMovementSpeed.Speed(state, country, unit, here, next).Raw;
+			if (speed <= 0)
+			{
+				return false;
+			}
+			hours += (CMovement.LegDistance(state, unit, here, next).Raw + speed - 1) / speed;
+			here = next;
+		}
+		return unit.Mission.RaidCountdown > hours;
 	}
 
 	/// <summary>The hour of a bombing: section 3.</summary>

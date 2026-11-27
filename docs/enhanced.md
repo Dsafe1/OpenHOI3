@@ -304,6 +304,8 @@ Begun 2026-11-21; as of 2026-11-25.
   - ✅ `interdiction_target`: interdiction flies at the province of its list where the most of the enemy is on the
     move, and with no enemy in any of them at one of them by a draw of the game's generator - the user's rule, "fly
     to a random province" (`mechanics/bombing.md`, section 2).
+  - ✅ `air_raid_waits`: a unit raiding convoys from the air waits at its base until its hours to the next try are no
+    more than the flight out takes, so every sortie arrives to a try (`mechanics/navalmissions.md`, section 8.1).
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -565,7 +567,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - ❌ **An escort hesitates an hour** at the first end of its beat, the first time. `navalmissions.md`, 7 and 12. *Oversight.* Risk: negligible.
 - ❌ **A convoy's ship sunk outright in a raid costs the convoy nothing.** The count walks the convoy's throwaway fleet as the rounds leave it, and a ship that went under a tenth of a point of strength has left it - so the harder a raid hits, the less it can sink. Rare from a fleet, common enough from the air, where a hit's tenfold strength roll can finish a transport ship. `navalmissions.md`, 8 and 8.1. *Bug.* Risk: moderate; raids from the air sink more.
 - ❌ **A raider fought at sea is worth nothing to the strategic warfare.** `STRAT_RAIDER_FOUGHT_IMPACT` is given only in a raid's own battle whose defender raids or patrols, and that defender is always the convoy's fleet under no order. Its sibling for a raider fought in the air, `STRAT_AIR_RAIDER_FOUGHT_IMPACT`, works. `navalmissions.md`, 8.3. *Dead.* Risk: small.
-- ❌ **An air raider flies out twice for every try.** It tries the convoys only every twelve hours but leaves its province the hour it arrives - for another of its list, or home where the list has no other - and flies out again at once, so with a base near its water every other sortie finds its hours not yet run and does nothing. `navalmissions.md`, 8.1. *Oversight.* Risk: small.
+- ✅ **An air raider flies out twice for every try.** **Mended by the fix `air_raid_waits`, 2026-11-27.** It tries the convoys only every twelve hours but leaves its province the hour it arrives - for another of its list, or home where the list has no other - and flies out again at once, so with a base near its water every other sortie finds its hours not yet run and does nothing. `navalmissions.md`, 8.1. *Oversight.* Risk: small.
 - ❌ **A patrol tells of the same fleet over and over.** `PATROLTRACK` is news against the fleet held as the hour began, and a patrol lets go of its fleet every hour and must sight it again - so one hour's failed roll makes the next hour's sighting news again, and a patrol beside a fleet it can barely see fills the log with it. And the log line "`$OUR_FLEET$ found $OTHERS$ fleet`" puts the fleet's own name where a country's adjective reads ("found 46th Navy fleet") - the text's, and a mod may mend that alone. `navalmissions.md`, 3.1. *Oversight.* Risk: none.
 - ❌ **Ships have no defence.** `sea_defence` and `surface_defence` are read by nothing in the fight; only `hull` protects. `navalcombat.md`, 5. *Dead.* Risk: large.
 - ❌ **`reduction_modifier` does nothing.** Read once, as a fleet leaves a battle, and thrown away. `navalmissions.md`, 10. *Dead.* Risk: only if brought to life.

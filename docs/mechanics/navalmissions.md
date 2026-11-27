@@ -407,7 +407,10 @@ in its province with no bombing, and picks again - and **its pick never takes th
 is in**, so it leaves the hour it arrives, for another of its list or home where there is none
 other. From its base it flies out again at once. With one province on its list it goes there,
 tries if its hours have run, comes home and goes back - every other sortie finding its hours
-not yet run, for a base near its water (`docs/enhanced.md`).
+not yet run, for a base near its water (`docs/enhanced.md`). **An enhanced game's fix `air_raid_waits`**
+(2026-11-27): at its base the unit waits while its hours to the next try are more than the flight out takes -
+each leg of its way at the speed it would fly it, a part of an hour a whole one - so that it arrives as they run
+out. Away from its base, with no way or with no speed, it never waits.
 
 **Which province**: of the mission's provinces in order, the one the unit is in passed over,
 

@@ -667,6 +667,40 @@ public class NavalMissionTests
 	}
 
 	[Fact]
+	public void AnEnhancedGamesAirRaiderWaitsAtItsBaseUntilItsHoursAreNoMoreThanTheFlightOut()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit raider = AirUnit(state, germany, Kiel, Bomber());
+		raider.Order = EUnitOrder.AirConvoyRaid;
+		CProvince strike = state.Province(Bight);
+
+		// The original's never waits: it flies out again at once, its twelve hours run or not.
+		raider.Mission.RaidCountdown = 12;
+		Assert.False(CBombingMissions.RaidWaitsAtItsBase(state, germany, raider, strike));
+
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		// With no speed there is no telling the flight, and it does not wait.
+		Assert.False(CBombingMissions.RaidWaitsAtItsBase(state, germany, raider, strike));
+		// A flight of three hours: ten of the test's map at just under five an hour, the last part an hour of its own.
+		state.Defines.Set(CManpower.MilitarySection, CMovementSpeed.AirSpeedModifier, CFixedPoint.Parse("0.0166"));
+		Assert.True(CBombingMissions.RaidWaitsAtItsBase(state, germany, raider, strike));
+		raider.Mission.RaidCountdown = 4;
+		Assert.True(CBombingMissions.RaidWaitsAtItsBase(state, germany, raider, strike));
+		raider.Mission.RaidCountdown = 3;
+		Assert.False(CBombingMissions.RaidWaitsAtItsBase(state, germany, raider, strike));
+		// Its hours run out, or its first sortie: it goes.
+		raider.Mission.RaidCountdown = 0;
+		Assert.False(CBombingMissions.RaidWaitsAtItsBase(state, germany, raider, strike));
+		// Away from its base it never waits, and nor does any other mission.
+		raider.Mission.RaidCountdown = 12;
+		raider.Location = Deep;
+		Assert.False(CBombingMissions.RaidWaitsAtItsBase(state, germany, raider, strike));
+		raider.Location = Kiel;
+		raider.Order = EUnitOrder.NavalStrike;
+		Assert.False(CBombingMissions.RaidWaitsAtItsBase(state, germany, raider, strike));
+	}
+
+	[Fact]
 	public void TheAirRaidCountsItsHoursDownEverywhereAndTriesOnlyInItsProvince()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);
