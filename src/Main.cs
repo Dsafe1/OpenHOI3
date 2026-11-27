@@ -526,8 +526,9 @@ public partial class Main : Control
 
 	/// <summary>
 	/// A game Play made, recorded from here (docs/replay.md, section 10). The game recorded is always one loaded from a
-	/// save, with the install's Lua begun afresh, because that is what a playback can make again: a new game is written
-	/// as a save, kept as the recording's start, and loaded; a save played on is loaded again. A save that names its
+	/// save, with the install's Lua begun afresh, because that is what a playback can make again: a new game is entered
+	/// - its first frame run - written as a save, kept as the recording's start, and loaded; a save played on is loaded
+	/// again. A save that names its
 	/// place in a recording that is still there goes on from it; any other begins a recording of its own. Touches no
 	/// engine object.
 	/// </summary>
@@ -547,6 +548,13 @@ public partial class Main : Control
 		}
 		else
 		{
+			if (!made.LoadedFromSave)
+			{
+				// A new game is entered before it is written: its first frame is where every country's units are put under
+				// the theatres they stand in (agents.md, section 2.1), and a save keeps nothing of a sort still owed - a
+				// game loaded from one written before it leaves those units under no headquarters for good.
+				_ = new Sim.CSimulation(made);
+			}
 			save = System.Text.Encoding.Latin1.GetBytes(Content.Saves.CSaveWriter.Write(made, game.Localisation.Localise));
 			Content.Replays.CReplayStore.WriteStart(store, name, save);
 		}

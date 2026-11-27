@@ -348,7 +348,13 @@ On Play (`Main.BeginRecording`):
   written into it and the country chosen taken up (`CFrontEnd.TakeUpLoaded`), and a recording begun whose parent is the
   save's place.
 - **Anything else begins a recording with a start of its own** - a new game, or a save that names none: the game as
-  Play made it is written as a save, kept as the `.start`, and **loaded**.
+  Play made it is written as a save, kept as the `.start`, and **loaded**. **A new game is entered first** - its first
+  frame run (`CSimulation`'s making) - since 2026-11-27: that frame is where every country's units are put under the
+  theatres they stand in (`mechanics/agents.md`, section 2.1), a save keeps nothing of a sort still owed, and a loaded
+  game never sorts. Until then a recorded new game was played with those units under no headquarters - as Germany on
+  BlackICE 5 corps, 14 divisions, an army group, 12 air units and 7 fleets, the user's report of that day, seen again in
+  a `.start` made with `--recordreplay` and gone in one made after the change, whose tree is a plain new game's. **A
+  recording begun before that keeps the fault**: its start is what it is.
 
 **The game recorded is always one loaded from a save, on a Lua begun afresh** - *ours*, because that is the one thing a
 playback can make again: what the lobby made a new game from - its bookmark, its victory conditions, whatever a later
