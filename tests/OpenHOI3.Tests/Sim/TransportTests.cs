@@ -469,8 +469,36 @@ public class TransportTests
 		// The fleet's own table is the original's summed one, which no ship's table reaches.
 		Assert.Empty(CLanding.FleetExtraDefence(craft));
 		// So the cut is the fleet's 1.0 of 3.5 alone: 1000 * 1000 / 3500 is 285, and -700 x (1010 - 285) / 1000 is -507.
-		// With the table it would be 1.25 of 3.5, and -457.
 		Assert.Equal(-507, CLanding.CutPenalty(state, division, -700));
+
+		// An enhanced game's fix amphibious_defence counts the ships' own tables, once for each brigade of the kind named:
+		// three infantry brigades weigh 1 + 3 x 0.25, so the cut is 1.75 of 3.5, a half, and -700 x (1010 - 500) / 1000 is -357.
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		Assert.Equal(division.SubUnits.Count * 250 + 1000, 1750);
+		Assert.Equal(-357, CLanding.CutPenalty(state, division, -700));
+		Assert.Equal(CFixedPoint.Parse("0.25"), CLanding.FleetExtraDefence(craft, summed: true)[Infantry.Key]);
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(new[] { OpenHOI3.Sim.Rules.EFix.AmphibiousDefence }));
+		Assert.Equal(-507, CLanding.CutPenalty(state, division, -700));
+	}
+
+	[Fact]
+	public void AnEnhancedGamesLandingPenaltyIsNeverMadeWorseAndStillLeavesItsHundredth()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		CUnit plain = Fleet(state, germany, Bight, TransportShip);
+		CUnit division = Division(state, germany, Bight);
+		CTransport.Board(plain, division);
+		CMovement.SetPath(division, new[] { Hela }, clear: true);
+		// No invasion defence: the define's penalty exactly, where the original's is -707.
+		Assert.Equal(-700, CLanding.CutPenalty(state, division, -700));
+
+		// The whole defence still leaves the hundredth the original leaves.
+		CUnit craft = Fleet(state, germany, Bight, Ship("assault", capability: "60", defence: "3.5"));
+		CUnit landed = Division(state, germany, Bight);
+		CTransport.Board(craft, landed);
+		CMovement.SetPath(landed, new[] { Hela }, clear: true);
+		Assert.Equal(-7, CLanding.CutPenalty(state, landed, -700));
 	}
 
 	[Fact]

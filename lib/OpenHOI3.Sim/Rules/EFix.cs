@@ -259,4 +259,12 @@ public enum EFix
 	/// (<c>docs/mechanics/occupation.md</c>, <i>What looks wrong</i>).
 	/// </summary>
 	OccupationPolicyChecked,
+
+	/// <summary>
+	/// A ship type's <c>extra_amphibious_defence</c> counts: the fleet's table for a landing brigade's kind is its
+	/// ships' own added up, where the original asks a table that is always empty. And a landing with no invasion
+	/// defence has the define's penalty exactly, where the original's is a hundredth worse
+	/// (<c>docs/mechanics/transport.md</c>, section 9).
+	/// </summary>
+	AmphibiousDefence,
 }

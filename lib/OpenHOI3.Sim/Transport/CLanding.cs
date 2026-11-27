@@ -154,9 +154,11 @@ public static class CLanding
 			return penalty;
 		}
 		long cap = state.Defines[CManpower.MilitarySection, PenaltyDecrease].Raw;
+		// An enhanced game's fix amphibious_defence: the ships' own tables counted, and the penalty never made worse.
+		bool mended = state.Rules.Has(Rules.EFix.AmphibiousDefence);
 		// The landing unit's share of the fleet's invasion defence: one, and for each of its brigades what the fleet's table
 		// gives that kind.
-		IReadOnlyDictionary<string, CFixedPoint> extra = FleetExtraDefence(fleet);
+		IReadOnlyDictionary<string, CFixedPoint> extra = FleetExtraDefence(fleet, mended);
 		long weight = Scale;
 		foreach (CSubUnit brigade in unit.SubUnits)
 		{
@@ -164,7 +166,12 @@ public static class CLanding
 		}
 		long cut = cap == 0 ? -1 : System.Math.Min(weight * FleetDefence(fleet) / Scale, cap);
 		long share = cap == 0 ? 0 : cut * Scale / cap;
-		return penalty * (Scale + Worse - share) / Scale;
+		long factor = Scale + Worse - share;
+		if (mended && factor > Scale)
+		{
+			factor = Scale;
+		}
+		return penalty * factor / Scale;
 	}
 
 	/// <summary>
@@ -173,9 +180,25 @@ public static class CLanding
 	/// ship's - so it is always empty, and an assault ship's table does nothing. A fault of the original, kept
 	/// (<c>docs/mechanics/transport.md</c>, section 9; <c>docs/enhanced.md</c>).
 	/// </summary>
-	public static IReadOnlyDictionary<string, CFixedPoint> FleetExtraDefence(CUnit fleet)
+	/// <param name="summed">
+	/// An enhanced game's fix <c>amphibious_defence</c>: the fleet's table is its ships' own added up, kind by kind, as
+	/// its invasion defence is its ships' added up.
+	/// </param>
+	public static IReadOnlyDictionary<string, CFixedPoint> FleetExtraDefence(CUnit fleet, bool summed = false)
 	{
-		return NoExtraDefence;
+		if (!summed)
+		{
+			return NoExtraDefence;
+		}
+		var sum = new Dictionary<string, CFixedPoint>(System.StringComparer.OrdinalIgnoreCase);
+		foreach (CSubUnit ship in fleet.SubUnits)
+		{
+			foreach ((string kind, CFixedPoint more) in ship.Type.ExtraAmphibiousDefence)
+			{
+				sum[kind] = sum.TryGetValue(kind, out CFixedPoint held) ? held + more : more;
+			}
+		}
+		return sum;
 	}
 
 	private static readonly IReadOnlyDictionary<string, CFixedPoint> NoExtraDefence = new Dictionary<string, CFixedPoint>();

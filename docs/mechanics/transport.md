@@ -247,6 +247,14 @@ table and to which the summing copies no ship's (`reversing/findings/FINDINGS-tr
 each type and asked so (`CLanding.FleetExtraDefence`), and it does nothing. The adjuster is the mean over the unit's brigades (`amphibious`, *units
 file*: engineers 0.4, marines 0.5). A strait assault from land gets the penalty but not the cut and not the scales.
 
+**An enhanced game's fix `amphibious_defence`** (2026-11-27) mends both: the fleet's table is **its ships' own added
+up**, kind by kind, as its invasion defence is its ships' added up - so `s` is 1000 and, for each of the unit's
+brigades, what the fleet's ships together give that kind, the cap `LANDING_PENALTY_DECREASE` holding `r` as before;
+and **the factor is held at one**, `min(1000, 1010 - r x 1000 / cap)`, so a landing with no invasion defence has the
+define's penalty exactly and the whole defence still leaves a hundredth of it. Three infantry brigades off one ship
+that gives infantry 0.25, at an invasion defence of 1: `s` 1750, `r` 1.75, the penalty cut by a half, -35.7% where the
+original has -50.7%.
+
 **The forts it meets** are the coast's `COASTAL_FORT_LEVEL`, and **shore bombardment** counts the enemy fleets in the sea
 beside the battle that have **no path** (`landcombat.md`).
 

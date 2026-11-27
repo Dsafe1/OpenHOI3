@@ -51,6 +51,7 @@ public static class CFixes
 		(EFix.MinisterIntel, "minister_intel"),
 		(EFix.WeightedSongs, "weighted_songs"),
 		(EFix.OccupationPolicyChecked, "occupation_policy_checked"),
+		(EFix.AmphibiousDefence, "amphibious_defence"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

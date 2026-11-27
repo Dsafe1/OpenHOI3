@@ -317,6 +317,10 @@ Begun 2026-11-21; as of 2026-11-25.
     does, and at a change of a country's wars the policy it holds towards a country it is not at war with goes back
     to none (`mechanics/occupation.md`, *What looks wrong*). Left as it was: a policy applying to land held from an
     owner with no war between the two.
+  - ✅ `amphibious_defence`: a ship type's `extra_amphibious_defence` counts, the fleet's table being its ships' own
+    added up, and a landing with no invasion defence has the define's penalty exactly (`mechanics/transport.md`,
+    section 9). Their Finest Hour's `assault_ship` and BlackICE's `landing_craft` begin to help the brigades they
+    name.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -554,7 +558,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - ✅ **Strategic redeployment restarts its attack delay** every hour on the way, drawing on the generator each time. **Mended by the fix `redeploy_delay_once`, 2026-11-27.** `landorders.md`, 10. *Oversight.* Risk: small; rolls move.
 - ❌ **A redeployed brigade never loses organisation in its hour.** `STRAT_REDEP_ORG_LOSS` is taken off the hour's gain and what is left held at nothing, so a division on a strategic redeployment with no supplies keeps all it has where every other unit loses it. `organisation.md`, 3. *Bug.* Risk: small; unsupplied redeployments.
 - ❌ **Redeployment offered where impossible.** The row asks nothing about distance or a way, so it is open for a province it cannot reach and the order drops the hour it is given. Confirmed. `landorders.md`, 10. *Display.* Risk: none.
-- ❌ **Amphibious defence dead, landing penalty a hundredth off.** `extra_amphibious_defence` is asked of a fleet's summed table, which never holds a ship's, and with no landing craft the penalty is -70.70%. `transport.md`, section 9 and "What looks wrong", 6. The tables are kept on each type since 2026-11-14 and `CLanding.FleetExtraDefence` is the one place to sum the ships' instead. *Dead.* Risk: moderate.
+- ✅ **Amphibious defence dead, landing penalty a hundredth off.** **Mended by the fix `amphibious_defence`, 2026-11-27.** `extra_amphibious_defence` is asked of a fleet's summed table, which never holds a ship's, and with no landing craft the penalty is -70.70%. `transport.md`, section 9 and "What looks wrong", 6. The tables are kept on each type since 2026-11-14 and `CLanding.FleetExtraDefence` is the one place to sum the ships' instead. *Dead.* Risk: moderate.
 - ❌ **A route is not always the cheapest.** A province is settled the first time a step reaches it, and a cheaper way found later does not replace that. `movement.md`, 3. *Oversight.* Risk: marches and AI paths.
 - ❌ **The click and the route ask "at war" two ways.** The click's test of a too-weak or unsupplied unit counts a war nobody declared where it covers the province, the route's does not, and the route asks the supply of a unit aboard a fleet where the click does not - so an order the click lets through can find no way, and the unit keeps its old one without a word. `movement.md`, 1 and 3. *Oversight.* Risk: small.
 - ❌ **A sea in no region is the Black Sea where the map lacks one.** Closed waters are asked by each sea's first region against the regions named `black_sea_region`, `baltic_sea_region` and `mediterranean_region`; a sea in no region and a name the map does not have both come out as nothing, so with a mod's `region.txt` missing one of the three, every sea in no region is taken for that sea. And a fleet in a battle may be sent only beside it, by the land unit's test of falling back, which asks for land strength and knows nothing of the enemy's ships. `fleetsandair.md`, 1; `movement.md`, 1. *Oversight.* Risk: none in Their Finest Hour, whose map has all three.
