@@ -177,7 +177,7 @@ developer packs a release with:
 | started by | builds | publishes |
 | --- | --- | --- |
 | a tag `v<x>` pushed | the tag's tree as a release, `openhoi3-<x>` | the release `v<x>`, with the four files; it **stays as it is** - a release already there has its files replaced by a later run of the same tag |
-| `main` pushed | the tree as no release, `openhoi3-<date>-<commit>` | the release of the tag **`latest`**, a pre-release: the tag moved to the commit, the files replaced, the checksums last |
+| `main` pushed | the tree as no release, `openhoi3-<date>-<commit>` | the release of the tag **`latest`**, a pre-release: the files replaced, the checksums last, the title and notes naming the commit built - **the tag itself is not moved** |
 | by hand | the branch it is started on, as `latest` is built | nothing; the archives are kept with the run for 14 days |
 
 **The rolling build's archives are named by the tag and not by the version** - `OpenHOI3-engine-latest.zip`,
@@ -185,6 +185,13 @@ developer packs a release with:
 one address, `releases/download/latest/...`; the `engine.txt` inside says the version the build is, which is what a
 mod played on it names (section 2). A newer push to `main` overtakes the build of an older one; a tag's build is
 never cut short. `latest` is kept a pre-release so that the page's "latest release" stays the newest numbered one.
+
+**The tag `latest` stays where the first run made it** (since 2026-11-27). It was moved to each commit built at
+first, and a moved tag is a push: the repository's feed of commits in the project's chat reported every commit a
+second time, four minutes after the first, as pushed by the workflow. Nothing reads the tag for what was built - the
+release's title and notes name the commit, the `engine.txt` in the archives the version, and a mod fetches by the
+release's address - so the tag is only that address, and the source archive GitHub offers beside the release is the
+old commit's, which the notes say.
 
 **What the runner is given**: .NET 8 and 9; Godot's .NET editor and its Windows export templates, fetched from
 Godot's own releases by `tools/fetch_godot.ps1` and kept in the runner's cache by the version, `GODOT_VERSION` in the

@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  # To make a release and to move the tag "latest".
+  # To make a release and to replace the files of "latest".
   contents: write
 
 concurrency:
@@ -126,16 +126,17 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
       - name: Publish as latest
-        # The tag "latest" is moved to this commit and its release's files replaced, the checksums last. It is kept
-        # a pre-release, so that the page's "latest release" stays the newest numbered one.
+        # The release's files are replaced, the checksums last, and its title and notes made to say the commit built.
+        # **The tag "latest" is not moved**: moving a tag is a push, which everything that listens to the repository's
+        # pushes - a chat's feed of commits - reports as the commit pushed a second time, by this workflow. So the tag
+        # stays where the first run made it and only names the release's address; what was built is the commit the
+        # notes and the engine.txt name. It is kept a pre-release, so that the page's "latest release" stays the
+        # newest numbered one.
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          git tag -f latest $env:GITHUB_SHA
-          git push -f origin refs/tags/latest
-          if ($LASTEXITCODE -ne 0) { exit 1 }
           $version = (Select-String -Path export/OpenHOI3/engine.txt -Pattern '^version = "([^"]+)"').Matches[0].Groups[1].Value
           $title = "OpenHOI3 latest ($version)"
           $archives = @(Get-ChildItem export/release -Filter '*.zip' | ForEach-Object { $_.FullName })
@@ -149,6 +150,7 @@ jobs:
             gh release edit latest --title $title --notes-file export/release/release.md --prerelease
           }
           else {
-            gh release create latest --verify-tag --prerelease --title $title --notes-file export/release/release.md @archives $sums
+            # The first time alone: the release, and with it the tag, made at this commit.
+            gh release create latest --target $env:GITHUB_SHA --prerelease --title $title --notes-file export/release/release.md @archives $sums
           }
           if ($LASTEXITCODE -ne 0) { exit 1 }

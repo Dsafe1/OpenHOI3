@@ -115,6 +115,9 @@ The newest build of the main branch, made again at every change to it - this one
 release: it is for trying what is not released yet, and for a mod's test builds. A mod's own release names a
 numbered release of the engine, which stays as it is.
 
+The tag ``latest`` only names this page's address and is not moved with each build: the commit built is the one
+named here, not the one the tag stands on.
+
 The engine says it is ``$version`` in its ``engine.txt``; a mod played on it names that version. The launcher's
 command line is contract $contract.
 
