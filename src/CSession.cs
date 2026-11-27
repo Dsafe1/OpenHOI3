@@ -2420,6 +2420,12 @@ public partial class CSession : Node
 		{
 			append = false;
 		}
+		// A unit with no brigades and one falling back take no order at all, not even the halt that would end the retreat
+		// (movement.md, section 1).
+		if (unit.SubUnits.Count == 0 || unit.IsRetreating)
+		{
+			return;
+		}
 		// A headquarters' own agent takes the click for its plan; a unit under an agent above it takes no order at all
 		// (mapunits.md, section 12).
 		if (CPlanRowsText.AgentAboveItsOwn(unit))

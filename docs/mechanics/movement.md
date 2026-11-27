@@ -59,8 +59,11 @@ march's own are here.
   battle ahead (*ours*), so that what the original's command does with a unit in a battle it does here. Its land tests
   the route asks again of every step (section 3).
 - **A unit in a battle is never added to**: the shift key is let go of for it (`confirmed`, section 1 of the findings).
-- Nothing happens for a unit with no brigades. `confirmed`. The original also refuses a
-  retreating unit and one under an AI's command.
+- **Nothing happens for a unit with no brigades, for one that is retreating, or for one under an AI's command** -
+  not even the halt on its own province, which would end a retreat. `confirmed` (section 1 of the findings). The
+  click asks it of every kind of unit, before anything else but the shift key; the commands ask none of it. Built
+  whole on 2026-11-27, after a player halted a retreating unit by a click on its province: until then the click
+  asked only the AI's command, and the move command alone refused a unit with no brigades.
 - **That is a land unit's click.** A fleet's and an air unit's bring up a window of orders,
   and only a fleet with shift held, or either in a battle, is sent straight there: `fleetsandair.md`, section 4. **An air
   unit in a battle is asked nothing** - none of the test above, not its range - is marked sent and is given the plain
