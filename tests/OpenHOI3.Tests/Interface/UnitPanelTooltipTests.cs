@@ -193,6 +193,19 @@ public class UnitPanelTooltipTests
 	}
 
 	[Fact]
+	public void AtSkillElevenTheShareReadsPastTheTableAndAnEnhancedGamesShowsNothing()
+	{
+		// Experience above skill 11's floor: the original divides by the stray 1 after the table less that floor.
+		var leader = new CLeader(3) { Skill = 11, Experience = CFixed15.FromInt(150000000) };
+		Assert.True(CLeaderTooltip.ExperienceShare(leader) < 0);
+		Assert.Equal(0, CLeaderTooltip.ExperienceShare(leader, withinTheTable: true));
+
+		// A skill inside the table is the same either way.
+		var younger = new CLeader(4) { Skill = 1, Experience = CFixed15.FromInt(1500) };
+		Assert.Equal(500, CLeaderTooltip.ExperienceShare(younger, withinTheTable: true));
+	}
+
+	[Fact]
 	public void ARankOfNoneIsInactive()
 	{
 		Assert.Equal("(inactive)", CLeaderTooltip.RankName(Localise, new CLeader(4) { Rank = 0 }));

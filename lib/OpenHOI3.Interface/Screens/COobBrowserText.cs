@@ -155,12 +155,13 @@ public static class COobBrowserText
 	}
 
 	/// <summary>What the floating row of a dragged leader says of him.</summary>
-	public static string LeaderInfo(Func<string, string> localise, CLeader leader)
+	/// <param name="withinTheTable">The leader tooltip's, an enhanced game's fix <c>shown_figures</c>.</param>
+	public static string LeaderInfo(Func<string, string> localise, CLeader leader, bool withinTheTable = false)
 	{
 		var text = new StringBuilder();
 		text.Append(localise("LEADER_SKILL")).Append(" §Y").Append(leader.Skill.ToString(CultureInfo.InvariantCulture)).Append("§b ")
 			.Append(localise("LEADER_XP")).Append(" §Y")
-			.Append(CNumberText.Format(new CFixedPoint(CLeaderTooltip.ExperienceShare(leader) * 100000 / 1000), 2)).Append('%');
+			.Append(CNumberText.Format(new CFixedPoint(CLeaderTooltip.ExperienceShare(leader, withinTheTable) * 100000 / 1000), 2)).Append('%');
 		return text.ToString();
 	}
 

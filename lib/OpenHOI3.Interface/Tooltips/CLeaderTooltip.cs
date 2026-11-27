@@ -60,7 +60,8 @@ public static class CLeaderTooltip
 		}
 		text.Append(Line);
 		text.Append(localise("LEADER_XP")).Append(Yellow)
-			.Append(CNumberText.Format(new CFixedPoint(ExperienceShare(leader) * 100), 2)).Append('%').Append(Line);
+			.Append(CNumberText.Format(new CFixedPoint(
+				ExperienceShare(leader, state.Rules.Has(OpenHOI3.Sim.Rules.EFix.ShownFigures)) * 100), 2)).Append('%').Append(Line);
 		if (leader.Traits.Count > 0)
 		{
 			text.Append('\n').Append(localise("ACTUAL_TRAITS_DESC"));
@@ -89,13 +90,21 @@ public static class CLeaderTooltip
 	/// works it in its fifteen binary places; nothing from skill 12. At skill 11 the next
 	/// threshold is the stray word after the table, so the share comes out at nothing or less.
 	/// </summary>
-	public static long ExperienceShare(CLeader leader)
+	/// <param name="withinTheTable">
+	/// An enhanced game's fix <c>shown_figures</c>: a skill with no threshold after it in the table shows nothing, as
+	/// skill 12 does, and nothing past the table is read.
+	/// </param>
+	public static long ExperienceShare(CLeader leader, bool withinTheTable = false)
 	{
 		if (leader.Skill >= CLeaders.MostSkill)
 		{
 			return 0;
 		}
 		int skill = Math.Max(0, leader.Skill);
+		if (withinTheTable && skill + 1 >= CLeaders.SkillFloors.Length)
+		{
+			return 0;
+		}
 		long floor = CLeaders.SkillFloors[skill] << CFixed15.Places;
 		long next = (skill + 1 < CLeaders.SkillFloors.Length ? CLeaders.SkillFloors[skill + 1] : AfterTheTable) << CFixed15.Places;
 		long share = ((leader.Experience.Raw - floor) << CFixed15.Places) / (next - floor);

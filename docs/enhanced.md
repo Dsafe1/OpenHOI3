@@ -287,6 +287,9 @@ Begun 2026-11-21; as of 2026-11-25.
     (`mechanics/landorders.md`, section 8). Fewer draws, so every later roll of the game falls otherwise.
   - ✅ `shown_figures`: added to it - the ledger tooltip's tribute sent to a master is written red and below nought, as
     the loss it is (`mechanics/topbar.md`, section 14). Display only.
+  - ✅ `shown_figures`: added to it - a leader at the last skill of the table shows no share towards the next, in his
+    tooltip and on the browser's dragged row, where the original reads the word after the table
+    (`mechanics/unitpanel.md`, section 10.5). Display only.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -602,7 +605,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - ❌ **Other countries' leaders can be changed** from their units' panels. `leaders.md`, 12 and oddity 21. *Oversight.* Risk: none.
 - ❌ **Promoting or demoting takes the general off his unit,** and the window's buttons go on acting on him. `leaders.md`, 12 and oddity 23. *Oversight.* Risk: small.
 - ❌ **The starting stockpile ignores leaders,** being reckoned before they are chosen. `leaders.md`, 5 and oddity 10. *Oversight.* Risk: start-save checks.
-- ❌ **Skill 11's progress bar reads past its table.** `unitpanel.md`, 10.5. *Bug.* Risk: none.
+- ✅ **Skill 11's progress bar reads past its table.** **Mended by the fix `shown_figures`, 2026-11-27.** `unitpanel.md`, 10.5. *Bug.* Risk: none.
 - ❌ **"Remove all" closes the window before it is answered.** `leaders.md`, oddity 25. *Oversight.* Risk: none.
 - ✅ **A lent unit's leader button is enabled again** by the routine that disables it. The normal engine already greys it, by choice. `compatibility.md`, entry 23. *Bug.* Risk: none.
 

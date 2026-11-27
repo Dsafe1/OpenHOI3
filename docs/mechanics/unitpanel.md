@@ -638,7 +638,8 @@ anything else `PLAYER_CONTROLLED` - with `AUTOMATED_DESC` after a moment; `reorg
 skill's threshold, shifted up fifteen, over the next threshold less his own, both shifted up
 fifteen; that times a thousand shifted up fifteen, and shifted down thirty - thousandths. The
 thresholds are those of `leaders.md`. Nothing from skill 12; at skill 11 the next "threshold" is
-the word after the original's table, a 1, so the share is nothing or less - kept as read. A
+the word after the original's table, a 1, so the share is nothing or less - kept as read, and
+nothing under an enhanced game's fix `shown_figures` (2026-11-27), which reads nothing past the table. A
 trait's progress shows above nothing and short of the whole. **The original lists them in the
 order the traits lie in its memory; here in the order of the traits file** (*ours*).
 

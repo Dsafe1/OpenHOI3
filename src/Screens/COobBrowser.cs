@@ -684,7 +684,8 @@ public partial class COobBrowser : Control
 			floatingLeader.FindIcon("leader_rank")?.SetFrame(leader.Rank);
 			if (floatingLeader.FindTextBox("leader_info") is { } info)
 			{
-				info.Text = COobBrowserText.LeaderInfo(_context.Localisation.Localise, leader);
+				info.Text = COobBrowserText.LeaderInfo(_context.Localisation.Localise, leader,
+					_simulation.State.Rules.Has(Sim.Rules.EFix.ShownFigures));
 			}
 			CLeaderEntry.ShowPortrait(_context, floatingLeader.FindIcon("leader_photo"), leader);
 			return;
