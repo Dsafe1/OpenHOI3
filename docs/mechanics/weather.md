@@ -26,6 +26,15 @@ The terrain is the one the map gives the province.
 the top: `max(y - height/2, 0) x 1000 / (height/2)`. **Everything south of the equator is nought** - the original's own
 clamp - and so has no season.
 
+**An enhanced game's fix `southern_seasons`** (2026-11-27): latitude is the distance from the map's middle **either
+way**, `|y - height/2| x 1000 / (height/2)`, wherever a season, a temperature or a day's length asks for it
+(`CDaylight.Latitude`). So a province south of the middle and more than 250 from it takes the table's own **south**
+column below, the north's half a year on, which the original's clamp keeps it from ever reaching; winter there is
+colder past 650 and 950 as in the north; and its days lengthen and shorten by the month, six months on as the night
+already turned them. Nothing north of the middle changes. The "equator" is the map's middle row, whatever the map shows
+there [exe]. BlackICE starts with this fix under its `without`, by the user's word of that day: it brings winter to the
+whole south, and the mod is to look at it first.
+
 **The season**, 1 to 5, made again at the start of every province's day (so the midnight hour still has the day before's):
 
 - latitude 250 or less: **3**, all year;

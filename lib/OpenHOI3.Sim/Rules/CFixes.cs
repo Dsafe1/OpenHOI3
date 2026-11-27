@@ -52,6 +52,7 @@ public static class CFixes
 		(EFix.WeightedSongs, "weighted_songs"),
 		(EFix.OccupationPolicyChecked, "occupation_policy_checked"),
 		(EFix.AmphibiousDefence, "amphibious_defence"),
+		(EFix.SouthernSeasons, "southern_seasons"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

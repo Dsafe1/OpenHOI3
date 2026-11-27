@@ -267,4 +267,11 @@ public enum EFix
 	/// (<c>docs/mechanics/transport.md</c>, section 9).
 	/// </summary>
 	AmphibiousDefence,
+
+	/// <summary>
+	/// The south has seasons: a province's latitude is how far it lies from the map's middle either way, where the
+	/// original's is nought everywhere south of it - so the south takes the season table's own southern column, the
+	/// cold of its high latitudes and days that lengthen and shorten (<c>docs/mechanics/weather.md</c>, section 1).
+	/// </summary>
+	SouthernSeasons,
 }

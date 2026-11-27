@@ -210,7 +210,7 @@ public static class CProvinceWeather
 		{
 			province.Climate = CClimate.Of(state, province);
 		}
-		long latitude = CDaylight.LatitudeNorth(state, province);
+		long latitude = CDaylight.Latitude(state, province);
 		switch (province.Climate)
 		{
 			case 3:

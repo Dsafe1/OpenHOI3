@@ -86,6 +86,42 @@ public class WeatherTests
 	}
 
 	[Fact]
+	public void An_enhanced_games_south_has_the_norths_seasons_half_a_year_on_and_its_latitude_either_side_of_the_middle()
+	{
+		var south = new CProvince(9, "south", isSea: false) { CentreY = 100, IsNorthern = false };       // 800 from the middle
+		var tropics = new CProvince(9, "tropics", isSea: false) { CentreY = 400, IsNorthern = false };   // 200 from it
+		var north = new CProvince(9, "north", isSea: false) { CentreY = 825, IsNorthern = true };
+
+		// The original's south has no latitude, and so one season all year.
+		CGameState faithful = World(new CDate(1936, 7, 3));
+		Assert.Equal(0, CDaylight.Latitude(faithful, south));
+		Assert.Equal(3, CClimate.Of(faithful, south));
+
+		CGameState July() => Enhanced(World(new CDate(1936, 7, 3)));
+		CGameState January() => Enhanced(World(new CDate(1936, 1, 1)));
+		Assert.Equal(800, CDaylight.Latitude(July(), south));
+		Assert.Equal(650, CDaylight.Latitude(July(), north));                 // the north's is as before
+		// The table's own southern column: winter where the north has summer, and summer on 1 January.
+		Assert.Equal(5, CClimate.Of(July(), south));
+		Assert.Equal(3, CClimate.Of(January(), south));
+		Assert.Equal(3, CClimate.Of(July(), north));
+		Assert.Equal(5, CClimate.Of(January(), north));
+		// Within 250 of the middle there is still no season, south as north.
+		Assert.Equal(3, CClimate.Of(July(), tropics));
+
+		// Without the fix an enhanced game keeps the original's south.
+		CGameState without = World(new CDate(1936, 7, 3));
+		without.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(new[] { OpenHOI3.Sim.Rules.EFix.SouthernSeasons }));
+		Assert.Equal(3, CClimate.Of(without, south));
+	}
+
+	private static CGameState Enhanced(CGameState state)
+	{
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		return state;
+	}
+
+	[Fact]
 	public void A_province_hour_is_the_original_s_Phongsali_on_8_January()
 	{
 		// The reference saves of 02:00 and 03:00 on 8 January 1936: a jungle province in season 3 by day, no front.

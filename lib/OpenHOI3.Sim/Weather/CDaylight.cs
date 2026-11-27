@@ -40,6 +40,26 @@ public static class CDaylight
 		return north <= 0 ? 0 : north * CFixedPoint.Scale / half;
 	}
 
+	/// <summary>
+	/// The latitude a season, a temperature and a day's length go by: the original's, which is nought everywhere south
+	/// of the map's middle - and under an enhanced game's fix <c>southern_seasons</c> how far from the middle a province
+	/// is either way, in thousandths of the way to the map's edge, so that the south has seasons, the cold of its high
+	/// latitudes and days that lengthen and shorten (<c>docs/mechanics/weather.md</c>, section 1).
+	/// </summary>
+	public static long Latitude(CGameState state, CProvince province)
+	{
+		if (!state.Rules.Has(Rules.EFix.SouthernSeasons))
+		{
+			return LatitudeNorth(state, province);
+		}
+		int half = state.MapHeight / 2;
+		if (half <= 0)
+		{
+			return 0;
+		}
+		return System.Math.Abs((long)province.CentreY - half) * CFixedPoint.Scale / half;
+	}
+
 	public static bool IsNight(CGameState state, CProvince province)
 	{
 		return IsNight(state, province, state.Hour, state.Date.Month - 1);
@@ -63,7 +83,7 @@ public static class CDaylight
 		{
 			month = (month + 6) % 12;
 		}
-		long longer = LatitudeNorth(state, province) * LongerByMonth[month] / CFixedPoint.Scale;
+		long longer = Latitude(state, province) * LongerByMonth[month] / CFixedPoint.Scale;
 		long half = longer * CFixedPoint.Scale / (2 * CFixedPoint.Scale) / CFixedPoint.Scale;
 		return !(Sunrise - half <= local && local <= Sunset + half);
 	}
@@ -80,7 +100,7 @@ public static class CDaylight
 		{
 			month = (month + 6) % 12;
 		}
-		long q = (LatitudeNorth(state, province) * LongerByMonth[month] / CFixedPoint.Scale + 12000) / 2000;
+		long q = (Latitude(state, province) * LongerByMonth[month] / CFixedPoint.Scale + 12000) / 2000;
 		return Noon + (int)q;
 	}
 }

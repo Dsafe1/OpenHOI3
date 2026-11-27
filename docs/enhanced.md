@@ -321,6 +321,9 @@ Begun 2026-11-21; as of 2026-11-25.
     added up, and a landing with no invasion defence has the define's penalty exactly (`mechanics/transport.md`,
     section 9). Their Finest Hour's `assault_ship` and BlackICE's `landing_craft` begin to help the brigades they
     name.
+  - ✅ `southern_seasons`: a province's latitude is its distance from the map's middle either way, so the south takes
+    the season table's own southern column, the cold of its high latitudes and days that lengthen and shorten
+    (`mechanics/weather.md`, section 1). Large for the southern theatres; BlackICE starts with it under `without`.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -890,7 +893,7 @@ All of these are risk-free but for what the entry says.
 - ❌ **A `<unit type> = N` condition holds only for N of nought or less.** `triggers.md`. *Bug.* Risk: script results.
 - ❌ **`lost_IC` is the share held, weighed by a modifier.** It keeps the owned provinces the country **holds** where `lost_national` beside it counts those it does not, and weighs each by its `local_ic` modifier, not its IC; with Their Finest Hour's local modifiers all penalties the figure is never above nought, so `lost_IC = 0.1` never holds. `triggers.md`, 5.1. *Bug.* Risk: script results; nothing in either tree asks it.
 - ❌ **A battle side's "lost outright" byte is never set.** A side's defeat test and a decided battle's losses figures each read a byte that only the side's constructor writes, zeroing it, so the immediate loss and the figure's standing-strength, ships and wings terms never apply. `triggers.md`, 5.2. *Dead.* Risk: battles end and figures change.
-- ❌ **The south has no season.** Latitude is nought everywhere south of the equator. `weather.md`. *Oversight.* Risk: large for southern theatres.
+- ✅ **The south has no season.** **Mended by the fix `southern_seasons`, 2026-11-27.** Latitude is nought everywhere south of the equator. `weather.md`. *Oversight.* Risk: large for southern theatres.
 - ❌ **Season 5's doubling is dead** while `TEMPERATURECHANGESPEED` is positive. `weather.md`, "What looks wrong", 3. *Dead.* Risk: small.
 - ✅ **A loaded game fires no event until its month turns.** Each country's candidate events are made only by the month's pass, the save keeps none and a load does not make them, so after a load nothing with a mean time to happen fires until the 2nd of the next month, when every candidate has its first roll at once. BlackICE's DLL has the month's making run once after a load with `rebuildCandidates`. `events.md`, 1; `reversing/findings/FINDINGS-events.md`. *Oversight.* Risk: events fire sooner after a load, and the generator moves a draw. **Mended 2026-11-26**, `saved_event_candidates`: the enhanced save keeps the lists.
 - ✅ **Decision rows are never re-enabled** **Mended by the fix `fresh_screens`, 2026-11-27.** until the screen is reopened. `events.md`, 12. *Oversight.* Risk: none.

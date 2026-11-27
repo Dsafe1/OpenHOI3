@@ -19,7 +19,10 @@ public static class CClimate
 	/// <summary>Bands A to F, north of the equator: late winter, spring, summer, autumn, late autumn, winter.</summary>
 	private static readonly int[] North = { 1, 2, 3, 4, 4, 5 };
 
-	/// <summary>The same half a year on, for the south - which, having no latitude, never reaches them.</summary>
+	/// <summary>
+	/// The same half a year on, for the south - which, having no latitude, never reaches them, but under an enhanced
+	/// game's fix <c>southern_seasons</c>, where the south's latitude is its distance from the map's middle.
+	/// </summary>
 	private static readonly int[] South = { 4, 4, 5, 1, 2, 3 };
 
 	/// <summary>
@@ -28,7 +31,7 @@ public static class CClimate
 	/// </summary>
 	public static int Of(CGameState state, CProvince province)
 	{
-		long latitude = CDaylight.LatitudeNorth(state, province);
+		long latitude = CDaylight.Latitude(state, province);
 		if (latitude <= NoSeasonBelow)
 		{
 			return Default;
