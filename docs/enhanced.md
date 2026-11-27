@@ -124,7 +124,9 @@ Begun 2026-11-21; as of 2026-11-27.
   visible than the minister one"). The Simplified Terrain map mode sets the air mode's map style in place of its own, so
   the water is drawn from the provinces' colours, and gives each sea province its terrain's colour as it gives the land
   (`mechanics/mapmodes.md`, section 6). Display only.
-- ✅ **BlackICE's working copy holds the file since 2026-11-21**, naming nothing it goes without.
+- ✅ **BlackICE's working copy holds the file since 2026-11-21**. Since 2026-11-27 it goes without three fixes that
+  move the balance, until the mod's figures have been looked at: `air_defence_counts`, `southern_seasons` and
+  `amphibious_defence`.
 - ✅ **The statistics record, 2026-11-24** (`mechanics/statisticsrecord.md`): every country's 72 figures kept each
   day in the game and its save, a packed block a country's year - about half a MiB a game year of BlackICE - with
   the collection a rule of the lobby, `OpenHOI3.Statistics` for a page and the record written out as files when
