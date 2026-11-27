@@ -143,17 +143,20 @@ public static class CFrontWorthy
 		{
 			return true;
 		}
-		return AlignmentDistance(country, them) >= FarEnough;
+		return AlignmentDistance(country, them, state.Rules.Has(Rules.EFix.TheatreAlignmentDistance)) >= FarEnough;
 	}
 
 	/// <summary>
 	/// The original's distance on the triangle as this test works it out - with the x difference twice and the y never, in
-	/// single precision: <c>floor((sqrt((d*d/1000 + d*d/1000) / 1000) + 0.0005) * 1000)</c>.
+	/// single precision: <c>floor((sqrt((d*d/1000 + d*d/1000) / 1000) + 0.0005) * 1000)</c>. With
+	/// <paramref name="withY"/>, an enhanced game's fix <c>theatre_alignment_distance</c>, the second square is the y
+	/// difference's, which is the distance itself.
 	/// </summary>
-	public static long AlignmentDistance(CCountry country, CCountry? them)
+	public static long AlignmentDistance(CCountry country, CCountry? them, bool withY = false)
 	{
 		long d = (int)(country.AlignmentX - (them?.AlignmentX ?? 0));
-		int sum = (int)(d * d / 1000) + (int)(d * d / 1000);
+		long second = withY ? (int)(country.AlignmentY - (them?.AlignmentY ?? 0)) : d;
+		int sum = (int)(d * d / 1000) + (int)(second * second / 1000);
 		float root = MathF.Sqrt((float)((double)(float)sum / 1000.0));
 		float lifted = (float)(root + 0.0005);
 		float scaled = (float)(lifted * 1000.0);

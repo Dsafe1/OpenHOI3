@@ -88,6 +88,8 @@ Whether a country - the **other** - is an enemy the country draws fronts against
    - the other Japan or Italy and no subject - yes;
    - otherwise yes where `floor((sqrt((d*d/1000 + d*d/1000) / 1000.0f) + 0.0005) * 1000) >= 180000`, d being the
      country's alignment x less the other's;
+     **an enhanced game** with the fix `theatre_alignment_distance` (2026-11-27) squares the x difference and the y
+     difference, which is the distance itself (`docs/enhanced.md`);
 5. **the country in a faction**: the other in another faction - yes; then by the country's tag, no to anyone in its own
    faction, and yes to: the Soviet Union - LIT, ROM, POL, SPA, SPR, ETH, SWE, HUN, BUL, TUR, YUG, SLO, CZE, AUS, MAN,
    JAP; Germany - HOL, BEL, LUX, POL, LAT; France - Italy where in another faction, Belgium and Luxembourg; Belgium -

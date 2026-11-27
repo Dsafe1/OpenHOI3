@@ -176,6 +176,32 @@ public class TheatreTests
 		Assert.True(CFrontWorthy.Is(state, poland, Swe));
 	}
 
+	[Fact]
+	public void An_enhanced_game_measures_the_alignment_distance_by_x_and_y()
+	{
+		CGameState state = World();
+		CCountry sweden = state.Country(Swe)!;
+		CCountry poland = state.Country(Pol)!;
+		// Far apart up the triangle and not across it: the original's test sees no distance at all.
+		sweden.AlignmentY = 200000;
+		Assert.False(CFrontWorthy.Is(state, poland, Swe));
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		Assert.True(CFrontWorthy.Is(state, poland, Swe));
+
+		// 127.3 across counts once, which is not far enough; with 127.3 up it is 180.03.
+		sweden.AlignmentY = 0;
+		sweden.AlignmentX = 127300;
+		Assert.False(CFrontWorthy.Is(state, poland, Swe));
+		sweden.AlignmentY = 127300;
+		Assert.Equal(180029, CFrontWorthy.AlignmentDistance(poland, sweden, withY: true));
+		Assert.True(CFrontWorthy.Is(state, poland, Swe));
+
+		// The game without the fix keeps the original's.
+		state.Rules.Set(OpenHOI3.Sim.Rules.EFix.TheatreAlignmentDistance, false);
+		sweden.AlignmentY = 0;
+		Assert.True(CFrontWorthy.Is(state, poland, Swe));
+	}
+
 	// ---- making
 
 	[Fact]

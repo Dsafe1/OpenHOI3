@@ -346,6 +346,9 @@ Begun 2026-11-21; as of 2026-11-27.
   - ✅ `map_text_by_time`: a message's text on the map lives by the second, as long on every machine as the original's
     at sixty frames a second - 3.3 seconds at the slowest speed, 0.67 at the fastest (`mechanics/messages.md`,
     section 6). Display only.
+  - ✅ `theatre_alignment_distance`: A country in no faction measures how far a neighbour's alignment is from its own
+    by the x and the y difference (`CFrontWorthy.AlignmentDistance`, `theatres.md`, section 4.4); the check of the
+    start save's 108 theatres is a faithful game's and untouched.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -812,7 +815,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - ❌ **AI transport planes are never rebased.** `moving.md`, 17.1, 17.3 and 18. *Bug.* Risk: AI air.
 - ✅ **Which garrison the AI drops and which it picks hangs on where the heap put its region groups.** The split keeps its blocks of land in a map ordered by the groups' addresses, so two runs of one save can garrison differently: on 17 July 1941 one run sends the German 3. Infanterie-Division from Kirkenes to Oslo and another leaves it. Ours takes the blocks in the order the groups were made. `moving.md`, 7.2 and 19; `reversing/findings/FINDINGS-liveread.md`, section 130. *Bug.* Risk: none for the normal engine, which is already deterministic; an enhanced engine could keep ours on purpose.
 - ❌ **A land unit aboard an aeroplane walks off while still aboard.** Nothing in the march asks the plane, so the AI's paradrop planner marches a passenger to its staging base, the plane keeps it on its list and the unit keeps pointing at the plane: the July 1941 save's 1. Fallschirmjäger Division stands in Berlin aboard a transport based at Oslo, and walks there through Sweden. `moving.md`, 9.1; `reversing/findings/FINDINGS-liveread.md`, section 127. *Bug.* Risk: AI paradrops; a fix would unload a passenger given a way, or fly it.
-- ❌ **The theatre alignment test counts x twice and never y.** `theatres.md`, 11. *Bug.* Risk: AI theatres.
+- ✅ **The theatre alignment test counts x twice and never y.** **Mended by the fix `theatre_alignment_distance`, 2026-11-27.** `theatres.md`, 11. *Bug.* Risk: AI theatres.
 - ❌ **A rival's distance is halved, not scaled.** `aistrategy.md`, 11. *Oversight.* Risk: breaks the exact match with the start save.
 - ❌ **A country's own land held by an enemy is never on its `conquer_prov`.** The list's making asks for a province "owned by the country, or touching its land", and the adder every rule goes through refuses a province the country owns, so the first half is dead and an occupied country - an exile above all - never aims at its own resources: Norway's Vemork, Poland's 2096, China's 5420 at a later start. `aistrategy.md`, 5. *Dead.* Risk: breaks the exact match with the start saves.
 - ❌ **Prepared wars are dropped and prepared again.** `aistrategy.md`, 11. *Oversight.* Risk: AI war timing.

@@ -288,4 +288,11 @@ public enum EFix
 	/// 6). Display only.
 	/// </summary>
 	MapTextByTime,
+
+	/// <summary>
+	/// A country in no faction keeps a front against a neighbour whose alignment is far from its own by the real
+	/// distance on the triangle, the x and the y difference; the original's test squares the x difference twice and
+	/// never reads the y (docs/mechanics/theatres.md, section 4.4).
+	/// </summary>
+	TheatreAlignmentDistance,
 }
