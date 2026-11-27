@@ -310,6 +310,9 @@ Begun 2026-11-21; as of 2026-11-25.
     `offmap_political_intel` towards every country, `peace_offmap_intel` towards one it is not at war with - each
     worth that much of a spy's share, for the AI's intelligence and the intelligence screen alike. The rule is ours
     (`mechanics/intelligence.md`, section 1).
+  - ✅ `weighted_songs`: the next song is drawn among those that may play, each as likely as its chance, so a factor of
+    3 is three times as likely and not always first (`mechanics/music.md`, section 2.2). Nothing of the game hangs
+    on it.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -886,7 +889,7 @@ All of these are risk-free but for what the entry says.
 
 ## Music and the loading screen
 
-- ❌ **The next song is the heaviest, not one drawn by weight.** A song's chance times a roll of 5 to 9, the most winning, so a factor of 2 beats every song of factor 1 outright and equal weights always go to the song read first. A weighted draw is what `chance` reads as. `music.md`, 2.2. *Bug.* Risk: none.
+- ✅ **The next song is the heaviest, not one drawn by weight.** **Mended by the fix `weighted_songs`, 2026-11-27.** A song's chance times a roll of 5 to 9, the most winning, so a factor of 2 beats every song of factor 1 outright and equal weights always go to the song read first. A weighted draw is what `chance` reads as. `music.md`, 2.2. *Bug.* Risk: none.
 - ❌ **Five songs or fewer that can win fall silent for good** once each has played, the six chosen last being left out. `music.md`, 2.3. *Oversight.* Risk: none.
 - ❌ **The list of the six chosen last outlives a game**, so a new game's first songs depend on the last game's. `music.md`, 2.3. *Oversight.* Risk: none.
 - ❌ **The music volume does not stop the picking; the master volume does**, and the end-of-game screen asks the master volume too. `music.md`, 1 and 4. *Oversight.* Risk: none.

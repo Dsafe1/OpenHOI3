@@ -51,6 +51,27 @@ public class MusicTests
 	}
 
 	[Fact]
+	public void AnEnhancedGamesSongIsDrawnByItsChanceAndTheSixChosenLastAreStillLeftOut()
+	{
+		List<CSong> songs = Songs(3);
+		long Chance(CSong song) => song == songs[2] ? 2000 : song == songs[1] ? 0 : 1000;
+
+		// Weights 1000, 0 and 2000: a draw under 1000 is the first, any other the third - twice as likely, not always.
+		Assert.Equal(0, new CSongPicker().Pick(songs, Chance, Draws(999), byWeight: true));
+		Assert.Equal(2, new CSongPicker().Pick(songs, Chance, Draws(1000), byWeight: true));
+		Assert.Equal(2, new CSongPicker().Pick(songs, Chance, Draws(2999), byWeight: true));
+		Assert.Equal(0, new CSongPicker().Pick(songs, Chance, Draws(3000), byWeight: true));
+		// A song weighing nothing is never drawn, and with nothing weighing anything there is none.
+		Assert.Equal(-1, new CSongPicker().Pick(songs, _ => 0, Draws(5), byWeight: true));
+
+		// One just chosen is out of the next draw: of the first and the third, the third gone, only the first is left.
+		var picker = new CSongPicker();
+		Assert.Equal(2, picker.Pick(songs, Chance, Draws(1500), byWeight: true));
+		Assert.Equal(0, picker.Pick(songs, Chance, Draws(1500), byWeight: true));
+		Assert.Equal(-1, picker.Pick(songs, Chance, Draws(1500), byWeight: true));
+	}
+
+	[Fact]
 	public void TheSixChosenLastAreLeftOut()
 	{
 		List<CSong> songs = Songs(8);

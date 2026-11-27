@@ -46,6 +46,12 @@ wins, so `factor = 0` means never; and **a factor of 2 or more beats every song 
 least against 9 at most) - factors are tiers more than odds. A Soviet player's four parts of the Soviet suite, factor 3
 for `SOV` in the install, are all chosen before any other song, in an order the rolls decide.
 
+**An enhanced game's fix `weighted_songs`** (2026-11-27): one draw picks among the songs that are not among the six
+chosen last, each weighing its chance where that is above nought - the song whose running total first passes the
+draw's remainder by their sum. So a factor of 3 is three times as likely and not always first, and equal weights are
+equally likely. The draw's source is the same as before, never the game's; the list of six is kept as before, so
+five songs or fewer that can win still fall silent (section 2.3). The player asks the rules of the game being played.
+
 **The roll's source is the original's own and not the game's** [exe]: a generator nothing seeds, on the stack. *Ours*: a
 generator of the process's (`Random.Shared`) - never the game's, so the music draws nothing a replay or a save could
 miss.

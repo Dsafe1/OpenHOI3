@@ -244,4 +244,11 @@ public enum EFix
 	/// not at war with. The rule is ours (<c>docs/mechanics/intelligence.md</c>, section 1).
 	/// </summary>
 	MinisterIntel,
+
+	/// <summary>
+	/// The next song is drawn among those that may play, each as likely as its chance, where the original takes the
+	/// heaviest of chance times a roll of five to nine, so that a factor of 2 beats every factor of 1 outright
+	/// (<c>docs/mechanics/music.md</c>, section 2.2). Nothing of the game hangs on it.
+	/// </summary>
+	WeightedSongs,
 }

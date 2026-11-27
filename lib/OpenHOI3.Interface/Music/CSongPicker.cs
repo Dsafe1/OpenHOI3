@@ -29,7 +29,29 @@ public sealed class CSongPicker
 	/// thousandths, as the original's <c>GetDays</c>; <paramref name="draw"/> is the roll's source, a number never below
 	/// nought - the original's is a generator nothing seeds, and never the game's (section 2.2).
 	/// </summary>
-	public int Pick(IReadOnlyList<CSong> songs, Func<CSong, long> chance, Func<int> draw)
+	/// <param name="byWeight">
+	/// An enhanced game's fix <c>weighted_songs</c>: one draw picks among the songs that may play, each as likely as its
+	/// chance, where the original takes the heaviest of chance times a roll of five to nine - so that a factor of 2
+	/// beats every factor of 1 outright.
+	/// </param>
+	public int Pick(IReadOnlyList<CSong> songs, Func<CSong, long> chance, Func<int> draw, bool byWeight = false)
+	{
+		int chosen = byWeight ? ByWeight(songs, chance, draw) : Heaviest(songs, chance, draw);
+		// Whether or not a song was found, the oldest goes where the list is full; then the one chosen joins. A pass that
+		// finds nothing so frees a place only with six held.
+		if (_recent.Count > RecentCount - 1)
+		{
+			_recent.RemoveAt(0);
+		}
+		if (chosen >= 0)
+		{
+			_recent.Add(chosen);
+		}
+		return chosen;
+	}
+
+	/// <summary>The original's pick: a roll a song, the heaviest of chance times roll, the first of equals.</summary>
+	private int Heaviest(IReadOnlyList<CSong> songs, Func<CSong, long> chance, Func<int> draw)
 	{
 		int chosen = -1;
 		long best = 0;
@@ -47,16 +69,39 @@ public sealed class CSongPicker
 				chosen = index;
 			}
 		}
-		// Whether or not a song was found, the oldest goes where the list is full; then the one chosen joins. A pass that
-		// finds nothing so frees a place only with six held.
-		if (_recent.Count > RecentCount - 1)
-		{
-			_recent.RemoveAt(0);
-		}
-		if (chosen >= 0)
-		{
-			_recent.Add(chosen);
-		}
 		return chosen;
+	}
+
+	/// <summary>
+	/// The fix's pick: the songs not among the six chosen last, each weighing its chance where that is above nought, and
+	/// one draw over their sum - the song whose running total first passes the draw's remainder. None where nothing weighs.
+	/// </summary>
+	private int ByWeight(IReadOnlyList<CSong> songs, Func<CSong, long> chance, Func<int> draw)
+	{
+		var weights = new long[songs.Count];
+		long sum = 0;
+		for (int index = 0; index < songs.Count; index++)
+		{
+			if (_recent.Contains(index))
+			{
+				continue;
+			}
+			weights[index] = Math.Max(0, chance(songs[index]));
+			sum += weights[index];
+		}
+		if (sum <= 0)
+		{
+			return -1;
+		}
+		long point = draw() % sum;
+		for (int index = 0; index < songs.Count; index++)
+		{
+			point -= weights[index];
+			if (weights[index] > 0 && point < 0)
+			{
+				return index;
+			}
+		}
+		return -1;
 	}
 }

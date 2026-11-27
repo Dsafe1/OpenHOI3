@@ -176,7 +176,8 @@ public partial class CMusic : Node
 		}
 		CGameState state = _game;
 		CEventScope scope = CEventScope.Start(_played()?.Tag);
-		int chosen = _picker.Pick(_songs, song => CEventChance.Days(state, song.Chance, scope), () => Random.Shared.Next());
+		int chosen = _picker.Pick(_songs, song => CEventChance.Days(state, song.Chance, scope), () => Random.Shared.Next(),
+			state.Rules.Has(Sim.Rules.EFix.WeightedSongs));
 		// A path of two characters or fewer is not played: a song with no name.
 		return chosen >= 0 && _songs[chosen].Path.Length > 2 ? _songs[chosen].Path : null;
 	}
