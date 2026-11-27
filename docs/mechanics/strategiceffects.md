@@ -36,9 +36,10 @@ For each listed entry, in order, on the list's next row:
 - `modifier_name`: the entry's name, its key localised.
 - `modifier_effect`: **every value of its modifier**, one line a kind - the kind's own name, `": "`, a coloured sign
   and figure, `§W` (`modifiers.md`, section 8).
-- `modifier_strip`: the frame of the entry's **`icon`**, a 17-frame strip. *`likely`*: the strip is counted from
-  nought - `icon = 0`, or none, is its first frame and 16 its last - since the file's icons run 1 to 16 and the
-  strip has 17 frames; that an icon's frame may be counted from nought is `interface.md`, section 5.
+- `modifier_strip`: the frame of the entry's **`icon`**, a 17-frame strip, **counted from one** as every frame is -
+  `icon = 1` its first frame. Corrected 2026-11-27 on the maintainer's look at the original: this said the strip was
+  counted from nought, guessed from the file's icons running 1 to 16 on a strip of 17 frames, and every icon was drawn
+  one frame late. What `icon = 0`, or none, draws is not known; *ours* draws the first frame.
 - **Plain where the entry is on P's list, greyed where it is not**: the row's background (`modifier_entry_bg`) and the
   strip are drawn in the buttons' "up" or "disabled" look (`interface.md`, section 5). The routine sets the states 1
   and 4; that they are those two is `inferred` from the shader's order counted from one.

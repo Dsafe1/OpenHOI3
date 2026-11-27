@@ -420,9 +420,10 @@ files, with nothing in it placed by hand.
   0 does is not known; *ours* draws the nearest frame that exists.
 - **An icon's may be counted from nought.** `likely` The bar that shows a theory or a
   practical has 21 frames, the first empty, and is set from 0 to 20
-  (`technologyscreen.md`, section 5); the Strategic Effects window's strip has 17 and is
-  set from a modifier's `icon`, which the files give from 1 to 16 (`strategiceffects.md`,
-  section 3). *Ours:* those two are drawn so; other icons' frames count from one.
+  (`technologyscreen.md`, section 5). *Ours:* it is drawn so; other icons' frames count
+  from one. The Strategic Effects window's strip was taken for a second such icon, and
+  was corrected on 2026-11-27 on a look at the original: it counts from one
+  (`strategiceffects.md`, section 3).
 - **A `progressbartype` is a bar that fills from the left**, drawn since 2026-11-07
   through the effect its sprite names - `progress.fx` - translated for the canvas
   (`reversing/findings/FINDINGS-progressfx.md`), `confirmed`: `ColorProgress` where both

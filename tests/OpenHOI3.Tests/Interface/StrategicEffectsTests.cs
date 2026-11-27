@@ -85,7 +85,7 @@ public class StrategicEffectsTests
 		Assert.Equal(new[] { false, true, true }, rows.ConvertAll(row => row.Present));
 		Assert.Equal("1 / 2", CStrategicEffectsText.Status(rows[0]));
 		Assert.Equal(50, CStrategicEffectsText.Progress(rows[0]));
-		Assert.Equal(13, CStrategicEffectsText.Frame(steel));
+		Assert.Equal(12, CStrategicEffectsText.Frame(steel));
 		Assert.Equal("0 / 0", CStrategicEffectsText.Status(rows[2]));
 		Assert.Equal(0, CStrategicEffectsText.Progress(rows[2]));
 	}

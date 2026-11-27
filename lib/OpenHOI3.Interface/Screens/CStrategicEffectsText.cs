@@ -56,8 +56,8 @@ public static class CStrategicEffectsText
 	/// <summary><c>modifier_progress</c>, in hundredths: met x 100 / counted, nought where nothing is counted.</summary>
 	public static int Progress(CStrategicEffectRow row) => row.Counted < 1 ? 0 : row.Met * 100 / row.Counted;
 
-	/// <summary>The strip's frame counted from one: its icon counted from nought.</summary>
-	public static int Frame(CTriggeredModifier entry) => entry.Icon + 1;
+	/// <summary>The strip's frame counted from one: its icon, which is counted from one too.</summary>
+	public static int Frame(CTriggeredModifier entry) => entry.Icon;
 
 	/// <summary>A row's "?": its <c>trigger</c> block written out in the country's scope.</summary>
 	public static string Tooltip(CScriptWords words, CTriggeredModifier entry, CCountry country) =>
