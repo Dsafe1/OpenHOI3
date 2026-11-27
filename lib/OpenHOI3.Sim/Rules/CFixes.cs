@@ -41,6 +41,7 @@ public static class CFixes
 		(EFix.AirRegroupAgrees, "air_regroup_agrees"),
 		(EFix.DebtRepaid, "debt_repaid"),
 		(EFix.DebtRevokeCost, "debt_revoke_cost"),
+		(EFix.LendLeasePartial, "lend_lease_partial"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

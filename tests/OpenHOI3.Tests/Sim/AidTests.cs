@@ -408,6 +408,41 @@ public class AidTests
 	}
 
 	[Fact]
+	public void An_enhanced_games_receiver_is_given_what_the_givers_stockpile_does_pay_for()
+	{
+		foreach (bool mended in new[] { true, false })
+		{
+			CGameState state = World();
+			state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(mended
+				? System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()
+				: new[] { OpenHOI3.Sim.Rules.EFix.LendLeasePartial }));
+			CCountry germany = C(state, Ger);
+			CCountry poland = C(state, Pol);
+			germany.TotalIc = 200;
+			germany.ProductionShares[(int)EProductionCategory.LendLease] = new CFixed15(3276);
+			CLendLease.Add(germany, poland);
+			germany.LendLeaseGiving[0].Effectiveness = 1000;
+			CGoodsPool pool = state.Stockpile(germany)!;
+			pool[EGoods.Metal] = CFixedPoint.FromInt(5);                // five IC's metal, where 19.995 is the share
+			pool[EGoods.Energy] = CFixedPoint.FromInt(1000);
+			pool[EGoods.RareMaterials] = CFixedPoint.FromInt(1000);
+			var charged = new List<CFixedPoint>();
+
+			CLendLeaseIc.Give(state, germany, pool, charged.Add);
+			if (mended)
+			{
+				Assert.Equal(new[] { CFixedPoint.FromInt(5) }, charged);
+				Assert.Equal(5000, poland.LendLeaseIncome);
+			}
+			else
+			{
+				Assert.Empty(charged);
+				Assert.Equal(0, poland.LendLeaseIncome);
+			}
+		}
+	}
+
+	[Fact]
 	public void A_war_between_the_two_ends_the_leave_both_ways_and_not_the_debt()
 	{
 		CGameState state = World();

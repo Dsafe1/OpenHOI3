@@ -272,6 +272,8 @@ Begun 2026-11-21; as of 2026-11-25.
     (`mechanics/aid.md`, section 1).
   - ✅ `debt_revoke_cost`: revoking a country's leave to run a debt charges the creditor who revokes, and `DEBTREVOKE`
     names the creditor to the debtor it is told to (`mechanics/aid.md`, section 1).
+  - ✅ `lend_lease_partial`: a lend-lease receiver whose share of the day is more than the giver's stockpile pays for
+    is given what it does pay for, and the giver charged that much (`mechanics/aid.md`, section 3).
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -621,7 +623,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - ❌ **The join dialog prints the alliance's costs.** The faction's action charges nothing. `factions.md`, oddity 1. *Display.* Risk: none.
 - ✅ **Debt is repaid for ever.** **Mended by the fix `debt_repaid`, 2026-11-27.** It is never lowered, and one under 18.250 is never repaid. `aid.md`, 1 and 5. *Bug.* Risk: moderate.
 - ✅ **Revoking debt charges the debtor,** **Mended by the fix `debt_revoke_cost`, 2026-11-27.** and the message names the wrong party. `aid.md`, 5. *Bug.* Risk: small.
-- ❌ **The lend-lease cap is enforced by nothing;** over it the receiver gets nothing that day. `aid.md`, 5. *Oversight.* Risk: small.
+- ✅ **The lend-lease cap is enforced by nothing;** **Mended by the fix `lend_lease_partial`, 2026-11-27.** over it the receiver gets nothing that day. `aid.md`, 5. *Oversight.* Risk: small.
 - ❌ **Sharing theories collapses wholesale.** A new sharer of one theory ends every theory the old one gave. `aid.md`, 5. *Oversight.* Risk: small.
 - ❌ **A Retrieve's date disagrees with its delay.** `expeditions.md`, 1. *Display.* Risk: none.
 - ❌ **An empty expedition offer.** Clearing a fleet's box leaves Accept up, posting nothing useful. `expeditions.md`, 1. *Bug.* Risk: none.

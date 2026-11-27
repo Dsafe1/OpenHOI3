@@ -15,7 +15,8 @@ public static class CLendLeaseIc
 	/// <summary>
 	/// The giver's day: the share's IC in thousandths, <c>floor(share x TotalIc x 1000 / 32768)</c>, and for
 	/// each receiver in turn its weight's part of it, times its effectiveness, both truncated - sent where the
-	/// stockpile can still pay for it, nothing otherwise.
+	/// stockpile can still pay for it, nothing otherwise. An enhanced game's fix <c>lend_lease_partial</c> sends what
+	/// the stockpile does pay for where it cannot pay for all of it.
 	/// </summary>
 	public static void Give(CGameState state, CCountry giver, CGoodsPool stockpile, Action<CFixedPoint> charge)
 	{
@@ -35,9 +36,14 @@ public static class CLendLeaseIc
 			long share = weights == 0 ? 0 : gift.Weight * CFixedPoint.Scale / weights;
 			long amount = thousandths * share / CFixedPoint.Scale;
 			amount = amount * gift.Effectiveness / CFixedPoint.Scale;
-			if (amount > CProduction.SupportedIc(stockpile).Raw)
+			long paidFor = CProduction.SupportedIc(stockpile).Raw;
+			if (amount > paidFor)
 			{
-				continue;
+				if (!state.Rules.Has(Rules.EFix.LendLeasePartial) || paidFor <= 0)
+				{
+					continue;
+				}
+				amount = paidFor;
 			}
 			charge(new CFixedPoint(amount));
 			if (state.Country(gift.Receiver) is { } receiver

@@ -207,7 +207,9 @@ dialog, `LicenceDialog`: section 6.
 5. An accepted licence the buyer cannot pay turns into a decline; the licence is built at the seller's
    levels in the buyer's queue, a land type as reserves.
 6. The lend-lease cap is enforced by nothing; a receiver whose share is more than the giver's resources
-   allow gets nothing that day.
+   allow gets nothing that day. **An enhanced game's fix `lend_lease_partial`** (2026-11-27): such a receiver
+   is given the IC the stockpile does pay for, the giver charged that much, and nothing only where it pays for
+   none. The receivers are still served in the order the giving began.
 7. A lend-lease convoy belongs to the receiver and carries nothing.
 8. When the rules end lend-lease the receiver is told the giver "revoked" it.
 9. A new sharer of one theory ends every theory the old one gave, and the day's check drops all of a

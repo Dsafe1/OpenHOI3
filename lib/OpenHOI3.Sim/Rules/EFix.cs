@@ -187,4 +187,10 @@ public enum EFix
 	/// (<c>docs/mechanics/aid.md</c>, section 1).
 	/// </summary>
 	DebtRevokeCost,
+
+	/// <summary>
+	/// A lend-lease receiver whose share of the day is more than the giver's stockpile pays for is given what it does
+	/// pay for, where the original gives it nothing that day (<c>docs/mechanics/aid.md</c>, section 3).
+	/// </summary>
+	LendLeasePartial,
 }
