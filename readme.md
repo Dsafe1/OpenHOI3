@@ -34,24 +34,32 @@ content and no modders. So OpenHOI3 reads an install **as it is**:
 
 ## Status
 
-**In development, with no release yet.** A large part of the game is built and can be played from the
-main menu: the map and its map modes, the economy, production and research, units and their
-movement, land, naval and air combat, supply and convoys, leaders, events and decisions, diplomacy,
-trade, war and peace, factions, politics, espionage, occupation and revolts, weather, the AI of every
-country nobody plays, saving and loading, multiplayer over the network, and most of the original's screens. Expect rough edges and
-missing pieces.
+**In development, with early builds published.** The
+[releases page](https://github.com/Dsafe1/OpenHOI3/releases) has a numbered build for each version and
+one called `latest`, made again from the main branch at every change. A large part of the game is
+built and can be played from the main menu: the map and its map modes, the economy, production and
+research, units and their movement, land, naval and air combat, supply and convoys, leaders, events
+and decisions, diplomacy, trade, war and peace, factions, politics, espionage, occupation and revolts,
+weather, the AI of every country nobody plays, saving and loading, replays of a whole game,
+multiplayer over the network, and most of the original's screens. Expect rough edges and missing
+pieces.
 
 Wherever the original can be checked, it is checked: a tool loads an install and sets what OpenHOI3
 computes beside savegames the original wrote, field by field - start-date ownership, technology,
-orders of battle, supply, convoys, the AI's strategies and theatres, and more. More than 3,000 unit
+orders of battle, supply, convoys, the AI's strategies and theatres, and more. Nearly 3,900 unit
 tests cover the parsing, the rules and the interface's text.
 
 What is deliberately different from the original is listed in
 [`docs/compatibility.md`](docs/compatibility.md). Faults of the original are kept so that it plays
-the same, and listed in [`docs/enhanced.md`](docs/enhanced.md) for a planned enhanced mode.
+the same. **An enhanced mode mends some of them**: a mod turns it on with a file of its own,
+`common/openhoi_enhanced.txt`, and a game made without one is the faithful game.
+[`docs/enhanced.md`](docs/enhanced.md) lists the faults, what the mode is and what of it is built.
 
-**The base game comes first; mods second.** Laying a mod over the install works, and BlackICE starts
-a new game, but playing a mod as fully as the base game is the next stage of the work.
+**The base game came first; mods are being played now.** A mod is laid over the install as the
+original lays it, and several may be played together. BlackICE, the largest, is played on it in
+test games, and its next version is made for both engines - the original, and this one in the
+enhanced mode ([`docs/blackice.md`](docs/blackice.md)). Expect a mod to show more missing pieces than
+the base game does.
 
 ## What you need
 
@@ -83,8 +91,9 @@ Editor*. Set the path of the Godot executable in the `godotTools.editorPath.godo
 again from the main branch at every change ([`.github/workflows/build.yml`](.github/workflows/build.yml)).
 
 **A standalone build** is made by [`tools/build_engine.ps1`](tools/build_engine.ps1) into `export/OpenHOI3/`. It
-needs the Godot 4.7.1 .NET export templates. An exported build plays the install it is placed in:
-copy the folder's contents beside `hoi3_tfh.exe`.
+needs the Godot 4.7.1 .NET export templates, which [`tools/fetch_godot.ps1`](tools/fetch_godot.ps1)
+fetches with the editor. An exported build plays the install it is placed in: copy the folder's
+contents beside `hoi3_tfh.exe`.
 
 **The launcher** is built by [`tools/build_launcher.ps1`](tools/build_launcher.ps1) into
 `export/Launcher/`, and [`tools/build_both.ps1`](tools/build_both.ps1) builds both and puts the
@@ -96,15 +105,24 @@ on, a mod's own where it ships one. [`docs/launcher.md`](docs/launcher.md) has t
 published: Breitkopf Fraktur. [`fonts/readme.md`](fonts/readme.md) says where to get it; without it,
 the names it is used for are drawn in Liberation Sans.
 
-**Logs** go to `%APPDATA%\Godot\app_userdata\OpenHoi3\logs\godot.log`, with the last twenty runs
-kept, and an unhandled exception is written to a `crash-<time>.log` beside it.
+**Logs** go where the original's do: the `logs` folder of the player's folder,
+`Documents\Paradox Interactive\Hearts of Iron III`, or with a mod the mod's own folder below it.
+`openhoi3.log` is the run's, with the four runs before it kept; `openhoi3_validation.log` lists every
+fault found in the install's or a mod's own files; and an unhandled exception is written to a
+`crash-<time>.log` beside them ([`docs/mechanics/logs.md`](docs/mechanics/logs.md)).
 
 ### Mods
 
-A mod is laid over the install as the original lays it, found by the name of its `.mod` file:
-`--mod=<name>`, or the original launcher's `-mod=mod/<file>.mod`. The savegame tool takes
-`mod=<name>` too, and its `modsurvey` command lists everything a mod asks for that OpenHOI3 does not
-answer yet. [`docs/mechanics/mods.md`](docs/mechanics/mods.md) has the details.
+A mod is laid over the install as the original lays it. The launcher lists the mods of `tfh/mod` to
+tick; several may be played together, each in front of what it depends on, so a submod is a `.mod`
+file of its own that names its mod under `dependencies`. From a command line a mod is found by the
+name of its `.mod` file: `--mod=<name>`, or the original launcher's `-mod=mod/<file>.mod`. A mod
+shipped only as an `archive` is not read yet. The savegame tool takes `mod=<name>` too, and its
+`modsurvey` command lists everything a mod asks for that OpenHOI3 does not answer yet.
+[`docs/mechanics/mods.md`](docs/mechanics/mods.md) has the details.
+
+In an enhanced game a mod may also add windows of its own, each page a Lua file drawn with Dear ImGui
+([`docs/mechanics/modwindows.md`](docs/mechanics/modwindows.md)).
 
 ### Checking against the original
 
@@ -135,7 +153,7 @@ A few rules hold throughout:
   simulation is deterministic and rounds the way the original does. There is no `float` or `double`
   in the game state.
 - **Every change to the game state is a command.** Nothing changes the simulation directly, which is
-  what lets a game be recorded and replayed and, later, shared between players.
+  what lets a game be recorded and replayed, and shared between players in multiplayer.
 - **The simulation has no engine in it.** The libraries under `lib/` do not reference Godot, and the
   simulation references nothing at all, so it runs headless and under test.
 - **Check against a savegame.** A rule that reproduces the original's save to the thousandth is worth
@@ -174,8 +192,12 @@ The documents a contributor needs:
 | --- | --- |
 | [`docs/mechanics/`](docs/mechanics/) | one specification per system |
 | [`docs/compatibility.md`](docs/compatibility.md) | where a valid file of the original's is treated differently on purpose |
-| [`docs/enhanced.md`](docs/enhanced.md) | faults of the original kept as they are, and what a planned enhanced mode would change |
+| [`docs/enhanced.md`](docs/enhanced.md) | faults of the original kept as they are, and the enhanced mode that mends some of them |
+| [`docs/blackice.md`](docs/blackice.md) | how the enhanced mode reaches BlackICE: the plan, step by step, and what of it is built |
+| [`docs/launcher.md`](docs/launcher.md) | the launcher, how a mod names its engine, releases and the pipeline that builds them |
+| [`docs/multiplayer.md`](docs/multiplayer.md) | playing one game on several machines |
 | [`docs/replay.md`](docs/replay.md) | recording a game and playing it back, and the state's hash |
+| [`docs/performance.md`](docs/performance.md) | where the time goes, and what would make it faster |
 | [`docs/layout.md`](docs/layout.md) | every folder and what it is for |
 | [`docs/worklist.md`](docs/worklist.md) | the working notes: the staged plan, what is next, and what was left |
 | [`CLAUDE.md`](CLAUDE.md) | the project's conventions in full, written for the AI agents that do much of the work and as true for anyone else |
@@ -190,6 +212,12 @@ fixture taken from an install.
 OpenHOI3 was started in 2021 by [Dozed12](https://github.com/Dozed12) as a Unity project, and was
 rebuilt on Godot from 2026.
 
+- [Godot Engine](https://godotengine.org/) 4, under the MIT licence.
+- [Avalonia](https://avaloniaui.net/), which the launcher is made with, under the MIT licence.
+- [Dear ImGui](https://github.com/ocornut/imgui), through
+  [imgui-godot](https://github.com/pkdawson/imgui-godot) in [`addons/imgui-godot`](addons/imgui-godot)
+  and ImGui.NET, all under the MIT licence
+  ([`addons/imgui-godot/LICENSE.txt`](addons/imgui-godot/LICENSE.txt)).
 - [LuaJIT](https://luajit.org/) 2.1, in [`native/luajit`](native/luajit), under the MIT licence
   ([`native/luajit/COPYRIGHT`](native/luajit/COPYRIGHT)).
 - [Lua](https://www.lua.org/) 5.1.4, in [`native/lua`](native/lua), under the MIT licence
