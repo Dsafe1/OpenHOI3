@@ -416,6 +416,32 @@ public class CombatModifierTests
 	}
 
 	[Fact]
+	public void TheAisSunsetIsByTheGamesClockAndInAnEnhancedGameByTheProvincesOwn()
+	{
+		CGameState state = State(out _, out _);
+		CProvince middle = state.Province(Posen);
+		var west = new CProvince(9, "West", isSea: false) { PositionX = 0, PositionY = 500, CentreY = 500 };
+		for (int i = 0; i < 10; i++)
+		{
+			state.AdvanceOneHour();
+		}
+
+		// Ten by the game's clock, sunset at eighteen on the equator: eight hours everywhere, also at the map's western
+		// edge, where it is twenty-two and dark.
+		Assert.Equal(22, CDaylight.LocalHour(state, west, state.Hour));
+		Assert.True(CDaylight.IsNight(state, west));
+		Assert.Equal(8, CDaylight.HoursToAiSunset(state, middle));
+		Assert.Equal(8, CDaylight.HoursToAiSunset(state, west));
+
+		// An enhanced game counts from the province's own hour: no daylight left in the west.
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		Assert.Equal(8, CDaylight.HoursToAiSunset(state, middle));
+		Assert.Equal(-4, CDaylight.HoursToAiSunset(state, west));
+		state.Rules.Set(OpenHOI3.Sim.Rules.EFix.AiAirLocalSunset, false);
+		Assert.Equal(8, CDaylight.HoursToAiSunset(state, west));
+	}
+
+	[Fact]
 	public void TheDayIsLongerInTheNorthernSummerAndTheSouthIsSixMonthsOn()
 	{
 		CGameState state = State(out _, out _);

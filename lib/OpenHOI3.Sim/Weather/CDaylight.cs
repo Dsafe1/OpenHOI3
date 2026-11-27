@@ -77,7 +77,7 @@ public static class CDaylight
 		{
 			return false;
 		}
-		int local = (province.PositionX * HoursInADay / state.MapWidth + Noon + hour) % HoursInADay;
+		int local = LocalHour(state, province, hour);
 		bool isNorth = province.PositionY >= state.MapHeight / 2;
 		if (!isNorth)
 		{
@@ -102,5 +102,30 @@ public static class CDaylight
 		}
 		long q = (Latitude(state, province) * LongerByMonth[month] / CFixedPoint.Scale + 12000) / 2000;
 		return Noon + (int)q;
+	}
+
+	/// <summary>
+	/// A province's own hour at an hour of the game's clock: moved on by a twenty-fourth of a day for each twenty-fourth
+	/// of the map it is east, and by twelve - the hour night is told by. The game's hour itself on a map with no width.
+	/// </summary>
+	public static int LocalHour(CGameState state, CProvince province, int hour)
+	{
+		if (state.MapWidth <= 0)
+		{
+			return hour;
+		}
+		return (province.PositionX * HoursInADay / state.MapWidth + Noon + hour) % HoursInADay;
+	}
+
+	/// <summary>
+	/// How many hours the AI counts to sunset over a province, for a mission it flies till then: its sunset hour less the
+	/// game's own hour, the same from Lisbon to Vladivostok - and, under an enhanced game's fix
+	/// <c>ai_air_local_sunset</c>, less the province's own hour, as night is told for a battle and for the weather
+	/// (<c>docs/mechanics/moving.md</c>, section 17.4).
+	/// </summary>
+	public static int HoursToAiSunset(CGameState state, CProvince province)
+	{
+		int hour = state.Rules.Has(Rules.EFix.AiAirLocalSunset) ? LocalHour(state, province, state.Hour) : state.Hour;
+		return SunsetHour(state, province) - hour;
 	}
 }

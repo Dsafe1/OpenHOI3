@@ -1059,6 +1059,9 @@ weather penalty (`aircombat.md`); **seen** is an intelligence of 2 or more (`int
 the game's clock stands at, set against 12 + q, q = (latitude x the month's figure / 1000 + 12000) / 2000 in whole hours
 over the group's base, the month's figure being the night's table (`landcombat.md`, section 4; south of the equator six
 months on) - at least three hours left, and the order ends then.
+**An enhanced game** with the fix `ai_air_local_sunset` (2026-11-27) sets the sunset against the base province's own
+hour - the game's, moved on by how far east the base lies, as night is told for a battle (`landcombat.md`, section 4) -
+where the original's daylight missions keep one set of hours from Lisbon to Vladivostok (`docs/enhanced.md`).
 
 - **Close support** (`ground_attack`), till sunset: the first of the **invasion targets** where an enemy land unit stands,
   in weather to 0.400 and in reach; else the first **battle on the front** - a province of the agent's front (section 4)

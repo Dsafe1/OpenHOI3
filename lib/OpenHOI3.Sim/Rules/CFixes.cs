@@ -56,6 +56,7 @@ public static class CFixes
 		(EFix.AirDefenceCounts, "air_defence_counts"),
 		(EFix.MapTextByTime, "map_text_by_time"),
 		(EFix.TheatreAlignmentDistance, "theatre_alignment_distance"),
+		(EFix.AiAirLocalSunset, "ai_air_local_sunset"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

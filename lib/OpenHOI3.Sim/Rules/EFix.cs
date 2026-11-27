@@ -295,4 +295,11 @@ public enum EFix
 	/// never reads the y (docs/mechanics/theatres.md, section 4.4).
 	/// </summary>
 	TheatreAlignmentDistance,
+
+	/// <summary>
+	/// The AI's daylight for a mission it flies till sunset is counted from its base's own hour, by how far east the
+	/// base lies, as night is told for a battle; the original sets its sunset against the game's one clock, the same
+	/// hours from Lisbon to Vladivostok (docs/mechanics/moving.md, section 17.4).
+	/// </summary>
+	AiAirLocalSunset,
 }

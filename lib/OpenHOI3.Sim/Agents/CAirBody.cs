@@ -594,8 +594,8 @@ public static class CAirBody
 	}
 
 	/// <summary>
-	/// Whether a mission flown till sunset may go: the sunset over the group's base less the game's hour, at least three
-	/// hours, gives its end.
+	/// Whether a mission flown till sunset may go: the sunset over the group's base less the game's hour - the base's own
+	/// hour under an enhanced game's fix <c>ai_air_local_sunset</c> - at least three hours, gives its end.
 	/// </summary>
 	private static bool Daylight(CGameState state, CUnit group, out long end)
 	{
@@ -604,7 +604,7 @@ public static class CAirBody
 		{
 			return false;
 		}
-		int left = CDaylight.SunsetHour(state, state.Province(group.Base)) - state.Hour;
+		int left = CDaylight.HoursToAiSunset(state, state.Province(group.Base));
 		if (left < LeastDaylight)
 		{
 			return false;

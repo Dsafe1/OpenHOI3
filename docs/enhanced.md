@@ -349,6 +349,9 @@ Begun 2026-11-21; as of 2026-11-27.
   - ✅ `theatre_alignment_distance`: A country in no faction measures how far a neighbour's alignment is from its own
     by the x and the y difference (`CFrontWorthy.AlignmentDistance`, `theatres.md`, section 4.4); the check of the
     start save's 108 theatres is a faithful game's and untouched.
+  - ✅ `ai_air_local_sunset`: The hours left to the AI's sunset are counted from the base province's own hour
+    (`CDaylight.HoursToAiSunset`, `moving.md`, section 17.4), so its daylight missions fly by day in the Far East
+    and the Americas too.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -810,7 +813,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
   `docs/performance.md`, section 2.
 - ❌ **The AI odds read a unit last battle figures.** The defence in `CAttackOdds` is the product its last battle left, nought for a unit that has never fought, so a fresh unit counts no toughness at all and a veteran is judged by a battle long over. `moving.md`, 11.4 and 18. *Oversight.* Risk: AI attacks.
 - ❌ **The terrain figure's neighbour term re-reads the province's own terrain.** `moving.md`, 18. *Bug.* Risk: AI attacks.
-- ❌ **The AI's air sunset ignores longitude.** `moving.md`, 17.4 and 18. *Oversight.* Risk: small.
+- ✅ **The AI's air sunset ignores longitude.** **Mended by the fix `ai_air_local_sunset`, 2026-11-27.** `moving.md`, 17.4 and 18. *Oversight.* Risk: small.
 - ❌ **Multi-role wings alone fly nothing.** `moving.md`, 17.4 and 18. *Oversight.* Risk: AI air.
 - ❌ **AI transport planes are never rebased.** `moving.md`, 17.1, 17.3 and 18. *Bug.* Risk: AI air.
 - ✅ **Which garrison the AI drops and which it picks hangs on where the heap put its region groups.** The split keeps its blocks of land in a map ordered by the groups' addresses, so two runs of one save can garrison differently: on 17 July 1941 one run sends the German 3. Infanterie-Division from Kirkenes to Oslo and another leaves it. Ours takes the blocks in the order the groups were made. `moving.md`, 7.2 and 19; `reversing/findings/FINDINGS-liveread.md`, section 130. *Bug.* Risk: none for the normal engine, which is already deterministic; an enhanced engine could keep ours on purpose.
