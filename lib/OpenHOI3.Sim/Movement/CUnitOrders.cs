@@ -353,16 +353,26 @@ public static class CUnitOrders
 	/// A strategic redeployment's hour (<c>landorders.md</c>, section 8): done in the province; otherwise the attack
 	/// delay started again, whatever happens next; a next province an enemy holds or with a battle in it ends the order
 	/// where it is the target and is gone round otherwise; a battle ends it; and with no way the very safe way is found
-	/// again. Where none is, the order ends.
+	/// again. Where none is, the order ends. An enhanced game's fix <c>redeploy_delay_once</c> starts the delay once, as the
+	/// unit arrives, and not at all on the way: the unit arrives with a whole delay as the original's does, for one
+	/// draw of the generator where the original makes one an hour.
 	/// </summary>
 	private static void RunRedeployment(CGameState state, CCountry country, CUnit unit, int target)
 	{
+		bool once = state.Rules.Has(Rules.EFix.RedeployDelayOnce);
 		if (unit.Location == target)
 		{
+			if (once)
+			{
+				Combat.CAttackDelay.Start(state, country, unit);
+			}
 			Clear(unit);
 			return;
 		}
-		Combat.CAttackDelay.Start(state, country, unit);
+		if (!once)
+		{
+			Combat.CAttackDelay.Start(state, country, unit);
+		}
 		if (unit.IsMoving)
 		{
 			CProvince next = state.Province(unit.Path[0]);

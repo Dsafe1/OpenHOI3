@@ -45,6 +45,7 @@ public static class CFixes
 		(EFix.TacticAggressiveness, "tactic_aggressiveness"),
 		(EFix.FriendlyFireTarget, "friendly_fire_target"),
 		(EFix.CombinedArmsCondition, "combined_arms_condition"),
+		(EFix.RedeployDelayOnce, "redeploy_delay_once"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

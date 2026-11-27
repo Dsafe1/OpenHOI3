@@ -591,6 +591,31 @@ public class MovingTests
 	}
 
 	[Fact]
+	public void An_enhanced_games_redeployment_starts_its_attack_delay_once_as_it_arrives()
+	{
+		CGameState state = World();
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		CCountry germany = state.Country(Ger)!;
+		CWarDeclarations(state);
+		CUnit division = Division(state, Ger, 1, "infantry_brigade");
+		CUnitOrders.Give(state, germany, division, EUnitOrder.StrategicRedeployment, 6);
+
+		// On the way nothing is started and nothing drawn: a delay it had runs down as any does.
+		CUnitOrders.RunHour(state, germany, division);
+		Assert.Equal(CFixedPoint.Zero, division.AttackDelay);
+		division.AttackDelay = CFixedPoint.FromInt(3);
+		CUnitOrders.RunHour(state, germany, division);
+		Assert.Equal(CFixedPoint.FromInt(3), division.AttackDelay);
+		Assert.Equal(EUnitOrder.StrategicRedeployment, division.Order);
+
+		// Arrived, it has one whole delay, as the original's unit arrives with.
+		division.Location = 6;
+		CUnitOrders.RunHour(state, germany, division);
+		Assert.Equal(EUnitOrder.None, division.Order);
+		Assert.Equal(CFixedPoint.FromInt(12), division.AttackDelay);
+	}
+
+	[Fact]
 	public void An_order_with_a_start_hour_does_not_move_before_it_and_one_with_an_arrival_hour_waits_at_full_progress()
 	{
 		CGameState state = World();

@@ -281,6 +281,9 @@ Begun 2026-11-21; as of 2026-11-25.
   - ✅ `combined_arms_condition`: the condition `has_combined_arms` asks what was written after it, so `= no` holds
     where no unit of the side has combined arms. Neither the base game nor BlackICE writes `= no` today
     (`mechanics/leaders.md`, oddity 17).
+  - ✅ `redeploy_delay_once`: a strategic redeployment starts its unit's attack delay once, as the unit arrives - the
+    same whole delay on arrival for one draw, where the original draws every hour of the way
+    (`mechanics/landorders.md`, section 8). Fewer draws, so every later roll of the game falls otherwise.
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -515,7 +518,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - ✅ **Two traits do nothing in a land battle.** **Given a meaning by the fixes `trait_fort_defence` and `trait_surprise_chance`, 2026-11-26.** `fort_defence` is reached only for an attacker, and `surprise_chance` is read and thrown away. `landcombat.md`; `leaders.md`, oddity 12. *Dead.* Risk: moderate.
 - ❌ **Support attack counts its hours twice,** in its own hour as well as the battle's. `landorders.md`, 10. *Bug.* Risk: small.
 - ❌ **AI support attack dropped.** The way into a province with no battle goes with the order, so a support attack where nobody fights yet is lost. `landorders.md`, 10. *Oversight.* Risk: AI attacks.
-- ❌ **Strategic redeployment restarts its attack delay** every hour on the way, drawing on the generator each time. `landorders.md`, 10. *Oversight.* Risk: small; rolls move.
+- ✅ **Strategic redeployment restarts its attack delay** **Mended by the fix `redeploy_delay_once`, 2026-11-27.** every hour on the way, drawing on the generator each time. `landorders.md`, 10. *Oversight.* Risk: small; rolls move.
 - ❌ **A redeployed brigade never loses organisation in its hour.** `STRAT_REDEP_ORG_LOSS` is taken off the hour's gain and what is left held at nothing, so a division on a strategic redeployment with no supplies keeps all it has where every other unit loses it. `organisation.md`, 3. *Bug.* Risk: small; unsupplied redeployments.
 - ❌ **Redeployment offered where impossible.** The row asks nothing about distance or a way, so it is open for a province it cannot reach and the order drops the hour it is given. Confirmed. `landorders.md`, 10. *Display.* Risk: none.
 - ❌ **Amphibious defence dead, landing penalty a hundredth off.** `extra_amphibious_defence` is asked of a fleet's summed table, which never holds a ship's, and with no landing craft the penalty is -70.70%. `transport.md`, section 9 and "What looks wrong", 6. The tables are kept on each type since 2026-11-14 and `CLanding.FleetExtraDefence` is the one place to sum the ships' instead. *Dead.* Risk: moderate.
