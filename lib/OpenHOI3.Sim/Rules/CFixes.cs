@@ -57,6 +57,7 @@ public static class CFixes
 		(EFix.MapTextByTime, "map_text_by_time"),
 		(EFix.TheatreAlignmentDistance, "theatre_alignment_distance"),
 		(EFix.AiAirLocalSunset, "ai_air_local_sunset"),
+		(EFix.AiTerrainNeighbour, "ai_terrain_neighbour"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

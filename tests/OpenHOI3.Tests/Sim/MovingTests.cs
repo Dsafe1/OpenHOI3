@@ -174,6 +174,61 @@ public class MovingTests
 	}
 
 	[Fact]
+	public void A_units_terrain_figure_beside_an_enemy_reads_its_own_ground_twice_and_in_an_enhanced_game_the_enemys()
+	{
+		CGameState state = World();
+		CWarDeclarations(state);
+		CCountry germany = state.Country(Ger)!;
+		var plains = new CTerrain("plains", isWater: false, default);
+		var forest = new CTerrain("forest", isWater: false, default);
+		var marsh = new CTerrain("marsh", isWater: false, default);
+		state.Province(10).Terrain = plains;
+		state.Province(11).Terrain = plains;
+		state.Province(12).Terrain = plains;
+		state.Province(21).Terrain = forest;
+		CUnit unit = Division(state, Ger, 12, "infantry_brigade");
+		void Adjust(string ground, string key, string value)
+		{
+			foreach (CSubUnit brigade in unit.SubUnits)
+			{
+				if (!brigade.Stats.Adjusters.TryGetValue(ground, out OpenHOI3.Sim.Modifiers.CModifier? figures))
+				{
+					brigade.Stats.Adjusters[ground] = figures = new OpenHOI3.Sim.Modifiers.CModifier(ground);
+				}
+				figures.Set(key, CFixedPoint.Parse(value));
+			}
+		}
+		Adjust("plains", "defence", "0.1");
+		Adjust("plains", "attack", "0.2");
+		Adjust("plains", "movement", "0.05");
+		Adjust("forest", "attack", "-0.3");
+		Adjust("forest", "movement", "-0.1");
+		Adjust("marsh", "attack", "-0.5");
+
+		// Away from the enemy its defence on the ground; beside him its attack and movement too - on its own ground.
+		Assert.Equal(100, CUnitRatings.Terrain(state, germany, state.Province(11), unit, attacking: false));
+		Assert.Equal(350, CUnitRatings.Terrain(state, germany, state.Province(12), unit, attacking: false));
+		Assert.Equal(-400, CUnitRatings.Terrain(state, germany, state.Province(21), unit, attacking: true));
+
+		// An enhanced game reads the attack and movement on the enemy's ground, which is forest: 0.1 - 0.3 - 0.1.
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		Assert.Equal(100, CUnitRatings.Terrain(state, germany, state.Province(11), unit, attacking: false));
+		Assert.Equal(-300, CUnitRatings.Terrain(state, germany, state.Province(12), unit, attacking: false));
+		Assert.Equal(-400, CUnitRatings.Terrain(state, germany, state.Province(21), unit, attacking: true));
+
+		// With several such neighbours, the best of them: 11 lost to the enemy and a marsh, 21's forest still counts.
+		state.Province(11).Terrain = marsh;
+		state.Province(11).Controller = Pol;
+		Assert.Equal(-300, CUnitRatings.Terrain(state, germany, state.Province(12), unit, attacking: false));
+		// And an enemy neighbour with no terrain gives nothing, which here is the best.
+		state.Province(11).Terrain = null;
+		Assert.Equal(100, CUnitRatings.Terrain(state, germany, state.Province(12), unit, attacking: false));
+
+		state.Rules.Set(OpenHOI3.Sim.Rules.EFix.AiTerrainNeighbour, false);
+		Assert.Equal(350, CUnitRatings.Terrain(state, germany, state.Province(12), unit, attacking: false));
+	}
+
+	[Fact]
 	public void The_stack_a_position_holds_is_half_over_the_stacking_penalty_less_two_thirds_of_its_fort()
 	{
 		CGameState state = World();

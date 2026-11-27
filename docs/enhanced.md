@@ -352,6 +352,8 @@ Begun 2026-11-21; as of 2026-11-27.
   - ✅ `ai_air_local_sunset`: The hours left to the AI's sunset are counted from the base province's own hour
     (`CDaylight.HoursToAiSunset`, `moving.md`, section 17.4), so its daylight missions fly by day in the Far East
     and the Americas too.
+  - ✅ `ai_terrain_neighbour`: A unit's terrain figure beside a country it may fight adds its attack and movement on
+    that neighbour's ground, the best of several (`CUnitRatings.Terrain`, `moving.md`, section 11.3).
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -812,7 +814,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
   it - the draws and numbers alone cost up to a fifth of the gain, the reads more - and a missed read would make the game come apart only now and then.
   `docs/performance.md`, section 2.
 - ❌ **The AI odds read a unit last battle figures.** The defence in `CAttackOdds` is the product its last battle left, nought for a unit that has never fought, so a fresh unit counts no toughness at all and a veteran is judged by a battle long over. `moving.md`, 11.4 and 18. *Oversight.* Risk: AI attacks.
-- ❌ **The terrain figure's neighbour term re-reads the province's own terrain.** `moving.md`, 18. *Bug.* Risk: AI attacks.
+- ✅ **The terrain figure's neighbour term re-reads the province's own terrain.** **Mended by the fix `ai_terrain_neighbour`, 2026-11-27.** `moving.md`, 18. *Bug.* Risk: AI attacks.
 - ✅ **The AI's air sunset ignores longitude.** **Mended by the fix `ai_air_local_sunset`, 2026-11-27.** `moving.md`, 17.4 and 18. *Oversight.* Risk: small.
 - ❌ **Multi-role wings alone fly nothing.** `moving.md`, 17.4 and 18. *Oversight.* Risk: AI air.
 - ❌ **AI transport planes are never rebased.** `moving.md`, 17.1, 17.3 and 18. *Bug.* Risk: AI air.

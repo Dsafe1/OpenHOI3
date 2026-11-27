@@ -302,4 +302,11 @@ public enum EFix
 	/// hours from Lisbon to Vladivostok (docs/mechanics/moving.md, section 17.4).
 	/// </summary>
 	AiAirLocalSunset,
+
+	/// <summary>
+	/// The AI's figure for a unit standing in a province beside a country it may fight adds its attack and movement on
+	/// that neighbour's ground, the best of several such neighbours; the original reads the province's own terrain a
+	/// second time (docs/mechanics/moving.md, section 11.3).
+	/// </summary>
+	AiTerrainNeighbour,
 }

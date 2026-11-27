@@ -572,6 +572,9 @@ bound for p, not retreating, **stands down**.
   with no brigades.
 - **Terrain figure** (`GetUnitTerrainModifier`): its type's terrain figures for p's terrain - attacking, attack + movement; otherwise its
   defence, + the same attack + movement where a land neighbour is held by a war candidate.
+  **An enhanced game** with the fix `ai_terrain_neighbour` (2026-11-27) reads that second term on the neighbour's ground,
+  which is the ground the unit would attack into: the best of such neighbours' attack + movement, nothing for one with
+  no terrain (`docs/enhanced.md`).
 
 ### 11.4 The odds (`CAIUnit::EstimateAttackOdds`, `FINDINGS-attackodds.md`)
 

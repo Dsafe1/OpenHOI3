@@ -92,6 +92,9 @@ public static class CUnitRatings
 	/// <summary>
 	/// Attacking, its attack and movement on the province's ground; otherwise its defence there, and the same attack and
 	/// movement again where a land neighbour is held by a war candidate - the neighbour's own ground never read.
+	///
+	/// Under an enhanced game's fix <c>ai_terrain_neighbour</c> that second term is read on the neighbour's ground, which
+	/// is the ground it would attack into: the best of such neighbours', and nothing for one with no terrain.
 	/// </summary>
 	public static long Terrain(CGameState state, CCountry country, CProvince province, CUnit unit, bool attacking)
 	{
@@ -106,6 +109,8 @@ public static class CUnitRatings
 			return attack + movement;
 		}
 		long figure = Mean(unit, terrain.Name, "defence");
+		bool theirGround = state.Rules.Has(Rules.EFix.AiTerrainNeighbour);
+		long? best = null;
 		foreach (CProvinceEdge edge in province.Edges)
 		{
 			if (edge.Kind == EProvinceEdgeKind.Impassable)
@@ -115,10 +120,15 @@ public static class CUnitRatings
 			CProvince beside = state.Province(edge.To);
 			if (!beside.IsSea && beside.Controller is { } holder && CFrontWorthy.IsWarCandidate(state, country, holder))
 			{
-				return figure + attack + movement;
+				if (!theirGround)
+				{
+					return figure + attack + movement;
+				}
+				long into = beside.Terrain is { } ground ? Mean(unit, ground.Name, "attack") + Mean(unit, ground.Name, "movement") : 0;
+				best = best is { } so ? System.Math.Max(so, into) : into;
 			}
 		}
-		return figure;
+		return figure + (best ?? 0);
 	}
 
 	private static long Mean(CUnit unit, string adjuster, string key)
