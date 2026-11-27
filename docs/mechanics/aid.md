@@ -200,7 +200,8 @@ dialog, `LicenceDialog`: section 6.
    still worked out from the debt as it stands whenever it has been set to nought - by a war, or a day without
    the money - so a debt interrupted so is paid in smaller parts afterwards.
 2. Revoking a debt permission charges the debtor; its message `DEBTREVOKE` names the one told as
-   RECIPIENT.
+   RECIPIENT. **An enhanced game's fix `debt_revoke_cost`** (2026-11-27): the creditor who revokes pays, and
+   the debtor is told with the two names turned round, so "$RECIPIENT$ have revoked our right" names the creditor.
 3. The Allow Debt dialog names the recipient's faction, not the recipient.
 4. Asking for lend-lease costs the debt's define; offering costs nothing.
 5. An accepted licence the buyer cannot pay turns into a decline; the licence is built at the seller's

@@ -40,6 +40,7 @@ public static class CFixes
 		(EFix.TooltipScroll, "tooltip_scroll"),
 		(EFix.AirRegroupAgrees, "air_regroup_agrees"),
 		(EFix.DebtRepaid, "debt_repaid"),
+		(EFix.DebtRevokeCost, "debt_revoke_cost"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

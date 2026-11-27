@@ -228,13 +228,21 @@ public static class CPacts
 
 	/// <summary>
 	/// Asking to run a debt, its answer, or revoking another's - <c>aid.md</c>, section 1. Revoking charges
-	/// the recipient, the debtor; nothing touches the debt itself.
+	/// the recipient, the debtor; nothing touches the debt itself. An enhanced game's fix <c>debt_revoke_cost</c>
+	/// charges the actor, the creditor who revokes, and tells the debtor with the two names turned round, so that
+	/// the text's RECIPIENT is the creditor.
 	/// </summary>
 	private static void Debt(CGameState state, COffer offer, CCountry actor, CCountry recipient)
 	{
 		if (!offer.Value)
 		{
 			CGameState.Status(recipient, actor).AllowDebts = false;
+			if (state.Rules.Has(Rules.EFix.DebtRevokeCost))
+			{
+				Charge(state, actor, "REVOKE_DEBT_INFLUENCE_COST");
+				ToldTurnedRound(state, actor, recipient, "DEBTREVOKE");
+				return;
+			}
 			Charge(state, recipient, "REVOKE_DEBT_INFLUENCE_COST");
 			Message(state, "", "DEBTREVOKE", "", actor, recipient);
 			return;

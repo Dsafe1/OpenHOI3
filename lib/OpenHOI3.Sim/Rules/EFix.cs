@@ -180,4 +180,11 @@ public enum EFix
 	/// (<c>docs/mechanics/aid.md</c>, section 1).
 	/// </summary>
 	DebtRepaid,
+
+	/// <summary>
+	/// Revoking another's leave to run a debt charges the one who revokes, the creditor, and its message names the
+	/// creditor to the debtor - where the original charges the debtor and names him to himself
+	/// (<c>docs/mechanics/aid.md</c>, section 1).
+	/// </summary>
+	DebtRevokeCost,
 }

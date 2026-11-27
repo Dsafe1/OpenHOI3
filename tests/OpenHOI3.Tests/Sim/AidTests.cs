@@ -63,6 +63,31 @@ public class AidTests
 	}
 
 	[Fact]
+	public void An_enhanced_games_revoking_charges_the_creditor_and_names_him_to_the_debtor()
+	{
+		CGameState state = World();
+		state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+		var told = new List<CPactMessage>();
+		state.PactMessaged += told.Add;
+		CGameState.Status(C(state, Ger), C(state, Pol)).AllowDebts = true;
+
+		Run(state, Debt(state, Pol, Ger, false, EOfferStage.Proposed));
+		Assert.False(CGameState.Status(C(state, Ger), C(state, Pol)).AllowDebts);
+		Assert.Equal(CFixedPoint.FromInt(10), C(state, Ger).DiplomaticInfluence);
+		Assert.Equal(CFixedPoint.FromInt(9), C(state, Pol).DiplomaticInfluence);
+		Assert.Equal("DEBTREVOKE", told[^1].They);
+		Assert.True(told[^1].TurnedRound);
+
+		// Without the fix the debtor pays, as in the original.
+		CGameState other = World();
+		other.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(new[] { OpenHOI3.Sim.Rules.EFix.DebtRevokeCost }));
+		CGameState.Status(C(other, Ger), C(other, Pol)).AllowDebts = true;
+		Run(other, Debt(other, Pol, Ger, false, EOfferStage.Proposed));
+		Assert.Equal(CFixedPoint.FromInt(9), C(other, Ger).DiplomaticInfluence);
+		Assert.Equal(CFixedPoint.FromInt(10), C(other, Pol).DiplomaticInfluence);
+	}
+
+	[Fact]
 	public void A_puppet_neither_allows_nor_revokes_a_debt_and_another_countrys_puppet_is_not_asked()
 	{
 		CGameState state = World();
