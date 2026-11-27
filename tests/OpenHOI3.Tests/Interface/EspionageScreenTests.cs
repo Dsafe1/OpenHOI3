@@ -79,6 +79,35 @@ public class EspionageScreenTests
 	}
 
 	[Fact]
+	public void An_enhanced_games_two_minister_keys_add_to_how_well_a_country_is_known()
+	{
+		foreach (bool atWar in new[] { false, true })
+		{
+			CGameState state = ScriptWorld.State(atWar: atWar);
+			CCountry germany = C(state, Ger);
+			CCountry poland = C(state, Pol);
+			CGameState.Presence(germany, poland).Level = 3000;
+			germany.Modifier.Set(OpenHOI3.Sim.Intelligence.CCountryIntel.PoliticalIntel, CFixedPoint.Parse("0.2"));
+			germany.Modifier.Set(OpenHOI3.Sim.Intelligence.CCountryIntel.PeaceIntel, CFixedPoint.Parse("0.2"));
+
+			// The original reads neither: three spies know it at 0.3, which is red.
+			Assert.Equal(300, OpenHOI3.Sim.Intelligence.CCountryIntel.Factor(state, germany, poland));
+			Assert.Equal("§R3§W", CEspionageScreenText.ChosenSpies(germany, poland, state));
+
+			// The fix: political intel always, intel during peace only towards a country ours is not at war with.
+			state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(System.Array.Empty<OpenHOI3.Sim.Rules.EFix>()));
+			Assert.Equal(atWar ? 500 : 700, OpenHOI3.Sim.Intelligence.CCountryIntel.Factor(state, germany, poland));
+			Assert.Equal(atWar ? "§Y3§W" : "§G3§W", CEspionageScreenText.ChosenSpies(germany, poland, state));
+			// Nothing of it towards itself, and the bare figure is the original's still.
+			Assert.Equal(0, OpenHOI3.Sim.Intelligence.CCountryIntel.Bonus(state, germany, germany));
+			Assert.Equal(300, OpenHOI3.Sim.Intelligence.CCountryIntel.Factor(germany, poland));
+
+			state.Rules.CopyFrom(new OpenHOI3.Sim.Rules.CRules(new[] { OpenHOI3.Sim.Rules.EFix.MinisterIntel }));
+			Assert.Equal(300, OpenHOI3.Sim.Intelligence.CCountryIntel.Factor(state, germany, poland));
+		}
+	}
+
+	[Fact]
 	public void The_foreign_actions_mark_wants_more_than_three_spies_at_home()
 	{
 		CGameState state = ScriptWorld.State();

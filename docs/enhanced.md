@@ -306,6 +306,10 @@ Begun 2026-11-21; as of 2026-11-25.
     to a random province" (`mechanics/bombing.md`, section 2).
   - ✅ `air_raid_waits`: a unit raiding convoys from the air waits at its base until its hours to the next try are no
     more than the flight out takes, so every sortie arrives to a try (`mechanics/navalmissions.md`, section 8.1).
+  - ✅ `minister_intel`: the two modifiers the original reads nowhere add to how well a country knows another -
+    `offmap_political_intel` towards every country, `peace_offmap_intel` towards one it is not at war with - each
+    worth that much of a spy's share, for the AI's intelligence and the intelligence screen alike. The rule is ours
+    (`mechanics/intelligence.md`, section 1).
 
 **Built for every game, and so no part of the mode**: the notice `AUTOSAVING` and the two picture keys, F11 and F12,
 which are the original's (`mechanics/loadingscreen.md`, section 6; `mechanics/screenshots.md`).
@@ -679,7 +683,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - ❌ **`espionage_bonus` helps the wrong way.** The target's bonus lowers the chance of catching spies, its own at home included. `espionage.md`, "What looks wrong". *Bug.* Risk: moderate.
 - ❌ **Foreign counter-espionage catches the target's own spies at home.** `espionage.md`, "What looks wrong". *Bug.* Risk: small.
 - ❌ **`modify_spies` adds a count it never read,** and `has_hostile_spy_mission` compares with a figure nothing sets. `espionage.md`, 13. *Bug.* Risk: only scripts using them.
-- ❌ **Minister intelligence effects do nothing:** `peace_offmap_intel` and `offmap_political_intel`. `intelligence.md`, 1. *Dead.* Risk: small.
+- ✅ **Minister intelligence effects do nothing:** **Mended by the fix `minister_intel`, 2026-11-27.** `peace_offmap_intel` and `offmap_political_intel`. `intelligence.md`, 1. *Dead.* Risk: small.
 - ❌ **Radar stays with the old holder after a plain change of hands,** a radar bombed below a whole level stops seeing while one built to the same level sees, and the far radar ring is never reached. `intelligence.md`, 4 and "What looks wrong"; `modifiers.md`, 3, step 13. *Bug.* Risk: small.
 - ❌ **A port's blockade is worked out only when its controller is set.** A fleet sailing in or out tells it nothing, so a port that never changes hands is never blockaded, and one taken while the enemy lay off it stays blockaded until it changes hands again; `blockaded`, `is_blockaded` and `blockade` all read that. `modifiers.md`, 3, step 8. *Oversight.* Risk: moderate; mods that fill `blockaded` would start to bite.
 - ❌ **A country's rebuild asks whether a province is blockaded and does nothing with the answer.** In its walk of the provinces it controls, at war, it tests each owned province of its capital's area for a blockade and fetches the capital twice, and nothing follows. `modifiers.md`, 4, step 7. *Dead.* Risk: none.

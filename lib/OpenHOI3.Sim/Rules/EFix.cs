@@ -237,4 +237,11 @@ public enum EFix
 	/// (<c>docs/mechanics/navalmissions.md</c>, section 8.1).
 	/// </summary>
 	AirRaidWaits,
+
+	/// <summary>
+	/// The two modifiers the original reads nowhere add to how well a country knows another, the figure one spy raises
+	/// by a tenth: <c>offmap_political_intel</c> towards every country and <c>peace_offmap_intel</c> towards one it is
+	/// not at war with. The rule is ours (<c>docs/mechanics/intelligence.md</c>, section 1).
+	/// </summary>
+	MinisterIntel,
 }

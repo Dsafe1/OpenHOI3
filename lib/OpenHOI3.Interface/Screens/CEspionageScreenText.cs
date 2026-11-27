@@ -107,9 +107,11 @@ public static class CEspionageScreenText
 	public static int NextFrame(int frame, bool up) => up ? (frame >= 4 ? 1 : frame + 1) : (frame <= 1 ? 4 : frame - 1);
 
 	/// <summary>The player's spies in the chosen country, green above 0.6 of knowing it, yellow above 0.3, else red.</summary>
-	public static string ChosenSpies(CCountry player, CCountry chosen)
+	/// <param name="state">The game, for an enhanced game's fix <c>minister_intel</c>; none asks the original's figure.</param>
+	public static string ChosenSpies(CCountry player, CCountry chosen, CGameState? state = null)
 	{
-		float factor = (float)(CCountryIntel.Factor(player, chosen) / 1000.0);
+		long known = state is null ? CCountryIntel.Factor(player, chosen) : CCountryIntel.Factor(state, player, chosen);
+		float factor = (float)(known / 1000.0);
 		char colour = factor > 0.6f ? CColouredText.Green : factor > 0.3f ? CColouredText.Yellow : CColouredText.Red;
 		return CColouredText.In(colour) + Whole(CGameState.Presence(player, chosen).Level) + CColouredText.In('W');
 	}
@@ -135,7 +137,7 @@ public static class CEspionageScreenText
 	/// <summary>The production list's chance, in whole percent: fifty at full knowledge.</summary>
 	public static long ProductionChance(CGameState state, CCountry player, CCountry chosen)
 	{
-		long factor = CCountryIntel.Factor(player, chosen);
+		long factor = CCountryIntel.Factor(state, player, chosen);
 		return 100000 * state.Defines["country", "SPY_BASE_PRODUCTION_DETECTION_CHANCE"].Raw / 1000 * factor / 1000 / 1000;
 	}
 

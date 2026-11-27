@@ -56,7 +56,7 @@ public sealed class CEspionageEstimates
 	{
 		var made = new CEspionageEstimates();
 		var random = new CRandom((uint)MonthKey(state, player));
-		float factor = (float)(CCountryIntel.Factor(player, chosen) / 1000.0);
+		float factor = (float)(CCountryIntel.Factor(state, player, chosen) / 1000.0);
 		// The console's debug spy shows the true figures.
 		bool noIntel = !state.SpyCheat && CCountryIntel.HasNone(player, chosen);
 		float uncertainty = state.SpyCheat ? 0f : Math.Clamp((float)(1.0 - factor + 0.1), 0.1f, 1.0f);

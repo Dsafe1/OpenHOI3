@@ -481,7 +481,7 @@ public sealed partial class CEspionageView : CCountryView
 		}
 		CSpyPresence presence = CGameState.Presence(Player, _chosen);
 		_shownSpies = presence.Level / 1000;
-		Set(_info.FindTextBox("value_active_spies"), CEspionageScreenText.ChosenSpies(Player, _chosen));
+		Set(_info.FindTextBox("value_active_spies"), CEspionageScreenText.ChosenSpies(Player, _chosen, Simulation.State));
 		_info.TryFindIcon("spy_bar")?.SetFrame((int)_shownSpies + 1);
 		_targetFrame = CEspionageScreenText.PriorityFrame(presence.Priority);
 		_targetPriority?.SetFrame(_targetFrame);

@@ -48,6 +48,7 @@ public static class CFixes
 		(EFix.RedeployDelayOnce, "redeploy_delay_once"),
 		(EFix.InterdictionTarget, "interdiction_target"),
 		(EFix.AirRaidWaits, "air_raid_waits"),
+		(EFix.MinisterIntel, "minister_intel"),
 	};
 
 	/// <summary>Every fix, in the order of their names.</summary>

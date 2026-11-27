@@ -32,6 +32,20 @@ What reads it:
 estimate of strength, not F. **`peace_offmap_intel` and `offmap_political_intel` are read by nothing** found, so
 three minister types do nothing by them.
 
+**An enhanced game's fix `minister_intel`** (2026-11-27) gives the two a meaning, which is *ours* - what they were
+meant to do is nowhere in the original, and the user took the rule as proposed: both are added to F, in its own
+thousandths, so 0.1 is worth one spy.
+
+    F = the original's  +  the asker's offmap_political_intel
+                        +  the asker's peace_offmap_intel, where the two are not at war with each other
+
+Nothing is added towards the country itself. Everything that reads F reads it so: the AI's `CAIIntel` factor and
+uncertainty, and the intelligence screen's estimates, its spies' colour and its production list's chance. A country
+with no whole spy in another still has no intelligence there for the AI, and question marks on the screen. **One
+thing otherwise than first proposed**: `offmap_political_intel` counts towards every country and everything, not only
+towards what the screen shows of another's politics - its government, cabinet and parties are shown in full whatever is
+known (`espionagescreen.md`), so a term for those alone would have done nothing.
+
 ## 2. How well a country knows a province
 
 One level per country, 0 to 9. **The savegame keeps none of it**: it is worked out afresh as a game is entered. The

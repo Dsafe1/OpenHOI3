@@ -54,6 +54,11 @@ public static class CAiIntelClass
 	{
 		long counter = api.State.Country(them)?.Modifier[CCountryIntel.CounterIntelligence].Raw ?? 0;
 		long intel = SpyLevel(api, us, them) * 1000 / CSpyPresence.MostLevel - counter;
+		// An enhanced game's fix minister_intel: the two modifiers the original reads nowhere (intelligence.md, section 1).
+		if (api.State.Country(us) is { } ours && api.State.Country(them) is { } theirs)
+		{
+			intel += CCountryIntel.Bonus(api.State, ours, theirs);
+		}
 		float factor = (float)(intel / 1000.0);
 		float uncertainty = (float)(1.0 - factor + 0.2);
 		if (uncertainty < 0.2)
