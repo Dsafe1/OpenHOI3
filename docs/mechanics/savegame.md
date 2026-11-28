@@ -1063,3 +1063,15 @@ played back, the last mark passed and after another colon how many of the record
 (`replay.md`, section 13). A game not recorded writes none. Read into
 `CGameState.ReplayLink`, which nothing in play reads: it is what the lobby shows the rule by, and what a recording
 begun from the save names as its parent. A text that is no such place is reported and left out.
+
+## 24. An enhanced save's key in a country: the decisions out of its alert
+
+Built 2026-11-28 (`CSaveQuietDecisions`). In a country's block, after the keys of section 21:
+
+    openhoi_quiet_decisions={ road_network trade_zinc }
+
+the names of the decisions the country has taken out of its "decisions available" alert (`events.md`, section
+12), in the names' order. A country with none writes no key, and a faithful game never writes it. On a load the
+save's list replaces whatever the country held; a name the game has no decision for - a mod's newer version
+having dropped it - is left out and said in the log. Nothing of the simulation hangs on it, so a game saved and
+loaded plays on as it would have; what the key keeps is the player's own arrangement of an alert.

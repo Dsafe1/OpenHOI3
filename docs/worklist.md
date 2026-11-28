@@ -2256,6 +2256,11 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   just surround them and wait" - the unit AI's frontier was at war beside a declared war's land alone, where the
   original's asks its whole enemy test, the rebels and a war nobody declared with it. Tried with
   `OpenHOI3.SaveCheck rebels ... peace`; not looked at in play since.
+- **A decision's tick for the alert is built and was clicked in a scripted run alone** (2026-11-28, `events.md`,
+  section 12): an enhanced game's tick beside each decision takes it out of the "decisions available" alert, per
+  country, by an order, kept in the save, with Ctrl for every decision listed. The mod's window and texts are in
+  BlackICE's working copy. To be tried by hand: the alert's icon going out and coming back, a save and a load,
+  and two machines playing one country.
 - **The AI's invasions sail since 2026-11-27, and nobody has watched one** (`moving.md`, section 16). The
   invasion's hour was read on the listing again while its second stage, the carrier aircraft over the beach, was
   built: as first built here its troops had no way to a port across water and its fleet kept a finished transport

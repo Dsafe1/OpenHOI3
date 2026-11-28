@@ -1,5 +1,6 @@
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Events;
+using OpenHOI3.Interface.Screens;
 using OpenHOI3.Interface.Script;
 using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
@@ -13,7 +14,8 @@ namespace OpenHOI3.Screens;
 /// <summary>
 /// One row of the decision list, a <c>diplomatic_decision_entry</c>: the decision's title, the button
 /// that takes it - disabled where it may not be taken, and never enabled again while the screen is up
-/// - and the icon. See <c>docs/mechanics/events.md</c>, section 12.
+/// - and the icon; and in an enhanced game whose mod declares it, the tick that says whether the decision
+/// counts for the "decisions available" alert. See <c>docs/mechanics/events.md</c>, section 12.
 /// </summary>
 public sealed class CDecisionEntry
 {
@@ -23,6 +25,10 @@ public sealed class CDecisionEntry
 	private readonly CDecision _decision;
 	private readonly CCountryTag _country;
 	private readonly CGuiButton? _select;
+	private readonly CGuiButton? _alert;
+
+	/// <summary>What the tick was just set to and the game has not yet taken up; null once it has.</summary>
+	private bool? _asked;
 
 	private CDecisionEntry(CGuiWindow window, CGuiContext context, CSimulation simulation, CDecision decision,
 		CCountryTag country, bool mayTake)
@@ -59,9 +65,42 @@ public sealed class CDecisionEntry
 		{
 			info.Tooltip = () => new CTooltip { Text = CConditionText.For(words, _decision.Allow, CDecisions.ScopeOf(_country)) };
 		}
+		// An enhanced game's tick for the alert: a window of the mod's own put into the row where the mod declares one
+		// (CDecisionAlertText) - never in the row's own declaration, which the original reads too.
+		if (state.Rules.Enhanced && context.Types.FindWindow(CDecisionAlertText.WindowName) is not null
+			&& CGuiWindow.Create(context, CDecisionAlertText.WindowName) is { } tick)
+		{
+			window.AddChild(tick);
+			_alert = tick.TryFindButton(CDecisionAlertText.ButtonName);
+			if (_alert is not null)
+			{
+				_alert.Pressed += () => AlertPressed?.Invoke(this, !Counts, Godot.Input.IsKeyPressed(Godot.Key.Ctrl));
+				_alert.Tooltip = () => CDecisionAlertText.Tooltip(context.Localisation.Localise, Counts);
+				_alert.SetText(CDecisionAlertText.Mark(Counts));
+			}
+		}
 	}
 
 	public CGuiWindow Window { get; }
+
+	/// <summary>The decision's name, as the files and a save have it.</summary>
+	public string DecisionName => _decision.Name;
+
+	/// <summary>
+	/// The tick pressed: the row, whether its decision is now to count for the alert, and whether Ctrl was held - which
+	/// asks the same of every row the list shows.
+	/// </summary>
+	public event System.Action<CDecisionEntry, bool, bool>? AlertPressed;
+
+	/// <summary>Whether the decision counts for the alert: as just asked, until the game is seen to have it; else as the country has it.</summary>
+	private bool Counts => _asked ?? !(_simulation.State.Country(_country)?.QuietDecisions.Contains(_decision.Name) ?? false);
+
+	/// <summary>Shows the tick as asked at once; the order that makes it so runs with the next orders.</summary>
+	public void AskAlert(bool counts)
+	{
+		_asked = counts;
+		_alert?.SetText(CDecisionAlertText.Mark(counts));
+	}
 
 	/// <summary>Makes the row, or answers null where no file declares its window.</summary>
 	public static CDecisionEntry? Create(CGuiContext context, CSimulation simulation, CDecision decision, CCountryTag country,
@@ -77,6 +116,16 @@ public sealed class CDecisionEntry
 	/// </summary>
 	public void Refresh()
 	{
+		if (_alert is not null)
+		{
+			// What was asked stands until the game has it; then the tick follows the game - a fellow player's change too.
+			bool has = !(_simulation.State.Country(_country)?.QuietDecisions.Contains(_decision.Name) ?? false);
+			if (_asked == has)
+			{
+				_asked = null;
+			}
+			_alert.SetText(CDecisionAlertText.Mark(Counts));
+		}
 		if (_select is null || _select.Disabled)
 		{
 			return;

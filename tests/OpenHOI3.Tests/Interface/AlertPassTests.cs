@@ -49,6 +49,31 @@ public class AlertPassTests
 	private static List<EAlert> Up(CGameState state, CCountry player) => CAlertPass.Run(Word, state, player).Select(alert => alert.Alert).ToList();
 
 	[Fact]
+	public void The_decisions_alert_passes_over_the_decisions_the_country_has_taken_out_of_it()
+	{
+		(CGameState state, CCountry england, _) = World();
+		var first = new OpenHOI3.Sim.Script.CDecision("first", OpenHOI3.Sim.Script.EDecisionGroup.Diplomatic, "decisions/test.txt", 1);
+		var second = new OpenHOI3.Sim.Script.CDecision("second", OpenHOI3.Sim.Script.EDecisionGroup.Diplomatic, "decisions/test.txt", 2);
+		state.Decisions = new[] { first, second };
+		string List(string key) => key == "alert_national_decisions_delayed" ? "$LIST$" : key;
+		string? Named() => CAlertPass.Run(List, state, england).SingleOrDefault(shown => shown.Alert == EAlert.NationalDecisions)?.Tooltip.Delayed;
+
+		// Both may be taken: the alert is up and names both.
+		Assert.Contains("first_title", Named());
+		Assert.Contains("second_title", Named());
+
+		// One taken out: the alert names the other alone. It is still offered, and may still be taken.
+		england.QuietDecisions.Add("first");
+		Assert.DoesNotContain("first_title", Named());
+		Assert.Contains("second_title", Named());
+		Assert.Equal(2, OpenHOI3.Sim.Events.CDecisions.Offered(state, Eng).Count(offer => offer.MayTake));
+
+		// Both out: no alert at all.
+		england.QuietDecisions.Add("second");
+		Assert.DoesNotContain(EAlert.NationalDecisions, Up(state, england));
+	}
+
+	[Fact]
 	public void Mobilised_at_peace_is_up_and_at_war_it_is_not_asked()
 	{
 		(CGameState state, CCountry england, _) = World();

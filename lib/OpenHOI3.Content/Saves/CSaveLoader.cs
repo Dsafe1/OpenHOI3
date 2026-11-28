@@ -39,6 +39,8 @@ public static class CSaveLoader
 		CSaveEventCandidates.Key,
 		// And what it keeps of its manpower for the tooltip (CSaveManpowerRecord).
 		CSaveManpowerRecord.Key,
+		// And the decisions it has taken out of its alert (CSaveQuietDecisions).
+		CSaveQuietDecisions.Key,
 	};
 
 	private static readonly HashSet<string> ProvinceKeys = new(StringComparer.Ordinal)
@@ -568,6 +570,7 @@ public static class CSaveLoader
 		CSaveConversions.Read(country, node);
 		CSaveEventCandidates.Read(state, country, node, report);
 		CSaveManpowerRecord.Read(country, node);
+		CSaveQuietDecisions.Read(state, country, node);
 
 		foreach (ClausewitzNode child in node.Children)
 		{

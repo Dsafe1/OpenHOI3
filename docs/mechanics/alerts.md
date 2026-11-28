@@ -69,3 +69,7 @@ Every click closes the orders window and any other side menu, and lets go of the
 2. A law "more efficient" is only one earlier in the file whose `allow` holds; nothing asks whether it is better.
 3. A pact is listed three months before it may be broken at all, as "may be broken on".
 4. The wasted IC figure on the top bar is another sum, of what shares were given over what they spent.
+
+**Alert 12 in an enhanced game** (2026-11-28): a decision the country has unticked in the decision list is
+passed over - it neither lights the alert nor is named in its list (`events.md`, section 12;
+`CCountry.QuietDecisions`). With every decision that may be taken unticked the alert is not up.

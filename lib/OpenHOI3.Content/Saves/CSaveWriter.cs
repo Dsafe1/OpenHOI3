@@ -339,6 +339,7 @@ public static class CSaveWriter
 		CSaveConversions.Write(writer, state, country);
 		CSaveEventCandidates.Write(writer, state, country);
 		CSaveManpowerRecord.Write(writer, state, country);
+		CSaveQuietDecisions.Write(writer, state, country);
 		writer.Int("capital", country.Capital);
 		writer.Int("acting_capital", country.ActingCapital);
 		// Whether it is in exile, its strategic warfare, its pools of goods and its battles fought (savegame.md, section 15).

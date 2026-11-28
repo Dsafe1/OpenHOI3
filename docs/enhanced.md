@@ -96,6 +96,10 @@ Begun 2026-11-21; as of 2026-11-27.
 - ✅ **One line says them** (`CRules.Text`): empty for the faithful game, `enhanced`, or `enhanced without a b`. That
   line is hashed into the play checksum (`mechanics/checksum.md`, section 8) and is the last part of the state's hash,
   `rules` (`replay.md`).
+- ✅ **A decision is taken out of the "decisions available" alert by a tick beside it** (2026-11-28, asked for
+  that day). Per country, by an order, in the save; with Ctrl every decision the list shows. The tick is a window
+  of the mod's `interface/openhoi` folder, so the original's row is untouched (`mechanics/events.md`, section 12;
+  `savegame.md`, section 24). Nothing like it is in the original or in BiceLib.
 - ✅ **A fix is switched in a running game by an order** (`CSetFixCommand`, 2026-11-27, asked for that day: a page
   "in which we can enable/disable each patch individually"). The game's rules change, and with them the save's
   line and the hash's last part. **It is the host's alone** between machines - "Host only." - an `IHostOrder`,

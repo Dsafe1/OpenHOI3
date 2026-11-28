@@ -293,6 +293,31 @@ it. Pressing the button takes the decision (section 9) - the
 button does not ask `allow` itself; the command does when it runs. The rest of the diplomacy screen is
 `diplomacyscreen.md`.
 
+**An enhanced game's tick for the alert** (2026-11-28, asked for that day: "a checkbox to the left of the '?',
+which toggles whether a decision is considered for the 'decisions available' alert"). BlackICE's countries have
+decisions they may take at any time, so the alert was always up and said nothing. Each row has a tick, on by
+default: **a decision unticked is passed over by alert 12** (`alerts.md`) - it neither lights the alert nor is
+named by it - **and is offered and taken as before**. A click switches the row's decision; **with Ctrl held, every
+decision the list shows** takes the state the clicked one is given - the list's rows, which are the decisions
+offered, and no decision that is not offered now. What is unticked is **the country's**
+(`CCountry.QuietDecisions`, by name): everyone who plays the country shares it, it is changed by an order alone
+(`CQuietDecisionsCommand`, refused in a faithful game and for a name that is no decision) and so is the same on
+every machine and in a replay, and an enhanced save keeps it (`savegame.md`, section 24). It is no part of the
+simulation: nothing but the alert reads it.
+
+**The tick is not in the row's own declaration.** The original reads `diplomatic_decision_entry` too and would
+draw an element it knows nothing of as a dead box, so the tick is a window of its own, `openhoi_decision_alert`,
+in the mod's `interface/openhoi` folder, which the original never opens: a field named `alert` that shows an X
+while the decision counts (`CDecisionAlertText`). The screen puts one into every row at the place the window
+declares, measured from the row's corner; a mod that declares none has no tick and every decision counts. Its
+tooltip is `OPENHOI_DECISION_ALERT_ON` or `_OFF`, with `_ALL` under the dashes. A tick shows what was asked at
+once and follows the game from the next frame the game has it - a fellow player's change too.
+
+*Checked*: `QuietDecisionsTests` and `AlertPassTests`; and on 2026-11-28 in the client on BlackICE's working
+copy, as Germany with `--screen=diplomacy` and `--click`: the ticks in every row left of the `?`, one unticked by
+a click with its tooltip's two halves, and all fourteen rows shown unticked by a Ctrl+click on another. **Not
+looked at**: the alert's icon going out on screen, and two machines playing one country.
+
 ## 13. The decisions a history has taken
 
 `confirmed` (`reversing/findings/FINDINGS-startshares.md`, section 4, which gathers the record's reading of the original's

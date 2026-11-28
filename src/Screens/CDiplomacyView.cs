@@ -835,10 +835,28 @@ public sealed partial class CDiplomacyView : CCountryView
 		{
 			if (CDecisionEntry.Create(Context, Simulation, decision, Player.Tag, mayTake) is { } row)
 			{
+				row.AlertPressed += SetDecisionAlert;
 				_decisions.Add(row);
 				_decisionList.Add(row.Window);
 			}
 		}
+	}
+
+	/// <summary>
+	/// A row's alert tick pressed (an enhanced game's, <c>events.md</c>, section 12): the row's decision, or with Ctrl
+	/// every decision the list shows, counts for the "decisions available" alert or no longer does. One order for all of
+	/// them; the ticks show it at once.
+	/// </summary>
+	private void SetDecisionAlert(CDecisionEntry pressed, bool counts, bool all)
+	{
+		var rows = all ? new List<CDecisionEntry>(_decisions) : new List<CDecisionEntry> { pressed };
+		var names = new List<string>();
+		foreach (CDecisionEntry row in rows)
+		{
+			row.AskAlert(counts);
+			names.Add(row.DecisionName);
+		}
+		Simulation.Post(new Sim.Commands.CQuietDecisionsCommand(Player.Tag, names, quiet: !counts));
 	}
 
 	/// <summary>A named position of the interface files, or nought where none is declared.</summary>

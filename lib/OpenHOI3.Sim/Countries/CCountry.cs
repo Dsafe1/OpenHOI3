@@ -445,6 +445,14 @@ public sealed class CCountry
 	public Economy.CConversionSetting Conversion(Economy.EConversion conversion) =>
 		conversion == Economy.EConversion.EnergyIntoCrudeOil ? EnergyConversion : CrudeOilConversion;
 
+	/// <summary>
+	/// The decisions the country's players have taken out of the "decisions available" alert, by name, in the names'
+	/// order: an enhanced game's alone, the country's and so shared by everyone who plays it, changed by a command alone
+	/// (<c>CQuietDecisionsCommand</c>) and kept in an enhanced save. A decision in it is offered and taken as any other;
+	/// only the alert passes it over (<c>docs/mechanics/alerts.md</c>).
+	/// </summary>
+	public SortedSet<string> QuietDecisions { get; } = new(StringComparer.Ordinal);
+
 	/// <summary>How unhappy its people are. Never below nothing.</summary>
 	public CFixedPoint Dissent { get; set; }
 

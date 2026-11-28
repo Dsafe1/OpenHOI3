@@ -491,13 +491,16 @@ public static class CAlertPass
 		return new CAlertShown(EAlert.AlliedObjectives, new CTooltip { Text = localise("AO_ALERT"), Delayed = string.Join("\n", lines) });
 	}
 
-	/// <summary>Alert 12: the decisions the country may take now.</summary>
+	/// <summary>
+	/// Alert 12: the decisions the country may take now - but those it has taken out of the alert, an enhanced game's
+	/// tick beside each in the list (<see cref="CCountry.QuietDecisions"/>), which neither light it nor are named by it.
+	/// </summary>
 	private static CAlertShown? Decisions(Func<string, string> localise, CGameState state, CCountry player)
 	{
 		var list = new StringBuilder();
 		foreach ((var decision, bool mayTake) in CDecisions.Offered(state, player.Tag))
 		{
-			if (mayTake)
+			if (mayTake && !player.QuietDecisions.Contains(decision.Name))
 			{
 				list.Append(CEventText.Localise(localise, state, decision.Name + "_title", CDecisions.ScopeOf(player.Tag)).Trim()).Append('\n');
 			}
